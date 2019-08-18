@@ -286,11 +286,11 @@
     "tags": [
         {
             "name": "evento",
-            "description": "FormacionController ...\n"
+            "description": "EventoController ...\n"
         },
         {
             "name": "produccion_academica",
-            "description": "FormacionController ...\n"
+            "description": "ProduccionAcademicaController ...\n"
         }
     ]
 }

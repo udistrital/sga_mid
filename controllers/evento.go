@@ -11,7 +11,7 @@ import (
 	"github.com/udistrital/utils_oas/request"
 )
 
-// FormacionController ...
+// EventoController ...
 type EventoController struct {
 	beego.Controller
 }
