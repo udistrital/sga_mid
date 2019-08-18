@@ -11,6 +11,80 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
 basePath: /v1
 paths:
+  /evento/:
+    post:
+      tags:
+      - evento
+      description: Agregar Evento
+      operationId: EventoController.PostEvento
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar Evento content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /evento/{id}:
+    put:
+      tags:
+      - evento
+      description: Modificar Evento
+      operationId: EventoController.PutEvento
+      parameters:
+      - in: path
+        name: id
+        description: el id del evento a modificar
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body Modificar Evento content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: :id is empty
+    delete:
+      tags:
+      - evento
+      description: eliminar Evento por id
+      operationId: EventoController.DeleteEvento
+      parameters:
+      - in: path
+        name: id
+        description: Id del Evento
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: :id is empty
+  /evento/{persona}:
+    get:
+      tags:
+      - evento
+      description: consultar Evento por persona
+      operationId: EventoController.GetEvento
+      parameters:
+      - in: path
+        name: persona
+        description: Persona
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: :persona is empty
   /produccion_academica/:
     post:
       tags:
@@ -113,6 +187,9 @@ definitions:
     title: '{}'
     type: object
 tags:
+- name: evento
+  description: |
+    FormacionController ...
 - name: produccion_academica
   description: |
     FormacionController ...
