@@ -15,6 +15,93 @@
     },
     "basePath": "/v1",
     "paths": {
+        "/consulta_academica/": {
+            "get": {
+                "tags": [
+                    "consulta_academica"
+                ],
+                "description": "get ConsultaOfertaAcademica",
+                "operationId": "ConsultaOfertaAcademicaController.GetAll",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "query",
+                        "description": "Filter. e.g. col1:v1,col2:v2 ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "fields",
+                        "description": "Fields returned. e.g. col1,col2 ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "sortby",
+                        "description": "Sorted-by fields. e.g. col1,col2 ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "order",
+                        "description": "Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "limit",
+                        "description": "Limit the size of result set. Must be an integer",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "offset",
+                        "description": "Start position of result set. Must be an integer",
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.ConsultaOfertaAcademica"
+                        }
+                    },
+                    "403": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/consulta_academica/{id}": {
+            "get": {
+                "tags": [
+                    "consulta_academica"
+                ],
+                "description": "get ConsultaOfertaAcademica by id",
+                "operationId": "ConsultaOfertaAcademicaController.GetOneEventoPorPeriodo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "The key for staticblock",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.ConsultaOfertaAcademica"
+                        }
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
+            }
+        },
         "/evento/": {
             "post": {
                 "tags": [
@@ -278,6 +365,10 @@
         }
     },
     "definitions": {
+        "models.ConsultaOfertaAcademica": {
+            "title": "ConsultaOfertaAcademica",
+            "type": "object"
+        },
         "{}": {
             "title": "{}",
             "type": "object"
@@ -291,6 +382,10 @@
         {
             "name": "produccion_academica",
             "description": "ProduccionAcademicaController ...\n"
+        },
+        {
+            "name": "consulta_academica",
+            "description": "ConsultaOfertaAcademicaController operations for Consulta_oferta_academica\n"
         }
     ]
 }
