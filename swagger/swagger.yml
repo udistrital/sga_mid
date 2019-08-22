@@ -11,6 +11,24 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
 basePath: /v1
 paths:
+  /archivo_icfes/:
+    post:
+      tags:
+      - archivo_icfes
+      description: Agregar ArchivoIcfes
+      operationId: ArchivoIcfesController.PostArchivoIcfes
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar ArchivoIcfes content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
   /evento/:
     post:
       tags:
@@ -187,6 +205,9 @@ definitions:
     title: '{}'
     type: object
 tags:
+- name: archivo_icfes
+  description: |
+    ArchivoIcfesController ...
 - name: evento
   description: |
     EventoController ...
