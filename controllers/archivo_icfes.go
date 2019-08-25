@@ -31,8 +31,7 @@ func (c *ArchivoIcfesController) URLMapping() {
 // @Failure 403 body is empty
 // @router / [post]
 func (c *ArchivoIcfesController) PostArchivoIcfes() {
-	
-	var ArchivoIcfes map[string]interface{}
+	ArchivoIcfes := "Archivo procesado"
 	var alerta models.Alert
 	alertas := append([]interface{}{"Response:"})
 	fmt.Println("name",c.GetString("name"))
@@ -54,7 +53,11 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 	}
 	lines := strings.Split(strings.Replace(string(file), "\r\n", "\n", -1), "\n")
 	for _, line := range lines {
-		fmt.Println("line", strings.Split(line,",")[1])
+		// 1 para nombre del estudiante
+		recordFields := strings.Split(line,",")
+		if (len(recordFields) > 1) {
+			fmt.Println("line", recordFields[1])
+		}
 	} 
 
 	alertas = append(alertas, ArchivoIcfes)
