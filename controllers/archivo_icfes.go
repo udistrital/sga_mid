@@ -35,28 +35,30 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 	var ArchivoIcfes map[string]interface{}
 	var alerta models.Alert
 	alertas := append([]interface{}{"Response:"})
-	fmt.Println("Request",c.Ctx.Input.RequestBody)
-	fmt.Println("Request input",c.Ctx.Input)
-	multipartFile, _, _ := c.GetFile("file") 
-	file, _ := ioutil.ReadAll(multipartFile)
-	//fmt.Println("file",file)
-	// fmt.Println("file string", string(file))
+	fmt.Println("name",c.GetString("name"))
+	multipartFile, _, err := c.GetFile("archivo_icfes") 
+	if (err != nil) {
+		fmt.Println("err reading multipartFile", err)
+		alerta.Type = "error"
+		alerta.Code = "400"
+		alertas = append(alertas, err.Error())
+		return
+	}
+	file, err := ioutil.ReadAll(multipartFile)
+	if (err != nil) {
+		fmt.Println("err reading file", err)
+		alerta.Type = "error"
+		alerta.Code = "400"
+		alertas = append(alertas, err.Error())
+		return
+	}
 	lines := strings.Split(strings.Replace(string(file), "\r\n", "\n", -1), "\n")
 	for _, line := range lines {
 		fmt.Println("line", strings.Split(line,",")[1])
 	} 
-	fmt.Println("split")
+
 	alertas = append(alertas, ArchivoIcfes)
-	/*
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &ArchivoIcfes); err == nil {
-		fmt.Println("archivoIcfes", ArchivoIcfes);
-		alertas = append(alertas, ArchivoIcfes)
-	} else {
-		alerta.Type = "error"
-		alerta.Code = "400"
-		alertas = append(alertas, err.Error())
-	}
-	*/
+	
 	alerta.Body = alertas
 	c.Data["json"] = alerta
 	c.ServeJSON()
