@@ -54,6 +54,7 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 		return
 	}
 	lines := strings.Split(strings.Replace(string(file), "\r\n", "\n", -1), "\n")
+	lines = lines[1:] // remove first element
 	for _, line := range lines {
 		// 0 código ICFEs del estudianate
 		// 1 para nombre del estudiante
@@ -63,7 +64,7 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 			aspirante_nombre := recordFields[1]
 			fmt.Println("line", aspirante_codigo_icfes, aspirante_nombre)
 			// traer data de la inscripcion o inscripciones
-			fmt.Println("url","http://"+beego.AppConfig.String("InscripcionService")+"inscripcion_pregrado?limit=0&query=InscripcionId__Activo:true,InscripcionId__EstadoInscripcionId__Id:1,InscripcionId__PeriodoId:"+periodo_id+",CodigoIcfes:"+aspirante_codigo_icfes)
+			// fmt.Println("url","http://"+beego.AppConfig.String("InscripcionService")+"inscripcion_pregrado?limit=0&query=InscripcionId__Activo:true,InscripcionId__EstadoInscripcionId__Id:1,InscripcionId__PeriodoId:"+periodo_id+",CodigoIcfes:"+aspirante_codigo_icfes)
 			var inscripcionesRes []map[string]interface{}
 			errInscripciones := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion_pregrado?limit=0&query=InscripcionId__Activo:true,InscripcionId__EstadoInscripcionId__Id:1,InscripcionId__PeriodoId:"+periodo_id+",CodigoIcfes:"+aspirante_codigo_icfes, &inscripcionesRes)
 			if errInscripciones != nil {
@@ -73,7 +74,17 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 				alerta.Code = "400"
 				c.ServeJSON()
 			} else {
-				fmt.Println("inscripcion", len(inscripcionesRes), inscripcionesRes)
+				// fmt.Println("inscripciones", len(inscripcionesRes), inscripcionesRes)
+				fmt.Println("inscripciones", len(inscripcionesRes))
+				for _, inscripcionTemp := range inscripcionesRes {
+					/// fmt.Println("inscripcionTemp", inscripcionTemp)
+					inscripcion := inscripcionTemp["InscripcionId"].(map[string]interface{})
+					proyecto_inscripcion := inscripcion["ProgramaAcademicoId"]
+					if proyecto_inscripcion != nil {
+						fmt.Println("ProgramaAcademicoId", proyecto_inscripcion)
+						// cargar criterios de admisión
+					}
+				}
 			}	
 		}
 	} 
