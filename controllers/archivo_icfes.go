@@ -2,7 +2,7 @@ package controllers
 
 import (
 	// "encoding/json"
-	// "strconv"
+	"strconv"
 	"fmt"
 	"io/ioutil"
 	// "time"
@@ -55,6 +55,7 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 	}
 	lines := strings.Split(strings.Replace(string(file), "\r\n", "\n", -1), "\n")
 	lines = lines[1:] // remove first element
+	evaluacionesInscripcion := make([]map[string]interface{},0)
 	for _, line := range lines {
 		// 0 código ICFEs del estudianate
 		// 1 para nombre del estudiante
@@ -111,6 +112,14 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 									criterio := criterioTemp["RequisitoId"].(map[string]interface{})
 									// fmt.Println("criterio", criterio);
 									fmt.Println("inscripcion",aspirante_codigo_icfes,criterio["CodigoAbreviacion"],aspirante_puntajes[criterio["CodigoAbreviacion"].(string)]);
+									notaFinal, _ := strconv.ParseFloat(aspirante_puntajes[criterio["CodigoAbreviacion"].(string)].(string),64)
+									evaluacionesInscripcion = append(evaluacionesInscripcion, map[string]interface{}{
+										"Id": 0,
+										"InscripcionId": inscripcion["Id"],
+										"NotaFinal": notaFinal,
+										"RequisitoProgramaAcademicoId": criterio,
+										"Activo": true,
+									});
 								} else {
 									fmt.Println("no hay criterios para proyecto",proyecto_inscripcion,"para inscripcion",aspirante_codigo_icfes);
 								}
@@ -124,7 +133,19 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 		}
 	} 
 
-	alertas = append(alertas, ArchivoIcfes)
+	// fmt.Println("evaluacionesInscripcion para registrar",evaluacionesInscripcion);
+	var resultadoArchivoIcfes map[string]interface{}
+	dataArchivoIcfes :=  map[string]interface{}{
+		"EvaluacionesInscripcion": evaluacionesInscripcion,
+	}
+	errArchivoIcfes := request.SendJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"/tr_archivo_icfes", "POST", &resultadoArchivoIcfes, dataArchivoIcfes)
+	if resultadoArchivoIcfes["Type"] == "error" || errArchivoIcfes != nil || resultadoArchivoIcfes["Status"] == "404" || resultadoArchivoIcfes["Message"] != nil {
+		alertas = append(alertas, resultadoArchivoIcfes)
+		alerta.Type = "error"
+		alerta.Code = "400"
+	} else {
+		alertas = append(alertas, ArchivoIcfes)
+	}
 	
 	alerta.Body = alertas
 	c.Data["json"] = alerta
