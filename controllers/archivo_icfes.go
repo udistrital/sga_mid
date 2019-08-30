@@ -58,11 +58,23 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 	for _, line := range lines {
 		// 0 código ICFEs del estudianate
 		// 1 para nombre del estudiante
+		// 11 PLC
+		// 12 PMA
+		// 13 PSC
+		// 14 PCN
+		// 15 PIN
 		recordFields := strings.Split(line,",")
 		if (len(recordFields) > 1) {
 			aspirante_codigo_icfes := recordFields[0]
 			aspirante_nombre := recordFields[1]
-			fmt.Println("line", aspirante_codigo_icfes, aspirante_nombre)
+			aspirante_puntajes := map[string]interface{}{
+				"PLC": recordFields[11],
+				"PMA": recordFields[12],
+				"PSC": recordFields[13],
+				"PCN": recordFields[14],
+				"PIN": recordFields[15],
+			}
+			fmt.Println("line", aspirante_codigo_icfes, aspirante_nombre, aspirante_puntajes)
 			// traer data de la inscripcion o inscripciones
 			// fmt.Println("url","http://"+beego.AppConfig.String("InscripcionService")+"inscripcion_pregrado?limit=0&query=InscripcionId__Activo:true,InscripcionId__EstadoInscripcionId__Id:1,InscripcionId__PeriodoId:"+periodo_id+",CodigoIcfes:"+aspirante_codigo_icfes)
 			var inscripcionesRes []map[string]interface{}
@@ -97,7 +109,8 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 							for _, criterioTemp := range criteriosRes {
 								if criterioTemp["RequisitoId"] != nil {
 									criterio := criterioTemp["RequisitoId"].(map[string]interface{})
-									fmt.Println("criterio", criterio);
+									// fmt.Println("criterio", criterio);
+									fmt.Println("inscripcion",aspirante_codigo_icfes,criterio["CodigoAbreviacion"],aspirante_puntajes[criterio["CodigoAbreviacion"].(string)]);
 								} else {
 									fmt.Println("no hay criterios para proyecto",proyecto_inscripcion,"para inscripcion",aspirante_codigo_icfes);
 								}
