@@ -75,14 +75,36 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 				c.ServeJSON()
 			} else {
 				// fmt.Println("inscripciones", len(inscripcionesRes), inscripcionesRes)
-				fmt.Println("inscripciones", len(inscripcionesRes))
+				// fmt.Println("inscripciones", len(inscripcionesRes))
 				for _, inscripcionTemp := range inscripcionesRes {
 					/// fmt.Println("inscripcionTemp", inscripcionTemp)
-					inscripcion := inscripcionTemp["InscripcionId"].(map[string]interface{})
-					proyecto_inscripcion := inscripcion["ProgramaAcademicoId"]
-					if proyecto_inscripcion != nil {
-						fmt.Println("ProgramaAcademicoId", proyecto_inscripcion)
+					if inscripcionTemp["InscripcionId"] != nil {
+						inscripcion := inscripcionTemp["InscripcionId"].(map[string]interface{})
+						proyecto_inscripcion := inscripcion["ProgramaAcademicoId"]
+						// fmt.Println("ProgramaAcademicoId", proyecto_inscripcion)
 						// cargar criterios de admisión
+						var criteriosRes []map[string]interface{}
+						// fmt.Println("url criterios", "http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"/requisito_programa_academico?limit=0&query=Activo:true,RequisitoId__Activo:true,PeriodoId:"+periodo_id+",ProgramaAcademicoId:"+fmt.Sprintf("%.f", proyecto_inscripcion))
+						errCriterios := request.GetJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"/requisito_programa_academico?limit=0&query=Activo:true,RequisitoId__Activo:true,PeriodoId:"+periodo_id+",ProgramaAcademicoId:"+fmt.Sprintf("%.f", proyecto_inscripcion.(float64)), &criteriosRes)
+						if errCriterios != nil {
+							alertas = append(alertas, errCriterios)
+							alerta.Body = alertas
+							alerta.Type = "error"
+							alerta.Code = "400"
+							c.ServeJSON()
+						} else {
+							// fmt.Println("criterios", criteriosRes);
+							for _, criterioTemp := range criteriosRes {
+								if criterioTemp["RequisitoId"] != nil {
+									criterio := criterioTemp["RequisitoId"].(map[string]interface{})
+									fmt.Println("criterio", criterio);
+								} else {
+									fmt.Println("no hay criterios para proyecto",proyecto_inscripcion,"para inscripcion",aspirante_codigo_icfes);
+								}
+							}
+						}	
+					} else {
+						fmt.Println("no hay inscripciones para ",aspirante_codigo_icfes);
 					}
 				}
 			}	
