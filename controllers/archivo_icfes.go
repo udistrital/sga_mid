@@ -42,7 +42,10 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 		fmt.Println("err reading multipartFile", err)
 		alerta.Type = "error"
 		alerta.Code = "400"
-		alertas = append(alertas, err.Error())
+		alertas = append(alertas, "err reading file")
+		alerta.Body = alertas
+		c.Data["json"] = alerta
+		c.ServeJSON()
 		return
 	}
 	file, err := ioutil.ReadAll(multipartFile)
@@ -50,10 +53,35 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 		fmt.Println("err reading file", err)
 		alerta.Type = "error"
 		alerta.Code = "400"
-		alertas = append(alertas, err.Error())
+		alertas = append(alertas, "err reading file")
+		alerta.Body = alertas
+		c.Data["json"] = alerta
+		c.ServeJSON()
 		return
 	}
 	lines := strings.Split(strings.Replace(string(file), "\r\n", "\n", -1), "\n")
+	//Probando que el archivo tenga el contenido necesario
+	if len(lines) < 2 {
+		fmt.Println("err in file content")
+		alerta.Type = "error"
+		alerta.Code = "400"
+		alertas = append(alertas, "err in file content")
+		alerta.Body = alertas
+		c.Data["json"] = alerta
+		c.ServeJSON()
+		return
+	}
+	testHeaderFile := strings.Split(lines[0],",")[0]
+	if testHeaderFile != "CODREGSNP" {
+		fmt.Println("err in file content")
+		alerta.Type = "error"
+		alerta.Code = "400"
+		alertas = append(alertas, "err in file content")
+		alerta.Body = alertas
+		c.Data["json"] = alerta
+		c.ServeJSON()
+		return
+	}
 	lines = lines[1:] // remove first element
 	evaluacionesInscripcion := make([]map[string]interface{},0)
 	for _, line := range lines {
