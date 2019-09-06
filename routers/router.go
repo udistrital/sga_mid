@@ -25,6 +25,12 @@ func init() {
 				&controllers.ProduccionAcademicaController{},
 			),
 		),
+
+		beego.NSNamespace("/consulta_academica",
+			beego.NSInclude(
+				&controllers.ConsultaOfertaAcademicaController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
