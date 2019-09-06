@@ -1,0 +1,216 @@
+swagger: "2.0"
+info:
+  title: beego Test API
+  description: beego has a very cool tools to autogenerate documents for your API
+  version: 1.0.0
+  termsOfService: http://beego.me/
+  contact:
+    email: astaxie@gmail.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+basePath: /v1
+paths:
+  /archivo_icfes/:
+    post:
+      tags:
+      - archivo_icfes
+      description: Agregar ArchivoIcfes
+      operationId: ArchivoIcfesController.PostArchivoIcfes
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar ArchivoIcfes content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /evento/:
+    post:
+      tags:
+      - evento
+      description: Agregar Evento
+      operationId: EventoController.PostEvento
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar Evento content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /evento/{id}:
+    put:
+      tags:
+      - evento
+      description: Modificar Evento
+      operationId: EventoController.PutEvento
+      parameters:
+      - in: path
+        name: id
+        description: el id del evento a modificar
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body Modificar Evento content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: :id is empty
+    delete:
+      tags:
+      - evento
+      description: eliminar Evento por id
+      operationId: EventoController.DeleteEvento
+      parameters:
+      - in: path
+        name: id
+        description: Id del Evento
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: :id is empty
+  /evento/{persona}:
+    get:
+      tags:
+      - evento
+      description: consultar Evento por persona
+      operationId: EventoController.GetEvento
+      parameters:
+      - in: path
+        name: persona
+        description: Persona
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: :persona is empty
+  /produccion_academica/:
+    post:
+      tags:
+      - produccion_academica
+      description: Agregar Producción academica
+      operationId: ProduccionAcademicaController.PostProduccionAcademica
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar ProduccionAcademica content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /produccion_academica/{id}:
+    put:
+      tags:
+      - produccion_academica
+      description: Modificar Producción Academica
+      operationId: ProduccionAcademicaController.PutProduccionAcademica
+      parameters:
+      - in: path
+        name: id
+        description: el id de la Produccion academica a modificar
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body Modificar ProduccionAcademica content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: :id is empty
+    delete:
+      tags:
+      - produccion_academica
+      description: eliminar Produccion Academica por id
+      operationId: ProduccionAcademicaController.DeleteProduccionAcademica
+      parameters:
+      - in: path
+        name: id
+        description: Id de la Produccion Academica
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: :id is empty
+  /produccion_academica/{persona}:
+    get:
+      tags:
+      - produccion_academica
+      description: consultar Produccion Academica por persona
+      operationId: ProduccionAcademicaController.GetProduccionAcademica
+      parameters:
+      - in: path
+        name: persona
+        description: Persona
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: :persona is empty
+  /produccion_academica/estado_autor_produccion/{id}:
+    put:
+      tags:
+      - produccion_academica
+      description: Modificar Estado de Autor de Producción Academica
+      operationId: ProduccionAcademicaController.PutEstadoAutorProduccionAcademica
+      parameters:
+      - in: path
+        name: id
+        description: el id del autor a modificar
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body Modificar AutorProduccionAcademica content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: :id is empty
+definitions:
+  '{}':
+    title: '{}'
+    type: object
+tags:
+- name: archivo_icfes
+  description: |
+    ArchivoIcfesController ...
+- name: evento
+  description: |
+    EventoController ...
+- name: produccion_academica
+  description: |
+    ProduccionAcademicaController ...
