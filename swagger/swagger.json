@@ -15,6 +15,34 @@
     },
     "basePath": "/v1",
     "paths": {
+        "/archivo_icfes/": {
+            "post": {
+                "tags": [
+                    "archivo_icfes"
+                ],
+                "description": "Agregar ArchivoIcfes",
+                "operationId": "ArchivoIcfesController.PostArchivoIcfes",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar ArchivoIcfes content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
         "/consulta_academica/": {
             "get": {
                 "tags": [
@@ -375,6 +403,10 @@
         }
     },
     "tags": [
+        {
+            "name": "archivo_icfes",
+            "description": "ArchivoIcfesController ...\n"
+        },
         {
             "name": "evento",
             "description": "EventoController ...\n"
