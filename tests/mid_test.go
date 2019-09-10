@@ -41,16 +41,6 @@ var resStatus string
 var resDelete string
 // @resBody JSON de respuesta a las solicitudesde la api
 var resBody []byte
-//@estructura de las tablas parametricas
-type Parametrica struct {
-	Nombre            string
-	Descripcion       string
-	CodigoAbreviacion string
-	Activo            bool
-	NumeroOrden       float64
-	FechaCreacion     time.Time
-	FechaModificacion time.Time
-}
 //@especificacion estructura de la fecha
 const especificacion = "Jan 2, 2006 at 3:04pm (MST)"
 var savepostres map[string]interface{}
