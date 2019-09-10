@@ -1,5 +1,8 @@
 package main
 
+/*------------------------------
+  ------ Imports  --------------
+  ------------------------------*/
 import (
 	"bytes"
 	"encoding/json"
@@ -25,21 +28,19 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
+
+/*------------------------------
+  ------ Variables -------------
+  ------------------------------*/
+
+//@opt opciones de godog
+var opt = godog.Options{Output: colors.Colored(os.Stdout)}
 // @resStatus codigo de respuesta a las solicitudes a la api
 var resStatus string
-
 // @resBody JSON repuesta Delete
 var resDelete string
-
-//@resBody JSON de respuesta a las solicitudesde la api
+// @resBody JSON de respuesta a las solicitudesde la api
 var resBody []byte
-
-var savepostres map[string]interface{}
-
-var IntentosAPI = 1
-
-var Id float64
-
 //@estructura de las tablas parametricas
 type Parametrica struct {
 	Nombre            string
@@ -50,62 +51,37 @@ type Parametrica struct {
 	FechaCreacion     time.Time
 	FechaModificacion time.Time
 }
-
-//@opt opciones de godog
-var opt = godog.Options{Output: colors.Colored(os.Stdout)}
-
 //@especificacion estructura de la fecha
 const especificacion = "Jan 2, 2006 at 3:04pm (MST)"
+var savepostres map[string]interface{}
+var IntentosAPI = 1
+var Id float64
 
-//@TestMain para realizar la ejecucion con el comando go test ./test
-func TestMain(m *testing.M) {
+/*------------------------------
+  --- Preparación de entorno ---
+  ------------------------------*/
 
-	status := godog.RunWithOptions("godogs", func(s *godog.Suite) {
-		FeatureContext(s)
-	}, godog.Options{
-		Format: "progress",
-		Paths:  []string{"features"},
-		//Randomize: time.Now().UTC().UnixNano(), // randomize scenario execution order
-	})
-
-	if st := m.Run(); st > status {
-		status = st
+//@exe_cmd Ejecuta comandos en la terminal
+func exe_cmd(cmd string, wg *sync.WaitGroup) {
+	parts := strings.Fields(cmd)
+	out, err := exec.Command(parts[0], parts[1]).Output()
+	if err != nil {
+		fmt.Println("An Error occured")
+		fmt.Printf("%s", err)
 	}
-	os.Exit(status)
-
+	fmt.Printf("%s", out)
+	wg.Done()
 }
 
-//@init inicia la aplicacion para realizar los test
-func init() {
-	fmt.Println("Inicio de pruebas Unitarias al API")
-
-	gen_files()
-	run_bee()
-	//pasa las banderas al comando godog
-	godog.BindFlags("godog.", flag.CommandLine, &opt)
-
-}
-
-//@gen_files genera los archivos de ejemplos
-func gen_files() {
-
-	t := time.Now()
-
-	nombre := t.Format(especificacion)
-	atributo := Parametrica{
-		Nombre:            nombre,
-		Descripcion:       "string",
-		CodigoAbreviacion: "string",
-		Activo:            true,
-		NumeroOrden:       0,
-		FechaCreacion:     t,
-		FechaModificacion: t,
+// @deleteFile Borrar archivos
+func deleteFile(path string) {
+	err := os.Remove(path)
+	if err != nil {
+		fmt.Errorf("Error: No se pudo eliminar el archivo")
 	}
-	rankingsJson, _ := json.Marshal(atributo)
-	ioutil.WriteFile("./files/req/Yt1.json", rankingsJson, 0644)
 }
 
-//@run_bee activa el servicio de la api para realizar los test
+// @run_bee activa el servicio de la api para realizar los test
 func run_bee() {
 	var resultado map[string]interface{}
 
@@ -131,7 +107,6 @@ func run_bee() {
 	if errApi == nil && resultado != nil {
 		fmt.Println("El API se Encuentra en Estado OK")
 	} else if IntentosAPI <= 3 {
-
 		stri := strconv.Itoa(IntentosAPI)
 		fmt.Println("Intento de subir el API numero: " + stri)
 		IntentosAPI++
@@ -144,28 +119,33 @@ func run_bee() {
 	wg.Done()
 }
 
-func deleteFile(path string) {
-	// delete file
-	err := os.Remove(path)
-	if err != nil {
-		fmt.Errorf("no se pudo eliminar el archivo")
-	}
-
+// @init inicia la aplicacion para realizar los test
+func init() {
+	fmt.Println("Inicio de pruebas Unitarias al API")
+	// Pasa las banderas al comando godog
+	godog.BindFlags("godog.", flag.CommandLine, &opt)
+	fmt.Println("Corriendo el api")
+	run_bee()
 }
 
-//@exe_cmd ejecuta comandos en la terminal
-func exe_cmd(cmd string, wg *sync.WaitGroup) {
-
-	parts := strings.Fields(cmd)
-	out, err := exec.Command(parts[0], parts[1]).Output()
-
-	if err != nil {
-		fmt.Println("error occured")
-		fmt.Printf("%s", err)
+// @TestMain Para ejecutar pruebas con comando go test ./test
+func TestMain(m *testing.M) {
+	status := godog.RunWithOptions("godogs", func(s *godog.Suite) {
+		FeatureContext(s)
+	}, godog.Options{
+		Format: "progress",
+		Paths:  []string{"features"},
+		//Randomize: time.Now().UTC().UnixNano(), // randomize scenario execution order
+	})
+	if st := m.Run(); st > status {
+		status = st
 	}
-	fmt.Printf("%s", out)
-	wg.Done()
+	os.Exit(status)
 }
+
+/*------------------------------
+  ---- Ejecución de pruebas ----
+  ------------------------------*/
 
 //@AreEqualJSON comparar dos JSON si son iguales retorna true de lo contrario false
 func AreEqualJSON(s1, s2 string) (bool, error) {
@@ -186,7 +166,7 @@ func AreEqualJSON(s1, s2 string) (bool, error) {
 	return reflect.DeepEqual(o1, o2), nil
 }
 
-//@toJson convierte string en JSON
+// @toJson convierte string en JSON
 func toJson(p interface{}) string {
 
 	bytes, err := json.Marshal(p)
@@ -198,7 +178,7 @@ func toJson(p interface{}) string {
 	return string(bytes)
 }
 
-//@getPages convierte en un tipo el json
+// @getPages convierte en un tipo el json
 func getPages(ruta string) []byte {
 
 	raw, err := ioutil.ReadFile(ruta)
@@ -212,7 +192,7 @@ func getPages(ruta string) []byte {
 	return c
 }
 
-//@iSendRequestToWhereBodyIsJson realiza la solicitud a la API
+// @iSendRequestToWhereBodyIsJson realiza la solicitud a la API
 func iSendRequestToWhereBodyIsJson(method, endpoint, bodyreq string) error {
 
 	var url string
@@ -268,7 +248,7 @@ func iSendRequestToWhereBodyIsJson(method, endpoint, bodyreq string) error {
 
 }
 
-//@theResponseCodeShouldBe valida el codigo de respuesta
+// @theResponseCodeShouldBe valida el codigo de respuesta
 func theResponseCodeShouldBe(arg1 string) error {
 	if resStatus != arg1 {
 		return fmt.Errorf("se esperaba el codigo de respuesta .. %s .. y se obtuvo el codigo de respuesta .. %s .. ", arg1, resStatus)
@@ -276,7 +256,7 @@ func theResponseCodeShouldBe(arg1 string) error {
 	return nil
 }
 
-//@theResponseShouldMatchJson valida el JSON de respuesta
+// @theResponseShouldMatchJson valida el JSON de respuesta
 func theResponseShouldMatchJson(arg1 string) error {
 	div := strings.Split(arg1, "")
 
