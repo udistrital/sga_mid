@@ -74,8 +74,11 @@ func deleteFile(path string) {
 // @run_bee activa el servicio de la api para realizar los test
 func run_bee() {
 	var resultado map[string]interface{}
-
-	parametros := "CORE_CRUD_HTTP_PORT=" + beego.AppConfig.String("httpport") + "CORE_CRUD__PGUSER=" + beego.AppConfig.String("PGuser") + " CORE_CRUD__PGPASS=" + beego.AppConfig.String("PGpass") + " CORE_CRUD__PGURLS=" + beego.AppConfig.String("PGurls") + " CORE_CRUD__PGDB=" + beego.AppConfig.String("PGdb") + " CORE_CRUD__SCHEMA=" + beego.AppConfig.String("PGschemas") + " bee run"
+	// Comand to run
+	// SGA_MID_HTTP_PORT=8095 SGA_MID_URL=localhost godog
+	parametros := "SGA_MID_HTTP_PORT=" + beego.AppConfig.String("httpport") +
+		" SGA_MID_URL=" + beego.AppConfig.String("appurl") +
+		" bee run"
 	file, err := os.Create("script.sh")
 	if err != nil {
 		log.Fatal("Cannot create file", err)
@@ -91,9 +94,10 @@ func run_bee() {
 		go exe_cmd(str, wg)
 	}
 
-	time.Sleep(18 * time.Second)
-
-	errApi := request.GetJson("http://"+beego.AppConfig.String("PGurls")+":"+beego.AppConfig.String("httpport"), &resultado)
+	time.Sleep(20 * time.Second)
+	
+	fmt.Println("Obteniendo respuesta de http://"+beego.AppConfig.String("appurl")+":"+beego.AppConfig.String("httpport"))
+	errApi := request.GetJson("http://"+beego.AppConfig.String("appurl")+":"+beego.AppConfig.String("httpport"), &resultado)
 	if errApi == nil && resultado != nil {
 		fmt.Println("El API se Encuentra en Estado OK")
 	} else if IntentosAPI <= 3 {
