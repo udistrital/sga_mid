@@ -25,7 +25,7 @@ import (
 	"github.com/DATA-DOG/godog"
 	"github.com/DATA-DOG/godog/colors"
 	"github.com/astaxie/beego"
-	"github.com/xeipuuv/gojsonschema"
+	// "github.com/xeipuuv/gojsonschema"
 )
 
 
@@ -75,9 +75,12 @@ func deleteFile(path string) {
 func run_bee() {
 	var resultado map[string]interface{}
 	// Comand to run
-	// SGA_MID_HTTP_PORT=8095 SGA_MID_URL=localhost godog
+	// PERSONAS_SERVICE=api.planestic.udistrital.edu.co:8083/v1/ SGA_MID_HTTP_PORT=8096 SGA_MID_URL=localhost EVENTOS_SERVICE=localhost:8080/v1/ PRODUCCION_ACADEMICA_SERVICE=localhost:8081/v1/ godog
 	parametros := "SGA_MID_HTTP_PORT=" + beego.AppConfig.String("httpport") +
 		" SGA_MID_URL=" + beego.AppConfig.String("appurl") +
+		" EVENTOS_SERVICE=" + beego.AppConfig.String("EventoService") +
+		" PRODUCCION_ACADEMICA_SERVICE=" + beego.AppConfig.String("ProduccionAcademicaService") +
+		" PERSONAS_SERVICE=" + beego.AppConfig.String("PersonaService") +
 		" bee run"
 	file, err := os.Create("script.sh")
 	if err != nil {
@@ -245,15 +248,22 @@ func iSendRequestToWhereBodyIsJson(method, endpoint, bodyreq string) error {
 // @theResponseCodeShouldBe valida el codigo de respuesta
 func theResponseCodeShouldBe(arg1 string) error {
 	if resStatus != arg1 {
-		return fmt.Errorf("se esperaba el codigo de respuesta .. %s .. y se obtuvo el codigo de respuesta .. %s .. ", arg1, resStatus)
+		return fmt.Errorf("Se esperaba el codigo de respuesta .. %s .. y se obtuvo el codigo de respuesta .. %s .. ", arg1, resStatus)
 	}
 	return nil
 }
 
 // @theResponseShouldMatchJson valida el JSON de respuesta
 func theResponseShouldMatchJson(arg1 string) error {
+	pages := getPages(arg1)
+	areEqual, _ := AreEqualJSON(string(pages), string(resBody))
+	if areEqual {
+		return nil
+	} else {
+		return fmt.Errorf("Se esperaba el body de respuesta %s y se obtuvo %s", string(pages), resBody)
+	}
+	/*
 	div := strings.Split(arg1, "")
-
 	pages := getPages(arg1)
 	//areEqual, _ := AreEqualJSON(string(pages), string(resBody))
 	if div[13] == "V" {
@@ -279,8 +289,7 @@ func theResponseShouldMatchJson(arg1 string) error {
 		} else {
 			return fmt.Errorf(" se esperaba el body de respuesta %s y se obtuvo %s", string(pages), resBody)
 		}
-
-	}
+	}*/
 	return nil
 }
 
