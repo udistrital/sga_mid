@@ -41,11 +41,11 @@ var resStatus string
 var resDelete string
 // @resBody JSON de respuesta a las solicitudesde la api
 var resBody []byte
-//@especificacion estructura de la fecha
+// @especificacion estructura de la fecha
 const especificacion = "Jan 2, 2006 at 3:04pm (MST)"
-var savepostres map[string]interface{}
 var IntentosAPI = 1
-var Id float64
+// var savepostres map[string]interface{}
+// var Id float64
 
 /*------------------------------
   --- Preparación de entorno ---
@@ -195,27 +195,15 @@ func iSendRequestToWhereBodyIsJson(method, endpoint, bodyreq string) error {
 	var url string
 
 	if method == "GET" || method == "POST" {
-		url = "http://" + beego.AppConfig.String("PGurls") + ":" + beego.AppConfig.String("httpport") + endpoint
+		url = "http://" + beego.AppConfig.String("appurl") + ":" + beego.AppConfig.String("httpport") + endpoint
 
 	} else {
 		if method == "PUT" || method == "DELETE" {
-			str := strconv.FormatFloat(Id, 'f', 5, 64)
-			url = "http://" + beego.AppConfig.String("PGurls") + ":" + beego.AppConfig.String("httpport") + endpoint + "/" + str
-
+			// str := strconv.FormatFloat(Id, 'f', 5, 64)
+			// url = "http://" + beego.AppConfig.String("appurl") + ":" + beego.AppConfig.String("httpport") + endpoint + "/" + str
+			// Se envia Id en el endpoint
+			url = "http://" + beego.AppConfig.String("appurl") + ":" + beego.AppConfig.String("httpport") + endpoint
 		}
-	}
-	if method == "GETID" {
-		method = "GET"
-		str := strconv.FormatFloat(Id, 'f', 0, 64)
-		url = "http://" + beego.AppConfig.String("PGurls") + ":" + beego.AppConfig.String("httpport") + endpoint + "/" + str
-
-	}
-	if method == "DELETE" {
-		str := strconv.FormatFloat(Id, 'f', 0, 64)
-		url = "http://" + beego.AppConfig.String("PGurls") + ":" + beego.AppConfig.String("httpport") + endpoint + "/" + str
-		resDelete = "{\"Id\":" + str + "}"
-		ioutil.WriteFile("./files/res0/Ino.json", []byte(resDelete), 0644)
-
 	}
 
 	pages := getPages(bodyreq)
@@ -235,12 +223,14 @@ func iSendRequestToWhereBodyIsJson(method, endpoint, bodyreq string) error {
 	resStatus = resp.Status
 	resBody = bodyr
 
+	// Se almacena el Id del elemento creado
+	/*
 	if method == "POST" && resStatus == "201 Created" {
-		ioutil.WriteFile("./files/req/Yt2.json", resBody, 0644)
 		json.Unmarshal([]byte(bodyr), &savepostres)
 		Id = savepostres["Id"].(float64)
-
 	}
+	*/
+
 	return nil
 
 }
