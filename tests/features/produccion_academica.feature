@@ -42,5 +42,7 @@ Scenario Outline: To probe response route /produccion_academica
     |PUT    |/v1/produccion_academica/2|./assets/requests/empty.json                             |200 OK           |./assets/responses/invalid_post.json                        |
     |PUT    |/v1/produccion_academica/1|./assets/requests/produccion_academica/put_invalid.json  |200 OK           |./assets/responses/produccion_academica/put_invalid.json    |
     |PUT    |/v1/produccion_academica/2|./assets/requests/produccion_academica/put_valid.json    |200 OK           |./assets/responses/produccion_academica/put_valid.json      |
+    |PUT    |/v1/produccion_academica/estado_autor_produccion/1|./assets/requests/produccion_academica/put_estado_autor_invalid.json    |200 OK           |./assets/responses/produccion_academica/put_estado_autor_invalid.json      |
+    |PUT    |/v1/produccion_academica/estado_autor_produccion/1|./assets/requests/produccion_academica/put_estado_autor_valid.json    |200 OK           |./assets/responses/produccion_academica/put_estado_autor_valid.json      |
     |DELETE |/v1/produccion_academica/0|./assets/requests/empty.json                             |200 OK           |./assets/responses/produccion_academica/delete_invalid.json |
     |DELETE |/v1/produccion_academica/2|./assets/requests/empty.json                             |200 OK           |./assets/responses/produccion_academica/delete_valid.json   |

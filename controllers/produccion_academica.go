@@ -124,7 +124,6 @@ func (c *ProduccionAcademicaController) PutEstadoAutorProduccionAcademica() {
 		} else {
 			(AutorProduccionAcademica["EstadoAutorProduccionId"].(map[string]interface{}))["Id"] = 4
 		}
-		AutorProduccionAcademica["FechaModificacion"] = time.Now()
 
 		var resultadoAutor map[string]interface{}
 		errAutor := request.SendJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/autor_produccion_academica/"+idStr, "PUT", &resultadoAutor, AutorProduccionAcademica)
@@ -133,7 +132,7 @@ func (c *ProduccionAcademicaController) PutEstadoAutorProduccionAcademica() {
 			alerta.Type = "error"
 			alerta.Code = "400"
 		} else {
-			alertas = append(alertas, AutorProduccionAcademica)
+			alertas = append(alertas, dataPut)
 		}
 
 	} else {
