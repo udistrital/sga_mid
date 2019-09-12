@@ -1,0 +1,130 @@
+{
+  "Type": "",
+  "Code": "",
+  "Body": [
+    "Response:",
+    {
+      "Autores": [
+        {
+          "Activo": true,
+          "EstadoAutorProduccionId": {
+            "Activo": true,
+            "CodigoAbreviacion": "AutPrin",
+            "Descripcion": "Autor que registra la producción",
+            "FechaCreacion": "2019-09-12T20:43:10.451128Z",
+            "FechaModificacion": "2019-09-12T20:43:10.451128Z",
+            "Id": 1,
+            "Nombre": "Autor principal",
+            "NumeroOrden": 1
+          },
+          "FechaCreacion": "2019-09-12T20:43:42.781994Z",
+          "FechaModificacion": "2019-09-12T20:43:42.781994Z",
+          "Id": 1,
+          "Nombre": "juan sebastian piedrahita gonzalez",
+          "Persona": 7,
+          "ProduccionAcademicaId": {
+            "Activo": true,
+            "Fecha": "2019-09-24T00:00:00Z",
+            "FechaCreacion": "2019-09-12T20:43:42.781994Z",
+            "FechaModificacion": "2019-09-12T20:43:42.781994Z",
+            "Id": 2,
+            "Resumen": "test",
+            "SubtipoProduccionId": {
+              "Activo": true,
+              "CodigoAbreviacion": "ART_AP",
+              "Descripcion": "Articulo aplicado",
+              "FechaCreacion": "2019-09-12T20:43:10.473804Z",
+              "FechaModificacion": "2019-09-12T20:43:10.473804Z",
+              "Id": 1,
+              "Nombre": "Articulo aplicado",
+              "NumeroOrden": 1,
+              "TipoProduccionId": {
+                "Activo": false,
+                "CodigoAbreviacion": "",
+                "Descripcion": "",
+                "FechaCreacion": "0001-01-01T00:00:00Z",
+                "FechaModificacion": "0001-01-01T00:00:00Z",
+                "Id": 1,
+                "Nombre": "",
+                "NumeroOrden": 0
+              }
+            },
+            "Titulo": "test"
+          }
+        }
+      ],
+      "EstadoEnteAutorId": {
+        "Activo": true,
+        "EstadoAutorProduccionId": {
+          "Activo": true,
+          "CodigoAbreviacion": "AutPrin",
+          "Descripcion": "Autor que registra la producción",
+          "FechaCreacion": "2019-09-12T20:43:10.451128Z",
+          "FechaModificacion": "2019-09-12T20:43:10.451128Z",
+          "Id": 1,
+          "Nombre": "Autor principal",
+          "NumeroOrden": 1
+        },
+        "FechaCreacion": "2019-09-12T20:43:42.781994Z",
+        "FechaModificacion": "2019-09-12T20:43:42.781994Z",
+        "Id": 1,
+        "Nombre": "juan sebastian piedrahita gonzalez",
+        "Persona": 7,
+        "ProduccionAcademicaId": {
+          "Activo": true,
+          "Fecha": "2019-09-24T00:00:00Z",
+          "FechaCreacion": "2019-09-12T20:43:42.781994Z",
+          "FechaModificacion": "2019-09-12T20:43:42.781994Z",
+          "Id": 2,
+          "Resumen": "test",
+          "SubtipoProduccionId": {
+            "Activo": true,
+            "CodigoAbreviacion": "ART_AP",
+            "Descripcion": "Articulo aplicado",
+            "FechaCreacion": "2019-09-12T20:43:10.473804Z",
+            "FechaModificacion": "2019-09-12T20:43:10.473804Z",
+            "Id": 1,
+            "Nombre": "Articulo aplicado",
+            "NumeroOrden": 1,
+            "TipoProduccionId": {
+              "Activo": false,
+              "CodigoAbreviacion": "",
+              "Descripcion": "",
+              "FechaCreacion": "0001-01-01T00:00:00Z",
+              "FechaModificacion": "0001-01-01T00:00:00Z",
+              "Id": 1,
+              "Nombre": "",
+              "NumeroOrden": 0
+            }
+          },
+          "Titulo": "test"
+        }
+      },
+      "Fecha": "2019-09-24T00:00:00Z",
+      "Id": 2,
+      "Metadatos": [],
+      "Resumen": "test 2",
+      "SubtipoProduccionId": {
+        "Activo": true,
+        "CodigoAbreviacion": "ART_AP",
+        "Descripcion": "Articulo aplicado",
+        "FechaCreacion": "2019-09-12T20:43:10.473804Z",
+        "FechaModificacion": "2019-09-12T20:43:10.473804Z",
+        "Id": 1,
+        "Nombre": "Articulo aplicado",
+        "NumeroOrden": 1,
+        "TipoProduccionId": {
+          "Activo": false,
+          "CodigoAbreviacion": "",
+          "Descripcion": "",
+          "FechaCreacion": "0001-01-01T00:00:00Z",
+          "FechaModificacion": "0001-01-01T00:00:00Z",
+          "Id": 1,
+          "Nombre": "",
+          "NumeroOrden": 0
+        }
+      },
+      "Titulo": "test 2"
+    }
+  ]
+}
