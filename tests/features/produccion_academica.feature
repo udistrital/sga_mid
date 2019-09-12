@@ -7,25 +7,25 @@ Scenario Outline: To probe route code response /produccion_academica
     Then the response code should be "<codres>"
 
     Examples:
-    |method |route                     |bodyreq                                             |codres       |
-    |GET    |/v1/produccion_academica  |./assets/requests/empty.json                        |404 Not Found|
-    |GET    |/v1/produccion_academica/0|./assets/requests/empty.json                        |200 OK       |
-    |GET    |/v1/produccion_academica/1|./assets/requests/empty.json  |200 OK       |
-    |POST   |/v1/produccion_academica  |./assets/requests/empty.json                        |200 OK       |
-    |POST   |/v1/produccion_academica  |./assets/requests/produccion_academica/post_1.json  |200 OK       |
-    |POST   |/v1/produccion_academica  |./assets/requests/produccion_academica/post_2.json  |200 OK       |
+    |method |route                     |bodyreq                       |codres       |
+    |GET    |/v1/produccion_academica  |./assets/requests/empty.json  |404 Not Found|
+    |GET    |/v1/produccion_academica/0|./assets/requests/empty.json  |200 OK       |
+    |POST   |/v1/produccion_academica/0|./assets/requests/empty.json  |404 Not Found|
+    |POST   |/v1/produccion_academica  |./assets/requests/empty.json  |200 OK       |
     |PUT    |/v1/produccion_academica  |./assets/requests/empty.json  |404 Not Found|
-    |PUT    |/v1/produccion_academica/0|./assets/requests/empty.json  |200 OK |
-    |PUT    |/v1/produccion_academica/1|./assets/requests/empty.json  |200 OK |
-    |PUT    |/v1/produccion_academica/1|./assets/requests/produccion_academica/put_2.json  |200 OK |
-    |PUT    |/v1/produccion_academica/1|./assets/requests/produccion_academica/put_1.json  |200 OK |
+    |PUT    |/v1/produccion_academica/0|./assets/requests/empty.json  |200 OK       |
     |DELETE |/v1/produccion_academica  |./assets/requests/empty.json  |404 Not Found|
-    |DELETE |/v1/produccion_academica/0|./assets/requests/empty.json  |200 OK|
-    |DELETE |/v1/produccion_academica/1|./assets/requests/empty.json  |200 OK|
+    |DELETE |/v1/produccion_academica/0|./assets/requests/empty.json  |200 OK       |
     |GET    |/v1/produccion_academicas |./assets/requests/empty.json  |404 Not Found|
     |POST   |/v1/produccion_academicas |./assets/requests/empty.json  |404 Not Found|
     |PUT    |/v1/produccion_academicas |./assets/requests/empty.json  |404 Not Found|
     |DELETE |/v1/produccion_academicas |./assets/requests/empty.json  |404 Not Found|
+    |GET    |/v1/produccion_academica/estado_autor_produccion  |./assets/requests/empty.json  |200 OK       |
+    |POST   |/v1/produccion_academica/estado_autor_produccion  |./assets/requests/empty.json  |404 Not Found|
+    |DELETE |/v1/produccion_academica/estado_autor_produccion  |./assets/requests/empty.json  |200 OK       |
+    |PUT    |/v1/produccion_academica/estado_autor_producciones|./assets/requests/empty.json  |200 OK       |
+    |PUT    |/v1/produccion_academica/estado_autor_produccion  |./assets/requests/empty.json  |200 OK       |
+    |PUT    |/v1/produccion_academica/estado_autor_produccion/0|./assets/requests/empty.json  |200 OK       |
 
 Scenario Outline: To probe response route /produccion_academica        
     When I send "<method>" request to "<route>" where body is json "<bodyreq>"
