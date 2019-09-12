@@ -33,7 +33,12 @@ Scenario Outline: To probe response route /produccion_academica
     And the response should match json "<bodyres>"
 
     Examples: 
-    |method |route                     |bodyreq                      |codres           |bodyres                                              |
-    |GET    |/v1/produccion_academica/0|./assets/requests/empty.json |200 OK           |./assets/responses/produccion_academica/get_1.json   |
-    |GET    |/v1/produccion_academica/7|./assets/requests/empty.json |200 OK           |./assets/responses/produccion_academica/get_2.json   |
-    |POST   |/v1/produccion_academica  |./assets/requests/empty.json |200 OK           |./assets/responses/invalid_post.json   |
+    |method |route                     |bodyreq                                                  |codres           |bodyres                                                     |                                                    
+    |POST   |/v1/produccion_academica  |./assets/requests/empty.json                             |200 OK           |./assets/responses/invalid_post.json                        |
+    |POST   |/v1/produccion_academica  |./assets/requests/produccion_academica/post_invalid.json |200 OK           |./assets/responses/produccion_academica/post_invalid.json   |
+    |POST   |/v1/produccion_academica  |./assets/requests/produccion_academica/post_valid.json   |200 OK           |./assets/responses/produccion_academica/post_valid.json     |
+    |PUT    |/v1/produccion_academica/1|./assets/requests/empty.json                             |200 OK           |./assets/responses/invalid_post.json                        |
+    |PUT    |/v1/produccion_academica/1|./assets/requests/produccion_academica/post_invalid.json |200 OK           |./assets/responses/produccion_academica/post_invalid.json   |
+    |PUT    |/v1/produccion_academica/1|./assets/requests/produccion_academica/post_valid.json   |200 OK           |./assets/responses/produccion_academica/post_valid.json     |
+    |GET    |/v1/produccion_academica/0|./assets/requests/empty.json                             |200 OK           |./assets/responses/produccion_academica/get_1.json   |
+    |GET    |/v1/produccion_academica/0|./assets/requests/empty.json                             |200 OK           |./assets/responses/produccion_academica/get_2.json   |
