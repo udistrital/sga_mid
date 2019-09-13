@@ -189,6 +189,14 @@ func getPages(ruta string) []byte {
 	return c
 }
 
+// @iSendRequestToWhereBodyIsMultipartFormData realiza la solicitud a la API
+func iSendRequestToWhereBodyIsMultipartFormData(method, endpoint, bodyreq string,bodyfile string) error {
+	if method == "POST" {
+		url = "http://" + beego.AppConfig.String("appurl") + ":" + beego.AppConfig.String("httpport") + endpoint
+	}
+	extra_params := getPages(bodyreq)
+}
+
 // @iSendRequestToWhereBodyIsJson realiza la solicitud a la API
 func iSendRequestToWhereBodyIsJson(method, endpoint, bodyreq string) error {
 
@@ -285,6 +293,7 @@ func theResponseShouldMatchJson(arg1 string) error {
 
 func FeatureContext(s *godog.Suite) {
 	s.Step(`^I send "([^"]*)" request to "([^"]*)" where body is json "([^"]*)"$`, iSendRequestToWhereBodyIsJson)
+	s.Step(`^I send "([^"]*)" request to "([^"]*)" where body is multipart/form-data with this params "([^"]*)" and the file "([^"]*)"$`, iSendRequestToWhereBodyIsMultipartFormData)
 	s.Step(`^the response code should be "([^"]*)"$`, theResponseCodeShouldBe)
 	s.Step(`^the response should match json "([^"]*)"$`, theResponseShouldMatchJson)
 }
