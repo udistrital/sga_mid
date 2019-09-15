@@ -8,11 +8,14 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
@@ -75,12 +78,14 @@ func deleteFile(path string) {
 func run_bee() {
 	var resultado map[string]interface{}
 	// Comand to run
-	// PERSONAS_SERVICE=api.planestic.udistrital.edu.co:8083/v1/ SGA_MID_HTTP_PORT=8096 SGA_MID_URL=localhost EVENTOS_SERVICE=localhost:8080/v1/ PRODUCCION_ACADEMICA_SERVICE=localhost:8081/v1/ godog
+	// INSCRIPCIONES_SERVICE=localhost:8082/v1/ EVALUACION_INSCRIPCION_SERVICE=localhost:8083/v1/ PERSONAS_SERVICE=api.planestic.udistrital.edu.co:8083/v1/ SGA_MID_HTTP_PORT=8096 SGA_MID_URL=localhost EVENTOS_SERVICE=localhost:8081/v1/ PRODUCCION_ACADEMICA_SERVICE=localhost:8080/v1/ godog
 	parametros := "SGA_MID_HTTP_PORT=" + beego.AppConfig.String("httpport") +
 		" SGA_MID_URL=" + beego.AppConfig.String("appurl") +
 		" EVENTOS_SERVICE=" + beego.AppConfig.String("EventoService") +
 		" PRODUCCION_ACADEMICA_SERVICE=" + beego.AppConfig.String("ProduccionAcademicaService") +
 		" PERSONAS_SERVICE=" + beego.AppConfig.String("PersonaService") +
+		" INSCRIPCIONES_SERVICE=" + beego.AppConfig.String("InscripcionService") +
+		" EVALUACION_INSCRIPCION_SERVICE=" + beego.AppConfig.String("EvaluacionInscripcionService") +
 		" bee run"
 	file, err := os.Create("script.sh")
 	if err != nil {
@@ -189,6 +194,70 @@ func getPages(ruta string) []byte {
 	return c
 }
 
+// @iSendRequestToWhereBodyIsMultipartformdataWithThisParamsAndTheFileLocatedAt realiza la solicitud a la API
+func iSendRequestToWhereBodyIsMultipartformdataWithThisParamsAndTheFileLocatedAt(method, endpoint, bodyreq string, filename string, bodyfile string) error {
+	
+	var url string
+
+	if method == "GET" || method == "POST" {
+		url = "http://" + beego.AppConfig.String("appurl") + ":" + beego.AppConfig.String("httpport") + endpoint
+	} else {
+		if method == "PUT" || method == "DELETE" {
+			url = "http://" + beego.AppConfig.String("appurl") + ":" + beego.AppConfig.String("httpport") + endpoint
+		}
+	}
+
+	extraParams := getPages(bodyreq)
+	var params map[string]string
+	err := json.Unmarshal(extraParams, &params)
+    if err != nil {
+        return err
+    }
+
+	path, _ := os.Getwd()
+	path += "/"
+	path += bodyfile
+
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile(filename, filepath.Base(path))
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(part, file)
+
+	for key, val := range params {
+		_ = writer.WriteField(key, val)
+	}
+	err = writer.Close()
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(method, url, body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bodyr, _ := ioutil.ReadAll(resp.Body)
+
+	resStatus = resp.Status
+	resBody = bodyr
+
+	return nil
+}
+
 // @iSendRequestToWhereBodyIsJson realiza la solicitud a la API
 func iSendRequestToWhereBodyIsJson(method, endpoint, bodyreq string) error {
 
@@ -284,6 +353,7 @@ func theResponseShouldMatchJson(arg1 string) error {
 }
 
 func FeatureContext(s *godog.Suite) {
+	s.Step(`^I send "([^"]*)" request to "([^"]*)" where body is multipart\/form-data with this params "([^"]*)" and the file "([^"]*)" located at "([^"]*)"$`, iSendRequestToWhereBodyIsMultipartformdataWithThisParamsAndTheFileLocatedAt)
 	s.Step(`^I send "([^"]*)" request to "([^"]*)" where body is json "([^"]*)"$`, iSendRequestToWhereBodyIsJson)
 	s.Step(`^the response code should be "([^"]*)"$`, theResponseCodeShouldBe)
 	s.Step(`^the response should match json "([^"]*)"$`, theResponseShouldMatchJson)
