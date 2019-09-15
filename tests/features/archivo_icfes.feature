@@ -8,5 +8,8 @@ Scenario Outline: To probe response route /archivo_icfes
     And the response should match json "<bodyres>"
 
     Examples: 
-    |method |route             |bodyreq                                         |filename         |bodyfile                                       |codres           |bodyres                                               |                                                    
-    |POST   |/v1/archivo_icfes |./assets/requests/archivo_icfes/post_valid.json |archivo_icfes    |./assets/requests/archivo_icfes/post_valid.txt |200 OK           |./assets/responses/archivo_icfes/post_valid.json      |
+    |method |route             |bodyreq                                         |filename         |bodyfile                                                   |codres           |bodyres                                                    |                                                    
+    |POST   |/v1/archivo_icfes |./assets/requests/archivo_icfes/post_valid.json |archivo_icfes    |./assets/requests/archivo_icfes/post_valid.txt             |200 OK           |./assets/responses/archivo_icfes/post_valid.json           |
+    |POST   |/v1/archivo_icfes |./assets/requests/archivo_icfes/post_valid.json |archivo_icfesbad |./assets/requests/archivo_icfes/post_valid.txt             |200 OK           |./assets/responses/archivo_icfes/post_invalid_file.json    |
+    |POST   |/v1/archivo_icfes |./assets/requests/archivo_icfes/post_valid.json |archivo_icfes    |./assets/requests/archivo_icfes/post_invalid_content_1.txt |200 OK           |./assets/responses/archivo_icfes/post_invalid_content.json |
+    |POST   |/v1/archivo_icfes |./assets/requests/archivo_icfes/post_valid.json |archivo_icfes    |./assets/requests/archivo_icfes/post_invalid_content_2.txt |200 OK           |./assets/responses/archivo_icfes/post_invalid_content.json |
