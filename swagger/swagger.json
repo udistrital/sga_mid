@@ -390,6 +390,34 @@
                     }
                 }
             }
+        },
+        "/proyecto_academico/": {
+            "post": {
+                "tags": [
+                    "proyecto_academico"
+                ],
+                "description": "Crear Proyecto",
+                "operationId": "CrearProyectoAcademicoController.PostProyecto",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar Proyecto content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -406,6 +434,10 @@
         {
             "name": "archivo_icfes",
             "description": "ArchivoIcfesController ...\n"
+        },
+        {
+            "name": "proyecto_academico",
+            "description": "CrearProyectoAcademicoController\n"
         },
         {
             "name": "evento",

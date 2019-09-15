@@ -258,6 +258,24 @@ paths:
           description: '{}'
         "403":
           description: :id is empty
+  /proyecto_academico/:
+    post:
+      tags:
+      - proyecto_academico
+      description: Crear Proyecto
+      operationId: CrearProyectoAcademicoController.PostProyecto
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar Proyecto content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
 definitions:
   '{}':
     title: '{}'
@@ -269,6 +287,9 @@ tags:
 - name: archivo_icfes
   description: |
     ArchivoIcfesController ...
+- name: proyecto_academico
+  description: |
+    CrearProyectoAcademicoController
 - name: evento
   description: |
     EventoController ...
