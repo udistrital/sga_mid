@@ -78,7 +78,7 @@ func deleteFile(path string) {
 func run_bee() {
 	var resultado map[string]interface{}
 	// Comand to run
-	// INSCRIPCIONES_SERVICE=localhost:8082/v1/ EVALUACION_INSCRIPCION_SERVICE=localhost:8083/v1/ PERSONAS_SERVICE=api.planestic.udistrital.edu.co:8083/v1/ SGA_MID_HTTP_PORT=8096 SGA_MID_URL=localhost EVENTOS_SERVICE=localhost:8081/v1/ PRODUCCION_ACADEMICA_SERVICE=localhost:8080/v1/ godog
+	// CORE_SERVICE=api.planestic.udistrital.edu.co:8102/v1/ OIKOS_SERVICE=pruebasapi.intranetoas.udistrital.edu.co:8087/v1/ INSCRIPCIONES_SERVICE=localhost:8082/v1/ EVALUACION_INSCRIPCION_SERVICE=localhost:8083/v1/ PERSONAS_SERVICE=api.planestic.udistrital.edu.co:8083/v1/ SGA_MID_HTTP_PORT=8096 SGA_MID_URL=localhost EVENTOS_SERVICE=localhost:8081/v1/ PRODUCCION_ACADEMICA_SERVICE=localhost:8080/v1/ godog
 	parametros := "SGA_MID_HTTP_PORT=" + beego.AppConfig.String("httpport") +
 		" SGA_MID_URL=" + beego.AppConfig.String("appurl") +
 		" EVENTOS_SERVICE=" + beego.AppConfig.String("EventoService") +
@@ -86,6 +86,8 @@ func run_bee() {
 		" PERSONAS_SERVICE=" + beego.AppConfig.String("PersonaService") +
 		" INSCRIPCIONES_SERVICE=" + beego.AppConfig.String("InscripcionService") +
 		" EVALUACION_INSCRIPCION_SERVICE=" + beego.AppConfig.String("EvaluacionInscripcionService") +
+		" OIKOS_SERVICE=" + beego.AppConfig.String("OikosService") +
+		" CORE_SERVICE=" + beego.AppConfig.String("CoreService") +
 		" bee run"
 	file, err := os.Create("script.sh")
 	if err != nil {
