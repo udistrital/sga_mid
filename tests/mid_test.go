@@ -199,8 +199,12 @@ func iSendRequestToWhereBodyIsMultipartformdataWithThisParamsAndTheFileLocatedAt
 	
 	var url string
 
-	if method == "POST" {
+	if method == "GET" || method == "POST" {
 		url = "http://" + beego.AppConfig.String("appurl") + ":" + beego.AppConfig.String("httpport") + endpoint
+	} else {
+		if method == "PUT" || method == "DELETE" {
+			url = "http://" + beego.AppConfig.String("appurl") + ":" + beego.AppConfig.String("httpport") + endpoint
+		}
 	}
 
 	extraParams := getPages(bodyreq)
