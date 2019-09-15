@@ -20,3 +20,12 @@ Scenario Outline: To probe route code response /consulta_academica
     |POST   |/v1/consulta_academicas |./assets/requests/empty.json  |404 Not Found|
     |PUT    |/v1/consulta_academicas |./assets/requests/empty.json  |404 Not Found|
     |DELETE |/v1/consulta_academicas |./assets/requests/empty.json  |404 Not Found|
+
+Scenario Outline: To probe response route /evento        
+    When I send "<method>" request to "<route>" where body is json "<bodyreq>"
+    Then the response code should be "<codres>"      
+    And the response should match json "<bodyres>"
+
+    Examples: 
+    |method |route                   |bodyreq                      |codres           |bodyres                                                     |                                                    
+    |GET    |/v1/consulta_academica/0|./assets/requests/empty.json |200 OK           |./assets/responses/consulta_academica/get_invalid.json      |
