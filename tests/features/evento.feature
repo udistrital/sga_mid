@@ -33,6 +33,8 @@ Scenario Outline: To probe response route /evento
     |POST   |/v1/evento  |./assets/requests/empty.json               |200 OK           |./assets/responses/invalid_post.json          |
     |POST   |/v1/evento  |./assets/requests/evento/post_invalid.json |200 OK           |./assets/responses/evento/post_invalid.json   |
     |POST   |/v1/evento  |./assets/requests/evento/post_valid.json   |200 OK           |./assets/responses/evento/post_valid.json     |
-    |PUT    |/v1/evento/0|./assets/requests/empty.json               |200 OK           |./assets/responses/invalid_post.json                        |
+    |PUT    |/v1/evento/0|./assets/requests/empty.json               |200 OK           |./assets/responses/invalid_post.json          |
     |PUT    |/v1/evento/1|./assets/requests/evento/put_invalid.json  |200 OK           |./assets/responses/evento/put_invalid.json    |
     |PUT    |/v1/evento/1|./assets/requests/evento/put_valid.json    |200 OK           |./assets/responses/evento/put_valid.json      |
+    |DELETE |/v1/evento/0|./assets/requests/empty.json               |200 OK           |./assets/responses/evento/delete_invalid.json |
+    |DELETE |/v1/evento/1|./assets/requests/empty.json               |200 OK           |./assets/responses/evento/delete_valid.json   |
