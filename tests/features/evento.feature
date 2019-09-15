@@ -30,3 +30,6 @@ Scenario Outline: To probe response route /evento
     |method |route                     |bodyreq                      |codres           |bodyres                                       |                                                    
     |GET    |/v1/evento/0|./assets/requests/empty.json               |200 OK           |./assets/responses/evento/get_empty.json      |
     |GET    |/v1/evento/1|./assets/requests/empty.json               |200 OK           |./assets/responses/evento/get_valid.json      |
+    |POST   |/v1/evento  |./assets/requests/empty.json               |200 OK           |./assets/responses/invalid_post.json          |
+    |POST   |/v1/evento  |./assets/requests/evento/post_invalid.json |200 OK           |./assets/responses/evento/post_invalid.json   |
+    |POST   |/v1/evento  |./assets/requests/evento/post_valid.json   |200 OK           |./assets/responses/evento/post_valid.json     |

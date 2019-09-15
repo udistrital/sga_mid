@@ -1,0 +1,25 @@
+{
+    "Type": "",
+    "Code": "",
+    "Body": [
+      "Response:",
+      {
+        "EncargadosEvento": [],
+        "Evento": {
+          "Activo": true,
+          "Descripcion": "test",
+          "FechaCreacion": "2019-09-11T19:52:32.388351Z",
+          "FechaFin": "2019-09-11T19:52:32.388351Z",
+          "FechaInicio": "2019-09-11T19:52:32.388351Z",
+          "FechaModificacion": "2019-09-11T19:52:32.388351Z",
+          "Id": 0,
+          "PeriodoId": 1,
+          "TipoEventoId": {
+            "Id": 1
+          }
+        },
+        "TiposPublico": []
+      }
+    ]
+}
+  
