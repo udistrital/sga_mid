@@ -1,0 +1,21 @@
+{
+    "EncargadosEvento":[
+
+    ],
+    "TiposPublico":[
+
+    ],
+    "Evento":{
+        "Id": 0,
+        "Descripcion": "test",
+        "FechaCreacion":"2019-09-11T19:52:32.388351Z",
+        "FechaModificacion":"2019-09-11T19:52:32.388351Z",
+        "FechaInicio":"2019-09-11T19:52:32.388351Z",
+        "FechaFin":"2019-09-11T19:52:32.388351Z",
+        "PeriodoId":1,
+        "Activo":true,
+        "TipoEventoId": {
+            "Id": 1
+        }
+    }
+}

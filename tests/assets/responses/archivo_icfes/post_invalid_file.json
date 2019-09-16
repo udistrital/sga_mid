@@ -1,0 +1,9 @@
+{
+    "Type": "error",
+    "Code": "400",
+    "Body": [
+      "Response:",
+      "err reading file"
+    ]
+}
+  

@@ -1,0 +1,50 @@
+{
+  "acepta": true,
+  "AutorProduccionAcademica": {
+    "Activo": true,
+    "EstadoAutorProduccionId": {
+      "Activo": true,
+      "CodigoAbreviacion": "AutSinConf",
+      "Descripcion": "Autor que aún no confirma su autoria",
+      "FechaCreacion": "2019-09-12T21:22:30.883223Z",
+      "FechaModificacion": "2019-09-12T21:22:30.883223Z",
+      "Id": 3,
+      "Nombre": "Autor sin confirmar",
+      "NumeroOrden": 3
+    },
+    "FechaCreacion": "2019-09-12T21:23:00.418789Z",
+    "FechaModificacion": "2019-09-12T21:23:00.418789Z",
+    "Id": 1,
+    "Nombre": "juan sebastian piedrahita gonzalez",
+    "Persona": 7,
+    "ProduccionAcademicaId": {
+      "Activo": true,
+      "Fecha": "2019-09-24T00:00:00Z",
+      "FechaCreacion": "2019-09-12T21:23:00.418789Z",
+      "FechaModificacion": "2019-09-12T21:23:00.485734Z",
+      "Id": 2,
+      "Resumen": "test 2",
+      "SubtipoProduccionId": {
+        "Activo": true,
+        "CodigoAbreviacion": "ART_AP",
+        "Descripcion": "Articulo aplicado",
+        "FechaCreacion": "2019-09-12T21:22:30.898505Z",
+        "FechaModificacion": "2019-09-12T21:22:30.898505Z",
+        "Id": 1,
+        "Nombre": "Articulo aplicado",
+        "NumeroOrden": 1,
+        "TipoProduccionId": {
+          "Activo": false,
+          "CodigoAbreviacion": "",
+          "Descripcion": "",
+          "FechaCreacion": "0001-01-01T00:00:00Z",
+          "FechaModificacion": "0001-01-01T00:00:00Z",
+          "Id": 1,
+          "Nombre": "",
+          "NumeroOrden": 0
+        }
+      },
+      "Titulo": "test 2"
+    }
+  }
+}

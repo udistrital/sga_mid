@@ -193,57 +193,58 @@ func (c *EventoController) GetEvento() {
 		alerta.Code = "400"
 	} else {
 		for _, evento := range eventos {
-			encargados := evento["EncargadosEvento"].([]interface{})
-			for _, encargadoTemp := range encargados {
-				// seleccionar el rol de la persona
-				encargado := encargadoTemp.(map[string]interface{})
-				if (encargado["EncargadoId"] == personaId) {
-					evento["RolPersona"] = encargado
+			if evento["Id"] != nil {
+				encargados := evento["EncargadosEvento"].([]interface{})
+				for _, encargadoTemp := range encargados {
+					// seleccionar el rol de la persona
+					encargado := encargadoTemp.(map[string]interface{})
+					if (encargado["EncargadoId"] == personaId) {
+						evento["RolPersona"] = encargado
+					}
+					//cargar nombre del autor
+					var encargadoEvento map[string]interface{}
+					errEncargado := request.GetJson("http://"+beego.AppConfig.String("PersonaService")+"/persona/"+fmt.Sprintf("%.f", encargado["EncargadoId"].(float64)), &encargadoEvento)
+					if encargadoEvento["Type"] == "error" || errEncargado != nil {
+						alertas = append(alertas, errEncargado)
+						alerta.Body = alertas
+						alerta.Type = "error"
+						alerta.Code = "400"
+					} else {
+						encargado["Nombre"] = encargadoEvento["PrimerNombre"].(string) + " " + encargadoEvento["SegundoNombre"].(string) + " " + encargadoEvento["PrimerApellido"].(string) + " " + encargadoEvento["SegundoApellido"].(string)
+					}	
 				}
-				//cargar nombre del autor
-				var encargadoEvento map[string]interface{}
-				errEncargado := request.GetJson("http://"+beego.AppConfig.String("PersonaService")+"/persona/"+fmt.Sprintf("%.f", encargado["EncargadoId"].(float64)), &encargadoEvento)
-				if encargadoEvento["Type"] == "error" || errEncargado != nil {
-					alertas = append(alertas, errEncargado)
+				// cargar nombre de la dependencia
+				calendarioEvento := evento["CalendarioEvento"].(map[string]interface{})
+				tipoEvento := calendarioEvento["TipoEventoId"].(map[string]interface{})
+				var dependencia []map[string]interface{}
+				errDependencia := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"dependencia_tipo_dependencia/?query=DependenciaId__Id:"+fmt.Sprintf("%.f", tipoEvento["DependenciaId"].(float64)), &dependencia)
+				if dependencia == nil || errDependencia != nil {
+					alertas = append(alertas, errDependencia)
 					alerta.Body = alertas
 					alerta.Type = "error"
 					alerta.Code = "400"
 				} else {
-					encargado["Nombre"] = encargadoEvento["PrimerNombre"].(string) + " " + encargadoEvento["SegundoNombre"].(string) + " " + encargadoEvento["PrimerApellido"].(string) + " " + encargadoEvento["SegundoApellido"].(string)
+					calendarioEvento["TipoDependenciaId"] = dependencia[0]["TipoDependenciaId"]
+					calendarioEvento["DependenciaId"] = dependencia[0]["DependenciaId"]
 				}	
+				// cargar periodo
+				var periodo map[string]interface{}
+				errPeriodo := request.GetJson("http://"+beego.AppConfig.String("CoreService")+"periodo/"+fmt.Sprintf("%.f", calendarioEvento["PeriodoId"].(float64)), &periodo)
+				if periodo == nil || errPeriodo != nil {
+					alertas = append(alertas, errPeriodo)
+					alerta.Body = alertas
+					alerta.Type = "error"
+					alerta.Code = "400"
+				} else {
+					evento["Periodo"] = periodo
+				}	
+				evento["FechaInicio"] = calendarioEvento["FechaInicio"]
+				evento["FechaFin"] = calendarioEvento["FechaFin"]
+				evento["Descripcion"] = calendarioEvento["Descripcion"]
+				evento["TipoEvento"] = tipoEvento["Nombre"]
+				evento["Dependencia"] = calendarioEvento["DependenciaId"].(map[string]interface{})["Nombre"]
+
 			}
-			// cargar nombre de la dependencia
-			calendarioEvento := evento["CalendarioEvento"].(map[string]interface{})
-			tipoEvento := calendarioEvento["TipoEventoId"].(map[string]interface{})
-			var dependencia []map[string]interface{}
-			errDependencia := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"dependencia_tipo_dependencia/?query=DependenciaId__Id:"+fmt.Sprintf("%.f", tipoEvento["DependenciaId"].(float64)), &dependencia)
-			if dependencia == nil || errDependencia != nil {
-				alertas = append(alertas, errDependencia)
-				alerta.Body = alertas
-				alerta.Type = "error"
-				alerta.Code = "400"
-			} else {
-				calendarioEvento["TipoDependenciaId"] = dependencia[0]["TipoDependenciaId"]
-				calendarioEvento["DependenciaId"] = dependencia[0]["DependenciaId"]
-			}	
-			// cargar periodo
-			var periodo map[string]interface{}
-			errPeriodo := request.GetJson("http://"+beego.AppConfig.String("CoreService")+"periodo/"+fmt.Sprintf("%.f", calendarioEvento["PeriodoId"].(float64)), &periodo)
-			if periodo == nil || errPeriodo != nil {
-				alertas = append(alertas, errPeriodo)
-				alerta.Body = alertas
-				alerta.Type = "error"
-				alerta.Code = "400"
-			} else {
-				evento["Periodo"] = periodo
-			}	
-			evento["FechaInicio"] = calendarioEvento["FechaInicio"]
-			evento["FechaFin"] = calendarioEvento["FechaFin"]
-			evento["Descripcion"] = calendarioEvento["Descripcion"]
-			evento["TipoEvento"] = tipoEvento["Nombre"]
-			evento["Dependencia"] = calendarioEvento["DependenciaId"].(map[string]interface{})["Nombre"]
-
-
 		}
 		alerta.Body = eventos
 	}	
