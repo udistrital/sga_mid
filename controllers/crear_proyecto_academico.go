@@ -42,6 +42,7 @@ func (c *CrearProyectoAcademicoController) PostProyecto() {
 			"ProyectoAcademicoInstitucion": Proyecto_academico["ProyectoAcademicoInstitucion"],
 			"Enfasis":                      Proyecto_academico["Enfasis"],
 			"Registro":                     Proyecto_academico["Registro"],
+			"Titulaciones":                 Proyecto_academico["Titulaciones"],
 		}
 
 		Proyecto_academico_oikosPost := Proyecto_academico["Oikos"]

@@ -25,6 +25,11 @@ func init() {
 				&controllers.CrearProyectoAcademicoController{},
 			),
 		),
+		beego.NSNamespace("/consulta_proyecto_academico",
+			beego.NSInclude(
+				&controllers.ConsultaProyectoAcademicoController{},
+			),
+		),
 
 		beego.NSNamespace("/evento",
 			beego.NSInclude(
