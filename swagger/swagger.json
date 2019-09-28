@@ -188,6 +188,35 @@
                 }
             }
         },
+        "/consulta_proyecto_academico/{id}": {
+            "get": {
+                "tags": [
+                    "consulta_proyecto_academico"
+                ],
+                "description": "get ConsultaProyectoAcademico by id",
+                "operationId": "ConsultaProyectoAcademicoController.GetOnePorId",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "The key for staticblock",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.ConsultaProyectoAcademico"
+                        }
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
+            }
+        },
         "/evento/": {
             "post": {
                 "tags": [
