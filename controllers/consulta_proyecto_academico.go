@@ -132,64 +132,74 @@ func (c *ConsultaProyectoAcademicoController) GetOnePorId() {
 		errdependencia := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia_tipo_dependencia/?query=TipoDependenciaId:2", &dependencias)
 		errunidad := request.GetJson("http://"+beego.AppConfig.String("UnidadTiempoCoreService")+"/unidad_tiempo/", &unidades)
 
-		if errproyecto == nil && errdependencia == nil && errunidad == nil && proyectos[0]["ProyectoAcademico"] != nil {
-			fmt.Println("entro bien")
+		if proyectos[0]["ProyectoAcademico"] != nil {
+			fmt.Println("si datos")
 
-			for _, proyecto := range proyectos {
-				fmt.Println(proyectos)
-				registros := proyecto["Registro"].([]interface{})
-				proyectobase := proyecto["ProyectoAcademico"].(map[string]interface{})
-				proyecto["FechaVenimientoAcreditacion"] = nil
-				proyecto["FechaVenimientoCalidad"] = nil
+			if errproyecto == nil && errdependencia == nil && errunidad == nil {
+				fmt.Println("entro bien")
 
-				for _, dependencia := range dependencias {
-					proyectotem := dependencia["DependenciaId"].(map[string]interface{})
-					idOikos = proyectotem["Id"].(float64)
-					fmt.Println(proyectobase)
-					if proyectobase["DependenciaId"].(float64) == idOikos {
-						proyecto["NombreDependencia"] = proyectotem["Nombre"]
-					}
-					if proyectobase["Activo"] == true {
-						proyecto["ActivoLetra"] = "Si"
+				for _, proyecto := range proyectos {
+					fmt.Println(proyectos)
+					registros := proyecto["Registro"].([]interface{})
+					proyectobase := proyecto["ProyectoAcademico"].(map[string]interface{})
+					proyecto["FechaVenimientoAcreditacion"] = nil
+					proyecto["FechaVenimientoCalidad"] = nil
 
-					} else if proyectobase["Activo"] == false {
-						proyecto["ActivoLetra"] = "No"
+					for _, dependencia := range dependencias {
+						proyectotem := dependencia["DependenciaId"].(map[string]interface{})
+						idOikos = proyectotem["Id"].(float64)
+						fmt.Println(proyectobase)
+						if proyectobase["DependenciaId"].(float64) == idOikos {
+							proyecto["NombreDependencia"] = proyectotem["Nombre"]
+						}
+						if proyectobase["Activo"] == true {
+							proyecto["ActivoLetra"] = "Si"
+
+						} else if proyectobase["Activo"] == false {
+							proyecto["ActivoLetra"] = "No"
+						}
+						if proyectobase["CiclosPropedeuticos"] == true {
+							proyecto["CiclosLetra"] = "Si"
+						} else if proyectobase["CiclosPropedeuticos"] == false {
+							proyecto["CiclosLetra"] = "NO"
+						}
 					}
-					if proyectobase["CiclosPropedeuticos"] == true {
-						proyecto["CiclosLetra"] = "Si"
-					} else if proyectobase["CiclosPropedeuticos"] == false {
-						proyecto["CiclosLetra"] = "NO"
+					for _, unidad := range unidades {
+						unidadTem := unidad
+						idUnidad = unidadTem["Id"].(float64)
+						if proyectobase["UnidadTiempoId"].(float64) == idUnidad {
+							proyecto["NombreUnidad"] = unidadTem["Nombre"]
+						}
+
 					}
+
+					for _, registrotemp := range registros {
+						registro := registrotemp.(map[string]interface{})
+
+						tiporegistro := registro["TipoRegistroId"].(map[string]interface{})
+
+						if tiporegistro["Id"].(float64) == 1 {
+							proyecto["FechaVenimientoAcreditacion"] = registro["VencimientoActoAdministrativo"]
+						} else if tiporegistro["Id"].(float64) == 2 {
+							proyecto["FechaVenimientoCalidad"] = registro["VencimientoActoAdministrativo"]
+						}
+					}
+
 				}
-				for _, unidad := range unidades {
-					unidadTem := unidad
-					idUnidad = unidadTem["Id"].(float64)
-					if proyectobase["UnidadTiempoId"].(float64) == idUnidad {
-						proyecto["NombreUnidad"] = unidadTem["Nombre"]
-					}
 
-				}
+				c.Data["json"] = proyectos
 
-				for _, registrotemp := range registros {
-					registro := registrotemp.(map[string]interface{})
-
-					tiporegistro := registro["TipoRegistroId"].(map[string]interface{})
-
-					if tiporegistro["Id"].(float64) == 1 {
-						proyecto["FechaVenimientoAcreditacion"] = registro["VencimientoActoAdministrativo"]
-					} else if tiporegistro["Id"].(float64) == 2 {
-						proyecto["FechaVenimientoCalidad"] = registro["VencimientoActoAdministrativo"]
-					}
-				}
-
+			} else {
+				alertas = append(alertas, errproyecto.Error())
+				alerta.Code = "400"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = alerta
 			}
 
-			c.Data["json"] = proyectos
-
 		} else {
-			c.Data["json"] = nil
+			c.Data["json"] = proyectos
 		}
-
 	} else {
 		if resultado["Body"] == "<QuerySeter> no row found" {
 			c.Data["json"] = nil
