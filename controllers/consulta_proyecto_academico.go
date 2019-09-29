@@ -126,12 +126,17 @@ func (c *ConsultaProyectoAcademicoController) GetOnePorId() {
 		var unidades []map[string]interface{}
 
 		errproyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/tr_proyecto_academico/"+idStr, &proyectos)
+		fmt.Println(errproyecto)
+		fmt.Println("datos")
+		fmt.Println(proyectos[0])
 		errdependencia := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia_tipo_dependencia/?query=TipoDependenciaId:2", &dependencias)
 		errunidad := request.GetJson("http://"+beego.AppConfig.String("UnidadTiempoCoreService")+"/unidad_tiempo/", &unidades)
 
-		if errproyecto == nil && errdependencia == nil && errunidad == nil {
+		if errproyecto == nil && errdependencia == nil && errunidad == nil && proyectos[0]["ProyectoAcademico"] != nil {
+			fmt.Println("entro bien")
 
 			for _, proyecto := range proyectos {
+				fmt.Println(proyectos)
 				registros := proyecto["Registro"].([]interface{})
 				proyectobase := proyecto["ProyectoAcademico"].(map[string]interface{})
 				proyecto["FechaVenimientoAcreditacion"] = nil
@@ -182,11 +187,7 @@ func (c *ConsultaProyectoAcademicoController) GetOnePorId() {
 			c.Data["json"] = proyectos
 
 		} else {
-			alertas = append(alertas, errproyecto.Error())
-			alerta.Code = "400"
-			alerta.Type = "error"
-			alerta.Body = alertas
-			c.Data["json"] = alerta
+			c.Data["json"] = nil
 		}
 
 	} else {
