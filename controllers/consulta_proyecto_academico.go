@@ -59,10 +59,10 @@ func (c *ConsultaProyectoAcademicoController) GetAll() {
 					if proyectobase["DependenciaId"].(float64) == idOikos {
 						proyecto["NombreDependencia"] = proyectotem["Nombre"]
 					}
-					if proyectobase["Activo"] == true {
-						proyecto["ActivoLetra"] = "Si"
+					if proyectobase["Oferta"] == true {
+						proyecto["OfertaLetra"] = "Si"
 					} else if proyectobase["Activo"] == false {
-						proyecto["ActivoLetra"] = "No"
+						proyecto["OfertaLetra"] = "No"
 					}
 
 				}
