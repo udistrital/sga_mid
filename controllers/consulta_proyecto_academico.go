@@ -152,11 +152,11 @@ func (c *ConsultaProyectoAcademicoController) GetOnePorId() {
 						if proyectobase["DependenciaId"].(float64) == idOikos {
 							proyecto["NombreDependencia"] = proyectotem["Nombre"]
 						}
-						if proyectobase["Activo"] == true {
-							proyecto["ActivoLetra"] = "Si"
+						if proyectobase["Oferta"] == true {
+							proyecto["OfertaLetra"] = "Si"
 
-						} else if proyectobase["Activo"] == false {
-							proyecto["ActivoLetra"] = "No"
+						} else if proyectobase["Oferta"] == false {
+							proyecto["OfertaLetra"] = "No"
 						}
 						if proyectobase["CiclosPropedeuticos"] == true {
 							proyecto["CiclosLetra"] = "Si"
