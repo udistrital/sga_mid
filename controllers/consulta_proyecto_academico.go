@@ -4,6 +4,8 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/udistrital/sga_mid/models"
 	"github.com/udistrital/utils_oas/request"
+
+	"encoding/json"
 )
 
 // ConsultaProyectoAcademicoController operations for Consulta_proyecto_academico
@@ -15,7 +17,7 @@ type ConsultaProyectoAcademicoController struct {
 func (c *ConsultaProyectoAcademicoController) URLMapping() {
 	c.Mapping("GetAll", c.GetAll)
 	c.Mapping("GetOnePorId", c.GetOnePorId)
-
+	c.Mapping("Put", c.PutInhabilitarProyecto)
 }
 
 // GetAll ...
@@ -202,5 +204,41 @@ func (c *ConsultaProyectoAcademicoController) GetOnePorId() {
 			c.Data["json"] = alerta
 		}
 	}
+	c.ServeJSON()
+}
+
+
+// PutInhabilitarProyecto ...
+// @Title PutInhabilitarProyecto
+// @Description Inhabilitar Proyecto
+// @Param	id		path 	string	true		"el id del proyecto a inhabilitar"
+// @Param   body        body    {}  true        "body Inhabilitar Proyecto content"
+// @Success 200 {}
+// @Failure 403 :id is empty
+// @router inhabilitar_proyecto/:id [put]
+func (c *ConsultaProyectoAcademicoController) PutInhabilitarProyecto() {
+	idStr := c.Ctx.Input.Param(":id")
+	var ProyectoAcademico map[string]interface{}
+	var alerta models.Alert
+	alertas := append([]interface{}{"Response:"})
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &ProyectoAcademico); err == nil {
+
+		var resultadoProyecto map[string]interface{}
+		errProyecto := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_institucion/"+idStr, "PUT", &resultadoProyecto, ProyectoAcademico)
+		if resultadoProyecto["Type"] == "error" || errProyecto != nil || resultadoProyecto["Status"] == "404" || resultadoProyecto["Message"] != nil {
+			alertas = append(alertas, resultadoProyecto)
+			alerta.Type = "error"
+			alerta.Code = "400"
+		} else {
+			alertas = append(alertas, ProyectoAcademico)
+		}
+
+	} else {
+		alerta.Type = "error"
+		alerta.Code = "400"
+		alertas = append(alertas, err.Error())
+	}
+	alerta.Body = alertas
+	c.Data["json"] = alerta
 	c.ServeJSON()
 }

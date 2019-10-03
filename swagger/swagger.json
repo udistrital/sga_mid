@@ -217,6 +217,41 @@
                 }
             }
         },
+        "/consulta_proyecto_academicoinhabilitar_proyecto/{id}": {
+            "put": {
+                "tags": [
+                    "consulta_proyecto_academico"
+                ],
+                "description": "Inhabilitar Proyecto",
+                "operationId": "ConsultaProyectoAcademicoController.PutInhabilitarProyecto",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "el id del proyecto a inhabilitar",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Inhabilitar Proyecto content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
+            }
+        },
         "/evento/": {
             "post": {
                 "tags": [
