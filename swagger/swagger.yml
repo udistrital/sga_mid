@@ -87,6 +87,87 @@ paths:
             $ref: '#/definitions/models.ConsultaOfertaAcademica'
         "403":
           description: :id is empty
+  /consulta_proyecto_academico/:
+    get:
+      tags:
+      - consulta_proyecto_academico
+      description: get ConsultaProyectoAcademico
+      operationId: ConsultaProyectoAcademicoController.GetAll
+      parameters:
+      - in: query
+        name: query
+        description: Filter. e.g. col1:v1,col2:v2 ...
+        type: string
+      - in: query
+        name: fields
+        description: Fields returned. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: sortby
+        description: Sorted-by fields. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: order
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
+        type: string
+      - in: query
+        name: limit
+        description: Limit the size of result set. Must be an integer
+        type: string
+      - in: query
+        name: offset
+        description: Start position of result set. Must be an integer
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.ConsultaProyectoAcademico'
+        "403":
+          description: ""
+  /consulta_proyecto_academico/{id}:
+    get:
+      tags:
+      - consulta_proyecto_academico
+      description: get ConsultaProyectoAcademico by id
+      operationId: ConsultaProyectoAcademicoController.GetOnePorId
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.ConsultaProyectoAcademico'
+        "403":
+          description: :id is empty
+  /consulta_proyecto_academicoinhabilitar_proyecto/{id}:
+    put:
+      tags:
+      - consulta_proyecto_academico
+      description: Inhabilitar Proyecto
+      operationId: ConsultaProyectoAcademicoController.PutInhabilitarProyecto
+      parameters:
+      - in: path
+        name: id
+        description: el id del proyecto a inhabilitar
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body Inhabilitar Proyecto content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: :id is empty
   /evento/:
     post:
       tags:
@@ -258,6 +339,24 @@ paths:
           description: '{}'
         "403":
           description: :id is empty
+  /proyecto_academico/:
+    post:
+      tags:
+      - proyecto_academico
+      description: Crear Proyecto
+      operationId: CrearProyectoAcademicoController.PostProyecto
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar Proyecto content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
 definitions:
   '{}':
     title: '{}'
@@ -265,10 +364,19 @@ definitions:
   models.ConsultaOfertaAcademica:
     title: ConsultaOfertaAcademica
     type: object
+  models.ConsultaProyectoAcademico:
+    title: ConsultaProyectoAcademico
+    type: object
 tags:
 - name: archivo_icfes
   description: |
     ArchivoIcfesController ...
+- name: proyecto_academico
+  description: |
+    CrearProyectoAcademicoController
+- name: consulta_proyecto_academico
+  description: |
+    ConsultaProyectoAcademicoController operations for Consulta_proyecto_academico
 - name: evento
   description: |
     EventoController ...

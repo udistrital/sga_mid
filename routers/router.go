@@ -20,6 +20,17 @@ func init() {
 				&controllers.ArchivoIcfesController{},
 			),
 		),
+		beego.NSNamespace("/proyecto_academico",
+			beego.NSInclude(
+				&controllers.CrearProyectoAcademicoController{},
+			),
+		),
+		beego.NSNamespace("/consulta_proyecto_academico",
+			beego.NSInclude(
+				&controllers.ConsultaProyectoAcademicoController{},
+			),
+		),
+
 		beego.NSNamespace("/evento",
 			beego.NSInclude(
 				&controllers.EventoController{},
