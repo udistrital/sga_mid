@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"fmt"
+
 	"github.com/astaxie/beego"
 	"github.com/udistrital/sga_mid/models"
 	"github.com/udistrital/utils_oas/request"
@@ -67,14 +69,19 @@ func (c *ConsultaProyectoAcademicoController) GetAll() {
 
 				for _, registrotemp := range registros {
 					registro := registrotemp.(map[string]interface{})
-
+					fmt.Println(proyecto)
 					tiporegistro := registro["TipoRegistroId"].(map[string]interface{})
 
 					if tiporegistro["Id"].(float64) == 1 {
 						proyecto["FechaVenimientoAcreditacion"] = registro["VencimientoActoAdministrativo"]
+						proyecto["FechaVenimientoCalidad"] = nil
+						if tiporegistro["Id"].(float64) == 2 {
+							proyecto["FechaVenimientoCalidad"] = registro["VencimientoActoAdministrativo"]
+						}
 					} else if tiporegistro["Id"].(float64) == 2 {
 						proyecto["FechaVenimientoCalidad"] = registro["VencimientoActoAdministrativo"]
 					}
+					fmt.Println(proyecto)
 				}
 
 			}
@@ -171,8 +178,11 @@ func (c *ConsultaProyectoAcademicoController) GetOnePorId() {
 
 						if tiporegistro["Id"].(float64) == 1 {
 							proyecto["FechaVenimientoAcreditacion"] = registro["VencimientoActoAdministrativo"]
+							proyecto["FechaVenimientoCalidad"] = "00/00/0000"
 						} else if tiporegistro["Id"].(float64) == 2 {
+
 							proyecto["FechaVenimientoCalidad"] = registro["VencimientoActoAdministrativo"]
+
 						}
 					}
 
