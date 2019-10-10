@@ -17,6 +17,7 @@ type ConsultaProyectoAcademicoController struct {
 func (c *ConsultaProyectoAcademicoController) URLMapping() {
 	c.Mapping("GetAll", c.GetAll)
 	c.Mapping("GetOnePorId", c.GetOnePorId)
+	c.Mapping("GetOneRegistroPorId", c.GetOneRegistroPorId)
 
 }
 
@@ -72,16 +73,15 @@ func (c *ConsultaProyectoAcademicoController) GetAll() {
 					fmt.Println(proyecto)
 					tiporegistro := registro["TipoRegistroId"].(map[string]interface{})
 
-					if tiporegistro["Id"].(float64) == 1 {
+					if tiporegistro["Id"].(float64) == 1 && registro["Activo"] == true {
 						proyecto["FechaVenimientoAcreditacion"] = registro["VencimientoActoAdministrativo"]
 						proyecto["FechaVenimientoCalidad"] = nil
-						if tiporegistro["Id"].(float64) == 2 {
+						if tiporegistro["Id"].(float64) == 2 && registro["Activo"] == true {
 							proyecto["FechaVenimientoCalidad"] = registro["VencimientoActoAdministrativo"]
 						}
-					} else if tiporegistro["Id"].(float64) == 2 {
+					} else if tiporegistro["Id"].(float64) == 2 && registro["Activo"] == true {
 						proyecto["FechaVenimientoCalidad"] = registro["VencimientoActoAdministrativo"]
 					}
-					fmt.Println(proyecto)
 				}
 
 			}
@@ -201,6 +201,59 @@ func (c *ConsultaProyectoAcademicoController) GetOnePorId() {
 		} else {
 			c.Data["json"] = proyectos
 		}
+	} else {
+		if resultado["Body"] == "<QuerySeter> no row found" {
+			c.Data["json"] = nil
+		} else {
+			alertas = append(alertas, resultado["Body"])
+			alerta.Code = "400"
+			alerta.Type = "error"
+			alerta.Body = alertas
+			c.Data["json"] = alerta
+		}
+	}
+	c.ServeJSON()
+}
+
+// GetOneRegistroPorId ...
+// @Title GetOneRegistroPorId
+// @Description get ConsultaRegistro by id
+// @Param	id		path 	string	true		"The key for staticblock"
+// @Success 200 {object} models.ConsultaProyectoAcademico
+// @Failure 403 :id is empty
+// @router /get_registro/:id [get]
+func (c *ConsultaProyectoAcademicoController) GetOneRegistroPorId() {
+	var resultado map[string]interface{}
+	var alerta models.Alert
+	alertas := append([]interface{}{"Response:"})
+	idStr := c.Ctx.Input.Param(":id")
+
+	if resultado["Type"] != "error" {
+		var registros []map[string]interface{}
+
+		errproyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion/?query=ProyectoAcademicoInstitucionId.Id:"+idStr, &registros)
+
+		if errproyecto == nil {
+
+			for _, registro := range registros {
+				if registro["Activo"] == true {
+					registro["ActivoLetra"] = "Si"
+
+				} else if registro["Activo"] == false {
+					registro["ActivoLetra"] = "No"
+				}
+			}
+
+			c.Data["json"] = registros
+
+		} else {
+			alertas = append(alertas, errproyecto.Error())
+			alerta.Code = "400"
+			alerta.Type = "error"
+			alerta.Body = alertas
+			c.Data["json"] = alerta
+		}
+
 	} else {
 		if resultado["Body"] == "<QuerySeter> no row found" {
 			c.Data["json"] = nil
