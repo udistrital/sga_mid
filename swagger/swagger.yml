@@ -145,6 +145,25 @@ paths:
             $ref: '#/definitions/models.ConsultaProyectoAcademico'
         "403":
           description: :id is empty
+  /consulta_proyecto_academico/get_registro/{id}:
+    get:
+      tags:
+      - consulta_proyecto_academico
+      description: get ConsultaRegistro by id
+      operationId: ConsultaProyectoAcademicoController.GetOneRegistroPorId
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.ConsultaProyectoAcademico'
+        "403":
+          description: :id is empty
   /consulta_proyecto_academicoinhabilitar_proyecto/{id}:
     put:
       tags:
@@ -357,6 +376,58 @@ paths:
           description: '{}'
         "403":
           description: body is empty
+  /proyecto_academico/registro_alta_calidad/{id}:
+    post:
+      tags:
+      - proyecto_academico
+      description: Post a de un registro de un proyecto existente, cambia estado activo
+        a false a los registro anteriores y crea el nuevo
+      operationId: CrearProyectoAcademicoController.PostRegistroAltaCalidadById
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body Agregar Registro content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.ConsultaProyectoAcademico'
+        "403":
+          description: :id is empty
+  /proyecto_academico/registro_calificado/{id}:
+    post:
+      tags:
+      - proyecto_academico
+      description: Post a de un registro de un proyecto existente, cambia estado activo
+        a false a los registro anteriores y crea el nuevo
+      operationId: CrearProyectoAcademicoController.PostRegistroCalificadoById
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body Agregar Registro content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.ConsultaProyectoAcademico'
+        "403":
+          description: :id is empty
 definitions:
   '{}':
     title: '{}'
