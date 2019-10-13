@@ -2,7 +2,6 @@ package main
 
 import (
 	_ "github.com/udistrital/sga_mid/routers"
-	notificacionlib "github.com/udistrital/notificaciones_lib"
 	apistatus "github.com/udistrital/utils_oas/apiStatusLib"
 
 	"github.com/astaxie/beego"
@@ -34,7 +33,7 @@ func main() {
 	logPath += "\"}"
 	logs.SetLogger(logs.AdapterFile, logPath)
 
-	notificacionlib.InitMiddleware()
+	// notificacionlib.InitMiddleware()
 	apistatus.Init()
 	beego.Run()
 }
