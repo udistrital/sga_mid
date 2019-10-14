@@ -143,6 +143,11 @@ func (c *ConsultaProyectoAcademicoController) GetOnePorId() {
 					proyectobase := proyecto["ProyectoAcademico"].(map[string]interface{})
 					proyecto["FechaVenimientoAcreditacion"] = nil
 					proyecto["FechaVenimientoCalidad"] = nil
+					proyecto["TieneRegistroAltaCalidad"] = false
+					proyecto["NumeroActoAdministrativoAltaCalidad"] = nil
+					proyecto["AnoActoAdministrativoIdAltaCalidad"] = nil
+					proyecto["FechaCreacionActoAdministrativoAltaCalidad"] = nil
+					proyecto["VigenciaActoAdministrativoAltaCalidad"] = nil
 
 					for _, dependencia := range dependencias {
 						proyectotem := dependencia["DependenciaId"].(map[string]interface{})
@@ -176,12 +181,17 @@ func (c *ConsultaProyectoAcademicoController) GetOnePorId() {
 
 						tiporegistro := registro["TipoRegistroId"].(map[string]interface{})
 
-						if tiporegistro["Id"].(float64) == 1 {
+						if tiporegistro["Id"].(float64) == 1 && registro["Activo"] == true {
 							proyecto["FechaVenimientoAcreditacion"] = registro["VencimientoActoAdministrativo"]
 							proyecto["FechaVenimientoCalidad"] = "00/00/0000"
-						} else if tiporegistro["Id"].(float64) == 2 {
+						} else if tiporegistro["Id"].(float64) == 2 && registro["Activo"] == true {
 
 							proyecto["FechaVenimientoCalidad"] = registro["VencimientoActoAdministrativo"]
+							proyecto["TieneRegistroAltaCalidad"] = true
+							proyecto["NumeroActoAdministrativoAltaCalidad"] = registro["NumeroActoAdministrativo"]
+							proyecto["AnoActoAdministrativoIdAltaCalidad"] = registro["AnoActoAdministrativoId"]
+							proyecto["FechaCreacionActoAdministrativoAltaCalidad"] = registro["FechaCreacionActoAdministrativo"]
+							proyecto["VigenciaActoAdministrativoAltaCalidad"] = registro["VigenciaActoAdministrativo"]
 
 						}
 					}
