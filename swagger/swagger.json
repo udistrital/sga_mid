@@ -1,0 +1,690 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "beego Test API",
+        "description": "beego has a very cool tools to autogenerate documents for your API",
+        "version": "1.0.0",
+        "termsOfService": "http://beego.me/",
+        "contact": {
+            "email": "astaxie@gmail.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        }
+    },
+    "basePath": "/v1",
+    "paths": {
+        "/archivo_icfes/": {
+            "post": {
+                "tags": [
+                    "archivo_icfes"
+                ],
+                "description": "Agregar ArchivoIcfes",
+                "operationId": "ArchivoIcfesController.PostArchivoIcfes",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar ArchivoIcfes content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/consulta_academica/": {
+            "get": {
+                "tags": [
+                    "consulta_academica"
+                ],
+                "description": "get ConsultaOfertaAcademica",
+                "operationId": "ConsultaOfertaAcademicaController.GetAll",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "query",
+                        "description": "Filter. e.g. col1:v1,col2:v2 ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "fields",
+                        "description": "Fields returned. e.g. col1,col2 ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "sortby",
+                        "description": "Sorted-by fields. e.g. col1,col2 ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "order",
+                        "description": "Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "limit",
+                        "description": "Limit the size of result set. Must be an integer",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "offset",
+                        "description": "Start position of result set. Must be an integer",
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.ConsultaOfertaAcademica"
+                        }
+                    },
+                    "403": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/consulta_academica/{id}": {
+            "get": {
+                "tags": [
+                    "consulta_academica"
+                ],
+                "description": "get ConsultaOfertaAcademica by id",
+                "operationId": "ConsultaOfertaAcademicaController.GetOneEventoPorPeriodo",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "The key for staticblock",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.ConsultaOfertaAcademica"
+                        }
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
+            }
+        },
+        "/consulta_proyecto_academico/": {
+            "get": {
+                "tags": [
+                    "consulta_proyecto_academico"
+                ],
+                "description": "get ConsultaProyectoAcademico",
+                "operationId": "ConsultaProyectoAcademicoController.GetAll",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "query",
+                        "description": "Filter. e.g. col1:v1,col2:v2 ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "fields",
+                        "description": "Fields returned. e.g. col1,col2 ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "sortby",
+                        "description": "Sorted-by fields. e.g. col1,col2 ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "order",
+                        "description": "Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "limit",
+                        "description": "Limit the size of result set. Must be an integer",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "offset",
+                        "description": "Start position of result set. Must be an integer",
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.ConsultaProyectoAcademico"
+                        }
+                    },
+                    "403": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/consulta_proyecto_academico/get_registro/{id}": {
+            "get": {
+                "tags": [
+                    "consulta_proyecto_academico"
+                ],
+                "description": "get ConsultaRegistro by id",
+                "operationId": "ConsultaProyectoAcademicoController.GetOneRegistroPorId",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "The key for staticblock",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.ConsultaProyectoAcademico"
+                        }
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
+            }
+        },
+        "/consulta_proyecto_academico/{id}": {
+            "get": {
+                "tags": [
+                    "consulta_proyecto_academico"
+                ],
+                "description": "get ConsultaProyectoAcademico by id",
+                "operationId": "ConsultaProyectoAcademicoController.GetOnePorId",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "The key for staticblock",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.ConsultaProyectoAcademico"
+                        }
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
+            }
+        },
+        "/consulta_proyecto_academicoinhabilitar_proyecto/{id}": {
+            "put": {
+                "tags": [
+                    "consulta_proyecto_academico"
+                ],
+                "description": "Inhabilitar Proyecto",
+                "operationId": "ConsultaProyectoAcademicoController.PutInhabilitarProyecto",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "el id del proyecto a inhabilitar",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Inhabilitar Proyecto content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
+            }
+        },
+        "/evento/": {
+            "post": {
+                "tags": [
+                    "evento"
+                ],
+                "description": "Agregar Evento",
+                "operationId": "EventoController.PostEvento",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar Evento content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/evento/{id}": {
+            "put": {
+                "tags": [
+                    "evento"
+                ],
+                "description": "Modificar Evento",
+                "operationId": "EventoController.PutEvento",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "el id del evento a modificar",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Modificar Evento content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "evento"
+                ],
+                "description": "eliminar Evento por id",
+                "operationId": "EventoController.DeleteEvento",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "Id del Evento",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
+            }
+        },
+        "/evento/{persona}": {
+            "get": {
+                "tags": [
+                    "evento"
+                ],
+                "description": "consultar Evento por persona",
+                "operationId": "EventoController.GetEvento",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "persona",
+                        "description": "Persona",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": ":persona is empty"
+                    }
+                }
+            }
+        },
+        "/produccion_academica/": {
+            "post": {
+                "tags": [
+                    "produccion_academica"
+                ],
+                "description": "Agregar Producción academica",
+                "operationId": "ProduccionAcademicaController.PostProduccionAcademica",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar ProduccionAcademica content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/produccion_academica/estado_autor_produccion/{id}": {
+            "put": {
+                "tags": [
+                    "produccion_academica"
+                ],
+                "description": "Modificar Estado de Autor de Producción Academica",
+                "operationId": "ProduccionAcademicaController.PutEstadoAutorProduccionAcademica",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "el id del autor a modificar",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Modificar AutorProduccionAcademica content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
+            }
+        },
+        "/produccion_academica/{id}": {
+            "put": {
+                "tags": [
+                    "produccion_academica"
+                ],
+                "description": "Modificar Producción Academica",
+                "operationId": "ProduccionAcademicaController.PutProduccionAcademica",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "el id de la Produccion academica a modificar",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Modificar ProduccionAcademica content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "produccion_academica"
+                ],
+                "description": "eliminar Produccion Academica por id",
+                "operationId": "ProduccionAcademicaController.DeleteProduccionAcademica",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "Id de la Produccion Academica",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
+            }
+        },
+        "/produccion_academica/{persona}": {
+            "get": {
+                "tags": [
+                    "produccion_academica"
+                ],
+                "description": "consultar Produccion Academica por persona",
+                "operationId": "ProduccionAcademicaController.GetProduccionAcademica",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "persona",
+                        "description": "Persona",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": ":persona is empty"
+                    }
+                }
+            }
+        },
+        "/proyecto_academico/": {
+            "post": {
+                "tags": [
+                    "proyecto_academico"
+                ],
+                "description": "Crear Proyecto",
+                "operationId": "CrearProyectoAcademicoController.PostProyecto",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar Proyecto content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/proyecto_academico/registro_alta_calidad/{id}": {
+            "post": {
+                "tags": [
+                    "proyecto_academico"
+                ],
+                "description": "Post a de un registro de un proyecto existente, cambia estado activo a false a los registro anteriores y crea el nuevo",
+                "operationId": "CrearProyectoAcademicoController.PostRegistroAltaCalidadById",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "The key for staticblock",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar Registro content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.ConsultaProyectoAcademico"
+                        }
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
+            }
+        },
+        "/proyecto_academico/registro_calificado/{id}": {
+            "post": {
+                "tags": [
+                    "proyecto_academico"
+                ],
+                "description": "Post a de un registro de un proyecto existente, cambia estado activo a false a los registro anteriores y crea el nuevo",
+                "operationId": "CrearProyectoAcademicoController.PostRegistroCalificadoById",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "The key for staticblock",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar Registro content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.ConsultaProyectoAcademico"
+                        }
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.ConsultaOfertaAcademica": {
+            "title": "ConsultaOfertaAcademica",
+            "type": "object"
+        },
+        "models.ConsultaProyectoAcademico": {
+            "title": "ConsultaProyectoAcademico",
+            "type": "object"
+        },
+        "{}": {
+            "title": "{}",
+            "type": "object"
+        }
+    },
+    "tags": [
+        {
+            "name": "archivo_icfes",
+            "description": "ArchivoIcfesController ...\n"
+        },
+        {
+            "name": "proyecto_academico",
+            "description": "CrearProyectoAcademicoController\n"
+        },
+        {
+            "name": "consulta_proyecto_academico",
+            "description": "ConsultaProyectoAcademicoController operations for Consulta_proyecto_academico\n"
+        },
+        {
+            "name": "evento",
+            "description": "EventoController ...\n"
+        },
+        {
+            "name": "produccion_academica",
+            "description": "ProduccionAcademicaController ...\n"
+        },
+        {
+            "name": "consulta_academica",
+            "description": "ConsultaOfertaAcademicaController operations for Consulta_oferta_academica\n"
+        }
+    ]
+}

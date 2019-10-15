@@ -1,0 +1,31 @@
+{
+    "Type": "error",
+    "Code": "400",
+    "Body": [
+        "Response:",
+        {
+            "Development": null,
+            "Message": "The request contains incorrect syntax",
+            "Status": "400",
+            "System": {
+            "Code": "23503",
+            "Column": "",
+            "Constraint": "fk_produccion_academica_subtipo_produccion",
+            "DataTypeName": "",
+            "Detail": "Key (subtipo_produccion_id)=(0) is not present in table \"subtipo_produccion\".",
+            "File": "ri_triggers.c",
+            "Hint": "",
+            "InternalPosition": "",
+            "InternalQuery": "",
+            "Line": "3266",
+            "Message": "insert or update on table \"produccion_academica\" violates foreign key constraint \"fk_produccion_academica_subtipo_produccion\"",
+            "Position": "",
+            "Routine": "ri_ReportViolation",
+            "Schema": "produccion_academica",
+            "Severity": "ERROR",
+            "Table": "produccion_academica",
+            "Where": ""
+            }
+        }
+    ]
+}
