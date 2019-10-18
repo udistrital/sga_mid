@@ -150,6 +150,7 @@ func (c *ConsultaProyectoAcademicoController) GetOnePorId() {
 					proyecto["AnoActoAdministrativoIdAltaCalidad"] = nil
 					proyecto["FechaCreacionActoAdministrativoAltaCalidad"] = nil
 					proyecto["VigenciaActoAdministrativoAltaCalidad"] = nil
+					proyecto["EnlaceActoAdministrativoAltaCalidad"] = nil
 
 					for _, dependencia := range dependencias {
 						proyectotem := dependencia["DependenciaId"].(map[string]interface{})
@@ -196,7 +197,7 @@ func (c *ConsultaProyectoAcademicoController) GetOnePorId() {
 							proyecto["AnoActoAdministrativoIdAltaCalidad"] = registro["AnoActoAdministrativoId"]
 							proyecto["FechaCreacionActoAdministrativoAltaCalidad"] = registro["FechaCreacionActoAdministrativo"]
 							proyecto["VigenciaActoAdministrativoAltaCalidad"] = registro["VigenciaActoAdministrativo"]
-
+							proyecto["EnlaceActoAdministrativoAltaCalidad"] = registro["EnlaceActo"]
 						}
 					}
 
