@@ -51,7 +51,7 @@ func (c *GeneradorCodigoBarrasController) GenerarCodigoBarras() {
 		}
 
 		// Scale the barcode to 500x200 pixels
-		ScCode, _ := barcode.Scale(bcode, 400, 60)
+		ScCode, _ := barcode.Scale(bcode, 400, 40)
 
 		// create the output file
 		file, _ := os.Create("Codigo_generado.png")
@@ -59,6 +59,9 @@ func (c *GeneradorCodigoBarrasController) GenerarCodigoBarras() {
 
 		// encode the barcode as png
 		png.Encode(file, ScCode)
+
+		fmt.Println("Code128 code generated and saved to Codigo_generado.png")
+
 	} else {
 		alerta.Type = "error"
 		alerta.Code = "400"
