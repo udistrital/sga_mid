@@ -261,6 +261,24 @@ paths:
           description: '{}'
         "403":
           description: :persona is empty
+  /generar_codigo/:
+    post:
+      tags:
+      - generar_codigo
+      description: Creacion de codigo de barras
+      operationId: GeneradorCodigoBarrasController.GenerarCodigoBarras
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar ProduccionAcademica content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
   /produccion_academica/:
     post:
       tags:
@@ -451,6 +469,9 @@ tags:
 - name: evento
   description: |
     EventoController ...
+- name: generar_codigo
+  description: |
+    GeneradorCodigoBarrasController ...
 - name: produccion_academica
   description: |
     ProduccionAcademicaController ...
