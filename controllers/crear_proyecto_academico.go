@@ -24,6 +24,7 @@ func (c *CrearProyectoAcademicoController) URLMapping() {
 	c.Mapping("PostProyecto", c.PostProyecto)
 	c.Mapping("PostRegistroCalificadoById", c.PostRegistroCalificadoById)
 	c.Mapping("PostRegistroAltaCalidadById", c.PostRegistroAltaCalidadById)
+	c.Mapping("PostCoordinadorById", c.PostCoordinadorById)
 }
 
 // PostProyecto ...
@@ -222,6 +223,110 @@ func (c *CrearProyectoAcademicoController) PostRegistroAltaCalidadById() {
 			c.ServeJSON()
 		} else {
 			alertas = append(alertas, erregistro.Error())
+			alerta.Code = "400"
+			alerta.Type = "error"
+			alerta.Body = alertas
+			c.Data["json"] = alerta
+		}
+	} else {
+		if resultado["Body"] == "<QuerySeter> no row found" {
+			c.Data["json"] = nil
+		} else {
+			alertas = append(alertas, resultado["Body"])
+			alerta.Code = "400"
+			alerta.Type = "error"
+			alerta.Body = alertas
+			c.Data["json"] = alerta
+		}
+	}
+	alerta.Body = alertas
+	c.Data["json"] = alerta
+	c.ServeJSON()
+}
+
+// PostCoordinadorById ...
+// @Title PostCoordinadorById
+// @Description Post a de un cordinador de un proyecto existente, cambia estado activo a false a los coordinadores anteriores y crea el nuevo
+// @Param	id		path 	string	true		"The key for staticblock"
+// @Param   body        body    {}  true        "body Agregar Registro content"
+// @Success 200 {object} models.ConsultaProyectoAcademico
+// @Failure 403 :id is empty
+// @router /coordinador/:id [post]
+func (c *CrearProyectoAcademicoController) PostCoordinadorById() {
+	var CoordinadorNuevo map[string]interface{}
+	var resultado map[string]interface{}
+	var alerta models.Alert
+
+	alertas := append([]interface{}{"Response:"})
+	idStr := c.Ctx.Input.Param(":id")
+
+	if resultado["Type"] != "error" {
+		var CoordinadorAntiguos []map[string]interface{}
+
+		errcordinador := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_rol_persona_dependecia/?query=ProyectoAcademicoInstitucionId.Id:"+idStr, &CoordinadorAntiguos)
+		if errcordinador == nil {
+			if CoordinadorAntiguos[0]["Id"] != nil {
+
+				for _, cordinador := range CoordinadorAntiguos {
+
+					coordinador_cambiado := cordinador
+					coordinador_cambiado["Activo"] = false
+					Id_coordinador_cambiado := cordinador["Id"]
+					idcoordinador := Id_coordinador_cambiado.(float64)
+					var resultado map[string]interface{}
+					errcoordinadorcambiado := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_rol_persona_dependecia/"+strconv.FormatFloat(idcoordinador, 'f', -1, 64), "PUT", &resultado, coordinador_cambiado)
+					if resultado["Type"] == "error" || errcoordinadorcambiado != nil || resultado["Status"] == "404" || resultado["Message"] != nil {
+						alertas = append(alertas, resultado)
+						alerta.Type = "error"
+						alerta.Code = "400"
+					} else {
+						//alertas = append(alertas, registro_cambiado)
+
+					}
+				}
+
+				if err := json.Unmarshal(c.Ctx.Input.RequestBody, &CoordinadorNuevo); err == nil {
+					var resultadoCoordinadorNuevo map[string]interface{}
+					errRegistro := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_rol_persona_dependecia", "POST", &resultadoCoordinadorNuevo, CoordinadorNuevo)
+					if resultadoCoordinadorNuevo["Type"] == "error" || errRegistro != nil || resultadoCoordinadorNuevo["Status"] == "404" || resultadoCoordinadorNuevo["Message"] != nil {
+						alertas = append(alertas, resultadoCoordinadorNuevo)
+						alerta.Type = "error"
+						alerta.Code = "400"
+					} else {
+						alertas = append(alertas, CoordinadorNuevo)
+						fmt.Println(CoordinadorNuevo["FechaInicio"])
+					}
+
+				} else {
+					alerta.Type = "error"
+					alerta.Code = "400"
+					alertas = append(alertas, err.Error())
+				}
+
+				alerta.Body = alertas
+				c.Data["json"] = alerta
+				c.ServeJSON()
+			} else {
+				if err := json.Unmarshal(c.Ctx.Input.RequestBody, &CoordinadorNuevo); err == nil {
+					var resultadoCoordinadorNuevo map[string]interface{}
+					errRegistro := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_rol_persona_dependecia", "POST", &resultadoCoordinadorNuevo, CoordinadorNuevo)
+					if resultadoCoordinadorNuevo["Type"] == "error" || errRegistro != nil || resultadoCoordinadorNuevo["Status"] == "404" || resultadoCoordinadorNuevo["Message"] != nil {
+						alertas = append(alertas, resultadoCoordinadorNuevo)
+						alerta.Type = "error"
+						alerta.Code = "400"
+					} else {
+						alertas = append(alertas, CoordinadorNuevo)
+					}
+
+				} else {
+					alerta.Type = "error"
+					alerta.Code = "400"
+					alertas = append(alertas, err.Error())
+				}
+
+			}
+		} else {
+			alertas = append(alertas, errcordinador.Error())
 			alerta.Code = "400"
 			alerta.Type = "error"
 			alerta.Body = alertas
