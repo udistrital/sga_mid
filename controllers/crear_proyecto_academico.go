@@ -184,43 +184,63 @@ func (c *CrearProyectoAcademicoController) PostRegistroAltaCalidadById() {
 
 		erregistro := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion/?query=ProyectoAcademicoInstitucionId:"+idStr+",TipoRegistroId.Id:2", &registros_antiguos_alta_calidad)
 		if erregistro == nil {
-			for _, registro := range registros_antiguos_alta_calidad {
+			if registros_antiguos_alta_calidad[0]["Id"] != nil {
+				for _, registro := range registros_antiguos_alta_calidad {
 
-				registro_cambiado := registro
-				registro_cambiado["Activo"] = false
-				Id_registro_cambiado := registro["Id"]
-				idRegistro := Id_registro_cambiado.(float64)
-				var resultado map[string]interface{}
-				errregistrocambiado := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion/"+strconv.FormatFloat(idRegistro, 'f', -1, 64), "PUT", &resultado, registro_cambiado)
-				if resultado["Type"] == "error" || errregistrocambiado != nil || resultado["Status"] == "404" || resultado["Message"] != nil {
-					alertas = append(alertas, resultado)
+					registro_cambiado := registro
+					registro_cambiado["Activo"] = false
+					Id_registro_cambiado := registro["Id"]
+					idRegistro := Id_registro_cambiado.(float64)
+					var resultado map[string]interface{}
+					errregistrocambiado := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion/"+strconv.FormatFloat(idRegistro, 'f', -1, 64), "PUT", &resultado, registro_cambiado)
+					if resultado["Type"] == "error" || errregistrocambiado != nil || resultado["Status"] == "404" || resultado["Message"] != nil {
+						alertas = append(alertas, resultado)
+						alerta.Type = "error"
+						alerta.Code = "400"
+					} else {
+						//alertas = append(alertas, registro_cambiado)
+
+					}
+				}
+				if err := json.Unmarshal(c.Ctx.Input.RequestBody, &Registro_nuevo); err == nil {
+					var resultadoRegistroNuevo map[string]interface{}
+					errRegistro := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion", "POST", &resultadoRegistroNuevo, Registro_nuevo)
+					if resultadoRegistroNuevo["Type"] == "error" || errRegistro != nil || resultadoRegistroNuevo["Status"] == "404" || resultadoRegistroNuevo["Message"] != nil {
+						alertas = append(alertas, resultadoRegistroNuevo)
+						alerta.Type = "error"
+						alerta.Code = "400"
+					} else {
+						alertas = append(alertas, Registro_nuevo)
+					}
+
+				} else {
 					alerta.Type = "error"
 					alerta.Code = "400"
-				} else {
-					//alertas = append(alertas, registro_cambiado)
+					alertas = append(alertas, err.Error())
+				}
 
-				}
-			}
-			if err := json.Unmarshal(c.Ctx.Input.RequestBody, &Registro_nuevo); err == nil {
-				var resultadoRegistroNuevo map[string]interface{}
-				errRegistro := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion", "POST", &resultadoRegistroNuevo, Registro_nuevo)
-				if resultadoRegistroNuevo["Type"] == "error" || errRegistro != nil || resultadoRegistroNuevo["Status"] == "404" || resultadoRegistroNuevo["Message"] != nil {
-					alertas = append(alertas, resultadoRegistroNuevo)
-					alerta.Type = "error"
-					alerta.Code = "400"
-				} else {
-					alertas = append(alertas, Registro_nuevo)
-				}
+				alerta.Body = alertas
+				c.Data["json"] = alerta
+				c.ServeJSON()
 
 			} else {
-				alerta.Type = "error"
-				alerta.Code = "400"
-				alertas = append(alertas, err.Error())
-			}
+				if err := json.Unmarshal(c.Ctx.Input.RequestBody, &Registro_nuevo); err == nil {
+					var resultadoRegistroNuevo map[string]interface{}
+					errRegistro := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion", "POST", &resultadoRegistroNuevo, Registro_nuevo)
+					if resultadoRegistroNuevo["Type"] == "error" || errRegistro != nil || resultadoRegistroNuevo["Status"] == "404" || resultadoRegistroNuevo["Message"] != nil {
+						alertas = append(alertas, resultadoRegistroNuevo)
+						alerta.Type = "error"
+						alerta.Code = "400"
+					} else {
+						alertas = append(alertas, Registro_nuevo)
+					}
 
-			alerta.Body = alertas
-			c.Data["json"] = alerta
-			c.ServeJSON()
+				} else {
+					alerta.Type = "error"
+					alerta.Code = "400"
+					alertas = append(alertas, err.Error())
+				}
+			}
 		} else {
 			alertas = append(alertas, erregistro.Error())
 			alerta.Code = "400"
