@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"strings"
+
 	"github.com/astaxie/beego"
 	"github.com/udistrital/sga_mid/models"
 	"github.com/udistrital/utils_oas/request"
@@ -281,6 +283,9 @@ func (c *ConsultaProyectoAcademicoController) GetOneRegistroPorId() {
 		if errproyecto == nil {
 
 			for _, registro := range registros {
+				vigenciatemporal := registro["VigenciaActoAdministrativo"].(string)
+				vigenciatemporal = strings.Replace(vigenciatemporal, "A", " A", 1)
+				registro["VigenciaActoAdministrativo"] = vigenciatemporal
 				if registro["Activo"] == true {
 					registro["ActivoLetra"] = "Si"
 
