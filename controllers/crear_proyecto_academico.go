@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/udistrital/utils_oas/request"
+	"github.com/udistrital/utils_oas/time_bogota"
 
 	// "time"
 
@@ -283,35 +284,51 @@ func (c *CrearProyectoAcademicoController) PostCoordinadorById() {
 	if resultado["Type"] != "error" {
 		var CoordinadorAntiguos []map[string]interface{}
 
-		errcordinador := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_rol_persona_dependecia/?query=ProyectoAcademicoInstitucionId.Id:"+idStr, &CoordinadorAntiguos)
+		errcordinador := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_rol_persona_dependecia/?query=ProyectoAcademicoInstitucionId.Id:"+idStr+"&limit=1", &CoordinadorAntiguos)
 		if errcordinador == nil {
 			if CoordinadorAntiguos[0]["Id"] != nil {
 
 				for _, cordinador := range CoordinadorAntiguos {
+					fmt.Println(cordinador)
 
 					coordinador_cambiado := cordinador
-					coordinador_cambiado["Activo"] = false
+					if coordinador_cambiado["Activo"] == true {
+						coordinador_cambiado["Activo"] = false
+						coordinador_cambiado["FechaFinalizacion"] = time_bogota.TiempoBogotaFormato()
+						fmt.Println(coordinador_cambiado["FechaFinalizacion"])
+					} else {
+						fmt.Println("Todos estan inactivos")
+					}
+
 					Id_coordinador_cambiado := cordinador["Id"]
 					idcoordinador := Id_coordinador_cambiado.(float64)
+					fmt.Println(idcoordinador)
+					fmt.Println("hizo put siguio")
 					var resultado map[string]interface{}
-					errcoordinadorcambiado := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_rol_persona_dependecia/"+strconv.FormatFloat(idcoordinador, 'f', -1, 64), "PUT", &resultado, coordinador_cambiado)
+					errcoordinadorcambiado := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_rol_persona_dependecia/"+strconv.FormatFloat(idcoordinador, 'f', -1, 64), "PUT", &resultado, &coordinador_cambiado)
+					fmt.Println("ojo")
+					fmt.Println(errcoordinadorcambiado)
 					if resultado["Type"] == "error" || errcoordinadorcambiado != nil || resultado["Status"] == "404" || resultado["Message"] != nil {
 						alertas = append(alertas, resultado)
 						alerta.Type = "error"
 						alerta.Code = "400"
+						fmt.Println("error put")
 					} else {
-						//alertas = append(alertas, registro_cambiado)
+						fmt.Println("hizo put")
+						// alertas = append(alertas, coordinador_cambiado)
 
 					}
 				}
 
 				if err := json.Unmarshal(c.Ctx.Input.RequestBody, &CoordinadorNuevo); err == nil {
 					var resultadoCoordinadorNuevo map[string]interface{}
+					CoordinadorNuevo["FechaFinalizacion"] = "0001-01-01T00:00:00-05:00"
 					errRegistro := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_rol_persona_dependecia", "POST", &resultadoCoordinadorNuevo, CoordinadorNuevo)
 					if resultadoCoordinadorNuevo["Type"] == "error" || errRegistro != nil || resultadoCoordinadorNuevo["Status"] == "404" || resultadoCoordinadorNuevo["Message"] != nil {
 						alertas = append(alertas, resultadoCoordinadorNuevo)
 						alerta.Type = "error"
 						alerta.Code = "400"
+						fmt.Println("error post ")
 					} else {
 						alertas = append(alertas, CoordinadorNuevo)
 						fmt.Println(CoordinadorNuevo["FechaInicio"])
@@ -321,19 +338,24 @@ func (c *CrearProyectoAcademicoController) PostCoordinadorById() {
 					alerta.Type = "error"
 					alerta.Code = "400"
 					alertas = append(alertas, err.Error())
+					fmt.Println("error dos")
 				}
 
 				alerta.Body = alertas
 				c.Data["json"] = alerta
 				c.ServeJSON()
 			} else {
+				fmt.Println("no hay coordinadors")
 				if err := json.Unmarshal(c.Ctx.Input.RequestBody, &CoordinadorNuevo); err == nil {
 					var resultadoCoordinadorNuevo map[string]interface{}
+					CoordinadorNuevo["FechaFinalizacion"] = "0001-01-01T00:00:00-05:00"
+
 					errRegistro := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_rol_persona_dependecia", "POST", &resultadoCoordinadorNuevo, CoordinadorNuevo)
 					if resultadoCoordinadorNuevo["Type"] == "error" || errRegistro != nil || resultadoCoordinadorNuevo["Status"] == "404" || resultadoCoordinadorNuevo["Message"] != nil {
 						alertas = append(alertas, resultadoCoordinadorNuevo)
 						alerta.Type = "error"
 						alerta.Code = "400"
+						fmt.Println("error 3")
 					} else {
 						alertas = append(alertas, CoordinadorNuevo)
 					}
@@ -341,6 +363,7 @@ func (c *CrearProyectoAcademicoController) PostCoordinadorById() {
 				} else {
 					alerta.Type = "error"
 					alerta.Code = "400"
+					fmt.Println("error 4")
 					alertas = append(alertas, err.Error())
 				}
 
@@ -350,6 +373,7 @@ func (c *CrearProyectoAcademicoController) PostCoordinadorById() {
 			alerta.Code = "400"
 			alerta.Type = "error"
 			alerta.Body = alertas
+			fmt.Println("error 5")
 			c.Data["json"] = alerta
 		}
 	} else {
@@ -358,6 +382,7 @@ func (c *CrearProyectoAcademicoController) PostCoordinadorById() {
 		} else {
 			alertas = append(alertas, resultado["Body"])
 			alerta.Code = "400"
+			fmt.Println("error 6")
 			alerta.Type = "error"
 			alerta.Body = alertas
 			c.Data["json"] = alerta
