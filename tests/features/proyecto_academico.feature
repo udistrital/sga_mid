@@ -8,7 +8,7 @@ Scenario Outline: To probe route code response /proyecto_academico
     Then the response code should be "<codres>"
 
     Examples:
-    |method |route                     |bodyreq                       |codres       |
+    |method |route                     |bodyreq                     |codres       |
     |POST   |/v1/proyecto_academico/0|./assets/requests/empty.json  |404 Not Found|
     |POST   |/v1/proyecto_academico  |./assets/requests/empty.json  |200 OK       |
 
