@@ -81,6 +81,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:CrearProyectoAcademicoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:CrearProyectoAcademicoController"],
         beego.ControllerComments{
+            Method: "PostCoordinadorById",
+            Router: `/coordinador/:id`,
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:CrearProyectoAcademicoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:CrearProyectoAcademicoController"],
+        beego.ControllerComments{
             Method: "PostRegistroAltaCalidadById",
             Router: `/registro_alta_calidad/:id`,
             AllowHTTPMethods: []string{"post"},

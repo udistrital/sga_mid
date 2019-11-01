@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"fmt"
+	"strings"
 
 	"github.com/astaxie/beego"
 	"github.com/udistrital/sga_mid/models"
@@ -72,7 +72,6 @@ func (c *ConsultaProyectoAcademicoController) GetAll() {
 
 				for _, registrotemp := range registros {
 					registro := registrotemp.(map[string]interface{})
-					fmt.Println(proyecto)
 					tiporegistro := registro["TipoRegistroId"].(map[string]interface{})
 
 					if tiporegistro["Id"].(float64) == 1 && registro["Activo"] == true {
@@ -264,6 +263,7 @@ func (c *ConsultaProyectoAcademicoController) PutInhabilitarProyecto() {
 	c.Data["json"] = alerta
 	c.ServeJSON()
 }
+
 // GetOneRegistroPorId ...
 // @Title GetOneRegistroPorId
 // @Description get ConsultaRegistro by id
@@ -285,6 +285,9 @@ func (c *ConsultaProyectoAcademicoController) GetOneRegistroPorId() {
 		if errproyecto == nil {
 
 			for _, registro := range registros {
+				vigenciatemporal := registro["VigenciaActoAdministrativo"].(string)
+				vigenciatemporal = strings.Replace(vigenciatemporal, "A", " A", 1)
+				registro["VigenciaActoAdministrativo"] = vigenciatemporal
 				if registro["Activo"] == true {
 					registro["ActivoLetra"] = "Si"
 

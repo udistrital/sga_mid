@@ -376,6 +376,32 @@ paths:
           description: '{}'
         "403":
           description: body is empty
+  /proyecto_academico/coordinador/{id}:
+    post:
+      tags:
+      - proyecto_academico
+      description: Post a de un cordinador de un proyecto existente, cambia estado
+        activo a false a los coordinadores anteriores y crea el nuevo
+      operationId: CrearProyectoAcademicoController.PostCoordinadorById
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body Agregar Registro content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.ConsultaProyectoAcademico'
+        "403":
+          description: :id is empty
   /proyecto_academico/registro_alta_calidad/{id}:
     post:
       tags:
