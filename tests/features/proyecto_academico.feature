@@ -39,3 +39,7 @@ Scenario Outline: To probe response route /proyecto_academico
     |POST   |/v1/proyecto_academico/registro_calificado/1  |./assets/requests/empty.json                                               |200 OK           |./assets/responses/invalid_post.json                                          |
     |POST   |/v1/proyecto_academico/registro_calificado/1  |./assets/requests/proyecto_academico/post_registro_calificado_invalid.json |200 OK           |./assets/responses/proyecto_academico/post_registro_calificado_invalid.json   |
     |POST   |/v1/proyecto_academico/registro_calificado/1  |./assets/requests/proyecto_academico/post_registro_calificado_valid.json   |200 OK           |./assets/responses/proyecto_academico/post_registro_calificado_valid.json     |
+    # registro_alta_calidad
+    |POST   |/v1/proyecto_academico/registro_alta_calidad/1  |./assets/requests/empty.json                                                 |200 OK           |./assets/responses/invalid_post.json                                            |
+    |POST   |/v1/proyecto_academico/registro_alta_calidad/1  |./assets/requests/proyecto_academico/post_registro_alta_calidad_invalid.json |200 OK           |./assets/responses/proyecto_academico/post_registro_alta_calidad_invalid.json   |
+    |POST   |/v1/proyecto_academico/registro_alta_calidad/1  |./assets/requests/proyecto_academico/post_registro_alta_calidad_valid.json   |200 OK           |./assets/responses/proyecto_academico/post_registro_alta_calidad_valid.json     |
