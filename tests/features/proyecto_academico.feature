@@ -25,3 +25,6 @@ Scenario Outline: To probe response route /proyecto_academico
     |POST   |/v1/proyecto_academico  |./assets/requests/empty.json                           |200 OK           |./assets/responses/invalid_post.json                      |
     |POST   |/v1/proyecto_academico  |./assets/requests/proyecto_academico/post_invalid.json |200 OK           |./assets/responses/proyecto_academico/post_invalid.json   |
     |POST   |/v1/proyecto_academico  |./assets/requests/proyecto_academico/post_valid.json   |200 OK           |./assets/responses/proyecto_academico/post_valid.json     |
+
+    |POST   |/v1/proyecto_academico/coordinador/1  |./assets/requests/proyecto_academico/post_coordinador_invalid.json |200 OK           |./assets/responses/proyecto_academico/post_coordinador_invalid.json   |
+    |POST   |/v1/proyecto_academico/coordinador/1  |./assets/requests/proyecto_academico/post_coordinador_valid.json   |200 OK           |./assets/responses/proyecto_academico/post_coordinador_valid.json     |

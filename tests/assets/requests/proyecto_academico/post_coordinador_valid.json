@@ -1,0 +1,11 @@
+{
+    "PersonaId":1,
+    "DependenciaId":0,
+    "RolId":0,
+    "Activo":true,
+    "ResolucionAsignacionId":1,
+    "FechaInicio":"2019-11-20T10:38:00Z",
+    "ProyectoAcademicoInstitucionId":{
+       "Id":1
+    }
+ }
