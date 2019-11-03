@@ -78,7 +78,8 @@ func deleteFile(path string) {
 func run_bee() {
 	var resultado map[string]interface{}
 	// Comand to run
-	// PROYECTO_SERVICE=localhost:8080/v1  UNIDAD_TIEMPO_SERVICE=localhost:8082/v1/ CORE_SERVICE=api.planestic.udistrital.edu.co:8102/v1/ OIKOS_SERVICE=localhost:8082/v1/ INSCRIPCIONES_SERVICE=localhost:8082/v1/ EVALUACION_INSCRIPCION_SERVICE=localhost:8083/v1/ PERSONAS_SERVICE=api.planestic.udistrital.edu.co:8083/v1/ SGA_MID_HTTP_PORT=8096 SGA_MID_URL=localhost EVENTOS_SERVICE=localhost:8081/v1/ PRODUCCION_ACADEMICA_SERVICE=localhost:8080/v1/ godog
+	// go get github.com/DATA-DOG/godog/cmd/godog
+	// PROYECTO_SERVICE=localhost:8080/v1  UNIDAD_TIEMPO_SERVICE=localhost:8082/v1/ CORE_SERVICE=api.planestic.udistrital.edu.co:8102/v1/ OIKOS_SERVICE=localhost:8082/v1/ INSCRIPCIONES_SERVICE=localhost:8082/v1/ EVALUACION_INSCRIPCION_SERVICE=localhost:8083/v1/ PERSONAS_SERVICE=api.planestic.udistrital.edu.co:8083/v1/ SGA_MID_HTTP_PORT=8095 SGA_MID_URL=localhost EVENTOS_SERVICE=localhost:8081/v1/ PRODUCCION_ACADEMICA_SERVICE=localhost:8080/v1/ godog
 	parametros := "SGA_MID_HTTP_PORT=" + beego.AppConfig.String("httpport") +
 		" SGA_MID_URL=" + beego.AppConfig.String("appurl") +
 		" EVENTOS_SERVICE=" + beego.AppConfig.String("EventoService") +
