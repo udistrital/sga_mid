@@ -1,0 +1,15 @@
+{
+    "AnoActoAdministrativoId":"2019",
+    "NumeroActoAdministrativo":1,
+    "FechaCreacionActoAdministrativo":"2019-11-28T10:56:00Z",
+    "VigenciaActoAdministrativo":"Meses:1Años:1",
+    "VencimientoActoAdministrativo":"2022-01-28T10:56:00Z",
+    "EnlaceActo":"1",
+    "Activo":true,
+    "ProyectoAcademicoInstitucionId":{
+       "Id":1
+    },
+    "TipoRegistroId":{
+       "Id":1
+    }
+ }
