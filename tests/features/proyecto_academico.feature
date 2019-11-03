@@ -12,6 +12,9 @@ Scenario Outline: To probe route code response /proyecto_academico
     |POST   |/v1/proyecto_academico/0|./assets/requests/empty.json  |404 Not Found|
     |POST   |/v1/proyecto_academico  |./assets/requests/empty.json  |200 OK       |
 
+    |POST   |/v1/proyecto_academico/coordinador    |./assets/requests/empty.json  |404 Not Found|
+    |POST   |/v1/proyecto_academico/coordinador/0  |./assets/requests/empty.json  |200 OK       |
+
 Scenario Outline: To probe response route /proyecto_academico        
     When I send "<method>" request to "<route>" where body is json "<bodyreq>"
     Then the response code should be "<codres>"      
