@@ -92,4 +92,3 @@ steps:
       status:
       - failure
       - success
-      
