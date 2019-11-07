@@ -236,7 +236,7 @@ func (c *ConsultaProyectoAcademicoController) GetOnePorId() {
 // @Param   body        body    {}  true        "body Inhabilitar Proyecto content"
 // @Success 200 {}
 // @Failure 403 :id is empty
-// @router inhabilitar_proyecto/:id [put]
+// @router /inhabilitar_proyecto/:id [put]
 func (c *ConsultaProyectoAcademicoController) PutInhabilitarProyecto() {
 	idStr := c.Ctx.Input.Param(":id")
 	var ProyectoAcademico map[string]interface{}

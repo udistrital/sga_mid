@@ -164,7 +164,7 @@ paths:
             $ref: '#/definitions/models.ConsultaProyectoAcademico'
         "403":
           description: :id is empty
-  /consulta_proyecto_academicoinhabilitar_proyecto/{id}:
+  /consulta_proyecto_academico/inhabilitar_proyecto/{id}:
     put:
       tags:
       - consulta_proyecto_academico
