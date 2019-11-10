@@ -14,7 +14,7 @@ Scenario Outline: To probe route code response /consulta_proyecto_academico
     # get_by_id
     |GET    |/v1/consulta_proyecto_academico/0|./assets/requests/empty.json  |200 OK       |
     |GET    |/v1/consulta_proyecto_academica/0|./assets/requests/empty.json  |404 Not Found|
-    # inhabilitar_proyecto
+    # consulta_proyecto_academico/inhabilitar_proyecto
     |PUT    |/v1/consulta_proyecto_academico/inhabilitar_proyecto  |./assets/requests/empty.json  |404 Not Found|
     |PUT    |/v1/consulta_proyecto_academico/inhabilitar_proyecto/0|./assets/requests/empty.json  |200 OK       |
 
@@ -55,7 +55,7 @@ Scenario Outline: To probe response route /proyecto_academico
     Then the response code should be "<codres>"      
     And the response should match json "<bodyres>"
 
-        Examples: 
+    Examples: 
     |method |route                   |bodyreq                                                |codres           |bodyres                                                   |                                                    
     |POST   |/v1/proyecto_academico  |./assets/requests/empty.json                           |200 OK           |./assets/responses/invalid_post.json                      |
     |POST   |/v1/proyecto_academico  |./assets/requests/proyecto_academico/post_invalid.json |200 OK           |./assets/responses/proyecto_academico/post_invalid.json   |
@@ -72,3 +72,6 @@ Scenario Outline: To probe response route /proyecto_academico
     |POST   |/v1/proyecto_academico/registro_alta_calidad/1  |./assets/requests/empty.json                                                 |200 OK           |./assets/responses/invalid_post.json                                            |
     |POST   |/v1/proyecto_academico/registro_alta_calidad/1  |./assets/requests/proyecto_academico/post_registro_alta_calidad_invalid.json |200 OK           |./assets/responses/proyecto_academico/post_registro_alta_calidad_invalid.json   |
     |POST   |/v1/proyecto_academico/registro_alta_calidad/1  |./assets/requests/proyecto_academico/post_registro_alta_calidad_valid.json   |200 OK           |./assets/responses/proyecto_academico/post_registro_alta_calidad_valid.json     |
+    # consulta_proyecto_academico/inhabilitar_proyecto
+    |PUT    |/v1/consulta_proyecto_academico/inhabilitar_proyecto/1 |./assets/requests/proyecto_academico/put_inhabilitar_proyecto_invalid.json  |200 OK           |./assets/responses/proyecto_academico/put_inhabilitar_proyecto_invalid.json    |
+    |PUT    |/v1/consulta_proyecto_academico/inhabilitar_proyecto/1 |./assets/requests/proyecto_academico/put_inhabilitar_proyecto_valid.json    |200 OK           |./assets/responses/proyecto_academico/put_inhabilitar_proyecto_valid.json      |
