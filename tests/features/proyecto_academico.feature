@@ -33,6 +33,9 @@ Scenario Outline: To probe response route /consulta_proyecto_academico
     # get_by_id
     |GET    |/v1/consulta_proyecto_academico/0      |./assets/requests/empty.json         |200 OK           |./assets/responses/proyecto_academico/get_empty.json      |
     |GET    |/v1/consulta_proyecto_academico/9999999|./assets/requests/empty.json         |200 OK           |./assets/responses/proyecto_academico/get_valid.json      |
+    # get_by_id
+    |GET    |/v1/consulta_proyecto_academico/get_registro/0      |./assets/requests/empty.json         |200 OK           |./assets/responses/proyecto_academico/get_empty.json      |
+    |GET    |/v1/consulta_proyecto_academico/get_registro/9999999|./assets/requests/empty.json         |200 OK           |./assets/responses/proyecto_academico/get_valid.json      |
 
 
 Scenario Outline: To probe route code response /proyecto_academico
