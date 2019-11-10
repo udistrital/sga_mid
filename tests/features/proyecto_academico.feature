@@ -14,6 +14,9 @@ Scenario Outline: To probe route code response /consulta_proyecto_academico
     # get_by_id
     |GET    |/v1/consulta_proyecto_academico/0|./assets/requests/empty.json  |200 OK       |
     |GET    |/v1/consulta_proyecto_academica/0|./assets/requests/empty.json  |404 Not Found|
+    # get_registro
+    |GET    |/v1/consulta_proyecto_academico/get_registro/0|./assets/requests/empty.json  |200 OK       |
+    |GET    |/v1/consulta_proyecto_academica/get_registro  |./assets/requests/empty.json  |404 Not Found|
     # consulta_proyecto_academico/inhabilitar_proyecto
     |PUT    |/v1/consulta_proyecto_academico/inhabilitar_proyecto  |./assets/requests/empty.json  |404 Not Found|
     |PUT    |/v1/consulta_proyecto_academico/inhabilitar_proyecto/0|./assets/requests/empty.json  |200 OK       |
