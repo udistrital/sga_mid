@@ -2,6 +2,32 @@ Feature: Validate API responses
     /v1/proyecto_academico/
     probe JSON responses
 
+Scenario Outline: To probe route code response /consulta_proyecto_academico
+    When I send "<method>" request to "<route>" where body is json "<bodyreq>"
+    Then the response code should be "<codres>"
+
+    Examples:
+    |method |route                            |bodyreq                       |codres       |
+    # get_all proyectos
+    |GET    |/v1/consulta_proyecto_academico  |./assets/requests/empty.json  |200 OK       |
+    |GET    |/v1/consulta_proyecto_academica  |./assets/requests/empty.json  |404 Not Found|
+    # get_by_id
+    |GET    |/v1/consulta_proyecto_academico/0|./assets/requests/empty.json  |200 OK       |
+    |GET    |/v1/consulta_proyecto_academica/0|./assets/requests/empty.json  |404 Not Found|
+
+Scenario Outline: To probe response route /consulta_proyecto_academico        
+    When I send "<method>" request to "<route>" where body is json "<bodyreq>"
+    Then the response code should be "<codres>"      
+    And the response should match json "<bodyres>"
+
+    Examples: 
+    |method |route                                  |bodyreq                              |codres           |bodyres                                                   |                                                    
+    # get_all proyectos
+    # |GET    |/v1/consulta_proyecto_academico        |./assets/requests/empty.json         |200 OK           |./assets/responses/proyecto_academico/get_empty.json      |
+    # get_by_id
+    |GET    |/v1/consulta_proyecto_academico/0      |./assets/requests/empty.json         |200 OK           |./assets/responses/proyecto_academico/get_empty.json      |
+    |GET    |/v1/consulta_proyecto_academico/9999999|./assets/requests/empty.json         |200 OK           |./assets/responses/proyecto_academico/get_valid.json      |
+
 
 Scenario Outline: To probe route code response /proyecto_academico
     When I send "<method>" request to "<route>" where body is json "<bodyreq>"
