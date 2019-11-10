@@ -283,16 +283,17 @@ func (c *ConsultaProyectoAcademicoController) GetOneRegistroPorId() {
 		errproyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion/?query=ProyectoAcademicoInstitucionId.Id:"+idStr, &registros)
 
 		if errproyecto == nil {
+			if registros[0]["Id"] != nil {
+				for _, registro := range registros {
+					vigenciatemporal := registro["VigenciaActoAdministrativo"].(string)
+					vigenciatemporal = strings.Replace(vigenciatemporal, "A", " A", 1)
+					registro["VigenciaActoAdministrativo"] = vigenciatemporal
+					if registro["Activo"] == true {
+						registro["ActivoLetra"] = "Si"
 
-			for _, registro := range registros {
-				vigenciatemporal := registro["VigenciaActoAdministrativo"].(string)
-				vigenciatemporal = strings.Replace(vigenciatemporal, "A", " A", 1)
-				registro["VigenciaActoAdministrativo"] = vigenciatemporal
-				if registro["Activo"] == true {
-					registro["ActivoLetra"] = "Si"
-
-				} else if registro["Activo"] == false {
-					registro["ActivoLetra"] = "No"
+					} else if registro["Activo"] == false {
+						registro["ActivoLetra"] = "No"
+					}
 				}
 			}
 
