@@ -1,0 +1,8 @@
+{
+    "Activo": true,
+    "Id": 1, 
+    "NivelFormacionId":{
+       "Id": 1
+    },
+    "Oferta": true
+ }

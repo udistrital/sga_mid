@@ -1,0 +1,18 @@
+{
+    "Type": "error",
+    "Code": "400",
+    "Body": [
+      "Response:",
+      {
+        "Development": null,
+        "Message": "The request contains incorrect syntax",
+        "Status": "400",
+        "System": {}
+      },
+      {
+        "ProyectoAcademicoInstitucion": {
+          "Id": 0
+        }
+      }
+    ]
+}

@@ -1,0 +1,473 @@
+{
+  "Type": "",
+  "Code": "",
+  "Body": [
+    "Response:",
+    {
+      "Enfasis": [
+        {
+          "Activo": true,
+          "EnfasisId": {
+            "Id": 1
+          },
+          "ProyectoAcademicoInstitucionId": {
+            "Activo": true,
+            "AnoActoAdministrativo": "2002",
+            "AnoActoAdministrativoId": "2002",
+            "AreaConocimientoId": 2,
+            "CiclosPropedeuticos": true,
+            "Codigo": "0",
+            "CodigoAbreviacion": "test",
+            "CodigoSnies": "1234",
+            "Competencias": "test competencias",
+            "CorreoElectronico": "test@test.com",
+            "DependenciaId": 8,
+            "Duracion": 123,
+            "EnlaceActoAdministrativo": "5",
+            "Id": 0,
+            "MetodologiaId": {
+              "Id": 1
+            },
+            "NivelFormacionId": {
+              "Id": 1
+            },
+            "Nombre": "test-project",
+            "NucleoBaseId": 13,
+            "NumeroActoAdministrativo": 1,
+            "NumeroCreditos": 123,
+            "Oferta": true,
+            "UnidadTiempoId": 1
+          }
+        }
+      ],
+      "Oikos": {
+        "CorreoElectronico": "test@test.com",
+        "DependenciaTipoDependencia": [
+          {
+            "Id": 0,
+            "TipoDependenciaId": {
+              "Id": 1
+            }
+          }
+        ],
+        "Id": 0,
+        "Nombre": "test-project",
+        "TelefonoDependencia": "3111111111"
+      },
+      "ProyectoAcademicoInstitucion": {
+        "Activo": true,
+        "AnoActoAdministrativo": "2002",
+        "AnoActoAdministrativoId": "2002",
+        "AreaConocimientoId": 2,
+        "CiclosPropedeuticos": true,
+        "Codigo": "0",
+        "CodigoAbreviacion": "test",
+        "CodigoSnies": "1234",
+        "Competencias": "test competencias",
+        "CorreoElectronico": "test@test.com",
+        "DependenciaId": 8,
+        "Duracion": 123,
+        "EnlaceActoAdministrativo": "5",
+        "Id": 0,
+        "MetodologiaId": {
+          "Id": 1
+        },
+        "NivelFormacionId": {
+          "Id": 1
+        },
+        "Nombre": "test-project",
+        "NucleoBaseId": 13,
+        "NumeroActoAdministrativo": 1,
+        "NumeroCreditos": 123,
+        "Oferta": true,
+        "UnidadTiempoId": 1
+      },
+      "Registro": [
+        {
+          "Activo": true,
+          "AnoActoAdministrativoId": "2011",
+          "EnlaceActo": "4",
+          "FechaCreacionActoAdministrativo": "2019-11-08T17:55:00Z",
+          "Id": 0,
+          "NumeroActoAdministrativo": 1,
+          "ProyectoAcademicoInstitucionId": {
+            "Activo": true,
+            "AnoActoAdministrativo": "2002",
+            "AnoActoAdministrativoId": "2002",
+            "AreaConocimientoId": 2,
+            "CiclosPropedeuticos": true,
+            "Codigo": "0",
+            "CodigoAbreviacion": "test",
+            "CodigoSnies": "1234",
+            "Competencias": "test competencias",
+            "CorreoElectronico": "test@test.com",
+            "DependenciaId": 8,
+            "Duracion": 123,
+            "EnlaceActoAdministrativo": "5",
+            "Id": 0,
+            "MetodologiaId": {
+              "Id": 1
+            },
+            "NivelFormacionId": {
+              "Id": 1
+            },
+            "Nombre": "test-project",
+            "NucleoBaseId": 13,
+            "NumeroActoAdministrativo": 1,
+            "NumeroCreditos": 123,
+            "Oferta": true,
+            "UnidadTiempoId": 1
+          },
+          "TipoRegistroId": {
+            "Id": 1
+          },
+          "VencimientoActoAdministrativo": "2020-12-08T17:55:00Z",
+          "VigenciaActoAdministrativo": "Meses:1Años:1"
+        }
+      ],
+      "Titulaciones": [
+        {
+          "Activo": true,
+          "Id": 0,
+          "Nombre": "test snies",
+          "ProyectoAcademicoInstitucionId": {
+            "Activo": true,
+            "AnoActoAdministrativo": "2002",
+            "AnoActoAdministrativoId": "2002",
+            "AreaConocimientoId": 2,
+            "CiclosPropedeuticos": true,
+            "Codigo": "0",
+            "CodigoAbreviacion": "test",
+            "CodigoSnies": "1234",
+            "Competencias": "test competencias",
+            "CorreoElectronico": "test@test.com",
+            "DependenciaId": 8,
+            "Duracion": 123,
+            "EnlaceActoAdministrativo": "5",
+            "Id": 0,
+            "MetodologiaId": {
+              "Id": 1
+            },
+            "NivelFormacionId": {
+              "Id": 1
+            },
+            "Nombre": "test-project",
+            "NucleoBaseId": 13,
+            "NumeroActoAdministrativo": 1,
+            "NumeroCreditos": 123,
+            "Oferta": true,
+            "UnidadTiempoId": 1
+          },
+          "TipoTitulacionId": {
+            "Id": 1
+          }
+        },
+        {
+          "Activo": true,
+          "Id": 0,
+          "Nombre": "test mujer",
+          "ProyectoAcademicoInstitucionId": {
+            "Activo": true,
+            "AnoActoAdministrativo": "2002",
+            "AnoActoAdministrativoId": "2002",
+            "AreaConocimientoId": 2,
+            "CiclosPropedeuticos": true,
+            "Codigo": "0",
+            "CodigoAbreviacion": "test",
+            "CodigoSnies": "1234",
+            "Competencias": "test competencias",
+            "CorreoElectronico": "test@test.com",
+            "DependenciaId": 8,
+            "Duracion": 123,
+            "EnlaceActoAdministrativo": "5",
+            "Id": 0,
+            "MetodologiaId": {
+              "Id": 1
+            },
+            "NivelFormacionId": {
+              "Id": 1
+            },
+            "Nombre": "test-project",
+            "NucleoBaseId": 13,
+            "NumeroActoAdministrativo": 1,
+            "NumeroCreditos": 123,
+            "Oferta": true,
+            "UnidadTiempoId": 1
+          },
+          "TipoTitulacionId": {
+            "Id": 3
+          }
+        },
+        {
+          "Activo": true,
+          "Id": 0,
+          "Nombre": "test hombre",
+          "ProyectoAcademicoInstitucionId": {
+            "Activo": true,
+            "AnoActoAdministrativo": "2002",
+            "AnoActoAdministrativoId": "2002",
+            "AreaConocimientoId": 2,
+            "CiclosPropedeuticos": true,
+            "Codigo": "0",
+            "CodigoAbreviacion": "test",
+            "CodigoSnies": "1234",
+            "Competencias": "test competencias",
+            "CorreoElectronico": "test@test.com",
+            "DependenciaId": 8,
+            "Duracion": 123,
+            "EnlaceActoAdministrativo": "5",
+            "Id": 0,
+            "MetodologiaId": {
+              "Id": 1
+            },
+            "NivelFormacionId": {
+              "Id": 1
+            },
+            "Nombre": "test-project",
+            "NucleoBaseId": 13,
+            "NumeroActoAdministrativo": 1,
+            "NumeroCreditos": 123,
+            "Oferta": true,
+            "UnidadTiempoId": 1
+          },
+          "TipoTitulacionId": {
+            "Id": 2
+          }
+        }
+      ]
+    },
+    {
+      "Enfasis": [
+        {
+          "Activo": true,
+          "EnfasisId": {
+            "Id": 1
+          },
+          "ProyectoAcademicoInstitucionId": {
+            "Activo": true,
+            "AnoActoAdministrativo": "2002",
+            "AnoActoAdministrativoId": "2002",
+            "AreaConocimientoId": 2,
+            "CiclosPropedeuticos": true,
+            "Codigo": "0",
+            "CodigoAbreviacion": "test",
+            "CodigoSnies": "1234",
+            "Competencias": "test competencias",
+            "CorreoElectronico": "test@test.com",
+            "DependenciaId": 8,
+            "Duracion": 123,
+            "EnlaceActoAdministrativo": "5",
+            "Id": 0,
+            "MetodologiaId": {
+              "Id": 1
+            },
+            "NivelFormacionId": {
+              "Id": 1
+            },
+            "Nombre": "test-project",
+            "NucleoBaseId": 13,
+            "NumeroActoAdministrativo": 1,
+            "NumeroCreditos": 123,
+            "Oferta": true,
+            "UnidadTiempoId": 1
+          }
+        }
+      ],
+      "Oikos": {
+        "CorreoElectronico": "test@test.com",
+        "DependenciaTipoDependencia": [
+          {
+            "Id": 0,
+            "TipoDependenciaId": {
+              "Id": 1
+            }
+          }
+        ],
+        "Id": 0,
+        "Nombre": "test-project",
+        "TelefonoDependencia": "3111111111"
+      },
+      "ProyectoAcademicoInstitucion": {
+        "Activo": true,
+        "AnoActoAdministrativo": "2002",
+        "AnoActoAdministrativoId": "2002",
+        "AreaConocimientoId": 2,
+        "CiclosPropedeuticos": true,
+        "Codigo": "0",
+        "CodigoAbreviacion": "test",
+        "CodigoSnies": "1234",
+        "Competencias": "test competencias",
+        "CorreoElectronico": "test@test.com",
+        "DependenciaId": 8,
+        "Duracion": 123,
+        "EnlaceActoAdministrativo": "5",
+        "Id": 0,
+        "MetodologiaId": {
+          "Id": 1
+        },
+        "NivelFormacionId": {
+          "Id": 1
+        },
+        "Nombre": "test-project",
+        "NucleoBaseId": 13,
+        "NumeroActoAdministrativo": 1,
+        "NumeroCreditos": 123,
+        "Oferta": true,
+        "UnidadTiempoId": 1
+      },
+      "Registro": [
+        {
+          "Activo": true,
+          "AnoActoAdministrativoId": "2011",
+          "EnlaceActo": "4",
+          "FechaCreacionActoAdministrativo": "2019-11-08T17:55:00Z",
+          "Id": 0,
+          "NumeroActoAdministrativo": 1,
+          "ProyectoAcademicoInstitucionId": {
+            "Activo": true,
+            "AnoActoAdministrativo": "2002",
+            "AnoActoAdministrativoId": "2002",
+            "AreaConocimientoId": 2,
+            "CiclosPropedeuticos": true,
+            "Codigo": "0",
+            "CodigoAbreviacion": "test",
+            "CodigoSnies": "1234",
+            "Competencias": "test competencias",
+            "CorreoElectronico": "test@test.com",
+            "DependenciaId": 8,
+            "Duracion": 123,
+            "EnlaceActoAdministrativo": "5",
+            "Id": 0,
+            "MetodologiaId": {
+              "Id": 1
+            },
+            "NivelFormacionId": {
+              "Id": 1
+            },
+            "Nombre": "test-project",
+            "NucleoBaseId": 13,
+            "NumeroActoAdministrativo": 1,
+            "NumeroCreditos": 123,
+            "Oferta": true,
+            "UnidadTiempoId": 1
+          },
+          "TipoRegistroId": {
+            "Id": 1
+          },
+          "VencimientoActoAdministrativo": "2020-12-08T17:55:00Z",
+          "VigenciaActoAdministrativo": "Meses:1Años:1"
+        }
+      ],
+      "Titulaciones": [
+        {
+          "Activo": true,
+          "Id": 0,
+          "Nombre": "test snies",
+          "ProyectoAcademicoInstitucionId": {
+            "Activo": true,
+            "AnoActoAdministrativo": "2002",
+            "AnoActoAdministrativoId": "2002",
+            "AreaConocimientoId": 2,
+            "CiclosPropedeuticos": true,
+            "Codigo": "0",
+            "CodigoAbreviacion": "test",
+            "CodigoSnies": "1234",
+            "Competencias": "test competencias",
+            "CorreoElectronico": "test@test.com",
+            "DependenciaId": 8,
+            "Duracion": 123,
+            "EnlaceActoAdministrativo": "5",
+            "Id": 0,
+            "MetodologiaId": {
+              "Id": 1
+            },
+            "NivelFormacionId": {
+              "Id": 1
+            },
+            "Nombre": "test-project",
+            "NucleoBaseId": 13,
+            "NumeroActoAdministrativo": 1,
+            "NumeroCreditos": 123,
+            "Oferta": true,
+            "UnidadTiempoId": 1
+          },
+          "TipoTitulacionId": {
+            "Id": 1
+          }
+        },
+        {
+          "Activo": true,
+          "Id": 0,
+          "Nombre": "test mujer",
+          "ProyectoAcademicoInstitucionId": {
+            "Activo": true,
+            "AnoActoAdministrativo": "2002",
+            "AnoActoAdministrativoId": "2002",
+            "AreaConocimientoId": 2,
+            "CiclosPropedeuticos": true,
+            "Codigo": "0",
+            "CodigoAbreviacion": "test",
+            "CodigoSnies": "1234",
+            "Competencias": "test competencias",
+            "CorreoElectronico": "test@test.com",
+            "DependenciaId": 8,
+            "Duracion": 123,
+            "EnlaceActoAdministrativo": "5",
+            "Id": 0,
+            "MetodologiaId": {
+              "Id": 1
+            },
+            "NivelFormacionId": {
+              "Id": 1
+            },
+            "Nombre": "test-project",
+            "NucleoBaseId": 13,
+            "NumeroActoAdministrativo": 1,
+            "NumeroCreditos": 123,
+            "Oferta": true,
+            "UnidadTiempoId": 1
+          },
+          "TipoTitulacionId": {
+            "Id": 3
+          }
+        },
+        {
+          "Activo": true,
+          "Id": 0,
+          "Nombre": "test hombre",
+          "ProyectoAcademicoInstitucionId": {
+            "Activo": true,
+            "AnoActoAdministrativo": "2002",
+            "AnoActoAdministrativoId": "2002",
+            "AreaConocimientoId": 2,
+            "CiclosPropedeuticos": true,
+            "Codigo": "0",
+            "CodigoAbreviacion": "test",
+            "CodigoSnies": "1234",
+            "Competencias": "test competencias",
+            "CorreoElectronico": "test@test.com",
+            "DependenciaId": 8,
+            "Duracion": 123,
+            "EnlaceActoAdministrativo": "5",
+            "Id": 0,
+            "MetodologiaId": {
+              "Id": 1
+            },
+            "NivelFormacionId": {
+              "Id": 1
+            },
+            "Nombre": "test-project",
+            "NucleoBaseId": 13,
+            "NumeroActoAdministrativo": 1,
+            "NumeroCreditos": 123,
+            "Oferta": true,
+            "UnidadTiempoId": 1
+          },
+          "TipoTitulacionId": {
+            "Id": 2
+          }
+        }
+      ]
+    }
+  ]
+}

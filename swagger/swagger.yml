@@ -164,7 +164,7 @@ paths:
             $ref: '#/definitions/models.ConsultaProyectoAcademico'
         "403":
           description: :id is empty
-  /consulta_proyecto_academicoinhabilitar_proyecto/{id}:
+  /consulta_proyecto_academico/inhabilitar_proyecto/{id}:
     put:
       tags:
       - consulta_proyecto_academico
@@ -261,6 +261,24 @@ paths:
           description: '{}'
         "403":
           description: :persona is empty
+  /generar_codigo/:
+    post:
+      tags:
+      - generar_codigo
+      description: Creacion de codigo de barras
+      operationId: GeneradorCodigoBarrasController.GenerarCodigoBarras
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar ProduccionAcademica content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
   /produccion_academica/:
     post:
       tags:
@@ -376,6 +394,32 @@ paths:
           description: '{}'
         "403":
           description: body is empty
+  /proyecto_academico/coordinador/{id}:
+    post:
+      tags:
+      - proyecto_academico
+      description: Post a de un cordinador de un proyecto existente, cambia estado
+        activo a false a los coordinadores anteriores y crea el nuevo
+      operationId: CrearProyectoAcademicoController.PostCoordinadorById
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body Agregar Registro content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.ConsultaProyectoAcademico'
+        "403":
+          description: :id is empty
   /proyecto_academico/registro_alta_calidad/{id}:
     post:
       tags:
@@ -451,6 +495,9 @@ tags:
 - name: evento
   description: |
     EventoController ...
+- name: generar_codigo
+  description: |
+    GeneradorCodigoBarrasController ...
 - name: produccion_academica
   description: |
     ProduccionAcademicaController ...
