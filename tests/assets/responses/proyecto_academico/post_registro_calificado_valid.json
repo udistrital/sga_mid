@@ -1,0 +1,22 @@
+{
+    "Type": "",
+    "Code": "",
+    "Body": [
+      "Response:",
+      {
+        "Activo": true,
+        "AnoActoAdministrativoId": "2019",
+        "EnlaceActo": "1",
+        "FechaCreacionActoAdministrativo": "2019-11-28T10:56:00Z",
+        "NumeroActoAdministrativo": 1,
+        "ProyectoAcademicoInstitucionId": {
+          "Id": 1
+        },
+        "TipoRegistroId": {
+          "Id": 1
+        },
+        "VencimientoActoAdministrativo": "2022-01-28T10:56:00Z",
+        "VigenciaActoAdministrativo": "Meses:1Años:1"
+      }
+    ]
+}

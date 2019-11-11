@@ -1,0 +1,18 @@
+{
+    "Type": "",
+    "Code": "",
+    "Body": [
+      "Response:",
+      {
+        "Activo": true,
+        "Id": 1,
+        "MetodologiaId": {
+          "Id": 1
+        },
+        "NivelFormacionId": {
+          "Id": 1
+        },
+        "Oferta": true
+      }
+    ]
+}
