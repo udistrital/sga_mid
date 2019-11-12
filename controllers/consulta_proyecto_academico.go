@@ -133,7 +133,7 @@ func (c *ConsultaProyectoAcademicoController) GetOnePorId() {
 
 		errproyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/tr_proyecto_academico/"+idStr, &proyectos)
 		errdependencia := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia_tipo_dependencia/?query=TipoDependenciaId:2", &dependencias)
-		errunidad := request.GetJson("http://"+beego.AppConfig.String("UnidadTiempoCoreService")+"/unidad_tiempo/", &unidades)
+		errunidad := request.GetJson("http://"+beego.AppConfig.String("CoreService")+"/unidad_tiempo/", &unidades)
 
 		if proyectos[0]["ProyectoAcademico"] != nil {
 
