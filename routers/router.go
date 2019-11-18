@@ -52,6 +52,12 @@ func init() {
 				&controllers.ConsultaOfertaAcademicaController{},
 			),
 		),
+
+		beego.NSNamespace("/inscripciones",
+			beego.NSInclude(
+				&controllers.InscripcionesController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }

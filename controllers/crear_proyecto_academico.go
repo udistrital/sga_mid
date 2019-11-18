@@ -63,7 +63,7 @@ func (c *CrearProyectoAcademicoController) PostProyecto() {
 		} else {
 			alertas = append(alertas, Proyecto_academico)
 		}
-		errOikos := request.SendJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia", "POST", &resultadoOikos, Proyecto_academico_oikosPost)
+		errOikos := request.SendJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia_padre/tr_dependencia_padre", "POST", &resultadoOikos, Proyecto_academico_oikosPost)
 		if resultadoOikos["Type"] == "error" || errOikos != nil || resultadoOikos["Status"] == "404" || resultadoOikos["Mesage"] != nil {
 			fmt.Println("entro a error de post Oikos")
 			alertas = append(alertas, resultadoProyecto)

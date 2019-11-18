@@ -279,6 +279,24 @@ paths:
           description: '{}'
         "403":
           description: body is empty
+  /inscripciones/post_informacion_familiar:
+    post:
+      tags:
+      - inscripciones
+      description: Agregar Información Familiar
+      operationId: InscripcionesController.PostInformacionFamiliar
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar PostInformacionFamiliar content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
   /produccion_academica/:
     post:
       tags:
@@ -504,3 +522,6 @@ tags:
 - name: consulta_academica
   description: |
     ConsultaOfertaAcademicaController operations for Consulta_oferta_academica
+- name: inscripciones
+  description: |
+    InscripcionesController ...
