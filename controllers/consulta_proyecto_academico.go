@@ -64,7 +64,7 @@ func (c *ConsultaProyectoAcademicoController) GetAll() {
 					}
 					if proyectobase["Oferta"] == true {
 						proyecto["OfertaLetra"] = "Si"
-					} else if proyectobase["Activo"] == false {
+					} else if proyectobase["Oferta"] == false {
 						proyecto["OfertaLetra"] = "No"
 					}
 
