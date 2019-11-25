@@ -54,24 +54,38 @@ func (c *CrearProyectoAcademicoController) PostProyecto() {
 
 		var resultadoOikos map[string]interface{}
 		var resultadoProyecto map[string]interface{}
+
+
+		errOikos := request.SendJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia_padre/tr_dependencia_padre", "POST", &resultadoOikos, Proyecto_academico_oikosPost)
+		if resultadoOikos["Type"] == "error" || errOikos != nil || resultadoOikos["Status"] == "404" || resultadoOikos["Message"] != nil {
+			fmt.Println("error post dependencia proyecto", errOikos)
+			alertas = append(alertas, errOikos)
+			alertas = append(alertas, resultadoOikos)
+			alerta.Type = "error"
+			alerta.Code = "400"
+			alerta.Body = alertas
+			c.Data["json"] = alerta
+			c.ServeJSON()
+		} else {
+			alertas = append(alertas, Proyecto_academico)
+			idDependenciaProyecto := resultadoOikos["HijaId"].(map[string]interface{})["Id"]
+			fmt.Println("Id de dependencia creada para proyecto", idDependenciaProyecto )
+			Proyecto_academicoPost["ProyectoAcademicoInstitucion"].(map[string]interface{})["DependenciaId"] = idDependenciaProyecto
+		}
+
 		errProyecto := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/tr_proyecto_academico", "POST", &resultadoProyecto, Proyecto_academicoPost)
 		if resultadoProyecto["Type"] == "error" || errProyecto != nil || resultadoProyecto["Status"] == "404" || resultadoProyecto["Message"] != nil {
-			fmt.Println("entro a error de post Proyecto")
-			alertas = append(alertas, resultadoProyecto)
+			fmt.Println("entro a error de post Proyecto", errProyecto)
+			alertas = append(alertas, errProyecto)
 			alerta.Type = "error"
 			alerta.Code = "400"
+			alerta.Body = alertas
+			c.Data["json"] = alerta
+			c.ServeJSON()
 		} else {
 			alertas = append(alertas, Proyecto_academico)
 		}
-		errOikos := request.SendJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia_padre/tr_dependencia_padre", "POST", &resultadoOikos, Proyecto_academico_oikosPost)
-		if resultadoOikos["Type"] == "error" || errOikos != nil || resultadoOikos["Status"] == "404" || resultadoOikos["Mesage"] != nil {
-			fmt.Println("entro a error de post Oikos")
-			alertas = append(alertas, resultadoProyecto)
-			alerta.Type = "error"
-			alerta.Code = "400"
-		} else {
-			alertas = append(alertas, Proyecto_academico)
-		}
+		
 	} else {
 		alerta.Type = "error"
 		alerta.Code = "400"

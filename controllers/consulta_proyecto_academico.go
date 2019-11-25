@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"strings"
+	"fmt"
 
 	"github.com/astaxie/beego"
 	"github.com/udistrital/sga_mid/models"
@@ -41,33 +42,44 @@ func (c *ConsultaProyectoAcademicoController) GetAll() {
 	alertas := append([]interface{}{"Response:"})
 
 	if resultado["Type"] != "error" {
-		var idOikos float64
 		var proyectos []map[string]interface{}
-		var dependencias []map[string]interface{}
 
 		errproyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/tr_proyecto_academico/", &proyectos)
-		errdependencia := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia_tipo_dependencia/?query=TipoDependenciaId:2", &dependencias)
+		// errdependencia := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia_tipo_dependencia/?query=TipoDependenciaId:2", &dependencias)
 
-		if errproyecto == nil && errdependencia == nil {
-
+		// if errproyecto == nil && errdependencia == nil {
+		if errproyecto == nil {
 			for _, proyecto := range proyectos {
 				registros := proyecto["Registro"].([]interface{})
 				proyectobase := proyecto["ProyectoAcademico"].(map[string]interface{})
 				proyecto["FechaVenimientoAcreditacion"] = nil
 				proyecto["FechaVenimientoCalidad"] = nil
 
-				for _, dependencia := range dependencias {
-					proyectotem := dependencia["DependenciaId"].(map[string]interface{})
-					idOikos = proyectotem["Id"].(float64)
+				
+				// errdependencia := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia_tipo_dependencia/?query=TipoDependenciaId:2", &dependencia)
+				/*
+					for _, dependencia := range dependencias {
+					dependenciaTemp := dependencia["DependenciaId"].(map[string]interface{})
+					idOikos = dependenciaTemp["Id"].(float64)
 					if proyectobase["DependenciaId"].(float64) == idOikos {
-						proyecto["NombreDependencia"] = proyectotem["Nombre"]
+						proyecto["NombreDependencia"] = dependenciaTemp["Nombre"]
 					}
-					if proyectobase["Oferta"] == true {
-						proyecto["OfertaLetra"] = "Si"
-					} else if proyectobase["Oferta"] == false {
-						proyecto["OfertaLetra"] = "No"
-					}
+				}
+				*/
 
+				// Información de la facultad
+				var dependencia map[string]interface{}
+				errdependencia := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia/"+fmt.Sprintf("%.f", proyectobase["FacultadId"].(float64)), &dependencia)
+				// if errdependencia["Type"] == "error" || errdependencia != nil || dependencia["Status"] == "404" || dependencia["Message"] != nil {
+				if errdependencia == nil {
+					// idOikos := dependencia["Id"].(float64)
+					proyecto["NombreFacultad"] = dependencia["Nombre"]
+				}
+
+				if proyectobase["Oferta"] == true {
+					proyecto["OfertaLetra"] = "Si"
+				} else if proyectobase["Oferta"] == false {
+					proyecto["OfertaLetra"] = "No"
 				}
 
 				for _, registrotemp := range registros {
@@ -125,19 +137,20 @@ func (c *ConsultaProyectoAcademicoController) GetOnePorId() {
 	idStr := c.Ctx.Input.Param(":id")
 
 	if resultado["Type"] != "error" {
-		var idOikos float64
+		// var idOikos float64
 		var idUnidad float64
 		var proyectos []map[string]interface{}
-		var dependencias []map[string]interface{}
+		// var dependencias []map[string]interface{}
 		var unidades []map[string]interface{}
 
 		errproyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/tr_proyecto_academico/"+idStr, &proyectos)
-		errdependencia := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia_tipo_dependencia/?query=TipoDependenciaId:2", &dependencias)
+		// errdependencia := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia_tipo_dependencia/?query=TipoDependenciaId:2", &dependencias)
 		errunidad := request.GetJson("http://"+beego.AppConfig.String("CoreService")+"/unidad_tiempo/", &unidades)
 
 		if proyectos[0]["ProyectoAcademico"] != nil {
 
-			if errproyecto == nil && errdependencia == nil && errunidad == nil {
+			// if errproyecto == nil && errdependencia == nil && errunidad == nil {
+			if errproyecto == nil && errunidad == nil {
 
 				for _, proyecto := range proyectos {
 					registros := proyecto["Registro"].([]interface{})
@@ -151,6 +164,7 @@ func (c *ConsultaProyectoAcademicoController) GetOnePorId() {
 					proyecto["VigenciaActoAdministrativoAltaCalidad"] = nil
 					proyecto["EnlaceActoAdministrativoAltaCalidad"] = nil
 
+					/*
 					for _, dependencia := range dependencias {
 						proyectotem := dependencia["DependenciaId"].(map[string]interface{})
 						idOikos = proyectotem["Id"].(float64)
@@ -159,18 +173,37 @@ func (c *ConsultaProyectoAcademicoController) GetOnePorId() {
 							proyecto["IdDependenciaFacultad"] = proyectotem["Id"]
 							proyecto["TelefonoDependencia"] = proyectotem["TelefonoDependencia"]
 						}
-						if proyectobase["Oferta"] == true {
-							proyecto["OfertaLetra"] = "Si"
-
-						} else if proyectobase["Oferta"] == false {
-							proyecto["OfertaLetra"] = "No"
-						}
-						if proyectobase["CiclosPropedeuticos"] == true {
-							proyecto["CiclosLetra"] = "Si"
-						} else if proyectobase["CiclosPropedeuticos"] == false {
-							proyecto["CiclosLetra"] = "NO"
-						}
 					}
+					*/
+
+					// Información de la facultad
+					var dependenciaFacultad map[string]interface{}
+					errdependenciaFacultad := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia/"+fmt.Sprintf("%.f", proyectobase["FacultadId"].(float64)), &dependenciaFacultad)
+					// if errdependencia["Type"] == "error" || errdependencia != nil || dependencia["Status"] == "404" || dependencia["Message"] != nil {
+					if errdependenciaFacultad == nil {
+						proyecto["NombreFacultad"] = dependenciaFacultad["Nombre"]
+						proyecto["IdDependenciaFacultad"] = dependenciaFacultad["Id"]
+					}
+
+					// Información de la dependencia del proyecto
+					var dependencia map[string]interface{}
+					errdependencia := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia/"+fmt.Sprintf("%.f", proyectobase["DependenciaId"].(float64)), &dependencia)
+					// if errdependencia["Type"] == "error" || errdependencia != nil || dependencia["Status"] == "404" || dependencia["Message"] != nil {
+					if errdependencia == nil {
+						proyecto["TelefonoDependencia"] = dependencia["TelefonoDependencia"]
+					}
+
+					if proyectobase["Oferta"] == true {
+						proyecto["OfertaLetra"] = "Si"
+					} else if proyectobase["Oferta"] == false {
+						proyecto["OfertaLetra"] = "No"
+					}
+					if proyectobase["CiclosPropedeuticos"] == true {
+						proyecto["CiclosLetra"] = "Si"
+					} else if proyectobase["CiclosPropedeuticos"] == false {
+						proyecto["CiclosLetra"] = "NO"
+					}
+
 					for _, unidad := range unidades {
 						unidadTem := unidad
 						idUnidad = unidadTem["Id"].(float64)
