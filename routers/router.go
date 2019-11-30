@@ -53,6 +53,12 @@ func init() {
 			),
 		),
 
+		beego.NSNamespace("/persona",
+			beego.NSInclude(
+				&controllers.PersonaController{},
+			),
+		),
+
 		beego.NSNamespace("/inscripciones",
 			beego.NSInclude(
 				&controllers.InscripcionesController{},

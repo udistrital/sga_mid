@@ -297,6 +297,24 @@ paths:
           description: '{}'
         "403":
           description: body is empty
+  /persona/guardar_persona:
+    post:
+      tags:
+      - persona
+      description: Guardar Persona
+      operationId: PersonaController.PostPersona
+      parameters:
+      - in: body
+        name: body
+        description: body for Guardar Persona content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
   /produccion_academica/:
     post:
       tags:
@@ -522,6 +540,9 @@ tags:
 - name: consulta_academica
   description: |
     ConsultaOfertaAcademicaController operations for Consulta_oferta_academica
+- name: persona
+  description: |
+    PersonaController ...
 - name: inscripciones
   description: |
     InscripcionesController ...
