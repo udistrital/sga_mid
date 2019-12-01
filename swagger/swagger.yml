@@ -315,6 +315,24 @@ paths:
           description: '{}'
         "403":
           description: body is empty
+  /inscripciones/post_transferencia:
+    post:
+      tags:
+      - inscripciones
+      description: Agregar Transferencia
+      operationId: InscripcionesController.PostTransferencia
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar Transferencia content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
   /produccion_academica/:
     post:
       tags:
