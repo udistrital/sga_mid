@@ -558,6 +558,9 @@ tags:
 - name: consulta_academica
   description: |
     ConsultaOfertaAcademicaController operations for Consulta_oferta_academica
+- name: persona
+  description: |
+    PersonaController ...
 - name: inscripciones
   description: |
     InscripcionesController ...
