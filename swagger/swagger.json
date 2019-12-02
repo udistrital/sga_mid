@@ -450,6 +450,90 @@
                 }
             }
         },
+        "/inscripciones/post_reintegro": {
+            "post": {
+                "tags": [
+                    "inscripciones"
+                ],
+                "description": "Agregar Reintegro",
+                "operationId": "InscripcionesController.PostReintegro",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar Reintegro content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/inscripciones/post_transferencia": {
+            "post": {
+                "tags": [
+                    "inscripciones"
+                ],
+                "description": "Agregar Transferencia",
+                "operationId": "InscripcionesController.PostTransferencia",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar Transferencia content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/persona/guardar_persona": {
+            "post": {
+                "tags": [
+                    "persona"
+                ],
+                "description": "Guardar Persona",
+                "operationId": "PersonaController.PostPersona",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Guardar Persona content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
         "/produccion_academica/": {
             "post": {
                 "tags": [
@@ -783,6 +867,10 @@
         {
             "name": "consulta_academica",
             "description": "ConsultaOfertaAcademicaController operations for Consulta_oferta_academica\n"
+        },
+        {
+            "name": "persona",
+            "description": "PersonaController ...\n"
         },
         {
             "name": "inscripciones",
