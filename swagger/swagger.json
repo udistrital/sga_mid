@@ -478,6 +478,34 @@
                 }
             }
         },
+        "/inscripciones/post_reintegro": {
+            "post": {
+                "tags": [
+                    "inscripciones"
+                ],
+                "description": "Agregar Reintegro",
+                "operationId": "InscripcionesController.PostReintegro",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar Reintegro content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
         "/produccion_academica/": {
             "post": {
                 "tags": [
