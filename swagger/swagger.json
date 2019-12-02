@@ -450,6 +450,34 @@
                 }
             }
         },
+        "/persona/guardar_persona": {
+            "post": {
+                "tags": [
+                    "persona"
+                ],
+                "description": "Guardar Persona",
+                "operationId": "PersonaController.PostPersona",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Guardar Persona content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
         "/inscripciones/post_reintegro": {
             "post": {
                 "tags": [
@@ -811,6 +839,10 @@
         {
             "name": "consulta_academica",
             "description": "ConsultaOfertaAcademicaController operations for Consulta_oferta_academica\n"
+        },
+        {
+            "name": "persona",
+            "description": "PersonaController ...\n"
         },
         {
             "name": "inscripciones",
