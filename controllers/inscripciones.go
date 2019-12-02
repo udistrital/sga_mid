@@ -18,6 +18,7 @@ type InscripcionesController struct {
 func (c *InscripcionesController) URLMapping() {
 	c.Mapping("PostInformacionFamiliar", c.PostInformacionFamiliar)
 	c.Mapping("PostReintegro", c.PostReintegro)
+	c.Mapping("PostTransferencia", c.PostTransferencia)
 }
 
 // PostInformacionFamiliar ...
@@ -86,6 +87,46 @@ func (c *InscripcionesController) PostReintegro() {
 		} else {
 			fmt.Println("Reintegrro registrado")
 			alertas = append(alertas, Reintegro)
+		}
+	} else {
+		alerta.Type = "error"
+		alerta.Code = "400"
+		alertas = append(alertas, err.Error())
+		alerta.Body = alertas
+		c.Data["json"] = alerta
+		c.ServeJSON()
+	}
+	alerta.Body = alertas
+	c.Data["json"] = alerta
+	c.ServeJSON()
+}
+
+// PostTransferencia ...
+// @Title PostTransferencia
+// @Description Agregar Transferencia
+// @Param   body        body    {}  true        "body Agregar Transferencia content"
+// @Success 200 {}
+// @Failure 403 body is empty
+// @router /post_transferencia [post]
+func (c *InscripcionesController) PostTransferencia() {
+	
+	var Transferencia map[string]interface{}
+	var alerta models.Alert
+	alertas := append([]interface{}{"Response:"})
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &Transferencia); err == nil {
+
+		var resultadoTransferencia map[string]interface{}
+		errTransferencia := request.SendJson("http://"+beego.AppConfig.String("InscripcionService")+"tr_inscripcion/transferencia", "POST", &resultadoTransferencia, Transferencia)
+		if resultadoTransferencia["Type"] == "error" || errTransferencia != nil || resultadoTransferencia["Status"] == "404" || resultadoTransferencia["Message"] != nil {
+			alertas = append(alertas, resultadoTransferencia)
+			alerta.Type = "error"
+			alerta.Code = "400"
+			alerta.Body = alertas
+			c.Data["json"] = alerta
+			c.ServeJSON()
+		} else {
+			fmt.Println("Transferencia registrada")
+			alertas = append(alertas, Transferencia)
 		}
 	} else {
 		alerta.Type = "error"
