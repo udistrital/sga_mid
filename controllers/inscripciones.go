@@ -161,9 +161,6 @@ func (c *InscripcionesController) PostInfoIcfesColegio() {
 		var InfoComplementariaTercero = InfoIcfesColegio["InfoComplementariaTercero"].([]interface{})
 		var date = time.Now()
 
-		fmt.Println("InscripcionPregrado",InscripcionPregrado)
-		fmt.Println("InfoComplementariaTercero",InfoComplementariaTercero)
-
 		for _, datoInfoComplementaria := range InfoComplementariaTercero {
 			var dato = datoInfoComplementaria.(map[string]interface{})
 			dato["FechaCreacion"] = date
@@ -178,24 +175,24 @@ func (c *InscripcionesController) PostInfoIcfesColegio() {
 				c.Data["json"] = alerta
 				c.ServeJSON()
 			} else {
-				fmt.Println("Info complementaria registrada", dato["Nombre"])
+				fmt.Println("Info complementaria registrada", dato["InfoComplementariaId"])
 				// alertas = append(alertas, Transferencia)
 			}
 		}
 
-		// var resultadoTransferencia map[string]interface{}
-		// errTransferencia := request.SendJson("http://"+beego.AppConfig.String("InscripcionService")+"tr_inscripcion/transferencia", "POST", &resultadoTransferencia, Transferencia)
-		// if resultadoTransferencia["Type"] == "error" || errTransferencia != nil || resultadoTransferencia["Status"] == "404" || resultadoTransferencia["Message"] != nil {
-		// 	alertas = append(alertas, resultadoTransferencia)
-		// 	alerta.Type = "error"
-		// 	alerta.Code = "400"
-		// 	alerta.Body = alertas
-		// 	c.Data["json"] = alerta
-		// 	c.ServeJSON()
-		// } else {
-		// 	fmt.Println("Transferencia registrada")
-		// 	alertas = append(alertas, Transferencia)
-		// }
+		var resultadoInscripcionPregrado map[string]interface{}
+		errInscripcionPregrado := request.SendJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion_pregrado", "POST", &resultadoInscripcionPregrado, InscripcionPregrado)
+		if resultadoInscripcionPregrado["Type"] == "error" || errInscripcionPregrado != nil || resultadoInscripcionPregrado["Status"] == "404" || resultadoInscripcionPregrado["Message"] != nil {
+			alertas = append(alertas, resultadoInscripcionPregrado)
+			alerta.Type = "error"
+			alerta.Code = "400"
+			alerta.Body = alertas
+			c.Data["json"] = alerta
+			c.ServeJSON()
+		} else {
+			fmt.Println("Inscripcion registrada")
+			alertas = append(alertas, InfoIcfesColegio)
+		}
 
 	} else {
 		alerta.Type = "error"
