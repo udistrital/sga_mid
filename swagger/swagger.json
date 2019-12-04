@@ -450,6 +450,34 @@
                 }
             }
         },
+        "/persona/guardar_complementarios": {
+            "post": {
+                "tags": [
+                    "persona"
+                ],
+                "description": "Guardar Datos Complementarios Persona",
+                "operationId": "PersonaController.GuardarDatosComplementarios",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Guardar Datos Complementarios Persona content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
         "/persona/guardar_persona": {
             "post": {
                 "tags": [
