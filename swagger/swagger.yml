@@ -279,6 +279,24 @@ paths:
           description: '{}'
         "403":
           description: body is empty
+  /inscripciones/info_complementaria_universidad:
+    post:
+      tags:
+      - inscripciones
+      description: Agregar InfoComplementariaUniversidad
+      operationId: InscripcionesController.PostInfoComplementariaUniversidad
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar InfoComplementariaUniversidad content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
   /inscripciones/post_info_icfes_colegio:
     post:
       tags:
