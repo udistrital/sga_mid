@@ -422,6 +422,34 @@
                 }
             }
         },
+        "/inscripciones/post_info_icfes_colegio": {
+            "post": {
+                "tags": [
+                    "inscripciones"
+                ],
+                "description": "Agregar InfoIcfesColegio",
+                "operationId": "InscripcionesController.PostInfoIcfesColegio",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar InfoIcfesColegio content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
         "/inscripciones/post_informacion_familiar": {
             "post": {
                 "tags": [
@@ -502,6 +530,34 @@
                     },
                     "403": {
                         "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/persona/guardar_complementarios": {
+            "post": {
+                "tags": [
+                    "persona"
+                ],
+                "description": "Guardar Datos Complementarios Persona",
+                "operationId": "PersonaController.GuardarDatosComplementarios",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Guardar Datos Complementarios Persona content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
                     }
                 }
             }

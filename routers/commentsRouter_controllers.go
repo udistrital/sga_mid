@@ -153,6 +153,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:InscripcionesController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:InscripcionesController"],
         beego.ControllerComments{
+            Method: "PostInfoIcfesColegio",
+            Router: `/post_info_icfes_colegio`,
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:InscripcionesController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:InscripcionesController"],
+        beego.ControllerComments{
             Method: "PostInformacionFamiliar",
             Router: `/post_informacion_familiar`,
             AllowHTTPMethods: []string{"post"},
@@ -173,6 +182,15 @@ func init() {
         beego.ControllerComments{
             Method: "PostTransferencia",
             Router: `/post_transferencia`,
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PersonaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PersonaController"],
+        beego.ControllerComments{
+            Method: "GuardarDatosComplementarios",
+            Router: `/guardar_complementarios`,
             AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
