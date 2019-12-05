@@ -450,18 +450,18 @@
                 }
             }
         },
-        "/inscripciones/post_reintegro": {
+        "/persona/guardar_complementarios": {
             "post": {
                 "tags": [
-                    "inscripciones"
+                    "persona"
                 ],
-                "description": "Agregar Reintegro",
-                "operationId": "InscripcionesController.PostReintegro",
+                "description": "Guardar Datos Complementarios Persona",
+                "operationId": "PersonaController.GuardarDatosComplementarios",
                 "parameters": [
                     {
                         "in": "body",
                         "name": "body",
-                        "description": "body Agregar Reintegro content",
+                        "description": "body for Guardar Datos Complementarios Persona content",
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/{}"
@@ -469,39 +469,11 @@
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "{}"
+                    "201": {
+                        "description": "{int}"
                     },
-                    "403": {
-                        "description": "body is empty"
-                    }
-                }
-            }
-        },
-        "/inscripciones/post_transferencia": {
-            "post": {
-                "tags": [
-                    "inscripciones"
-                ],
-                "description": "Agregar Transferencia",
-                "operationId": "InscripcionesController.PostTransferencia",
-                "parameters": [
-                    {
-                        "in": "body",
-                        "name": "body",
-                        "description": "body Agregar Transferencia content",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/{}"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{}"
-                    },
-                    "403": {
-                        "description": "body is empty"
+                    "400": {
+                        "description": "the request contains incorrect syntax"
                     }
                 }
             }
