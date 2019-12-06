@@ -7,6 +7,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
+	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 	"github.com/udistrital/utils_oas/time_bogota"
 )
@@ -527,25 +528,27 @@ func (c *PersonaController) GuardarDatosContacto() {
 			"FechaCreacion":        time_bogota.Tiempo_bogota(),
 			"FechaModificacion":    time_bogota.Tiempo_bogota(),
 		}
-
+		formatdata.JsonPrint(estrato)
 		errEstrato := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &EstratoPost, estrato)
-		fmt.Println("error post dependencia proyecto", errEstrato)
 		if errEstrato == nil && fmt.Sprintf("%v", EstratoPost["System"]) != "map[]" && EstratoPost["Id"] != nil {
-			fmt.Println("PAso el primer if ")
+
 			if EstratoPost["Status"] != 400 {
 
 				//codigo Postal
 				var codigopostalPost map[string]interface{}
 
+				codigo := fmt.Sprintf("%v", tercero["Contactotercero"].(map[string]interface{})["CodigoPostal"])
+				requestBod := "{\n    \"Data\": \"" + codigo + "\"\n  }"
+
 				codigopostaltercero := map[string]interface{}{
 					"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
 					"InfoComplementariaId": map[string]interface{}{"Id": 55}, // Id para codigo postal
-					"Dato":                 tercero["Contactotercero"].(map[string]interface{})["CodigoPostal"],
+					"Dato":                 requestBod,
 					"Activo":               true,
 					"FechaCreacion":        time_bogota.Tiempo_bogota(),
 					"FechaModificacion":    time_bogota.Tiempo_bogota(),
 				}
-
+				//formatdata.JsonPrint(codigopostaltercero)
 				errCodigoPostal := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &codigopostalPost, codigopostaltercero)
 				if errCodigoPostal == nil && fmt.Sprintf("%v", codigopostalPost["System"]) != "map[]" && codigopostalPost["Id"] != nil {
 					if codigopostalPost["Status"] != 400 {
@@ -578,10 +581,9 @@ func (c *PersonaController) GuardarDatosContacto() {
 									"FechaModificacion":    time_bogota.Tiempo_bogota(),
 								}
 
-								fmt.Println("paso 1")
 								errTelefonoAlterno := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &telefonoalternativoPost, telefonoalternativotercero)
 								if errTelefonoAlterno == nil && fmt.Sprintf("%v", telefonoalternativoPost["System"]) != "map[]" && telefonoalternativoPost["Id"] != nil {
-									fmt.Println("paso")
+
 									if telefonoalternativotercero["Status"] != 400 {
 
 										// Lugar residencia
@@ -604,7 +606,6 @@ func (c *PersonaController) GuardarDatosContacto() {
 												var direccionPost map[string]interface{}
 												direcion := fmt.Sprintf("%v", tercero["UbicacionTercero"].(map[string]interface{})["Direccion"])
 												requestBody := "{\n    \"Data\": \"" + direcion + "\"\n  }"
-												// DatoJson, _ := json.Marshal()
 
 												direcciontercero := map[string]interface{}{
 													"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
@@ -650,13 +651,13 @@ func (c *PersonaController) GuardarDatosContacto() {
 																	"FechaModificacion":    time_bogota.Tiempo_bogota(),
 																}
 
-																// formatdata.JsonPrint(correoelectronicotercero)
 																errCorreo := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &correoelectronicoPost, correoelectronicotercero)
 																if errCorreo == nil && fmt.Sprintf("%v", correoelectronicoPost["System"]) != "map[]" && correoelectronicoPost["Id"] != nil {
 																	if correoelectronicotercero["Status"] != 400 {
 																		// Resultado final
 
 																		resultado = tercero
+
 																		c.Data["json"] = resultado
 																	} else {
 																		//Si pasa un error borra todo lo creado al momento del registro del correo electronico
