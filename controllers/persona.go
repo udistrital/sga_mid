@@ -7,6 +7,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
+	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 	"github.com/udistrital/utils_oas/time_bogota"
 )
@@ -20,6 +21,7 @@ type PersonaController struct {
 func (c *PersonaController) URLMapping() {
 	c.Mapping("GuardarPersona", c.GuardarPersona)
 	c.Mapping("GuardarDatosComplementarios", c.GuardarDatosComplementarios)
+	c.Mapping("GuardarDatosContacto", c.GuardarDatosContacto)
 }
 
 // GuardarPersona ...
@@ -495,6 +497,295 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 	} else {
 		logs.Error(err)
 		//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("400")
+	}
+	c.ServeJSON()
+}
+
+// GuardarDatosContacto ...
+// @Title PostrDatosContacto
+// @Description Guardar DatosContacto
+// @Param	body		body 	{}	true		"body for Guardar DatosContacto content"
+// @Success 201 {int}
+// @Failure 400 the request contains incorrect syntax
+// @router /guardar_datos_contacto [post]
+func (c *PersonaController) GuardarDatosContacto() {
+
+	var resultado map[string]interface{}
+	var tercero map[string]interface{}
+	var EstratoPost map[string]interface{}
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &tercero); err == nil {
+
+		// estrato tercero
+		estrato := map[string]interface{}{
+
+			"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
+			"InfoComplementariaId": map[string]interface{}{"Id": 41}, // Id para estrato
+			"Dato":                 tercero["EstratoTercero"],
+			"Activo":               true,
+			"FechaCreacion":        time_bogota.Tiempo_bogota(),
+			"FechaModificacion":    time_bogota.Tiempo_bogota(),
+		}
+		formatdata.JsonPrint(estrato)
+		errEstrato := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &EstratoPost, estrato)
+		if errEstrato == nil && fmt.Sprintf("%v", EstratoPost["System"]) != "map[]" && EstratoPost["Id"] != nil {
+
+			if EstratoPost["Status"] != 400 {
+
+				//codigo Postal
+				var codigopostalPost map[string]interface{}
+
+				codigo := fmt.Sprintf("%v", tercero["Contactotercero"].(map[string]interface{})["CodigoPostal"])
+				requestBod := "{\n    \"Data\": \"" + codigo + "\"\n  }"
+
+				codigopostaltercero := map[string]interface{}{
+					"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
+					"InfoComplementariaId": map[string]interface{}{"Id": 55}, // Id para codigo postal
+					"Dato":                 requestBod,
+					"Activo":               true,
+					"FechaCreacion":        time_bogota.Tiempo_bogota(),
+					"FechaModificacion":    time_bogota.Tiempo_bogota(),
+				}
+				//formatdata.JsonPrint(codigopostaltercero)
+				errCodigoPostal := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &codigopostalPost, codigopostaltercero)
+				if errCodigoPostal == nil && fmt.Sprintf("%v", codigopostalPost["System"]) != "map[]" && codigopostalPost["Id"] != nil {
+					if codigopostalPost["Status"] != 400 {
+
+						// Telefono
+						var telefonoPost map[string]interface{}
+
+						telefonotercero := map[string]interface{}{
+							"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
+							"InfoComplementariaId": map[string]interface{}{"Id": 51}, // Id para telefono
+							"Dato":                 tercero["Contactotercero"].(map[string]interface{})["Telefono"],
+							"Activo":               true,
+							"FechaCreacion":        time_bogota.Tiempo_bogota(),
+							"FechaModificacion":    time_bogota.Tiempo_bogota(),
+						}
+
+						errTelefono := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &telefonoPost, telefonotercero)
+						if errTelefono == nil && fmt.Sprintf("%v", telefonoPost["System"]) != "map[]" && telefonoPost["Id"] != nil {
+							if telefonoPost["Status"] != 400 {
+
+								// Telefono alternativo
+								var telefonoalternativoPost map[string]interface{}
+
+								telefonoalternativotercero := map[string]interface{}{
+									"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
+									"InfoComplementariaId": map[string]interface{}{"Id": 52}, // Id para telefono alternativo
+									"Dato":                 tercero["Contactotercero"].(map[string]interface{})["TelefonoAlterno"],
+									"Activo":               true,
+									"FechaCreacion":        time_bogota.Tiempo_bogota(),
+									"FechaModificacion":    time_bogota.Tiempo_bogota(),
+								}
+
+								errTelefonoAlterno := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &telefonoalternativoPost, telefonoalternativotercero)
+								if errTelefonoAlterno == nil && fmt.Sprintf("%v", telefonoalternativoPost["System"]) != "map[]" && telefonoalternativoPost["Id"] != nil {
+
+									if telefonoalternativotercero["Status"] != 400 {
+
+										// Lugar residencia
+										var lugarresidenciaPost map[string]interface{}
+
+										lugarresidenciatercero := map[string]interface{}{
+											"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
+											"InfoComplementariaId": map[string]interface{}{"Id": 58}, // Id para lugar de residencia
+											"Dato":                 fmt.Sprintf("%g", tercero["UbicacionTercero"].(map[string]interface{})["Lugar"].(map[string]interface{})["Id"]),
+											"Activo":               true,
+											"FechaCreacion":        time_bogota.Tiempo_bogota(),
+											"FechaModificacion":    time_bogota.Tiempo_bogota(),
+										}
+
+										errLugarResidencia := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &lugarresidenciaPost, lugarresidenciatercero)
+										if errLugarResidencia == nil && fmt.Sprintf("%v", lugarresidenciaPost["System"]) != "map[]" && lugarresidenciaPost["Id"] != nil {
+											if lugarresidenciatercero["Status"] != 400 {
+
+												// Direccion de residencia
+												var direccionPost map[string]interface{}
+												direcion := fmt.Sprintf("%v", tercero["UbicacionTercero"].(map[string]interface{})["Direccion"])
+												requestBody := "{\n    \"Data\": \"" + direcion + "\"\n  }"
+
+												direcciontercero := map[string]interface{}{
+													"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
+													"InfoComplementariaId": map[string]interface{}{"Id": 54}, // Id para direccion de residencia
+													"Dato":                 requestBody,
+													"Activo":               true,
+													"FechaCreacion":        time_bogota.Tiempo_bogota(),
+													"FechaModificacion":    time_bogota.Tiempo_bogota(),
+												}
+
+												errDireccion := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &direccionPost, direcciontercero)
+												if errDireccion == nil && fmt.Sprintf("%v", direccionPost["System"]) != "map[]" && direccionPost["Id"] != nil {
+													if direcciontercero["Status"] != 400 {
+
+														// Estrato de quien costea
+														var estratoquiencosteaPost map[string]interface{}
+
+														estratoquiencosteatercero := map[string]interface{}{
+															"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
+															"InfoComplementariaId": map[string]interface{}{"Id": 57}, // Id para estrato de responsable
+															"Dato":                 tercero["EstratoQuienCostea"].(map[string]interface{})["Id"],
+															"Activo":               true,
+															"FechaCreacion":        time_bogota.Tiempo_bogota(),
+															"FechaModificacion":    time_bogota.Tiempo_bogota(),
+														}
+
+														errEstratoResponsable := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &estratoquiencosteaPost, estratoquiencosteatercero)
+														if errEstratoResponsable == nil && fmt.Sprintf("%v", estratoquiencosteaPost["System"]) != "map[]" && estratoquiencosteaPost["Id"] != nil {
+															if estratoquiencosteatercero["Status"] != 400 {
+
+																// Correo electronico tercero
+																var correoelectronicoPost map[string]interface{}
+
+																direcion := fmt.Sprintf("%v", tercero["Contactotercero"].(map[string]interface{})["Correo"])
+																requestBody1 := "{\n    \"Data\": \"" + direcion + "\"\n  }"
+
+																correoelectronicotercero := map[string]interface{}{
+																	"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
+																	"InfoComplementariaId": map[string]interface{}{"Id": 53}, // Id para correo electronico
+																	"Dato":                 requestBody1,
+																	"Activo":               true,
+																	"FechaCreacion":        time_bogota.Tiempo_bogota(),
+																	"FechaModificacion":    time_bogota.Tiempo_bogota(),
+																}
+
+																errCorreo := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &correoelectronicoPost, correoelectronicotercero)
+																if errCorreo == nil && fmt.Sprintf("%v", correoelectronicoPost["System"]) != "map[]" && correoelectronicoPost["Id"] != nil {
+																	if correoelectronicotercero["Status"] != 400 {
+																		// Resultado final
+
+																		resultado = tercero
+
+																		c.Data["json"] = resultado
+																	} else {
+																		//Si pasa un error borra todo lo creado al momento del registro del correo electronico
+																		var resultado2 map[string]interface{}
+																		request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", EstratoPost["Id"]), "DELETE", &resultado2, nil)
+																		request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", codigopostalPost["Id"]), "DELETE", &resultado2, nil)
+																		request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", telefonoPost["Id"]), "DELETE", &resultado2, nil)
+																		request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", telefonoalternativoPost["Id"]), "DELETE", &resultado2, nil)
+																		request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", lugarresidenciaPost["Id"]), "DELETE", &resultado2, nil)
+																		request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", direccionPost["Id"]), "DELETE", &resultado2, nil)
+																		request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", estratoquiencosteaPost["Id"]), "DELETE", &resultado2, nil)
+																		logs.Error(errCorreo)
+																		c.Data["system"] = correoelectronicoPost
+																		c.Abort("400")
+																	}
+																} else {
+																	logs.Error(errCorreo)
+																	c.Data["system"] = correoelectronicoPost
+																	c.Abort("400")
+																}
+
+															} else {
+																//Si pasa un error borra todo lo creado al momento del registro del estrato de quien costea
+																var resultado2 map[string]interface{}
+																request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", EstratoPost["Id"]), "DELETE", &resultado2, nil)
+																request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", codigopostalPost["Id"]), "DELETE", &resultado2, nil)
+																request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", telefonoPost["Id"]), "DELETE", &resultado2, nil)
+																request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", telefonoalternativoPost["Id"]), "DELETE", &resultado2, nil)
+																request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", lugarresidenciaPost["Id"]), "DELETE", &resultado2, nil)
+																request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", direccionPost["Id"]), "DELETE", &resultado2, nil)
+																logs.Error(errEstratoResponsable)
+																c.Data["system"] = estratoquiencosteaPost
+																c.Abort("400")
+															}
+														} else {
+															logs.Error(errEstratoResponsable)
+															c.Data["system"] = estratoquiencosteaPost
+															c.Abort("400")
+														}
+
+													} else {
+														//Si pasa un error borra todo lo creado al momento del registro de la direccion
+														var resultado2 map[string]interface{}
+														request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", EstratoPost["Id"]), "DELETE", &resultado2, nil)
+														request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", codigopostalPost["Id"]), "DELETE", &resultado2, nil)
+														request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", telefonoPost["Id"]), "DELETE", &resultado2, nil)
+														request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", telefonoalternativoPost["Id"]), "DELETE", &resultado2, nil)
+														request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", lugarresidenciaPost["Id"]), "DELETE", &resultado2, nil)
+														logs.Error(errDireccion)
+														c.Data["system"] = direccionPost
+														c.Abort("400")
+													}
+												} else {
+													logs.Error(errDireccion)
+													c.Data["system"] = direccionPost
+													c.Abort("400")
+												}
+											} else {
+												//Si pasa un error borra todo lo creado al momento del registro del lugar de residencia
+												var resultado2 map[string]interface{}
+												request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", EstratoPost["Id"]), "DELETE", &resultado2, nil)
+												request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", codigopostalPost["Id"]), "DELETE", &resultado2, nil)
+												request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", telefonoPost["Id"]), "DELETE", &resultado2, nil)
+												request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", telefonoalternativoPost["Id"]), "DELETE", &resultado2, nil)
+												logs.Error(errLugarResidencia)
+												c.Data["system"] = lugarresidenciaPost
+												c.Abort("400")
+											}
+										} else {
+											logs.Error(errLugarResidencia)
+											c.Data["system"] = lugarresidenciaPost
+											c.Abort("400")
+										}
+									} else {
+										//Si pasa un error borra todo lo creado al momento del registro del telefono alterno
+										var resultado2 map[string]interface{}
+										request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", EstratoPost["Id"]), "DELETE", &resultado2, nil)
+										request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", codigopostalPost["Id"]), "DELETE", &resultado2, nil)
+										request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", telefonoPost["Id"]), "DELETE", &resultado2, nil)
+
+										logs.Error(errTelefonoAlterno)
+										c.Data["system"] = telefonoalternativoPost
+										c.Abort("400")
+									}
+								} else {
+									logs.Error(errTelefonoAlterno)
+									c.Data["system"] = telefonoalternativoPost
+									c.Abort("400")
+								}
+							} else {
+								//Si pasa un error borra todo lo creado al momento del registro del telefono
+								var resultado2 map[string]interface{}
+								request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", EstratoPost["Id"]), "DELETE", &resultado2, nil)
+								request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", codigopostalPost["Id"]), "DELETE", &resultado2, nil)
+								logs.Error(errTelefono)
+								c.Data["system"] = telefonoPost
+								c.Abort("400")
+							}
+						} else {
+							logs.Error(errTelefono)
+							c.Data["system"] = telefonoPost
+							c.Abort("400")
+						}
+					} else {
+						//Si pasa un error borra todo lo creado al momento del registro del codigo postal
+						var resultado2 map[string]interface{}
+						request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/%.f", EstratoPost["Id"]), "DELETE", &resultado2, nil)
+						logs.Error(errCodigoPostal)
+						c.Data["system"] = codigopostalPost
+						c.Abort("400")
+					}
+				} else {
+					logs.Error(errCodigoPostal)
+					c.Data["system"] = codigopostalPost
+					c.Abort("400")
+				}
+			} else {
+				logs.Error(errEstrato)
+				c.Data["system"] = EstratoPost
+				c.Abort("400")
+			}
+		} else {
+			logs.Error(errEstrato)
+			c.Data["system"] = EstratoPost
+			c.Abort("400")
+		}
+	} else {
+		logs.Error(err)
 		c.Data["system"] = err
 		c.Abort("400")
 	}

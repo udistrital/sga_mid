@@ -387,6 +387,24 @@ paths:
           description: '{int}'
         "400":
           description: the request contains incorrect syntax
+  /persona/guardar_datos_contacto:
+    post:
+      tags:
+      - persona
+      description: Guardar DatosContacto
+      operationId: PersonaController.PostrDatosContacto
+      parameters:
+      - in: body
+        name: body
+        description: body for Guardar DatosContacto content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
   /persona/guardar_persona:
     post:
       tags:
