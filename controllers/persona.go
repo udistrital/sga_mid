@@ -7,7 +7,6 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
-	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 )
 
@@ -20,11 +19,9 @@ type PersonaController struct {
 func (c *PersonaController) URLMapping() {
 	c.Mapping("GuardarPersona", c.GuardarPersona)
 	c.Mapping("GuardarDatosComplementarios", c.GuardarDatosComplementarios)
-<<<<<<< HEAD
 	c.Mapping("ConsultarPersona", c.ConsultarPersona)
-=======
 	c.Mapping("GuardarDatosContacto", c.GuardarDatosContacto)
->>>>>>> 406f5e4ac7668874fcf08812a252ed096ff0dc18
+
 }
 
 // GuardarPersona ...
@@ -487,7 +484,6 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 	c.ServeJSON()
 }
 
-<<<<<<< HEAD
 // ConsultarPersona ...
 // @Title ConsultarPersona
 // @Description get ConsultaPersona by id
@@ -497,7 +493,6 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 // @router /consultar_persona/:tercero_id [get]
 func (c *PersonaController) ConsultarPersona() {
 	//Id del tercero
-	fmt.Println("entro")
 	idStr := c.Ctx.Input.Param(":tercero_id")
 	fmt.Println("El id es: " + idStr)
 	//resultado informacion basica persona
@@ -597,7 +592,11 @@ func (c *PersonaController) ConsultarPersona() {
 		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 		c.Data["system"] = errPersona
 		c.Abort("404")
-=======
+
+	}
+	c.ServeJSON()
+}
+
 // GuardarDatosContacto ...
 // @Title PostrDatosContacto
 // @Description Guardar DatosContacto
@@ -620,10 +619,8 @@ func (c *PersonaController) GuardarDatosContacto() {
 			"InfoComplementariaId": map[string]interface{}{"Id": 41}, // Id para estrato
 			"Dato":                 tercero["EstratoTercero"],
 			"Activo":               true,
-			"FechaCreacion":        time_bogota.Tiempo_bogota(),
-			"FechaModificacion":    time_bogota.Tiempo_bogota(),
 		}
-		formatdata.JsonPrint(estrato)
+		// formatdata.JsonPrint(estrato)
 		errEstrato := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &EstratoPost, estrato)
 		if errEstrato == nil && fmt.Sprintf("%v", EstratoPost["System"]) != "map[]" && EstratoPost["Id"] != nil {
 
@@ -640,8 +637,6 @@ func (c *PersonaController) GuardarDatosContacto() {
 					"InfoComplementariaId": map[string]interface{}{"Id": 55}, // Id para codigo postal
 					"Dato":                 requestBod,
 					"Activo":               true,
-					"FechaCreacion":        time_bogota.Tiempo_bogota(),
-					"FechaModificacion":    time_bogota.Tiempo_bogota(),
 				}
 				//formatdata.JsonPrint(codigopostaltercero)
 				errCodigoPostal := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &codigopostalPost, codigopostaltercero)
@@ -656,8 +651,6 @@ func (c *PersonaController) GuardarDatosContacto() {
 							"InfoComplementariaId": map[string]interface{}{"Id": 51}, // Id para telefono
 							"Dato":                 tercero["Contactotercero"].(map[string]interface{})["Telefono"],
 							"Activo":               true,
-							"FechaCreacion":        time_bogota.Tiempo_bogota(),
-							"FechaModificacion":    time_bogota.Tiempo_bogota(),
 						}
 
 						errTelefono := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &telefonoPost, telefonotercero)
@@ -672,8 +665,6 @@ func (c *PersonaController) GuardarDatosContacto() {
 									"InfoComplementariaId": map[string]interface{}{"Id": 52}, // Id para telefono alternativo
 									"Dato":                 tercero["Contactotercero"].(map[string]interface{})["TelefonoAlterno"],
 									"Activo":               true,
-									"FechaCreacion":        time_bogota.Tiempo_bogota(),
-									"FechaModificacion":    time_bogota.Tiempo_bogota(),
 								}
 
 								errTelefonoAlterno := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &telefonoalternativoPost, telefonoalternativotercero)
@@ -689,8 +680,6 @@ func (c *PersonaController) GuardarDatosContacto() {
 											"InfoComplementariaId": map[string]interface{}{"Id": 58}, // Id para lugar de residencia
 											"Dato":                 fmt.Sprintf("%g", tercero["UbicacionTercero"].(map[string]interface{})["Lugar"].(map[string]interface{})["Id"]),
 											"Activo":               true,
-											"FechaCreacion":        time_bogota.Tiempo_bogota(),
-											"FechaModificacion":    time_bogota.Tiempo_bogota(),
 										}
 
 										errLugarResidencia := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &lugarresidenciaPost, lugarresidenciatercero)
@@ -707,8 +696,6 @@ func (c *PersonaController) GuardarDatosContacto() {
 													"InfoComplementariaId": map[string]interface{}{"Id": 54}, // Id para direccion de residencia
 													"Dato":                 requestBody,
 													"Activo":               true,
-													"FechaCreacion":        time_bogota.Tiempo_bogota(),
-													"FechaModificacion":    time_bogota.Tiempo_bogota(),
 												}
 
 												errDireccion := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &direccionPost, direcciontercero)
@@ -723,8 +710,6 @@ func (c *PersonaController) GuardarDatosContacto() {
 															"InfoComplementariaId": map[string]interface{}{"Id": 57}, // Id para estrato de responsable
 															"Dato":                 tercero["EstratoQuienCostea"].(map[string]interface{})["Id"],
 															"Activo":               true,
-															"FechaCreacion":        time_bogota.Tiempo_bogota(),
-															"FechaModificacion":    time_bogota.Tiempo_bogota(),
 														}
 
 														errEstratoResponsable := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &estratoquiencosteaPost, estratoquiencosteatercero)
@@ -742,8 +727,6 @@ func (c *PersonaController) GuardarDatosContacto() {
 																	"InfoComplementariaId": map[string]interface{}{"Id": 53}, // Id para correo electronico
 																	"Dato":                 requestBody1,
 																	"Activo":               true,
-																	"FechaCreacion":        time_bogota.Tiempo_bogota(),
-																	"FechaModificacion":    time_bogota.Tiempo_bogota(),
 																}
 
 																errCorreo := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &correoelectronicoPost, correoelectronicotercero)
@@ -883,7 +866,7 @@ func (c *PersonaController) GuardarDatosContacto() {
 		logs.Error(err)
 		c.Data["system"] = err
 		c.Abort("400")
->>>>>>> 406f5e4ac7668874fcf08812a252ed096ff0dc18
+
 	}
 	c.ServeJSON()
 }
