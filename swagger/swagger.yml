@@ -279,6 +279,24 @@ paths:
           description: '{}'
         "403":
           description: body is empty
+  /inscripciones/info_complementaria_tercero:
+    post:
+      tags:
+      - inscripciones
+      description: Agregar PostInfoComplementariaTercero
+      operationId: InscripcionesController.PostInfoComplementariaTercero
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar PostInfoComplementariaTercero content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
   /inscripciones/info_complementaria_universidad:
     post:
       tags:
