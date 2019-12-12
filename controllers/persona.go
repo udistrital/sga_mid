@@ -214,10 +214,9 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 	alertas := append([]interface{}{"Response:"})
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &tercero); err == nil {
 		errtercero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+fmt.Sprintf("%.f", tercero["Tercero"].(float64)), &terceroget)
-		if errtercero == nil {
+		if errtercero == nil && terceroget["Status"] != 400 {
 
 			tercerooriginal = terceroget
-
 			fmt.Println("Trae tercero para realizar el put del lugar")
 		} else {
 
@@ -302,7 +301,6 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 										errEPSPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/seguridad_social_tercero", "POST", &EPSPost, EPS)
 										if errEPSPost == nil && fmt.Sprintf("%v", EPSPost["System"]) != "map[]" && EPSPost["Id"] != nil {
 											if EPSPost["Status"] != 400 {
-
 												var NumHermanosPost map[string]interface{}
 
 												InfoComplementariaId4 := map[string]interface{}{
@@ -898,6 +896,7 @@ func (c *PersonaController) ConsultarDatosComplementarios() {
 	errPersona := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/?query=Id:"+idStr, &persona)
 	if errPersona == nil && fmt.Sprintf("%v", persona[0]["System"]) != "map[]" {
 		if persona[0]["Status"] != 404 {
+
 			var grupoEtnico []map[string]interface{}
 			resultado = map[string]interface{}{"Ente": persona[0]["Ente"], "Persona": persona[0]["Id"]}
 
@@ -905,6 +904,7 @@ func (c *PersonaController) ConsultarDatosComplementarios() {
 				fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:3", &grupoEtnico)
 			if errGrupoEtnico == nil && fmt.Sprintf("%v", grupoEtnico[0]["System"]) != "map[]" {
 				if grupoEtnico[0]["Status"] != 404 {
+
 					var grupoSanguineo []map[string]interface{}
 					resultado["GrupoEtnico"] = grupoEtnico[0]["InfoComplementariaId"]
 
@@ -925,95 +925,134 @@ func (c *PersonaController) ConsultarDatosComplementarios() {
 
 									var discapacidades []map[string]interface{}
 									errDiscapacidad := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/?query=terceroId.Id:"+
-										fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:8", &discapacidades)
+										fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:1", &discapacidades)
 									if errDiscapacidad == nil && fmt.Sprintf("%v", discapacidades[0]["System"]) != "map[]" {
 										if discapacidades[0]["Status"] != 404 {
 
 											var tipoDiscapacidad []map[string]interface{}
+											// formatdata.JsonPrint(discapacidades)
 
 											for i := 0; i < len(discapacidades); i++ {
 												if len(discapacidades) > 0 {
-													discapacidad := discapacidades[i]["TipoDiscapacidad"].(map[string]interface{})
+													discapacidad := discapacidades[i]["InfoComplementariaId"].(map[string]interface{})
 													tipoDiscapacidad = append(tipoDiscapacidad, discapacidad)
 												}
 											}
 											resultado["TipoDiscapacidad"] = tipoDiscapacidad
 
 											var EPSGet []map[string]interface{}
-											errEPS := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/seguridad_social_tercero/?query=terceroId.Id:", &EPSGet)
+											errEPS := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/seguridad_social_tercero/?query=terceroId.Id:"+fmt.Sprintf("%v", persona[0]["Id"]), &EPSGet)
 											if errEPS == nil && fmt.Sprintf("%v", EPSGet[0]["System"]) != "map[]" {
 												if EPSGet[0]["Status"] != 404 {
+													// formatdata.JsonPrint(EPSGet)
 
 													resultado["EPS"] = EPSGet[0]
 
-													var social []map[string]interface{}
-													errsocial := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/?query=terceroId.Id:"+
-														fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:9", &social)
-													if errsocial == nil && fmt.Sprintf("%v", social[0]["System"]) != "map[]" {
-														if social[0]["Status"] != 404 {
-															resultado["NumeroHernos"] = social[0]["InfoComplementariaId"]
+													var NumHermanosGet []map[string]interface{}
+													errHermano := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/?query=terceroId.Id:"+
+														fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.Id:50", &NumHermanosGet)
+													if errHermano == nil && fmt.Sprintf("%v", NumHermanosGet[0]["System"]) != "map[]" {
+														if NumHermanosGet[0]["Status"] != 404 {
 
-															var ubicacionEnte []map[string]interface{}
-															errUbicacion := request.GetJson("http://"+beego.AppConfig.String("EnteService")+"/ubicacion_ente/?query=Ente:"+idStr+
-																",TipoRelacionUbicacionEnte:1,Activo:true&fields=Id,TipoRelacionUbicacionEnte,Lugar", &ubicacionEnte)
-															if errUbicacion == nil && fmt.Sprintf("%v", ubicacionEnte[0]["System"]) != "map[]" {
-																if ubicacionEnte[0]["Status"] != 404 {
-																	var lugar map[string]interface{}
+															// formatdata.JsonPrint(discapacidades)
 
-																	errLugar := request.GetJson("http://"+beego.AppConfig.String("UbicacionesService")+"/relacion_lugares/jerarquia_lugar/"+
-																		fmt.Sprintf("%v", ubicacionEnte[0]["Lugar"]), &lugar)
-																	if errLugar == nil && fmt.Sprintf("%v", lugar["System"]) != "map[]" {
-																		if lugar["Status"] != 404 {
-																			ubicacionEnte[0]["Lugar"] = lugar
-																			resultado["Lugar"] = ubicacionEnte[0]
-																			c.Data["json"] = resultado
-																		} else {
-																			if lugar["Message"] == "Not found resource" {
-																				c.Data["json"] = nil
+															resultado["NumeroHermanos"] = NumHermanosGet[0]["Dato"]
+
+															var PuntajeSisben []map[string]interface{}
+															errPuntaje := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/?query=terceroId.Id:"+
+																fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.Id:42", &PuntajeSisben)
+															if errPuntaje == nil && fmt.Sprintf("%v", PuntajeSisben[0]["System"]) != "map[]" {
+																if PuntajeSisben[0]["Status"] != 404 {
+
+																	// formatdata.JsonPrint(discapacidades)
+
+																	resultado["PuntajeSisben"] = PuntajeSisben[0]["Dato"]
+
+																	var ubicacionEnte map[string]interface{}
+																	fmt.Println("http://" + beego.AppConfig.String("TercerosService") + "tercero/" + idStr)
+																	errUbicacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+idStr, &ubicacionEnte)
+
+																	if errUbicacion == nil && fmt.Sprintf("%v", ubicacionEnte["System"]) != "map[]" {
+
+																		if ubicacionEnte["Status"] != 404 {
+
+																			var lugar map[string]interface{}
+
+																			errLugar := request.GetJson("http://"+beego.AppConfig.String("UbicacionesService")+"/relacion_lugares/jerarquia_lugar/"+
+																				fmt.Sprintf("%v", ubicacionEnte["LugarOrigen"]), &lugar)
+																			if errLugar == nil && fmt.Sprintf("%v", lugar["System"]) != "map[]" {
+																				if lugar["Status"] != 404 {
+
+																					ubicacionEnte["Lugar"] = lugar
+																					resultado["Lugar"] = ubicacionEnte
+																					c.Data["json"] = resultado
+
+																				} else {
+																					fmt.Println("lsjdfsdhfjdsfgjkgdsf")
+																					if lugar["Message"] == "Not found resource" {
+																						c.Data["json"] = nil
+																					} else {
+																						logs.Error(lugar)
+																						//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+																						c.Data["system"] = errLugar
+																						c.Abort("404")
+																					}
+																				}
 																			} else {
 																				logs.Error(lugar)
 																				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 																				c.Data["system"] = errLugar
 																				c.Abort("404")
 																			}
+																		} else {
+																			if ubicacionEnte["Message"] == "Not found resource" {
+																				c.Data["json"] = nil
+																			} else {
+																				logs.Error(ubicacionEnte)
+																				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+																				c.Data["system"] = errUbicacion
+																				c.Abort("404")
+																			}
 																		}
-																	} else {
-																		logs.Error(lugar)
-																		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-																		c.Data["system"] = errLugar
-																		c.Abort("404")
-																	}
-																} else {
-																	if ubicacionEnte[0]["Message"] == "Not found resource" {
-																		c.Data["json"] = nil
 																	} else {
 																		logs.Error(ubicacionEnte)
 																		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 																		c.Data["system"] = errUbicacion
 																		c.Abort("404")
 																	}
+
+																} else {
+																	if PuntajeSisben[0]["Message"] == "Not found resource" {
+																		c.Data["json"] = nil
+																	} else {
+																		logs.Error(PuntajeSisben)
+																		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+																		c.Data["system"] = errPuntaje
+																		c.Abort("404")
+																	}
 																}
+
 															} else {
-																logs.Error(ubicacionEnte)
+																logs.Error(PuntajeSisben)
 																//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-																c.Data["system"] = errUbicacion
+																c.Data["system"] = errPuntaje
 																c.Abort("404")
 															}
-
 														} else {
-															if social[0]["Message"] == "Not found resource" {
+															if NumHermanosGet[0]["Message"] == "Not found resource" {
 																c.Data["json"] = nil
 															} else {
-																logs.Error(social)
+																logs.Error(NumHermanosGet)
 																//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-																c.Data["system"] = errsocial
+																c.Data["system"] = errHermano
 																c.Abort("404")
 															}
 														}
+
 													} else {
-														logs.Error(social)
+														logs.Error(NumHermanosGet)
 														//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-														c.Data["system"] = errsocial
+														c.Data["system"] = errHermano
 														c.Abort("404")
 													}
 
@@ -1066,7 +1105,7 @@ func (c *PersonaController) ConsultarDatosComplementarios() {
 								c.Data["system"] = errFactorRh
 								c.Abort("404")
 							}
-
+						} else {
 							if grupoSanguineo[0]["Message"] == "Not found resource" {
 								c.Data["json"] = nil
 							} else {
