@@ -7,6 +7,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
+	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 )
 
@@ -289,7 +290,7 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 								if errLugarPost == nil && fmt.Sprintf("%v", LugarPost["System"]) != "map[]" && LugarPost["Id"] != nil {
 									if LugarPost["Status"] != 400 {
 										// c.Data["json"] = LugarPost
-
+										fmt.Println(("ksdfksdfkksdfgkdfgkldfgkldfkl"))
 										var EPSPost map[string]interface{}
 
 										EPS := map[string]interface{}{
@@ -303,21 +304,21 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 										if errEPSPost == nil && fmt.Sprintf("%v", EPSPost["System"]) != "map[]" && EPSPost["Id"] != nil {
 											if EPSPost["Status"] != 400 {
 												var NumHermanosPost map[string]interface{}
-
+												fmt.Println(("eps"))
 												InfoComplementariaId4 := map[string]interface{}{
 													"Id": 50, // id info_complementaria para numero de hermanos
 												}
 												NumHerm := map[string]interface{}{
 													"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
 													"InfoComplementariaId": InfoComplementariaId4,
-													"Dato":                 tercero["NumeroHermanos"],
+													"Dato":                 fmt.Sprintf("%v", tercero["NumeroHermanos"]),
 													"Activo":               true,
 												}
-
+												formatdata.JsonPrint(NumHerm)
 												errNUMHERMPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &NumHermanosPost, NumHerm)
 												if errNUMHERMPost == nil && fmt.Sprintf("%v", NumHermanosPost["System"]) != "map[]" && NumHermanosPost["Id"] != nil {
 													if NumHermanosPost["Status"] != 400 {
-
+														fmt.Println(("hermano"))
 														var PuntajeSisbenPost map[string]interface{}
 
 														InfoComplementariaId5 := map[string]interface{}{
@@ -333,7 +334,7 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 														errPuntSisPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &PuntajeSisbenPost, PunSis)
 														if errPuntSisPost == nil && fmt.Sprintf("%v", PuntajeSisbenPost["System"]) != "map[]" && PuntajeSisbenPost["Id"] != nil {
 															if PuntajeSisbenPost["Status"] != 400 {
-
+																fmt.Println(("puntos"))
 																discapacidades := tercero["TipoDiscapacidad"].([]interface{})
 																// 		fmt.Println("Nueva ubicacion:" + fmt.Sprintf("%v", ubicacionPost))
 
@@ -345,10 +346,11 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 																		"InfoComplementariaId": map[string]interface{}{"Id": discapacidad["Id"].(float64)},
 																		"Activo":               true,
 																	}
-
+																	fmt.Println(("for"))
 																	errDiscapacidadPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &discapacidadPost, nuevadiscapacidad)
 																	if errDiscapacidadPost == nil && fmt.Sprintf("%v", discapacidadPost["System"]) != "map[]" && discapacidadPost["Id"] != nil {
 																		if discapacidadPost["Status"] != 400 {
+																			fmt.Println(("discapidad"))
 																			// 		fmt.Println("El nueva discapacidad es: " + fmt.Sprintf("%v", discapacidadPost))
 																		} else {
 																			logs.Error(errDiscapacidadPost)
@@ -633,7 +635,7 @@ func (c *PersonaController) GuardarDatosContacto() {
 		if errEstrato == nil && fmt.Sprintf("%v", EstratoPost["System"]) != "map[]" && EstratoPost["Id"] != nil {
 
 			if EstratoPost["Status"] != 400 {
-
+				fmt.Println("Estrato")
 				//codigo Postal
 				var codigopostalPost map[string]interface{}
 
@@ -650,7 +652,7 @@ func (c *PersonaController) GuardarDatosContacto() {
 				errCodigoPostal := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &codigopostalPost, codigopostaltercero)
 				if errCodigoPostal == nil && fmt.Sprintf("%v", codigopostalPost["System"]) != "map[]" && codigopostalPost["Id"] != nil {
 					if codigopostalPost["Status"] != 400 {
-
+						fmt.Println("CodigoPostal")
 						// Telefono
 						var telefonoPost map[string]interface{}
 
@@ -664,7 +666,7 @@ func (c *PersonaController) GuardarDatosContacto() {
 						errTelefono := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &telefonoPost, telefonotercero)
 						if errTelefono == nil && fmt.Sprintf("%v", telefonoPost["System"]) != "map[]" && telefonoPost["Id"] != nil {
 							if telefonoPost["Status"] != 400 {
-
+								fmt.Println("Telefono")
 								// Telefono alternativo
 								var telefonoalternativoPost map[string]interface{}
 
@@ -679,7 +681,7 @@ func (c *PersonaController) GuardarDatosContacto() {
 								if errTelefonoAlterno == nil && fmt.Sprintf("%v", telefonoalternativoPost["System"]) != "map[]" && telefonoalternativoPost["Id"] != nil {
 
 									if telefonoalternativotercero["Status"] != 400 {
-
+										fmt.Println("Telefono alterno")
 										// Lugar residencia
 										var lugarresidenciaPost map[string]interface{}
 
@@ -693,7 +695,7 @@ func (c *PersonaController) GuardarDatosContacto() {
 										errLugarResidencia := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &lugarresidenciaPost, lugarresidenciatercero)
 										if errLugarResidencia == nil && fmt.Sprintf("%v", lugarresidenciaPost["System"]) != "map[]" && lugarresidenciaPost["Id"] != nil {
 											if lugarresidenciatercero["Status"] != 400 {
-
+												fmt.Println("Residencia")
 												// Direccion de residencia
 												var direccionPost map[string]interface{}
 												direcion := fmt.Sprintf("%v", tercero["UbicacionTercero"].(map[string]interface{})["Direccion"])
@@ -709,21 +711,21 @@ func (c *PersonaController) GuardarDatosContacto() {
 												errDireccion := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &direccionPost, direcciontercero)
 												if errDireccion == nil && fmt.Sprintf("%v", direccionPost["System"]) != "map[]" && direccionPost["Id"] != nil {
 													if direcciontercero["Status"] != 400 {
-
+														fmt.Println("Direccion")
 														// Estrato de quien costea
 														var estratoquiencosteaPost map[string]interface{}
 
 														estratoquiencosteatercero := map[string]interface{}{
 															"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
 															"InfoComplementariaId": map[string]interface{}{"Id": 57}, // Id para estrato de responsable
-															"Dato":                 tercero["EstratoQuienCostea"].(map[string]interface{})["Id"],
+															"Dato":                 fmt.Sprintf("%v", tercero["EstratoQuienCostea"]),
 															"Activo":               true,
 														}
 
 														errEstratoResponsable := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &estratoquiencosteaPost, estratoquiencosteatercero)
 														if errEstratoResponsable == nil && fmt.Sprintf("%v", estratoquiencosteaPost["System"]) != "map[]" && estratoquiencosteaPost["Id"] != nil {
 															if estratoquiencosteatercero["Status"] != 400 {
-
+																fmt.Println("Responsable")
 																// Correo electronico tercero
 																var correoelectronicoPost map[string]interface{}
 
@@ -741,7 +743,7 @@ func (c *PersonaController) GuardarDatosContacto() {
 																if errCorreo == nil && fmt.Sprintf("%v", correoelectronicoPost["System"]) != "map[]" && correoelectronicoPost["Id"] != nil {
 																	if correoelectronicotercero["Status"] != 400 {
 																		// Resultado final
-
+																		fmt.Println("Correo")
 																		resultado = tercero
 
 																		c.Data["json"] = resultado
@@ -931,7 +933,7 @@ func (c *PersonaController) ConsultarDatosComplementarios() {
 										if discapacidades[0]["Status"] != 404 {
 
 											var tipoDiscapacidad []map[string]interface{}
-											// formatdata.JsonPrint(discapacidades)
+											formatdata.JsonPrint(discapacidades)
 
 											for i := 0; i < len(discapacidades); i++ {
 												if len(discapacidades) > 0 {
@@ -940,7 +942,7 @@ func (c *PersonaController) ConsultarDatosComplementarios() {
 												}
 											}
 											resultado["TipoDiscapacidad"] = tipoDiscapacidad
-
+											fmt.Println(("djgdfjgojdfljghkldfjjghdjdghkj"))
 											var EPSGet []map[string]interface{}
 											errEPS := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/seguridad_social_tercero/?query=terceroId.Id:"+fmt.Sprintf("%v", persona[0]["Id"]), &EPSGet)
 											if errEPS == nil && fmt.Sprintf("%v", EPSGet[0]["System"]) != "map[]" {
