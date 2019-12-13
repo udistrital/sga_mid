@@ -7,6 +7,7 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/udistrital/sga_mid/models"
+	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 )
 
@@ -32,11 +33,12 @@ func (c *InscripcionesController) URLMapping() {
 // @Failure 403 body is empty
 // @router /post_informacion_familiar [post]
 func (c *InscripcionesController) PostInformacionFamiliar() {
-	
+
 	var InformacionFamiliar map[string]interface{}
 	var alerta models.Alert
 	alertas := append([]interface{}{"Response:"})
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &InformacionFamiliar); err == nil {
+		formatdata.JsonPrint(InformacionFamiliar)
 
 		var resultadoInformacionFamiliar map[string]interface{}
 		errInformacionFamiliar := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"tercero_familiar/informacion_familiar", "POST", &resultadoInformacionFamiliar, InformacionFamiliar)
@@ -72,7 +74,7 @@ func (c *InscripcionesController) PostInformacionFamiliar() {
 // @Failure 403 body is empty
 // @router /post_reintegro [post]
 func (c *InscripcionesController) PostReintegro() {
-	
+
 	var Reintegro map[string]interface{}
 	var alerta models.Alert
 	alertas := append([]interface{}{"Response:"})
@@ -112,7 +114,7 @@ func (c *InscripcionesController) PostReintegro() {
 // @Failure 403 body is empty
 // @router /post_transferencia [post]
 func (c *InscripcionesController) PostTransferencia() {
-	
+
 	var Transferencia map[string]interface{}
 	var alerta models.Alert
 	alertas := append([]interface{}{"Response:"})
@@ -152,7 +154,7 @@ func (c *InscripcionesController) PostTransferencia() {
 // @Failure 403 body is empty
 // @router /post_info_icfes_colegio [post]
 func (c *InscripcionesController) PostInfoIcfesColegio() {
-	
+
 	var InfoIcfesColegio map[string]interface{}
 	var alerta models.Alert
 	alertas := append([]interface{}{"Response:"})
@@ -216,7 +218,7 @@ func (c *InscripcionesController) PostInfoIcfesColegio() {
 // @Failure 403 body is empty
 // @router /info_complementaria_universidad [post]
 func (c *InscripcionesController) PostInfoComplementariaUniversidad() {
-	
+
 	var InfoComplementariaUniversidad map[string]interface{}
 	var alerta models.Alert
 	alertas := append([]interface{}{"Response:"})
