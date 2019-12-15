@@ -634,6 +634,30 @@ paths:
             $ref: '#/definitions/models.ConsultaProyectoAcademico'
         "403":
           description: :id is empty
+  /tercero/identificacion/:
+    get:
+      tags:
+      - tercero
+      description: get Organizacion by Identificación
+      operationId: TerceroController.GetByIdentificacion
+      parameters:
+      - in: query
+        name: Id
+        description: Identification number as id
+        required: true
+        type: integer
+        format: int64
+      - in: query
+        name: TipoId
+        description: TipoIdentificacion number as nit
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
 definitions:
   '{}':
     title: '{}'
@@ -672,3 +696,6 @@ tags:
 - name: inscripciones
   description: |
     InscripcionesController ...
+- name: tercero
+  description: |
+    TerceroController operations for Organizacion

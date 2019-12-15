@@ -64,6 +64,12 @@ func init() {
 				&controllers.InscripcionesController{},
 			),
 		),
+
+		beego.NSNamespace("/tercero",
+			beego.NSInclude(
+				&controllers.TerceroController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
