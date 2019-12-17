@@ -261,6 +261,24 @@ paths:
           description: '{}'
         "403":
           description: :persona is empty
+  /formacion_academica/:
+    post:
+      tags:
+      - formacion_academica
+      description: Agregar Formacion Academica ud
+      operationId: FormacionController.PostFormacionAcademica
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar Formacion Academica content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
   /generar_codigo/:
     post:
       tags:
@@ -699,3 +717,6 @@ tags:
 - name: tercero
   description: |
     TerceroController operations for Organizacion
+- name: formacion_academica
+  description: |
+    FormacionController ...

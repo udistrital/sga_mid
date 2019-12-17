@@ -70,6 +70,12 @@ func init() {
 				&controllers.TerceroController{},
 			),
 		),
+
+		beego.NSNamespace("/formacion_academica",
+			beego.NSInclude(
+				&controllers.FormacionController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
