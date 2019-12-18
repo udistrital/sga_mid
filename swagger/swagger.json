@@ -394,6 +394,34 @@
                 }
             }
         },
+        "/experiencia_laboral/": {
+            "post": {
+                "tags": [
+                    "experiencia_laboral"
+                ],
+                "description": "Agregar Experiencia Laboral",
+                "operationId": "ExperienciaLaboralController.PostExperienciaLaboral",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar Experiencia Laboral content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
         "/formacion_academica/": {
             "post": {
                 "tags": [
@@ -1086,6 +1114,10 @@
         {
             "name": "formacion_academica",
             "description": "FormacionController ...\n"
+        },
+        {
+            "name": "experiencia_laboral",
+            "description": "ExperienciaLaboralController ...\n"
         }
     ]
 }
