@@ -111,6 +111,29 @@ func (c *TerceroController) GetByIdentificacion() {
 				}	
 			}
 
+			var tipoTercero []map[string]interface{}
+			errTipoTercero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero_tipo_tercero/?limit=1&query=TerceroId__Id:"+fmt.Sprintf("%v", resultado["Id"]), &tipoTercero)
+			fmt.Println("la respuesta tipo tercero es:", tipoTercero)
+			if errTipoTercero == nil && fmt.Sprintf("%v", tipoTercero[0]["System"]) != "map[]" {
+				if tipoTercero[0]["Status"] != 404 {
+					resultado["TipoTerceroId"] = tipoTercero[0]
+				} else {
+					if tipoTercero[0]["Message"] == "Not found resource" {
+						c.Data["json"] = nil
+					} else {
+						logs.Error(tipoTercero)
+						//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+						c.Data["system"] = errTipoTercero
+						c.Abort("404")
+					}
+				}
+			} else {
+				logs.Error(tipoTercero)
+				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+				c.Data["system"] = errTipoTercero
+				c.Abort("404")
+			}
+
 			c.Data["json"] = resultado
 		} else {
 			if identificacion[0]["Message"] == "Not found resource" {
