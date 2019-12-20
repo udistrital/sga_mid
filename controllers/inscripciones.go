@@ -162,6 +162,8 @@ func (c *InscripcionesController) PostInfoIcfesColegio() {
 
 		var InscripcionPregrado = InfoIcfesColegio["InscripcionPregrado"].(map[string]interface{})
 		var InfoComplementariaTercero = InfoIcfesColegio["InfoComplementariaTercero"].([]interface{})
+		var InformacionColegio = InfoIcfesColegio["dataColegio"].(map[string]interface{})
+		var Tercero = InfoIcfesColegio["Tercero"].(map[string]interface{})
 		var date = time.Now()
 
 		for _, datoInfoComplementaria := range InfoComplementariaTercero {
@@ -194,6 +196,29 @@ func (c *InscripcionesController) PostInfoIcfesColegio() {
 			c.ServeJSON()
 		} else {
 			fmt.Println("Inscripcion registrada")
+			alertas = append(alertas, InfoIcfesColegio)
+		}
+
+		// Registro de colegio
+
+		ColegioRegistro := map[string]interface{}{
+			"TerceroId":              map[string]interface{}{"Id": Tercero["TerceroId"].(map[string]interface{})["Id"].(float64)},
+			"TerceroEntidadId":       map[string]interface{}{"Id": InformacionColegio["Id"].(float64)},
+			"Activo":                 true,
+			"FechaInicioVinculacion": date,
+		}
+
+		var resultadoRegistroColegio map[string]interface{}
+		errRegistroColegio := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"seguridad_social_tercero", "POST", &resultadoRegistroColegio, ColegioRegistro)
+		if resultadoRegistroColegio["Type"] == "error" || errRegistroColegio != nil || resultadoRegistroColegio["Status"] == "404" || resultadoRegistroColegio["Message"] != nil {
+			alertas = append(alertas, resultadoRegistroColegio)
+			alerta.Type = "error"
+			alerta.Code = "400"
+			alerta.Body = alertas
+			c.Data["json"] = alerta
+			c.ServeJSON()
+		} else {
+			fmt.Println("Colegio registrado")
 			alertas = append(alertas, InfoIcfesColegio)
 		}
 
