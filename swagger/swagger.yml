@@ -187,6 +187,24 @@ paths:
           description: '{}'
         "403":
           description: :id is empty
+  /descuento_academico/:
+    post:
+      tags:
+      - descuento_academico
+      description: Agregar Descuento Academico
+      operationId: DescuentoController.PostDescuentoAcademico
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar Descuento Academico content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
   /evento/:
     post:
       tags:
@@ -741,3 +759,6 @@ tags:
 - name: experiencia_laboral
   description: |
     ExperienciaLaboralController ...
+- name: descuento_academico
+  description: |
+    DescuentoController ...

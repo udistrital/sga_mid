@@ -82,6 +82,12 @@ func init() {
 				&controllers.ExperienciaLaboralController{},
 			),
 		),
+
+		beego.NSNamespace("/descuento_academico",
+			beego.NSInclude(
+				&controllers.DescuentoController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
