@@ -266,11 +266,12 @@ func (c *ProduccionAcademicaController) GetProduccionAcademica() {
 					//cargar nombre del autor
 					var autorProduccion map[string]interface{}
 
-					errAutor := request.GetJson("http://"+beego.AppConfig.String("PersonaService")+"/persona/"+fmt.Sprintf("%v", autor["PersonaId"]), &autorProduccion)
+					errAutor := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%v", autor["PersonaId"]), &autorProduccion)
 					if errAutor == nil && fmt.Sprintf("%v", autorProduccion["System"]) != "map[]" {
 						if autorProduccion["Status"] != 404 {
-							autor["Nombre"] = autorProduccion["PrimerNombre"].(string) + " " + autorProduccion["SegundoNombre"].(string) + " " +
-								autorProduccion["PrimerApellido"].(string) + " " + autorProduccion["SegundoApellido"].(string)
+							// autor["Nombre"] = autorProduccion["PrimerNombre"].(string) + " " + autorProduccion["SegundoNombre"].(string) + " " +
+								// autorProduccion["PrimerApellido"].(string) + " " + autorProduccion["SegundoApellido"].(string)
+							autor["Nombre"] = autorProduccion["NombreCompleto"].(string)
 						} else {
 							if autorProduccion["Message"] == "Not found resource" {
 								c.Data["json"] = nil
