@@ -777,11 +777,11 @@
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "{}"
+                    "201": {
+                        "description": "{int}"
                     },
-                    "403": {
-                        "description": "body is empty"
+                    "400": {
+                        "description": "the request contains incorrect syntax"
                     }
                 }
             }
@@ -799,7 +799,8 @@
                         "name": "id",
                         "description": "el id del autor a modificar",
                         "required": true,
-                        "type": "string"
+                        "type": "integer",
+                        "format": "int64"
                     },
                     {
                         "in": "body",
@@ -815,8 +816,8 @@
                     "200": {
                         "description": "{}"
                     },
-                    "403": {
-                        "description": ":id is empty"
+                    "400": {
+                        "description": "the request contains incorrect syntax"
                     }
                 }
             }
@@ -834,7 +835,8 @@
                         "name": "id",
                         "description": "el id de la Produccion academica a modificar",
                         "required": true,
-                        "type": "string"
+                        "type": "integer",
+                        "format": "int64"
                     },
                     {
                         "in": "body",
@@ -850,8 +852,8 @@
                     "200": {
                         "description": "{}"
                     },
-                    "403": {
-                        "description": ":id is empty"
+                    "400": {
+                        "description": "the request contains incorrect syntax"
                     }
                 }
             },
@@ -867,15 +869,16 @@
                         "name": "id",
                         "description": "Id de la Produccion Academica",
                         "required": true,
-                        "type": "string"
+                        "type": "integer",
+                        "format": "int64"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "{}"
+                        "description": "{string} delete success!"
                     },
-                    "403": {
-                        "description": ":id is empty"
+                    "404": {
+                        "description": "not found resource"
                     }
                 }
             }
@@ -893,15 +896,16 @@
                         "name": "persona",
                         "description": "Persona",
                         "required": true,
-                        "type": "string"
+                        "type": "integer",
+                        "format": "int64"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "{}"
                     },
-                    "403": {
-                        "description": ":persona is empty"
+                    "404": {
+                        "description": "not found resource"
                     }
                 }
             }

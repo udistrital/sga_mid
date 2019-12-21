@@ -509,10 +509,10 @@ paths:
         schema:
           $ref: '#/definitions/{}'
       responses:
-        "200":
-          description: '{}'
-        "403":
-          description: body is empty
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
   /produccion_academica/{id}:
     put:
       tags:
@@ -524,7 +524,8 @@ paths:
         name: id
         description: el id de la Produccion academica a modificar
         required: true
-        type: string
+        type: integer
+        format: int64
       - in: body
         name: body
         description: body Modificar ProduccionAcademica content
@@ -534,8 +535,8 @@ paths:
       responses:
         "200":
           description: '{}'
-        "403":
-          description: :id is empty
+        "400":
+          description: the request contains incorrect syntax
     delete:
       tags:
       - produccion_academica
@@ -546,12 +547,13 @@ paths:
         name: id
         description: Id de la Produccion Academica
         required: true
-        type: string
+        type: integer
+        format: int64
       responses:
         "200":
-          description: '{}'
-        "403":
-          description: :id is empty
+          description: '{string} delete success!'
+        "404":
+          description: not found resource
   /produccion_academica/{persona}:
     get:
       tags:
@@ -563,12 +565,13 @@ paths:
         name: persona
         description: Persona
         required: true
-        type: string
+        type: integer
+        format: int64
       responses:
         "200":
           description: '{}'
-        "403":
-          description: :persona is empty
+        "404":
+          description: not found resource
   /produccion_academica/estado_autor_produccion/{id}:
     put:
       tags:
@@ -580,7 +583,8 @@ paths:
         name: id
         description: el id del autor a modificar
         required: true
-        type: string
+        type: integer
+        format: int64
       - in: body
         name: body
         description: body Modificar AutorProduccionAcademica content
@@ -590,8 +594,8 @@ paths:
       responses:
         "200":
           description: '{}'
-        "403":
-          description: :id is empty
+        "400":
+          description: the request contains incorrect syntax
   /proyecto_academico/:
     post:
       tags:
