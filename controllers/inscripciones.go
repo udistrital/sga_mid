@@ -23,6 +23,7 @@ func (c *InscripcionesController) URLMapping() {
 	c.Mapping("PostTransferencia", c.PostTransferencia)
 	c.Mapping("PostInfoIcfesColegio", c.PostInfoIcfesColegio)
 	c.Mapping("PostInfoComplementariaUniversidad", c.PostInfoComplementariaUniversidad)
+	c.Mapping("PostInfoIcfesColegioNuevo", c.PostInfoIcfesColegioNuevo)
 }
 
 // PostInformacionFamiliar ...
@@ -219,6 +220,147 @@ func (c *InscripcionesController) PostInfoIcfesColegio() {
 			c.ServeJSON()
 		} else {
 			fmt.Println("Colegio registrado")
+			alertas = append(alertas, InfoIcfesColegio)
+		}
+
+	} else {
+		alerta.Type = "error"
+		alerta.Code = "400"
+		alertas = append(alertas, err.Error())
+		alerta.Body = alertas
+		c.Data["json"] = alerta
+		c.ServeJSON()
+	}
+	alerta.Body = alertas
+	c.Data["json"] = alerta
+	c.ServeJSON()
+}
+
+// PostInfoIcfesColegioNuevo ...
+// @Title PostInfoIcfesColegioNuevo
+// @Description Agregar InfoIcfesColegio
+// @Param   body        body    {}  true        "body Agregar InfoIcfesColegio content"
+// @Success 200 {}
+// @Failure 403 body is empty
+// @router /post_info_icfes_colegio_nuevo [post]
+func (c *InscripcionesController) PostInfoIcfesColegioNuevo() {
+
+	var InfoIcfesColegio map[string]interface{}
+	var alerta models.Alert
+	var IdColegio float64
+	alertas := append([]interface{}{"Response:"})
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &InfoIcfesColegio); err == nil {
+
+		var InscripcionPregrado = InfoIcfesColegio["InscripcionPregrado"].(map[string]interface{})
+		var InfoComplementariaTercero = InfoIcfesColegio["InfoComplementariaTercero"].(map[string]interface{})
+		var InformacionColegio = InfoIcfesColegio["TerceroColegio"].(map[string]interface{})
+		var InformacionDireccionColegio = InfoIcfesColegio["DireccionColegio"].(map[string]interface{})
+		var InformacionUbicacionColegio = InfoIcfesColegio["UbicacionColegio"].(map[string]interface{})
+		var InformaciontipoColegio = InfoIcfesColegio["TipoColegio"].(map[string]interface{})
+
+		var resultadoRegistroColegio map[string]interface{}
+		errRegistroColegio := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"tercero", "POST", &resultadoRegistroColegio, InformacionColegio)
+		if resultadoRegistroColegio["Type"] == "error" || errRegistroColegio != nil || resultadoRegistroColegio["Status"] == "404" || resultadoRegistroColegio["Message"] != nil {
+			alertas = append(alertas, resultadoRegistroColegio)
+			alerta.Type = "error"
+			alerta.Code = "400"
+			alerta.Body = alertas
+			c.Data["json"] = alerta
+			c.ServeJSON()
+		} else {
+			fmt.Println("Colegio registrado")
+			alertas = append(alertas, resultadoRegistroColegio)
+			IdColegio = resultadoRegistroColegio["Id"].(float64)
+			fmt.Println(IdColegio)
+		}
+		DireccionColegioPost := map[string]interface{}{
+			"TerceroId":            map[string]interface{}{"Id": IdColegio},
+			"InfoComplementariaId": map[string]interface{}{"Id": InformacionDireccionColegio["InfoComplementariaId"].(map[string]interface{})["Id"].(float64)},
+			"Dato":                 InformacionDireccionColegio["Dato"],
+			"Activo":               true,
+		}
+
+		var resultadoDirecionColegio map[string]interface{}
+		errRegistroDirecionColegio := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero", "POST", &resultadoDirecionColegio, DireccionColegioPost)
+		if resultadoDirecionColegio["Type"] == "error" || errRegistroDirecionColegio != nil || resultadoDirecionColegio["Status"] == "404" || resultadoDirecionColegio["Message"] != nil {
+			alertas = append(alertas, resultadoDirecionColegio)
+			alerta.Type = "error"
+			alerta.Code = "400"
+			alerta.Body = alertas
+			c.Data["json"] = alerta
+			c.ServeJSON()
+		} else {
+			fmt.Println("Direccion Colegio registrado")
+			alertas = append(alertas, resultadoDirecionColegio)
+
+		}
+		UbicacionColegioPost := map[string]interface{}{
+			"TerceroId":            map[string]interface{}{"Id": IdColegio},
+			"InfoComplementariaId": map[string]interface{}{"Id": InformacionUbicacionColegio["InfoComplementariaId"].(map[string]interface{})["Id"].(float64)},
+			"Dato":                 InformacionUbicacionColegio["Dato"],
+			"Activo":               true,
+		}
+		var resultadoUbicacionColegio map[string]interface{}
+		errRegistroUbicacionColegio := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero", "POST", &resultadoUbicacionColegio, UbicacionColegioPost)
+		if resultadoUbicacionColegio["Type"] == "error" || errRegistroUbicacionColegio != nil || resultadoUbicacionColegio["Status"] == "404" || resultadoUbicacionColegio["Message"] != nil {
+			alertas = append(alertas, resultadoUbicacionColegio)
+			alerta.Type = "error"
+			alerta.Code = "400"
+			alerta.Body = alertas
+			c.Data["json"] = alerta
+			c.ServeJSON()
+		} else {
+			fmt.Println("Ubicacion Colegio registrado")
+			alertas = append(alertas, resultadoUbicacionColegio)
+
+		}
+		tipoColegioPost := map[string]interface{}{
+			"TerceroId":     map[string]interface{}{"Id": IdColegio},
+			"TipoTerceroId": map[string]interface{}{"Id": InformaciontipoColegio["TipoTerceroId"].(map[string]interface{})["Id"].(float64)},
+			"Activo":        true,
+		}
+
+		var resultadoTipoColegio map[string]interface{}
+		errRegistroTipoColegio := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"tercero_tipo_tercero", "POST", &resultadoTipoColegio, tipoColegioPost)
+		if resultadoTipoColegio["Type"] == "error" || errRegistroTipoColegio != nil || resultadoTipoColegio["Status"] == "404" || resultadoTipoColegio["Message"] != nil {
+			alertas = append(alertas, resultadoTipoColegio)
+			alerta.Type = "error"
+			alerta.Code = "400"
+			alerta.Body = alertas
+			c.Data["json"] = alerta
+			c.ServeJSON()
+		} else {
+			fmt.Println("TipoColegio registrado")
+			alertas = append(alertas, resultadoTipoColegio)
+
+		}
+
+		var resultadoInfoComeplementaria map[string]interface{}
+		formatdata.JsonPrint(InfoComplementariaTercero)
+		errInfoComplementaria := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero", "POST", &resultadoInfoComeplementaria, InfoComplementariaTercero)
+		if resultadoInfoComeplementaria["Type"] == "error" || errInfoComplementaria != nil || resultadoInfoComeplementaria["Status"] == "404" || resultadoInfoComeplementaria["Message"] != nil {
+			alertas = append(alertas, resultadoInfoComeplementaria)
+			alerta.Type = "error"
+			alerta.Code = "400"
+			alerta.Body = alertas
+			c.Data["json"] = alerta
+			c.ServeJSON()
+		} else {
+			fmt.Println("Info complementaria registrada", InfoComplementariaTercero)
+			// alertas = append(alertas, Transferencia)
+		}
+
+		var resultadoInscripcionPregrado map[string]interface{}
+		errInscripcionPregrado := request.SendJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion_pregrado", "POST", &resultadoInscripcionPregrado, InscripcionPregrado)
+		if resultadoInscripcionPregrado["Type"] == "error" || errInscripcionPregrado != nil || resultadoInscripcionPregrado["Status"] == "404" || resultadoInscripcionPregrado["Message"] != nil {
+			alertas = append(alertas, resultadoInscripcionPregrado)
+			alerta.Type = "error"
+			alerta.Code = "400"
+			alerta.Body = alertas
+			c.Data["json"] = alerta
+			c.ServeJSON()
+		} else {
+			fmt.Println("Inscripcion registrada")
 			alertas = append(alertas, InfoIcfesColegio)
 		}
 

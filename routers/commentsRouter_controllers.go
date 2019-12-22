@@ -171,6 +171,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:InscripcionesController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:InscripcionesController"],
         beego.ControllerComments{
+            Method: "PostInfoIcfesColegioNuevo",
+            Router: `/post_info_icfes_colegio_nuevo`,
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:InscripcionesController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:InscripcionesController"],
+        beego.ControllerComments{
             Method: "PostInformacionFamiliar",
             Router: `/post_informacion_familiar`,
             AllowHTTPMethods: []string{"post"},

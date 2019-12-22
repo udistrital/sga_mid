@@ -315,6 +315,24 @@ paths:
           description: '{}'
         "403":
           description: body is empty
+  /inscripciones/post_info_icfes_colegio_nuevo:
+    post:
+      tags:
+      - inscripciones
+      description: Agregar InfoIcfesColegio
+      operationId: InscripcionesController.PostInfoIcfesColegioNuevo
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar InfoIcfesColegio content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
   /inscripciones/post_informacion_familiar:
     post:
       tags:
