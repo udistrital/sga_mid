@@ -25,6 +25,7 @@ func (c *PersonaController) URLMapping() {
 	c.Mapping("ConsultarDatosComplementarios", c.ConsultarDatosComplementarios)
 	c.Mapping("ConsultarDatosContacto", c.ConsultarDatosContacto)
 	c.Mapping("ConsultarDatosFamiliar", c.ConsultarDatosFamiliar)
+	c.Mapping("ConsultarDatosFormacionPregrado", c.ConsultarDatosFormacionPregrado)
 
 }
 
@@ -1573,6 +1574,71 @@ func (c *PersonaController) ConsultarDatosFamiliar() {
 		}
 	} else {
 		logs.Error(persona)
+		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = errPersona
+		c.Abort("404")
+	}
+	c.ServeJSON()
+}
+
+// ConsultarDatosFormacionPregrado ...
+// @Title ConsultarDatosFormacionPregrado
+// @Description get ConsultarDatosFormacionPregrado by id
+// @Param	tercero_id	path	int	true	"Id del Tercero"
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router /consultar_formacion_pregreado/:tercero_id [get]
+func (c *PersonaController) ConsultarDatosFormacionPregrado() {
+	//Id de la persona
+	idStr := c.Ctx.Input.Param(":tercero_id")
+	fmt.Println("El id es: " + idStr)
+	// resultado datos complementarios persona
+	var resultado map[string]interface{}
+	var personaInscrita []map[string]interface{}
+
+	errPersona := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"/inscripcion_pregrado?query=InscripcionId.PersonaId:"+idStr, &personaInscrita)
+	if errPersona == nil && fmt.Sprintf("%v", personaInscrita[0]["System"]) != "map[]" {
+		if personaInscrita[0]["Status"] != 404 {
+			resultado = map[string]interface{}{"Persona Inscrita": personaInscrita[0]}
+			resultado["TipoIcfes"] = personaInscrita[0]["TipoIcfesId"]
+			resultado["NúmeroRegistroIcfes"] = personaInscrita[0]["CodigoIcfes"]
+			resultado["Valido"] = personaInscrita[0]["Valido"]
+			var NumeroSemestre []map[string]interface{}
+			errNumeroSemestre := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/?query=TerceroId.Id:"+idStr+",InfoComplementariaId.Id:67", &NumeroSemestre)
+			if errNumeroSemestre == nil && fmt.Sprintf("%v", NumeroSemestre[0]["System"]) != "map[]" {
+				if NumeroSemestre[0]["Status"] != 404 {
+					resultado["numeroSemestres"] = NumeroSemestre[0]
+					c.Data["json"] = resultado
+					// 		// formatdata.JsonPrint(familiares[0])
+				} else {
+					if NumeroSemestre[0]["Message"] == "Not found resource" {
+						c.Data["json"] = nil
+					} else {
+						logs.Error(NumeroSemestre)
+						//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+						c.Data["system"] = errNumeroSemestre
+						c.Abort("404")
+					}
+				}
+			} else {
+				logs.Error(NumeroSemestre)
+				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+				c.Data["system"] = errNumeroSemestre
+				c.Abort("404")
+			}
+
+		} else {
+			if personaInscrita[0]["Message"] == "Not found resource" {
+				c.Data["json"] = nil
+			} else {
+				logs.Error(personaInscrita)
+				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+				c.Data["system"] = errPersona
+				c.Abort("404")
+			}
+		}
+	} else {
+		logs.Error(personaInscrita)
 		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 		c.Data["system"] = errPersona
 		c.Abort("404")
