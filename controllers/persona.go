@@ -1587,7 +1587,7 @@ func (c *PersonaController) ConsultarDatosFamiliar() {
 // @Param	tercero_id	path	int	true	"Id del Tercero"
 // @Success 200 {}
 // @Failure 404 not found resource
-// @router /consultar_formacion_pregreado/:tercero_id [get]
+// @router /consultar_formacion_pregrado/:tercero_id [get]
 func (c *PersonaController) ConsultarDatosFormacionPregrado() {
 	//Id de la persona
 	idStr := c.Ctx.Input.Param(":tercero_id")

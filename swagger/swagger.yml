@@ -441,7 +441,7 @@ paths:
           description: '{}'
         "404":
           description: not found resource
-  /persona/consultar_formacion_pregreado/{tercero_id}:
+  /persona/consultar_formacion_pregrado/{tercero_id}:
     get:
       tags:
       - persona

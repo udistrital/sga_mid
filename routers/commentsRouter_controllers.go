@@ -235,7 +235,7 @@ func init() {
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PersonaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PersonaController"],
         beego.ControllerComments{
             Method: "ConsultarDatosFormacionPregrado",
-            Router: `/consultar_formacion_pregreado/:tercero_id`,
+            Router: `/consultar_formacion_pregrado/:tercero_id`,
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
