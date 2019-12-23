@@ -590,6 +590,34 @@
                 }
             }
         },
+        "/inscripciones/post_info_icfes_colegio_nuevo": {
+            "post": {
+                "tags": [
+                    "inscripciones"
+                ],
+                "description": "Agregar InfoIcfesColegio",
+                "operationId": "InscripcionesController.PostInfoIcfesColegioNuevo",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar InfoIcfesColegio content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
         "/inscripciones/post_informacion_familiar": {
             "post": {
                 "tags": [
@@ -670,6 +698,141 @@
                     },
                     "403": {
                         "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/persona/consultar_complementarios/{tercero_id}": {
+            "get": {
+                "tags": [
+                    "persona"
+                ],
+                "description": "get ConsultarDatosComplementarios by id",
+                "operationId": "PersonaController.ConsultarDatosComplementarios",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "tercero_id",
+                        "description": "Id del ente",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/persona/consultar_contacto/{tercero_id}": {
+            "get": {
+                "tags": [
+                    "persona"
+                ],
+                "description": "get ConsultarDatosContacto by id",
+                "operationId": "PersonaController.ConsultarDatosContacto",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "tercero_id",
+                        "description": "Id del Tercero",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/persona/consultar_familiar/{tercero_id}": {
+            "get": {
+                "tags": [
+                    "persona"
+                ],
+                "description": "get ConsultarDatosFamiliar by id",
+                "operationId": "PersonaController.ConsultarDatosFamiliar",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "tercero_id",
+                        "description": "Id del Tercero",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/persona/consultar_formacion_pregrado/{tercero_id}": {
+            "get": {
+                "tags": [
+                    "persona"
+                ],
+                "description": "get ConsultarDatosFormacionPregrado by id",
+                "operationId": "PersonaController.ConsultarDatosFormacionPregrado",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "tercero_id",
+                        "description": "Id del Tercero",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/persona/consultar_persona/{tercero_id}": {
+            "get": {
+                "tags": [
+                    "persona"
+                ],
+                "description": "get ConsultaPersona by id",
+                "operationId": "PersonaController.ConsultarPersona",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "tercero_id",
+                        "description": "Id del tercero",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
                     }
                 }
             }
