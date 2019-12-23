@@ -171,6 +171,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:InscripcionesController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:InscripcionesController"],
         beego.ControllerComments{
+            Method: "PostInfoIcfesColegioNuevo",
+            Router: `/post_info_icfes_colegio_nuevo`,
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:InscripcionesController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:InscripcionesController"],
+        beego.ControllerComments{
             Method: "PostInformacionFamiliar",
             Router: `/post_informacion_familiar`,
             AllowHTTPMethods: []string{"post"},
@@ -192,6 +201,51 @@ func init() {
             Method: "PostTransferencia",
             Router: `/post_transferencia`,
             AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PersonaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PersonaController"],
+        beego.ControllerComments{
+            Method: "ConsultarDatosComplementarios",
+            Router: `/consultar_complementarios/:tercero_id`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PersonaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PersonaController"],
+        beego.ControllerComments{
+            Method: "ConsultarDatosContacto",
+            Router: `/consultar_contacto/:tercero_id`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PersonaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PersonaController"],
+        beego.ControllerComments{
+            Method: "ConsultarDatosFamiliar",
+            Router: `/consultar_familiar/:tercero_id`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PersonaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PersonaController"],
+        beego.ControllerComments{
+            Method: "ConsultarDatosFormacionPregrado",
+            Router: `/consultar_formacion_pregrado/:tercero_id`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PersonaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PersonaController"],
+        beego.ControllerComments{
+            Method: "ConsultarPersona",
+            Router: `/consultar_persona/:tercero_id`,
+            AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
