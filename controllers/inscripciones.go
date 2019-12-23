@@ -335,6 +335,27 @@ func (c *InscripcionesController) PostInfoIcfesColegioNuevo() {
 
 		}
 
+		VerificarColegioPost := map[string]interface{}{
+			"TerceroId":     map[string]interface{}{"Id": IdColegio},
+			"TipoTerceroId": map[string]interface{}{"Id": 14},
+			"Activo":        true,
+		}
+
+		var resultadoVerificarColegio map[string]interface{}
+		errRegistroVerificarColegio := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"tercero_tipo_tercero", "POST", &resultadoVerificarColegio, VerificarColegioPost)
+		if resultadoVerificarColegio["Type"] == "error" || errRegistroVerificarColegio != nil || resultadoVerificarColegio["Status"] == "404" || resultadoVerificarColegio["Message"] != nil {
+			alertas = append(alertas, resultadoVerificarColegio)
+			alerta.Type = "error"
+			alerta.Code = "400"
+			alerta.Body = alertas
+			c.Data["json"] = alerta
+			c.ServeJSON()
+		} else {
+			fmt.Println("Verificar registrado")
+			alertas = append(alertas, resultadoVerificarColegio)
+
+		}
+
 		var resultadoInfoComeplementaria map[string]interface{}
 		formatdata.JsonPrint(InfoComplementariaTercero)
 		errInfoComplementaria := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero", "POST", &resultadoInfoComeplementaria, InfoComplementariaTercero)
