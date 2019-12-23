@@ -64,6 +64,30 @@ func init() {
 				&controllers.InscripcionesController{},
 			),
 		),
+
+		beego.NSNamespace("/tercero",
+			beego.NSInclude(
+				&controllers.TerceroController{},
+			),
+		),
+
+		beego.NSNamespace("/formacion_academica",
+			beego.NSInclude(
+				&controllers.FormacionController{},
+			),
+		),
+
+		beego.NSNamespace("/experiencia_laboral",
+			beego.NSInclude(
+				&controllers.ExperienciaLaboralController{},
+			),
+		),
+
+		beego.NSNamespace("/descuento_academico",
+			beego.NSInclude(
+				&controllers.DescuentoController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
