@@ -200,7 +200,7 @@ func (c *InscripcionesController) PostInfoIcfesColegio() {
 			alertas = append(alertas, InfoIcfesColegio)
 		}
 
-		// Registro de colegio
+		// Registro de colegio a tercero
 
 		ColegioRegistro := map[string]interface{}{
 			"TerceroId":              map[string]interface{}{"Id": Tercero["TerceroId"].(map[string]interface{})["Id"].(float64)},
@@ -257,6 +257,8 @@ func (c *InscripcionesController) PostInfoIcfesColegioNuevo() {
 		var InformacionDireccionColegio = InfoIcfesColegio["DireccionColegio"].(map[string]interface{})
 		var InformacionUbicacionColegio = InfoIcfesColegio["UbicacionColegio"].(map[string]interface{})
 		var InformaciontipoColegio = InfoIcfesColegio["TipoColegio"].(map[string]interface{})
+		var Tercero = InfoIcfesColegio["Tercero"].(map[string]interface{})
+		var date = time.Now()
 
 		var resultadoRegistroColegio map[string]interface{}
 		errRegistroColegio := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"tercero", "POST", &resultadoRegistroColegio, InformacionColegio)
@@ -354,6 +356,28 @@ func (c *InscripcionesController) PostInfoIcfesColegioNuevo() {
 			fmt.Println("Verificar registrado")
 			alertas = append(alertas, resultadoVerificarColegio)
 
+		}
+		// Registro de colegio a tercero
+
+		ColegioRegistro := map[string]interface{}{
+			"TerceroId":              map[string]interface{}{"Id": Tercero["TerceroId"].(map[string]interface{})["Id"].(float64)},
+			"TerceroEntidadId":       map[string]interface{}{"Id": IdColegio},
+			"Activo":                 true,
+			"FechaInicioVinculacion": date,
+		}
+
+		var resultadoRegistroColegioTercero map[string]interface{}
+		errRegistroColegioTercero := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"seguridad_social_tercero", "POST", &resultadoRegistroColegioTercero, ColegioRegistro)
+		if resultadoRegistroColegioTercero["Type"] == "error" || errRegistroColegioTercero != nil || resultadoRegistroColegioTercero["Status"] == "404" || resultadoRegistroColegioTercero["Message"] != nil {
+			alertas = append(alertas, resultadoRegistroColegioTercero)
+			alerta.Type = "error"
+			alerta.Code = "400"
+			alerta.Body = alertas
+			c.Data["json"] = alerta
+			c.ServeJSON()
+		} else {
+			fmt.Println("Colegio Tercero registrado")
+			alertas = append(alertas, InfoIcfesColegio)
 		}
 
 		var resultadoInfoComeplementaria map[string]interface{}
