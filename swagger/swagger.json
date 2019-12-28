@@ -964,18 +964,18 @@
                 }
             }
         },
-        "/produccion_academica/{persona}": {
+        "/produccion_academica/{tercero}": {
             "get": {
                 "tags": [
                     "produccion_academica"
                 ],
-                "description": "consultar Produccion Academica por persona",
+                "description": "consultar Produccion Academica por tercero",
                 "operationId": "ProduccionAcademicaController.GetProduccionAcademica",
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "persona",
-                        "description": "Persona",
+                        "name": "tercero",
+                        "description": "Tercero",
                         "required": true,
                         "type": "integer",
                         "format": "int64"

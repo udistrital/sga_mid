@@ -239,28 +239,29 @@ func (c *ProduccionAcademicaController) PutProduccionAcademica() {
 
 // GetProduccionAcademica ...
 // @Title GetProduccionAcademica
-// @Description consultar Produccion Academica por persona
-// @Param   persona      path    int  true        "Persona"
+// @Description consultar Produccion Academica por tercero
+// @Param   tercero      path    int  true        "Tercero"
 // @Success 200 {}
 // @Failure 404 not found resource
-// @router /:persona [get]
+// @router /:tercero [get]
 func (c *ProduccionAcademicaController) GetProduccionAcademica() {
-	//Id de la persona
-	idPersona := c.Ctx.Input.Param(":persona")
-	fmt.Println("El id de la persona es: " + idPersona)
+	//Id del tercero
+	idTercero := c.Ctx.Input.Param(":tercero")
+	fmt.Println("Consultando producciones de tercero: " + idTercero)
 	//resultado resultado final
 	var resultado []map[string]interface{}
 	//resultado experiencia
 	var producciones []map[string]interface{}
 
-	errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idPersona, &producciones)
+	errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idTercero, &producciones)
 	if errProduccion == nil && fmt.Sprintf("%v", producciones[0]["System"]) != "map[]" {
-		if producciones[0]["Status"] != 404 {
+		if producciones[0]["Status"] != 404 && producciones[0]["Id"] != nil {
 			for _, produccion := range producciones {
 				autores := produccion["Autores"].([]interface{})
 				for _, autorTemp := range autores {
 					autor := autorTemp.(map[string]interface{})
-					if autor["PersonaId"] == idPersona {
+					fmt.Println("autor",autor["PersonaId"], idTercero);
+					if fmt.Sprintf("%v", autor["PersonaId"]) == fmt.Sprintf("%v", idTercero) {
 						produccion["EstadoEnteAutorId"] = autor
 					}
 					//cargar nombre del autor
