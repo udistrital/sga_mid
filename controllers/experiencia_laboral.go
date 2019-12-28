@@ -380,7 +380,7 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 
 						// unmarshall dato
 						var organizacionJson map[string]interface{}
-						if err := json.Unmarshal([]byte(organizacion[u]["Dato"].(string)), &organizacionJson); err != nil { 
+						if err := json.Unmarshal([]byte(organizacion[0]["Dato"].(string)), &organizacionJson); err != nil { 
 							experiencia[u]["Organizacion"] = nil
 						} else {
 							experiencia[u]["Organizacion"] = organizacionJson
