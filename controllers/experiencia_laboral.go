@@ -19,7 +19,7 @@ type ExperienciaLaboralController struct {
 func (c *ExperienciaLaboralController) URLMapping() {
 	c.Mapping("PostExperienciaLaboral", c.PostExperienciaLaboral)
 	// c.Mapping("PutExperienciaLaboral", c.PutExperienciaLaboral)
-	// c.Mapping("GetExperienciaLaboral", c.GetExperienciaLaboral)
+	c.Mapping("GetExperienciaLaboral", c.GetExperienciaLaboral)
 	c.Mapping("GetExperienciaLaboralByTercero", c.GetExperienciaLaboralByTercero)
 	// c.Mapping("DeleteExperienciaLaboral", c.DeleteExperienciaLaboral)
 }
@@ -223,6 +223,7 @@ func (c *ExperienciaLaboralController) PutExperienciaLaboral() {
 	}
 	c.ServeJSON()
 }
+*/
 
 // GetExperienciaLaboral ...
 // @Title GetExperienciaLaboral
@@ -234,7 +235,7 @@ func (c *ExperienciaLaboralController) PutExperienciaLaboral() {
 func (c *ExperienciaLaboralController) GetExperienciaLaboral() {
 	//Id de la experiencia
 	idStr := c.Ctx.Input.Param(":id")
-	fmt.Println("El id es: " + idStr)
+	fmt.Println("Consultando experiencia laboral número: " + idStr)
 	//resultado resultado final
 	var resultado map[string]interface{}
 	//resultado experiencia
@@ -250,8 +251,7 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboral() {
 			if errSoporte == nil && fmt.Sprintf("%v", soporte[0]["System"]) != "map[]" {
 				if soporte[0]["Status"] != 404 {
 					experiencia[0]["Documento"] = soporte[0]["Documento"]
-					resultado = experiencia[0]
-					c.Data["json"] = resultado
+			
 				} else {
 					if soporte[0]["Message"] == "Not found resource" {
 						c.Data["json"] = nil
@@ -268,6 +268,43 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboral() {
 				c.Data["system"] = errSoporte
 				c.Abort("404")
 			}
+			
+			//buscar organizacion_experiencia_laboral
+			var organizacion []map[string]interface{}
+			errOrganizacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero?limit=1&query=Id:"+
+				// fmt.Sprintf("%v", experiencia[u]["Id"])+"&fields=Documento", &soporte)
+				fmt.Sprintf("%v", experiencia[0]["Organizacion"]), &organizacion)
+			if errOrganizacion == nil && fmt.Sprintf("%v", organizacion[0]["System"]) != "map[]" {
+				if organizacion[0]["Status"] != 404 && organizacion[0]["Id"] != nil {
+
+					// unmarshall dato
+					var organizacionJson map[string]interface{}
+					if err := json.Unmarshal([]byte(organizacion[0]["Dato"].(string)), &organizacionJson); err != nil { 
+						experiencia[0]["Organizacion"] = nil
+					} else {
+						experiencia[0]["Organizacion"] = organizacionJson
+					}
+
+				} else {
+					if organizacion[0]["Message"] == "Not found resource" {
+						c.Data["json"] = nil
+					} else {
+						logs.Error(organizacion)
+						//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+						c.Data["system"] = errOrganizacion
+						c.Abort("404")
+					}
+				}
+			} else {
+				logs.Error(organizacion)
+				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+				c.Data["system"] = errOrganizacion
+				c.Abort("404")
+			}
+
+			resultado = experiencia[0]
+			c.Data["json"] = resultado
+
 		} else {
 			if experiencia[0]["Message"] == "Not found resource" {
 				c.Data["json"] = nil
@@ -286,7 +323,6 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboral() {
 	}
 	c.ServeJSON()
 }
-*/
 
 // GetExperienciaLaboralByTercero ...
 // @Title GetExperienciaLaboralByTercero
@@ -344,7 +380,7 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 
 						// unmarshall dato
 						var organizacionJson map[string]interface{}
-						if err := json.Unmarshal([]byte(organizacion[0]["Dato"].(string)), &organizacionJson); err != nil { 
+						if err := json.Unmarshal([]byte(organizacion[u]["Dato"].(string)), &organizacionJson); err != nil { 
 							experiencia[u]["Organizacion"] = nil
 						} else {
 							experiencia[u]["Organizacion"] = organizacionJson

@@ -297,6 +297,24 @@ paths:
           description: '{int}'
         "400":
           description: the request contains incorrect syntax
+  /experiencia_laboral/{id}:
+    get:
+      tags:
+      - experiencia_laboral
+      description: consultar Experiencia Laboral por id
+      operationId: ExperienciaLaboralController.GetExperienciaLaboral
+      parameters:
+      - in: path
+        name: id
+        description: Id de la experiencia
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
   /experiencia_laboral/by_tercero/{id_tercero}:
     get:
       tags:
