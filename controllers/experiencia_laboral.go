@@ -18,12 +18,10 @@ type ExperienciaLaboralController struct {
 // URLMapping ...
 func (c *ExperienciaLaboralController) URLMapping() {
 	c.Mapping("PostExperienciaLaboral", c.PostExperienciaLaboral)
-	/*
-	c.Mapping("PutExperienciaLaboral", c.PutExperienciaLaboral)
-	c.Mapping("GetExperienciaLaboral", c.GetExperienciaLaboral)
-	c.Mapping("GetExperienciaLaboralByEnte", c.GetExperienciaLaboralByEnte)
-	c.Mapping("DeleteExperienciaLaboral", c.DeleteExperienciaLaboral)
-	*/
+	// c.Mapping("PutExperienciaLaboral", c.PutExperienciaLaboral)
+	// c.Mapping("GetExperienciaLaboral", c.GetExperienciaLaboral)
+	c.Mapping("GetExperienciaLaboralByTercero", c.GetExperienciaLaboralByTercero)
+	// c.Mapping("DeleteExperienciaLaboral", c.DeleteExperienciaLaboral)
 }
 
 // PostExperienciaLaboral ...
@@ -288,26 +286,28 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboral() {
 	}
 	c.ServeJSON()
 }
+*/
 
-// GetExperienciaLaboralByEnte ...
-// @Title GetExperienciaLaboralByEnte
-// @Description consultar Experiencia Laboral por id de ente
-// @Param	Ente		query 	int	true		"Id del ente"
+// GetExperienciaLaboralByTercero ...
+// @Title GetExperienciaLaboralByTercero
+// @Description consultar Experiencia Laboral por id del tercero
+// @Param	Tercero		query 	int	true		"Id del tercero"
 // @Success 200 {}
 // @Failure 404 not found resource
-// @router / [get]
-func (c *ExperienciaLaboralController) GetExperienciaLaboralByEnte() {
+// @router /by_tercero/:id_tercero [get]
+func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 	//Captura de parámetros
-	idEnte := c.GetString("Ente")
+	// idTercero := c.GetString("Tercero")
+	idTercero := c.Ctx.Input.Param(":id_tercero")
 	//resultado resultado final
 	var resultado []map[string]interface{}
 	//resultado experiencia
 	var experiencia []map[string]interface{}
-	fmt.Println(idEnte)
+	fmt.Println("Consultando experiencia laboral del tercero ", idTercero)
 
-	errExperiencia := request.GetJson("http://"+beego.AppConfig.String("ExperienciaLaboralService")+"/experiencia_laboral/?Persona:"+idEnte, &experiencia)
+	errExperiencia := request.GetJson("http://"+beego.AppConfig.String("ExperienciaLaboralService")+"/experiencia_laboral?limit=0&query=Persona:"+idTercero, &experiencia)
 	if errExperiencia == nil && fmt.Sprintf("%v", experiencia[0]["System"]) != "map[]" {
-		if experiencia[0]["Status"] != 404 {
+		if experiencia[0]["Status"] != 404 && experiencia[0]["Id"] != nil {
 			for u := 0; u < len(experiencia); u++ {
 				//buscar soporte_experiencia_laboral
 				var soporte []map[string]interface{}
@@ -315,10 +315,8 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByEnte() {
 				errSoporte := request.GetJson("http://"+beego.AppConfig.String("ExperienciaLaboralService")+"/soporte_experiencia_laboral/?query=ExperienciaLaboral:"+
 					fmt.Sprintf("%v", experiencia[u]["Id"])+"&fields=Documento", &soporte)
 				if errSoporte == nil && fmt.Sprintf("%v", soporte[0]["System"]) != "map[]" {
-					if soporte[0]["Status"] != 404 {
+					if soporte[0]["Status"] != 404 && soporte[0]["Documento"] != nil {
 						experiencia[u]["Documento"] = soporte[0]["Documento"]
-						resultado = experiencia
-						c.Data["json"] = resultado
 					} else {
 						if soporte[0]["Message"] == "Not found resource" {
 							c.Data["json"] = nil
@@ -335,7 +333,44 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByEnte() {
 					c.Data["system"] = errSoporte
 					c.Abort("404")
 				}
+
+				//buscar organizacion_experiencia_laboral
+				var organizacion []map[string]interface{}
+				errOrganizacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero?limit=1&query=Id:"+
+					// fmt.Sprintf("%v", experiencia[u]["Id"])+"&fields=Documento", &soporte)
+					fmt.Sprintf("%v", experiencia[u]["Organizacion"]), &organizacion)
+				if errOrganizacion == nil && fmt.Sprintf("%v", organizacion[0]["System"]) != "map[]" {
+					if organizacion[0]["Status"] != 404 && organizacion[0]["Id"] != nil {
+
+						// unmarshall dato
+						var organizacionJson map[string]interface{}
+						if err := json.Unmarshal([]byte(organizacion[0]["Dato"].(string)), &organizacionJson); err != nil { 
+							experiencia[u]["Organizacion"] = nil
+						} else {
+							experiencia[u]["Organizacion"] = organizacionJson
+						}
+
+					} else {
+						if organizacion[0]["Message"] == "Not found resource" {
+							c.Data["json"] = nil
+						} else {
+							logs.Error(organizacion)
+							//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+							c.Data["system"] = errOrganizacion
+							c.Abort("404")
+						}
+					}
+				} else {
+					logs.Error(organizacion)
+					//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+					c.Data["system"] = errOrganizacion
+					c.Abort("404")
+				}
 			}
+
+			resultado = experiencia
+			c.Data["json"] = resultado
+
 		} else {
 			if experiencia[0]["Message"] == "Not found resource" {
 				c.Data["json"] = nil
@@ -355,6 +390,7 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByEnte() {
 	c.ServeJSON()
 }
 
+/*
 // DeleteExperienciaLaboral ...
 // @Title DeleteExperienciaLaboral
 // @Description eliminar Experiencia Laboral por id

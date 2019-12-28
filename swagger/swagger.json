@@ -450,6 +450,33 @@
                 }
             }
         },
+        "/experiencia_laboral/by_tercero/{id_tercero}": {
+            "get": {
+                "tags": [
+                    "experiencia_laboral"
+                ],
+                "description": "consultar Experiencia Laboral por id del tercero",
+                "operationId": "ExperienciaLaboralController.GetExperienciaLaboralByTercero",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "Tercero",
+                        "description": "Id del tercero",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
         "/formacion_academica/": {
             "post": {
                 "tags": [
