@@ -383,7 +383,7 @@ func (c *InscripcionesController) PostInfoIcfesColegioNuevo() {
 		}
 
 		var resultadoInfoComeplementaria map[string]interface{}
-		formatdata.JsonPrint(InfoComplementariaTercero)
+
 		errInfoComplementaria := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero", "POST", &resultadoInfoComeplementaria, InfoComplementariaTercero)
 		if resultadoInfoComeplementaria["Type"] == "error" || errInfoComplementaria != nil || resultadoInfoComeplementaria["Status"] == "404" || resultadoInfoComeplementaria["Message"] != nil {
 			alertas = append(alertas, resultadoInfoComeplementaria)
