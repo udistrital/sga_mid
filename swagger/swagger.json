@@ -422,6 +422,33 @@
                 }
             }
         },
+        "/inscripciones/consultar_proyectos_eventos/{evento_padre_id}": {
+            "get": {
+                "tags": [
+                    "inscripciones"
+                ],
+                "description": "get ConsultarProyectosEventos by id",
+                "operationId": "InscripcionesController.ConsultarProyectosEventos",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "evento_padre_id",
+                        "description": "Id del Evento Padre",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
         "/inscripciones/info_complementaria_universidad": {
             "post": {
                 "tags": [

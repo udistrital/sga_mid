@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
 	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
@@ -24,6 +25,7 @@ func (c *InscripcionesController) URLMapping() {
 	c.Mapping("PostInfoIcfesColegio", c.PostInfoIcfesColegio)
 	c.Mapping("PostInfoComplementariaUniversidad", c.PostInfoComplementariaUniversidad)
 	c.Mapping("PostInfoIcfesColegioNuevo", c.PostInfoIcfesColegioNuevo)
+	c.Mapping("ConsultarProyectosEventos", c.ConsultarProyectosEventos)
 }
 
 // PostInformacionFamiliar ...
@@ -468,5 +470,81 @@ func (c *InscripcionesController) PostInfoComplementariaUniversidad() {
 	}
 	alerta.Body = alertas
 	c.Data["json"] = alerta
+	c.ServeJSON()
+}
+
+// ConsultarProyectosEventos ...
+// @Title ConsultarProyectosEventos
+// @Description get ConsultarProyectosEventos by id
+// @Param	evento_padre_id	path	int	true	"Id del Evento Padre"
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router /consultar_proyectos_eventos/:evento_padre_id [get]
+func (c *InscripcionesController) ConsultarProyectosEventos() {
+	//Id de la persona
+	idStr := c.Ctx.Input.Param(":evento_padre_id")
+	fmt.Println("El id es: " + idStr)
+	// resultado datos complementarios persona
+	var resultado []map[string]interface{}
+	var EventosInscripcion []map[string]interface{}
+
+	erreVentos := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento/?query=EventoPadreId:"+idStr+"&limit=0", &EventosInscripcion)
+	if erreVentos == nil && fmt.Sprintf("%v", EventosInscripcion[0]["System"]) != "map[]" {
+		if EventosInscripcion[0]["Status"] != 404 {
+			resultado = EventosInscripcion
+			var Proyectos_academicos []map[string]interface{}
+			var Proyectos_academicos_Get []map[string]interface{}
+			for i := 0; i < len(EventosInscripcion); i++ {
+				if len(EventosInscripcion) > 0 {
+					proyectoacademico := EventosInscripcion[i]["TipoEventoId"].(map[string]interface{})
+
+					var ProyectosAcademicosConEvento map[string]interface{}
+
+					erreproyectos := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia/"+fmt.Sprintf("%v", proyectoacademico["DependenciaId"]), &ProyectosAcademicosConEvento)
+					if erreproyectos == nil && fmt.Sprintf("%v", ProyectosAcademicosConEvento["System"]) != "map[]" {
+						if ProyectosAcademicosConEvento["Status"] != 404 {
+
+							Proyectos_academicos_Get = append(Proyectos_academicos_Get, ProyectosAcademicosConEvento)
+
+						} else {
+							if ProyectosAcademicosConEvento["Message"] == "Not found resource" {
+								c.Data["json"] = nil
+							} else {
+								logs.Error(ProyectosAcademicosConEvento)
+								//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+								c.Data["system"] = erreproyectos
+								c.Abort("404")
+							}
+						}
+					} else {
+						logs.Error(ProyectosAcademicosConEvento)
+						//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+						c.Data["system"] = erreproyectos
+						c.Abort("404")
+					}
+
+					Proyectos_academicos = append(Proyectos_academicos, proyectoacademico)
+
+				}
+			}
+			resultado = Proyectos_academicos_Get
+			c.Data["json"] = resultado
+
+		} else {
+			if EventosInscripcion[0]["Message"] == "Not found resource" {
+				c.Data["json"] = nil
+			} else {
+				logs.Error(EventosInscripcion)
+				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+				c.Data["system"] = erreVentos
+				c.Abort("404")
+			}
+		}
+	} else {
+		logs.Error(EventosInscripcion)
+		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = erreVentos
+		c.Abort("404")
+	}
 	c.ServeJSON()
 }
