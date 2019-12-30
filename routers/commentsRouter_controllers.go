@@ -106,15 +106,6 @@ func init() {
             Filters: nil,
             Params: nil})
 
-    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DescuentoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DescuentoController"],
-        beego.ControllerComments{
-            Method: "PostDescuentoAcademico",
-            Router: `/`,
-            AllowHTTPMethods: []string{"post"},
-            MethodParams: param.Make(),
-            Filters: nil,
-            Params: nil})
-
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:EventoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:EventoController"],
         beego.ControllerComments{
             Method: "PostEvento",
@@ -151,24 +142,6 @@ func init() {
             Filters: nil,
             Params: nil})
 
-    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ExperienciaLaboralController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ExperienciaLaboralController"],
-        beego.ControllerComments{
-            Method: "PostExperienciaLaboral",
-            Router: `/`,
-            AllowHTTPMethods: []string{"post"},
-            MethodParams: param.Make(),
-            Filters: nil,
-            Params: nil})
-
-    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:FormacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:FormacionController"],
-        beego.ControllerComments{
-            Method: "PostFormacionAcademica",
-            Router: `/`,
-            AllowHTTPMethods: []string{"post"},
-            MethodParams: param.Make(),
-            Filters: nil,
-            Params: nil})
-
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:GeneradorCodigoBarrasController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:GeneradorCodigoBarrasController"],
         beego.ControllerComments{
             Method: "GenerarCodigoBarras",
@@ -180,9 +153,9 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:InscripcionesController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:InscripcionesController"],
         beego.ControllerComments{
-            Method: "PostInfoComplementariaTercero",
-            Router: `/info_complementaria_tercero`,
-            AllowHTTPMethods: []string{"post"},
+            Method: "ConsultarProyectosEventos",
+            Router: `/consultar_proyectos_eventos/:evento_padre_id`,
+            AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
@@ -271,7 +244,7 @@ func init() {
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PersonaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PersonaController"],
         beego.ControllerComments{
             Method: "ConsultarDatosFormacionPregrado",
-            Router: `/consultar_formacion_pregrado/:tercero_id`,
+            Router: `/consultar_formacion_pregreado/:tercero_id`,
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
@@ -354,15 +327,6 @@ func init() {
             Method: "PutEstadoAutorProduccionAcademica",
             Router: `/estado_autor_produccion/:id`,
             AllowHTTPMethods: []string{"put"},
-            MethodParams: param.Make(),
-            Filters: nil,
-            Params: nil})
-
-    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:TerceroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:TerceroController"],
-        beego.ControllerComments{
-            Method: "GetByIdentificacion",
-            Router: `/identificacion/`,
-            AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
