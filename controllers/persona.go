@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
@@ -1595,6 +1596,7 @@ func (c *PersonaController) ConsultarDatosFormacionPregrado() {
 	// resultado datos complementarios persona
 	var resultado map[string]interface{}
 	var personaInscrita []map[string]interface{}
+	var IdColegioGet float64
 
 	errPersona := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"/inscripcion_pregrado?query=InscripcionId.PersonaId:"+idStr, &personaInscrita)
 	if errPersona == nil && fmt.Sprintf("%v", personaInscrita[0]["System"]) != "map[]" {
@@ -1608,8 +1610,121 @@ func (c *PersonaController) ConsultarDatosFormacionPregrado() {
 			if errNumeroSemestre == nil && fmt.Sprintf("%v", NumeroSemestre[0]["System"]) != "map[]" {
 				if NumeroSemestre[0]["Status"] != 404 {
 					resultado["numeroSemestres"] = NumeroSemestre[0]
-					c.Data["json"] = resultado
-					// 		// formatdata.JsonPrint(familiares[0])
+
+					//cargar id colegio relacionado
+					var IdColegio []map[string]interface{}
+					errIdColegio := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/seguridad_social_tercero?query=TerceroId:"+idStr, &IdColegio)
+					if errIdColegio == nil && fmt.Sprintf("%v", IdColegio[0]["System"]) != "map[]" {
+						if IdColegio[0]["Status"] != 404 {
+							IdColegioGet = (IdColegio[0]["TerceroEntidadId"].(map[string]interface{})["Id"]).(float64)
+
+							fmt.Println(IdColegioGet)
+							//cargar id Lugar colegio
+							var IdLugarColegio []map[string]interface{}
+
+							var jsondata map[string]interface{}
+							errIdLugarColegio := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero?query=TerceroId:"+fmt.Sprintf("%v", IdColegioGet)+",InfoComplementariaId:89", &IdLugarColegio)
+							if errIdLugarColegio == nil && fmt.Sprintf("%v", IdLugarColegio[0]["System"]) != "map[]" {
+								if IdLugarColegio[0]["Status"] != 404 {
+
+									IdString := IdLugarColegio[0]["Dato"]
+									if _, err := strconv.ParseInt(IdString.(string), 10, 64); err == nil {
+										jsondata = map[string]interface{}{"dato": IdString}
+
+									} else {
+
+										if err := json.Unmarshal([]byte(IdString.(string)), &jsondata); err != nil {
+											panic(err)
+										}
+										fmt.Println(jsondata["dato"])
+									}
+
+									var lugar map[string]interface{}
+
+									errLugar := request.GetJson("http://"+beego.AppConfig.String("UbicacionesService")+"/relacion_lugares/jerarquia_lugar/"+
+										fmt.Sprintf("%v", jsondata["dato"]), &lugar)
+									if errLugar == nil && fmt.Sprintf("%v", lugar["System"]) != "map[]" {
+										if lugar["Status"] != 404 {
+
+											resultado["Lugar"] = lugar
+
+											var colegio []map[string]interface{}
+
+											errcolegio := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero_tipo_tercero?query=TerceroId:"+
+												fmt.Sprintf("%v", IdColegioGet), &colegio)
+											if errcolegio == nil && fmt.Sprintf("%v", colegio[0]["System"]) != "map[]" {
+												if colegio[0]["Status"] != 404 {
+													resultado["TipoColegio"] = colegio[0]["TipoTerceroId"].(map[string]interface{})["Id"]
+													resultado["Colegio"] = colegio[0]["TerceroId"]
+													c.Data["json"] = resultado
+
+												} else {
+													if colegio[0]["Message"] == "Not found resource" {
+														c.Data["json"] = nil
+													} else {
+														logs.Error(colegio)
+														//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+														c.Data["system"] = errcolegio
+														c.Abort("404")
+													}
+												}
+											} else {
+												logs.Error(colegio)
+												//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+												c.Data["system"] = errcolegio
+												c.Abort("404")
+											}
+										} else {
+											if lugar["Message"] == "Not found resource" {
+												c.Data["json"] = nil
+											} else {
+												logs.Error(lugar)
+												//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+												c.Data["system"] = errLugar
+												c.Abort("404")
+											}
+										}
+									} else {
+										logs.Error(lugar)
+										//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+										c.Data["system"] = errLugar
+										c.Abort("404")
+									}
+
+									// 		// formatdata.JsonPrint(familiares[0])
+
+								} else {
+									if IdLugarColegio[0]["Message"] == "Not found resource" {
+										c.Data["json"] = nil
+									} else {
+										logs.Error(IdLugarColegio)
+										//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+										c.Data["system"] = errIdLugarColegio
+										c.Abort("404")
+									}
+								}
+							} else {
+								logs.Error(IdLugarColegio)
+								//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+								c.Data["system"] = errIdLugarColegio
+								c.Abort("404")
+							}
+						} else {
+							if IdColegio[0]["Message"] == "Not found resource" {
+								c.Data["json"] = nil
+							} else {
+								logs.Error(IdColegio)
+								//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+								c.Data["system"] = errIdColegio
+								c.Abort("404")
+							}
+						}
+					} else {
+						logs.Error(IdColegio)
+						//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+						c.Data["system"] = errIdColegio
+						c.Abort("404")
+					}
 				} else {
 					if NumeroSemestre[0]["Message"] == "Not found resource" {
 						c.Data["json"] = nil

@@ -450,6 +450,60 @@
                 }
             }
         },
+        "/experiencia_laboral/by_tercero/{id_tercero}": {
+            "get": {
+                "tags": [
+                    "experiencia_laboral"
+                ],
+                "description": "consultar Experiencia Laboral por id del tercero",
+                "operationId": "ExperienciaLaboralController.GetExperienciaLaboralByTercero",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "Tercero",
+                        "description": "Id del tercero",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/experiencia_laboral/{id}": {
+            "get": {
+                "tags": [
+                    "experiencia_laboral"
+                ],
+                "description": "consultar Experiencia Laboral por id",
+                "operationId": "ExperienciaLaboralController.GetExperienciaLaboral",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "Id de la experiencia",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
         "/formacion_academica/": {
             "post": {
                 "tags": [
@@ -478,6 +532,33 @@
                 }
             }
         },
+        "/formacion_academica/by_tercero/{id_tercero}": {
+            "get": {
+                "tags": [
+                    "formacion_academica"
+                ],
+                "description": "consultar Fromacion Academica por id del tercero",
+                "operationId": "FormacionController.GetFormacionAcademicaByTercero",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "Tercero",
+                        "description": "Id del tercero",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
         "/generar_codigo/": {
             "post": {
                 "tags": [
@@ -502,6 +583,33 @@
                     },
                     "403": {
                         "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/inscripciones/consultar_proyectos_eventos/{evento_padre_id}": {
+            "get": {
+                "tags": [
+                    "inscripciones"
+                ],
+                "description": "get ConsultarProyectosEventos by id",
+                "operationId": "InscripcionesController.ConsultarProyectosEventos",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "evento_padre_id",
+                        "description": "Id del Evento Padre",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
                     }
                 }
             }
@@ -1046,18 +1154,18 @@
                 }
             }
         },
-        "/produccion_academica/{persona}": {
+        "/produccion_academica/{tercero}": {
             "get": {
                 "tags": [
                     "produccion_academica"
                 ],
-                "description": "consultar Produccion Academica por persona",
+                "description": "consultar Produccion Academica por tercero",
                 "operationId": "ProduccionAcademicaController.GetProduccionAcademica",
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "persona",
-                        "description": "Persona",
+                        "name": "tercero",
+                        "description": "Tercero",
                         "required": true,
                         "type": "integer",
                         "format": "int64"

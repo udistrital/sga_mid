@@ -18,12 +18,10 @@ type FormacionController struct {
 // URLMapping ...
 func (c *FormacionController) URLMapping() {
 	c.Mapping("PostFormacionAcademica", c.PostFormacionAcademica)
-	/*
-	c.Mapping("PutFormacionAcademica", c.PutFormacionAcademica)
-	c.Mapping("GetFormacionAcademica", c.GetFormacionAcademica)
-	c.Mapping("GetFormacionAcademicaByEnte", c.GetFormacionAcademicaByEnte)
-	c.Mapping("DeleteFormacionAcademica", c.DeleteFormacionAcademica)
-	*/
+	// c.Mapping("PutFormacionAcademica", c.PutFormacionAcademica)
+	// c.Mapping("GetFormacionAcademica", c.GetFormacionAcademica)
+	c.Mapping("GetFormacionAcademicaByTercero", c.GetFormacionAcademicaByTercero)
+	// c.Mapping("DeleteFormacionAcademica", c.DeleteFormacionAcademica)
 }
 
 // PostFormacionAcademica ...
@@ -474,47 +472,59 @@ func (c *FormacionController) GetFormacionAcademica() {
 	}
 	c.ServeJSON()
 }
+*/
 
-// GetFormacionAcademicaByEnte ...
-// @Title GetFormacionAcademicaByEnte
-// @Description consultar Fromacion Academica por id de ente
-// @Param	Ente		query 	int	true		"Id del ente"
+// GetFormacionAcademicaByTercero ...
+// @Title GetFormacionAcademicaByTercero
+// @Description consultar Fromacion Academica por id del tercero
+// @Param	Tercero		path 	int	true		"Id del tercero"
 // @Success 200 {}
 // @Failure 404 not found resource
-// @router / [get]
-func (c *FormacionController) GetFormacionAcademicaByEnte() {
+// @router /by_tercero/:id_tercero [get]
+func (c *FormacionController) GetFormacionAcademicaByTercero() {
 	//Captura de parámetros
-	idEnte := c.GetString("Ente")
-	fmt.Println("Id de ente: " + idEnte)
+	// idEnte := c.GetString("Ente")
+	// fmt.Println("Id de ente: " + idEnte)
+	// Id de la persona
+	idTercero := c.Ctx.Input.Param(":id_tercero")
+	fmt.Println("Consultando fomración academica de tercero:" + idTercero)
 	//resultado resultado final
 	var resultado []map[string]interface{}
 	//resultado formacion
 	var formacion []map[string]interface{}
 
-	errFormacion := request.GetJson("http://"+beego.AppConfig.String("FormacionAcademicaService")+"/formacion_academica/?query=Persona:"+idEnte, &formacion)
+	errFormacion := request.GetJson("http://"+beego.AppConfig.String("FormacionAcademicaService")+"/formacion_academica/?query=Persona:"+idTercero, &formacion)
 	if errFormacion == nil && fmt.Sprintf("%v", formacion[0]["System"]) != "map[]" {
-		if formacion[0]["Status"] != 404 {
-
+		if formacion[0]["Status"] != 404  && formacion[0]["Id"] != nil {
+			
 			for u := 0; u < len(formacion); u++ {
 				//resultado programa
 				var programa []map[string]interface{}
-
-				errPrograma := request.GetJson("http://"+beego.AppConfig.String("ProgramaAcademicoService")+"/programa_academico/?query=Id:"+
+				// errPrograma := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/programa_academico_institucion/?query=Id:"+
+				errPrograma := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_institucion/?query=Id:"+
 					fmt.Sprintf("%v", formacion[u]["Titulacion"]), &programa)
 				if errPrograma == nil && fmt.Sprintf("%v", programa[0]["System"]) != "map[]" {
-					if programa[0]["Status"] != 404 {
+					if programa[0]["Status"] != 404 && formacion[0]["Id"] != nil {
 						//resultado institucion
 						var institucion []map[string]interface{}
 						formacion[u]["Titulacion"] = programa[0]
 
-						errInstitucion := request.GetJson("http://"+beego.AppConfig.String("OrganizacionService")+"/organizacion/?query=Id:"+
-							fmt.Sprintf("%v", programa[0]["Institucion"]), &institucion)
+						// errInstitucion := request.GetJson("http://"+beego.AppConfig.String("OrganizacionService")+"/organizacion/?query=Id:"+
+							// fmt.Sprintf("%v", programa[0]["Institucion"]), &institucion)
+						errInstitucion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero?limit=1&query=InfoComplementariaId__Id:1,TerceroId__Id:"+
+							idTercero, &institucion)
 						if errInstitucion == nil && fmt.Sprintf("%v", institucion[0]["System"]) != "map[]" {
 							if institucion[0]["Status"] != 404 {
 								//resultado dato adicional
 								var dato []map[string]interface{}
 								var soporte []map[string]interface{}
-								formacion[u]["Institucion"] = institucion[0]
+								// unmarshall dato
+								var institucionJson map[string]interface{}
+								if err := json.Unmarshal([]byte(institucion[0]["Dato"].(string)), &institucionJson); err != nil { 
+									formacion[u]["Institucion"] = nil
+								} else {
+									formacion[u]["Institucion"] = institucionJson
+								}
 
 								errDato := request.GetJson("http://"+beego.AppConfig.String("FormacionAcademicaService")+"/dato_adicional_formacion_academica/?query=FormacionAcademica:"+
 									fmt.Sprintf("%v", formacion[u]["Id"]), &dato)
@@ -623,6 +633,7 @@ func (c *FormacionController) GetFormacionAcademicaByEnte() {
 	c.ServeJSON()
 }
 
+/*
 // DeleteFormacionAcademica ...
 // @Title DeleteFormacionAcademica
 // @Description eliminar Formacion Academica por id de la formacion

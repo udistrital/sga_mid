@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
 	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
@@ -25,6 +26,7 @@ func (c *InscripcionesController) URLMapping() {
 	c.Mapping("PostInfoComplementariaUniversidad", c.PostInfoComplementariaUniversidad)
 	c.Mapping("PostInfoComplementariaTercero", c.PostInfoComplementariaTercero)
 	c.Mapping("PostInfoIcfesColegioNuevo", c.PostInfoIcfesColegioNuevo)
+	c.Mapping("ConsultarProyectosEventos", c.ConsultarProyectosEventos)
 }
 
 // PostInformacionFamiliar ...
@@ -201,7 +203,7 @@ func (c *InscripcionesController) PostInfoIcfesColegio() {
 			alertas = append(alertas, InfoIcfesColegio)
 		}
 
-		// Registro de colegio
+		// Registro de colegio a tercero
 
 		ColegioRegistro := map[string]interface{}{
 			"TerceroId":              map[string]interface{}{"Id": Tercero["TerceroId"].(map[string]interface{})["Id"].(float64)},
@@ -258,6 +260,8 @@ func (c *InscripcionesController) PostInfoIcfesColegioNuevo() {
 		var InformacionDireccionColegio = InfoIcfesColegio["DireccionColegio"].(map[string]interface{})
 		var InformacionUbicacionColegio = InfoIcfesColegio["UbicacionColegio"].(map[string]interface{})
 		var InformaciontipoColegio = InfoIcfesColegio["TipoColegio"].(map[string]interface{})
+		var Tercero = InfoIcfesColegio["Tercero"].(map[string]interface{})
+		var date = time.Now()
 
 		var resultadoRegistroColegio map[string]interface{}
 		errRegistroColegio := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"tercero", "POST", &resultadoRegistroColegio, InformacionColegio)
@@ -336,8 +340,51 @@ func (c *InscripcionesController) PostInfoIcfesColegioNuevo() {
 
 		}
 
+		VerificarColegioPost := map[string]interface{}{
+			"TerceroId":     map[string]interface{}{"Id": IdColegio},
+			"TipoTerceroId": map[string]interface{}{"Id": 14},
+			"Activo":        true,
+		}
+
+		var resultadoVerificarColegio map[string]interface{}
+		errRegistroVerificarColegio := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"tercero_tipo_tercero", "POST", &resultadoVerificarColegio, VerificarColegioPost)
+		if resultadoVerificarColegio["Type"] == "error" || errRegistroVerificarColegio != nil || resultadoVerificarColegio["Status"] == "404" || resultadoVerificarColegio["Message"] != nil {
+			alertas = append(alertas, resultadoVerificarColegio)
+			alerta.Type = "error"
+			alerta.Code = "400"
+			alerta.Body = alertas
+			c.Data["json"] = alerta
+			c.ServeJSON()
+		} else {
+			fmt.Println("Verificar registrado")
+			alertas = append(alertas, resultadoVerificarColegio)
+
+		}
+		// Registro de colegio a tercero
+
+		ColegioRegistro := map[string]interface{}{
+			"TerceroId":              map[string]interface{}{"Id": Tercero["TerceroId"].(map[string]interface{})["Id"].(float64)},
+			"TerceroEntidadId":       map[string]interface{}{"Id": IdColegio},
+			"Activo":                 true,
+			"FechaInicioVinculacion": date,
+		}
+
+		var resultadoRegistroColegioTercero map[string]interface{}
+		errRegistroColegioTercero := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"seguridad_social_tercero", "POST", &resultadoRegistroColegioTercero, ColegioRegistro)
+		if resultadoRegistroColegioTercero["Type"] == "error" || errRegistroColegioTercero != nil || resultadoRegistroColegioTercero["Status"] == "404" || resultadoRegistroColegioTercero["Message"] != nil {
+			alertas = append(alertas, resultadoRegistroColegioTercero)
+			alerta.Type = "error"
+			alerta.Code = "400"
+			alerta.Body = alertas
+			c.Data["json"] = alerta
+			c.ServeJSON()
+		} else {
+			fmt.Println("Colegio Tercero registrado")
+			alertas = append(alertas, InfoIcfesColegio)
+		}
+
 		var resultadoInfoComeplementaria map[string]interface{}
-		formatdata.JsonPrint(InfoComplementariaTercero)
+
 		errInfoComplementaria := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero", "POST", &resultadoInfoComeplementaria, InfoComplementariaTercero)
 		if resultadoInfoComeplementaria["Type"] == "error" || errInfoComplementaria != nil || resultadoInfoComeplementaria["Status"] == "404" || resultadoInfoComeplementaria["Message"] != nil {
 			alertas = append(alertas, resultadoInfoComeplementaria)
@@ -425,6 +472,82 @@ func (c *InscripcionesController) PostInfoComplementariaUniversidad() {
 	alerta.Body = alertas
 	c.Data["json"] = alerta
 	c.ServeJSON()
+}
+
+// ConsultarProyectosEventos ...
+// @Title ConsultarProyectosEventos
+// @Description get ConsultarProyectosEventos by id
+// @Param	evento_padre_id	path	int	true	"Id del Evento Padre"
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router /consultar_proyectos_eventos/:evento_padre_id [get]
+func (c *InscripcionesController) ConsultarProyectosEventos() {
+	//Id de la persona
+	idStr := c.Ctx.Input.Param(":evento_padre_id")
+	fmt.Println("El id es: " + idStr)
+	// resultado datos complementarios persona
+	var resultado []map[string]interface{}
+	var EventosInscripcion []map[string]interface{}
+
+	erreVentos := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento/?query=EventoPadreId:"+idStr+"&limit=0", &EventosInscripcion)
+	if erreVentos == nil && fmt.Sprintf("%v", EventosInscripcion[0]["System"]) != "map[]" {
+		if EventosInscripcion[0]["Status"] != 404 {
+			resultado = EventosInscripcion
+			var Proyectos_academicos []map[string]interface{}
+			var Proyectos_academicos_Get []map[string]interface{}
+			for i := 0; i < len(EventosInscripcion); i++ {
+				if len(EventosInscripcion) > 0 {
+					proyectoacademico := EventosInscripcion[i]["TipoEventoId"].(map[string]interface{})
+
+					var ProyectosAcademicosConEvento map[string]interface{}
+
+					erreproyectos := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia/"+fmt.Sprintf("%v", proyectoacademico["DependenciaId"]), &ProyectosAcademicosConEvento)
+					if erreproyectos == nil && fmt.Sprintf("%v", ProyectosAcademicosConEvento["System"]) != "map[]" {
+						if ProyectosAcademicosConEvento["Status"] != 404 {
+
+							Proyectos_academicos_Get = append(Proyectos_academicos_Get, ProyectosAcademicosConEvento)
+
+						} else {
+							if ProyectosAcademicosConEvento["Message"] == "Not found resource" {
+								c.Data["json"] = nil
+							} else {
+								logs.Error(ProyectosAcademicosConEvento)
+								//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+								c.Data["system"] = erreproyectos
+								c.Abort("404")
+							}
+						}
+					} else {
+						logs.Error(ProyectosAcademicosConEvento)
+						//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+						c.Data["system"] = erreproyectos
+						c.Abort("404")
+					}
+
+					Proyectos_academicos = append(Proyectos_academicos, proyectoacademico)
+
+				}
+			}
+			resultado = Proyectos_academicos_Get
+			c.Data["json"] = resultado
+
+		} else {
+			if EventosInscripcion[0]["Message"] == "Not found resource" {
+				c.Data["json"] = nil
+			} else {
+				logs.Error(EventosInscripcion)
+				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+				c.Data["system"] = erreVentos
+				c.Abort("404")
+			}
+		}
+	} else {
+		logs.Error(EventosInscripcion)
+		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = erreVentos
+		c.Abort("404")
+	}
+  c.ServeJSON()
 }
 
 // PostInfoComplementariaTercero ...
