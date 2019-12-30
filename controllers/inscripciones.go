@@ -24,6 +24,7 @@ func (c *InscripcionesController) URLMapping() {
 	c.Mapping("PostTransferencia", c.PostTransferencia)
 	c.Mapping("PostInfoIcfesColegio", c.PostInfoIcfesColegio)
 	c.Mapping("PostInfoComplementariaUniversidad", c.PostInfoComplementariaUniversidad)
+	c.Mapping("PostInfoComplementariaTercero", c.PostInfoComplementariaTercero)
 	c.Mapping("PostInfoIcfesColegioNuevo", c.PostInfoIcfesColegioNuevo)
 	c.Mapping("ConsultarProyectosEventos", c.ConsultarProyectosEventos)
 }
@@ -546,5 +547,54 @@ func (c *InscripcionesController) ConsultarProyectosEventos() {
 		c.Data["system"] = erreVentos
 		c.Abort("404")
 	}
+  c.ServeJSON()
+}
+
+// PostInfoComplementariaTercero ...
+// @Title PostInfoComplementariaTercero
+// @Description Agregar PostInfoComplementariaTercero
+// @Param   body        body    {}  true        "body Agregar PostInfoComplementariaTercero content"
+// @Success 200 {}
+// @Failure 403 body is empty
+// @router /info_complementaria_tercero [post]
+func (c *InscripcionesController) PostInfoComplementariaTercero() {
+	
+	var InfoComplementaria map[string]interface{}
+	var alerta models.Alert
+	alertas := append([]interface{}{"Response:"})
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &InfoComplementaria); err == nil {
+
+		var InfoComplementariaTercero = InfoComplementaria["InfoComplementariaTercero"].([]interface{})
+		var date = time.Now()
+
+		for _, datoInfoComplementaria := range InfoComplementariaTercero {
+			var dato = datoInfoComplementaria.(map[string]interface{})
+			dato["FechaCreacion"] = date
+			dato["FechaModificacion"] = date
+			var resultadoInfoComeplementaria map[string]interface{}
+			errInfoComplementaria := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero", "POST", &resultadoInfoComeplementaria, dato)
+			if resultadoInfoComeplementaria["Type"] == "error" || errInfoComplementaria != nil || resultadoInfoComeplementaria["Status"] == "404" || resultadoInfoComeplementaria["Message"] != nil {
+				alertas = append(alertas, resultadoInfoComeplementaria)
+				alerta.Type = "error"
+				alerta.Code = "400"
+				alerta.Body = alertas
+				c.Data["json"] = alerta
+				c.ServeJSON()
+			} else {
+				fmt.Println("Info complementaria registrada", dato["InfoComplementariaId"])
+				// alertas = append(alertas, Transferencia)
+			}
+		}
+
+	} else {
+		alerta.Type = "error"
+		alerta.Code = "400"
+		alertas = append(alertas, err.Error())
+		alerta.Body = alertas
+		c.Data["json"] = alerta
+		c.ServeJSON()
+	}
+	alerta.Body = alertas
+	c.Data["json"] = alerta
 	c.ServeJSON()
 }
