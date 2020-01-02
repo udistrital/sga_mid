@@ -745,6 +745,23 @@
                 }
             }
         },
+        "/inscripciones/info_complementaria_tercero/{persona_id}": {
+            "get": {
+                "tags": [
+                    "inscripciones"
+                ],
+                "description": "consultar la información complementaria del tercero",
+                "operationId": "InscripcionesController.GetInfoComplementariaTercero",
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
         "/inscripciones/info_complementaria_universidad": {
             "post": {
                 "tags": [
