@@ -18,7 +18,7 @@ type DescuentoController struct {
 func (c *DescuentoController) URLMapping() {
 	c.Mapping("PostDescuentoAcademico", c.PostDescuentoAcademico)
 	// c.Mapping("PutDescuentoAcademico", c.PutDescuentoAcademico)
-	// c.Mapping("GetDescuentoAcademico", c.GetDescuentoAcademico)
+	c.Mapping("GetDescuentoAcademico", c.GetDescuentoAcademico)
 	c.Mapping("GetDescuentoAcademicoByPersona", c.GetDescuentoAcademicoByPersona)
 	// c.Mapping("GetDescuentoByDependenciaPeriodo", c.GetDescuentoByDependenciaPeriodo)
 	c.Mapping("GetDescuentoByPersonaPeriodoDependencia", c.GetDescuentoByPersonaPeriodoDependencia)
@@ -199,6 +199,7 @@ func (c *DescuentoController) PutDescuentoAcademico() {
 	}
 	c.ServeJSON()
 }
+*/
 
 // GetDescuentoAcademico ...
 // @Title GetDescuentoAcademico
@@ -312,7 +313,7 @@ func (c *DescuentoController) GetDescuentoAcademico() {
 	}
 	c.ServeJSON()
 }
-*/ 
+
 // GetDescuentoAcademicoByPersona ...
 // @Title GetDescuentoAcademicoByPersona
 // @Description consultar Descuento Academico por userid
