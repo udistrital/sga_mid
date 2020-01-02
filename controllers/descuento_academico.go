@@ -17,14 +17,12 @@ type DescuentoController struct {
 // URLMapping ...
 func (c *DescuentoController) URLMapping() {
 	c.Mapping("PostDescuentoAcademico", c.PostDescuentoAcademico)
-	/*
-	c.Mapping("PutDescuentoAcademico", c.PutDescuentoAcademico)
-	c.Mapping("GetDescuentoAcademico", c.GetDescuentoAcademico)
+	// c.Mapping("PutDescuentoAcademico", c.PutDescuentoAcademico)
+	// c.Mapping("GetDescuentoAcademico", c.GetDescuentoAcademico)
 	c.Mapping("GetDescuentoAcademicoByPersona", c.GetDescuentoAcademicoByPersona)
-	c.Mapping("GetDescuentoByDependenciaPeriodo", c.GetDescuentoByDependenciaPeriodo)
+	// c.Mapping("GetDescuentoByDependenciaPeriodo", c.GetDescuentoByDependenciaPeriodo)
 	c.Mapping("GetDescuentoByPersonaPeriodoDependencia", c.GetDescuentoByPersonaPeriodoDependencia)
-	c.Mapping("DeleteDescuentoAcademico", c.DeleteDescuentoAcademico)
-	*/
+	// c.Mapping("DeleteDescuentoAcademico", c.DeleteDescuentoAcademico)
 }
 
 // PostDescuentoAcademico ...
@@ -314,7 +312,7 @@ func (c *DescuentoController) GetDescuentoAcademico() {
 	}
 	c.ServeJSON()
 }
-
+*/ 
 // GetDescuentoAcademicoByPersona ...
 // @Title GetDescuentoAcademicoByPersona
 // @Description consultar Descuento Academico por userid
@@ -427,6 +425,7 @@ func (c *DescuentoController) GetDescuentoAcademicoByPersona() {
 	c.ServeJSON()
 }
 
+/*
 // GetDescuentoByDependenciaPeriodo ...
 // @Title GetDescuentoByDependenciaPeriodo
 // @Description consultar Descuento Academico por userid
@@ -493,6 +492,7 @@ func (c *DescuentoController) GetDescuentoByDependenciaPeriodo() {
 	c.ServeJSON()
 }
 
+*/
 // GetDescuentoByPersonaPeriodoDependencia ...
 // @Title GetDescuentoByPersonaPeriodoDependencia
 // @Description consultar Descuento Academico por userid
@@ -608,6 +608,7 @@ func (c *DescuentoController) GetDescuentoByPersonaPeriodoDependencia() {
 	c.ServeJSON()
 }
 
+/*
 // DeleteDescuentoAcademico ...
 // @Title DeleteDescuentoAcademico
 // @Description eliminar Descuento por id de la solicitud

@@ -309,6 +309,76 @@
                 }
             }
         },
+        "/descuento_academico/descuentopersonaperiododependencia/": {
+            "get": {
+                "tags": [
+                    "descuento_academico"
+                ],
+                "description": "consultar Descuento Academico por userid",
+                "operationId": "DescuentoController.GetDescuentoByPersonaPeriodoDependencia",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "PersonaId",
+                        "description": "Id de la persona",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "query",
+                        "name": "DependenciaId",
+                        "description": "Id de la dependencia",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "query",
+                        "name": "PeriodoId",
+                        "description": "Id del periodo académico",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/descuento_academico/{persona_id}": {
+            "get": {
+                "tags": [
+                    "descuento_academico"
+                ],
+                "description": "consultar Descuento Academico por userid",
+                "operationId": "DescuentoController.GetDescuentoAcademicoByPersona",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "persona_id",
+                        "description": "Id de la persona",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
         "/evento/": {
             "post": {
                 "tags": [
