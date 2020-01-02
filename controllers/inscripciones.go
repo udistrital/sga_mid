@@ -642,6 +642,35 @@ func (c *InscripcionesController) GetInfoComplementariaTercero() {
 		c.Abort("404")
 	}
 
+	// 52 = codigo postal	
+	var resultadoCodigoPostal []map[string]interface{}
+	errCodigoPostal := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=1&query=Activo:true,InfoComplementariaId__Id:52,TerceroId:" + persona_id, &resultadoCodigoPostal)
+	if errCodigoPostal == nil && fmt.Sprintf("%v", resultadoCodigoPostal[0]["System"]) != "map[]" {
+		if resultadoCodigoPostal[0]["Status"] != 404 && resultadoCodigoPostal[0]["Id"] != nil {
+			// unmarshall dato
+			var estratoJson map[string]interface{}
+			if err := json.Unmarshal([]byte(resultadoCodigoPostal[0]["Dato"].(string)), &estratoJson); err != nil { 
+				resultado["CodigoPostal"] = nil
+			} else {
+				resultado["CodigoPostal"] = estratoJson["value"]
+			}
+		} else {
+			if resultadoCodigoPostal[0]["Message"] == "Not found resource" {
+				c.Data["json"] = nil
+			} else {
+				logs.Error(resultadoCodigoPostal)
+				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+				c.Data["system"] = errCodigoPostal
+				c.Abort("404")
+			}
+		}
+	} else {
+		logs.Error(resultadoCodigoPostal)
+		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = resultadoCodigoPostal
+		c.Abort("404")
+	}
+
 
 	c.Data["json"] = resultado
 	c.ServeJSON()
