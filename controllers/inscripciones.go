@@ -702,6 +702,42 @@ func (c *InscripcionesController) GetInfoComplementariaTercero() {
 		c.Abort("404")
 	}
 
+	// 51 = direccion	
+	var resultadoDireccion []map[string]interface{}
+	errDireccion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=1&query=Activo:true,InfoComplementariaId__Id:51,TerceroId:" + persona_id, &resultadoDireccion)
+	if errDireccion == nil && fmt.Sprintf("%v", resultadoDireccion[0]["System"]) != "map[]" {
+		if resultadoDireccion[0]["Status"] != 404 && resultadoDireccion[0]["Id"] != nil {
+			// unmarshall dato
+			var estratoJson map[string]interface{}
+			if err := json.Unmarshal([]byte(resultadoDireccion[0]["Dato"].(string)), &estratoJson); err != nil { 
+				resultado["PaisResidencia"] = nil
+				resultado["DepartamentoResidencia"] = nil				
+				resultado["CiudadResidencia"] = nil				
+				resultado["DireccionResidencia"] = nil				
+			} else {
+				resultado["PaisResidencia"] = estratoJson["country"]
+				resultado["DepartamentoResidencia"] = estratoJson["deparment"]
+				resultado["CiudadResidencia"] = estratoJson["city"]
+				resultado["DireccionResidencia"] = estratoJson["address"]
+				
+			}
+		} else {
+			if resultadoDireccion[0]["Message"] == "Not found resource" {
+				c.Data["json"] = nil
+			} else {
+				logs.Error(resultadoDireccion)
+				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+				c.Data["system"] = errDireccion
+				c.Abort("404")
+			}
+		}
+	} else {
+		logs.Error(resultadoDireccion)
+		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = resultadoDireccion
+		c.Abort("404")
+	}
+
 
 	c.Data["json"] = resultado
 	c.ServeJSON()
