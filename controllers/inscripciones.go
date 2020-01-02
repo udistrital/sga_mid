@@ -671,6 +671,37 @@ func (c *InscripcionesController) GetInfoComplementariaTercero() {
 		c.Abort("404")
 	}
 
+	// 48 = telefono	
+	var resultadoTelefono []map[string]interface{}
+	errTelefono := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=1&query=Activo:true,InfoComplementariaId__Id:48,TerceroId:" + persona_id, &resultadoTelefono)
+	if errTelefono == nil && fmt.Sprintf("%v", resultadoTelefono[0]["System"]) != "map[]" {
+		if resultadoTelefono[0]["Status"] != 404 && resultadoTelefono[0]["Id"] != nil {
+			// unmarshall dato
+			var estratoJson map[string]interface{}
+			if err := json.Unmarshal([]byte(resultadoTelefono[0]["Dato"].(string)), &estratoJson); err != nil { 
+				resultado["Telefono"] = nil
+				resultado["TelefonoAlterno"] = nil
+			} else {
+				resultado["Telefono"] = estratoJson["principal"]
+				resultado["TelefonoAlterno"] = estratoJson["alterno"]
+			}
+		} else {
+			if resultadoTelefono[0]["Message"] == "Not found resource" {
+				c.Data["json"] = nil
+			} else {
+				logs.Error(resultadoTelefono)
+				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+				c.Data["system"] = errTelefono
+				c.Abort("404")
+			}
+		}
+	} else {
+		logs.Error(resultadoTelefono)
+		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = resultadoTelefono
+		c.Abort("404")
+	}
+
 
 	c.Data["json"] = resultado
 	c.ServeJSON()
