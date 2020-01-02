@@ -188,12 +188,13 @@ func (c *EventoController) GetEvento() {
 	fmt.Println("Get Evento")
 	personaId, _ := strconv.ParseFloat(persona, 64)
 	errEventos := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"/tr_evento/"+persona, &eventos)
-	if errEventos != nil {
+	if errEventos != nil || eventos[0]["CalendarioEvento"] == nil {
 		alertas = append(alertas, errEventos)
 		alerta.Body = alertas
 		alerta.Type = "error"
 		alerta.Code = "400"
 	} else {
+		fmt.Println("paso")
 		for _, evento := range eventos {
 
 			if evento["CalendarioEvento"] != nil {
