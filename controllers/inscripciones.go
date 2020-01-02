@@ -716,7 +716,7 @@ func (c *InscripcionesController) GetInfoComplementariaTercero() {
 				resultado["DireccionResidencia"] = nil				
 			} else {
 				resultado["PaisResidencia"] = estratoJson["country"]
-				resultado["DepartamentoResidencia"] = estratoJson["deparment"]
+				resultado["DepartamentoResidencia"] = estratoJson["department"]
 				resultado["CiudadResidencia"] = estratoJson["city"]
 				resultado["DireccionResidencia"] = estratoJson["address"]
 				
