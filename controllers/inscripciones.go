@@ -492,7 +492,7 @@ func (c *InscripcionesController) ConsultarProyectosEventos() {
 	erreVentos := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento/?query=EventoPadreId:"+idStr+"&limit=0", &EventosInscripcion)
 	if erreVentos == nil && fmt.Sprintf("%v", EventosInscripcion[0]["System"]) != "map[]" {
 		if EventosInscripcion[0]["Status"] != 404 {
-			resultado = EventosInscripcion
+
 			var Proyectos_academicos []map[string]interface{}
 			var Proyectos_academicos_Get []map[string]interface{}
 			for i := 0; i < len(EventosInscripcion); i++ {
@@ -504,7 +504,9 @@ func (c *InscripcionesController) ConsultarProyectosEventos() {
 					erreproyectos := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia/"+fmt.Sprintf("%v", proyectoacademico["DependenciaId"]), &ProyectosAcademicosConEvento)
 					if erreproyectos == nil && fmt.Sprintf("%v", ProyectosAcademicosConEvento["System"]) != "map[]" {
 						if ProyectosAcademicosConEvento["Status"] != 404 {
-
+							periodoevento := EventosInscripcion[i]["PeriodoId"]
+							fmt.Println(periodoevento)
+							ProyectosAcademicosConEvento["PeriodoId"] = map[string]interface{}{"Id": periodoevento}
 							Proyectos_academicos_Get = append(Proyectos_academicos_Get, ProyectosAcademicosConEvento)
 
 						} else {
