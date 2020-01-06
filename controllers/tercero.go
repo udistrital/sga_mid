@@ -90,7 +90,7 @@ func (c *TerceroController) GetByIdentificacion() {
 				errUbicacion := request.GetJson("http://"+beego.AppConfig.String("UbicacionesService")+"/lugar/?limit=1&query=Id:"+fmt.Sprintf("%v", resultado["LugarOrigen"].(float64)), &ubicacion)
 				// errUbicacion := request.GetJson("http://"+beego.AppConfig.String("UbicacionesService")+"/lugar/?limit=1&query=Id:1", &ubicacion)
 				// fmt.Println("la respuesta ubicacion es:", ubicacion)
-				// if errUbicacion == nil && fmt.Sprintf("%v", ubicacion[0]["System"]) != "map[]"  && ubicacion[0]["Id"] != nil {
+				// if errUbicacion == nil && fmt.Sprintf("%v", ubicacion[0]) != "map[]"  && ubicacion[0]["Id"] != nil {
 				if errUbicacion == nil && fmt.Sprintf("%v", ubicacion[0]) != "map[]" {
 					if ubicacion[0]["Status"] != 404 {
 						resultado["Ubicacion"] = ubicacion[0]

@@ -64,7 +64,7 @@ func (c *PersonaController) GuardarPersona() {
 
 		errPersona := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero", "POST", &terceroPost, guardarpersona)
 		fmt.Println("ruta", "http://"+beego.AppConfig.String("TercerosService")+"/tercero")
-		if errPersona == nil && fmt.Sprintf("%v", terceroPost["System"]) != "map[]" && terceroPost["Id"] != nil {
+		if errPersona == nil && fmt.Sprintf("%v", terceroPost) != "map[]" && terceroPost["Id"] != nil {
 			// fmt.Println("PAso el primer if ")
 			if terceroPost["Status"] != 400 {
 				// fmt.Println("PAso el segundo if ")
@@ -93,7 +93,7 @@ func (c *PersonaController) GuardarPersona() {
 				//c.Data["json"] = identificaciontercero
 				// formatdata.JsonPrint(identificaciontercero)
 				errIdentificacion := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/datos_identificacion", "POST", &identificacion, identificaciontercero)
-				if errIdentificacion == nil && fmt.Sprintf("%v", identificacion["System"]) != "map[]" && identificacion["Id"] != nil {
+				if errIdentificacion == nil && fmt.Sprintf("%v", identificacion) != "map[]" && identificacion["Id"] != nil {
 					if identificacion["Status"] != 400 {
 						//c.Data["json"] = identificacion
 						// fmt.Println("PAso identificacion ")
@@ -110,7 +110,7 @@ func (c *PersonaController) GuardarPersona() {
 						// c.Data["json"] = estadociviltercero
 
 						errEstado := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &estado, estadociviltercero)
-						if errEstado == nil && fmt.Sprintf("%v", estado["System"]) != "map[]" && estado["Id"] != nil {
+						if errEstado == nil && fmt.Sprintf("%v", estado) != "map[]" && estado["Id"] != nil {
 							if estado["Status"] != 400 {
 								c.Data["json"] = estado
 								// fmt.Println("PAso estado ")
@@ -127,7 +127,7 @@ func (c *PersonaController) GuardarPersona() {
 								}
 								//c.Data["json"] = generotercero
 								errGenero := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &genero, generotercero)
-								if errGenero == nil && fmt.Sprintf("%v", genero["System"]) != "map[]" && genero["Id"] != nil {
+								if errGenero == nil && fmt.Sprintf("%v", genero) != "map[]" && genero["Id"] != nil {
 									if genero["Status"] != 400 {
 										// fmt.Println("Paso genero ")
 										//formatdata.JsonPrint(identificacion)
@@ -249,7 +249,7 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 		// c.Data["json"] = grupoEtnico
 
 		errGrupoEtnicoPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &grupoEtnicoPost, grupoEtnico)
-		if errGrupoEtnicoPost == nil && fmt.Sprintf("%v", grupoEtnicoPost["System"]) != "map[]" && grupoEtnicoPost["Id"] != nil {
+		if errGrupoEtnicoPost == nil && fmt.Sprintf("%v", grupoEtnicoPost) != "map[]" && grupoEtnicoPost["Id"] != nil {
 			if grupoEtnicoPost["Status"] != 400 {
 
 				var grupoSanguineoPost map[string]interface{}
@@ -266,7 +266,7 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 				// formatdata.JsonPrint(grupoSanguineo)
 
 				errGrupoSanguineoPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &grupoSanguineoPost, grupoSanguineo)
-				if errGrupoSanguineoPost == nil && fmt.Sprintf("%v", grupoSanguineoPost["System"]) != "map[]" && grupoSanguineoPost["Id"] != nil {
+				if errGrupoSanguineoPost == nil && fmt.Sprintf("%v", grupoSanguineoPost) != "map[]" && grupoSanguineoPost["Id"] != nil {
 					if grupoSanguineoPost["Status"] != 400 {
 
 						var FactorRhPost map[string]interface{}
@@ -281,7 +281,7 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 						}
 
 						errFactorRhPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &FactorRhPost, factorRh)
-						if errFactorRhPost == nil && fmt.Sprintf("%v", FactorRhPost["System"]) != "map[]" && FactorRhPost["Id"] != nil {
+						if errFactorRhPost == nil && fmt.Sprintf("%v", FactorRhPost) != "map[]" && FactorRhPost["Id"] != nil {
 							if FactorRhPost["Status"] != 400 {
 
 								c.Data["json"] = FactorRhPost
@@ -290,7 +290,7 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 								terceroget["LugarOrigen"] = tercero["Lugar"].(map[string]interface{})["Id"].(float64)
 
 								errLugarPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+fmt.Sprintf("%.f", tercero["Tercero"].(float64)), "PUT", &LugarPost, terceroget)
-								if errLugarPost == nil && fmt.Sprintf("%v", LugarPost["System"]) != "map[]" && LugarPost["Id"] != nil {
+								if errLugarPost == nil && fmt.Sprintf("%v", LugarPost) != "map[]" && LugarPost["Id"] != nil {
 									if LugarPost["Status"] != 400 {
 										// c.Data["json"] = LugarPost
 										fmt.Println(("ksdfksdfkksdfgkdfgkldfgkldfkl"))
@@ -304,7 +304,7 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 										}
 
 										errEPSPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/seguridad_social_tercero", "POST", &EPSPost, EPS)
-										if errEPSPost == nil && fmt.Sprintf("%v", EPSPost["System"]) != "map[]" && EPSPost["Id"] != nil {
+										if errEPSPost == nil && fmt.Sprintf("%v", EPSPost) != "map[]" && EPSPost["Id"] != nil {
 											if EPSPost["Status"] != 400 {
 												var NumHermanosPost map[string]interface{}
 												fmt.Println(("eps"))
@@ -319,7 +319,7 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 												}
 												formatdata.JsonPrint(NumHerm)
 												errNUMHERMPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &NumHermanosPost, NumHerm)
-												if errNUMHERMPost == nil && fmt.Sprintf("%v", NumHermanosPost["System"]) != "map[]" && NumHermanosPost["Id"] != nil {
+												if errNUMHERMPost == nil && fmt.Sprintf("%v", NumHermanosPost) != "map[]" && NumHermanosPost["Id"] != nil {
 													if NumHermanosPost["Status"] != 400 {
 														fmt.Println(("hermano"))
 														var PuntajeSisbenPost map[string]interface{}
@@ -335,7 +335,7 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 														}
 
 														errPuntSisPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &PuntajeSisbenPost, PunSis)
-														if errPuntSisPost == nil && fmt.Sprintf("%v", PuntajeSisbenPost["System"]) != "map[]" && PuntajeSisbenPost["Id"] != nil {
+														if errPuntSisPost == nil && fmt.Sprintf("%v", PuntajeSisbenPost) != "map[]" && PuntajeSisbenPost["Id"] != nil {
 															if PuntajeSisbenPost["Status"] != 400 {
 																fmt.Println(("puntos"))
 																discapacidades := tercero["TipoDiscapacidad"].([]interface{})
@@ -351,7 +351,7 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 																	}
 																	fmt.Println(("for"))
 																	errDiscapacidadPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &discapacidadPost, nuevadiscapacidad)
-																	if errDiscapacidadPost == nil && fmt.Sprintf("%v", discapacidadPost["System"]) != "map[]" && discapacidadPost["Id"] != nil {
+																	if errDiscapacidadPost == nil && fmt.Sprintf("%v", discapacidadPost) != "map[]" && discapacidadPost["Id"] != nil {
 																		if discapacidadPost["Status"] != 400 {
 																			fmt.Println(("discapidad"))
 																			// 		fmt.Println("El nueva discapacidad es: " + fmt.Sprintf("%v", discapacidadPost))
@@ -635,7 +635,7 @@ func (c *PersonaController) GuardarDatosContacto() {
 		}
 		// formatdata.JsonPrint(estrato)
 		errEstrato := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &EstratoPost, estrato)
-		if errEstrato == nil && fmt.Sprintf("%v", EstratoPost["System"]) != "map[]" && EstratoPost["Id"] != nil {
+		if errEstrato == nil && fmt.Sprintf("%v", EstratoPost) != "map[]" && EstratoPost["Id"] != nil {
 
 			if EstratoPost["Status"] != 400 {
 				fmt.Println("Estrato")
@@ -653,7 +653,7 @@ func (c *PersonaController) GuardarDatosContacto() {
 				}
 				//formatdata.JsonPrint(codigopostaltercero)
 				errCodigoPostal := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &codigopostalPost, codigopostaltercero)
-				if errCodigoPostal == nil && fmt.Sprintf("%v", codigopostalPost["System"]) != "map[]" && codigopostalPost["Id"] != nil {
+				if errCodigoPostal == nil && fmt.Sprintf("%v", codigopostalPost) != "map[]" && codigopostalPost["Id"] != nil {
 					if codigopostalPost["Status"] != 400 {
 						fmt.Println("CodigoPostal")
 						// Telefono
@@ -667,7 +667,7 @@ func (c *PersonaController) GuardarDatosContacto() {
 						}
 
 						errTelefono := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &telefonoPost, telefonotercero)
-						if errTelefono == nil && fmt.Sprintf("%v", telefonoPost["System"]) != "map[]" && telefonoPost["Id"] != nil {
+						if errTelefono == nil && fmt.Sprintf("%v", telefonoPost) != "map[]" && telefonoPost["Id"] != nil {
 							if telefonoPost["Status"] != 400 {
 								fmt.Println("Telefono")
 								// Telefono alternativo
@@ -681,7 +681,7 @@ func (c *PersonaController) GuardarDatosContacto() {
 								}
 
 								errTelefonoAlterno := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &telefonoalternativoPost, telefonoalternativotercero)
-								if errTelefonoAlterno == nil && fmt.Sprintf("%v", telefonoalternativoPost["System"]) != "map[]" && telefonoalternativoPost["Id"] != nil {
+								if errTelefonoAlterno == nil && fmt.Sprintf("%v", telefonoalternativoPost) != "map[]" && telefonoalternativoPost["Id"] != nil {
 
 									if telefonoalternativotercero["Status"] != 400 {
 										fmt.Println("Telefono alterno")
@@ -696,7 +696,7 @@ func (c *PersonaController) GuardarDatosContacto() {
 										}
 
 										errLugarResidencia := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &lugarresidenciaPost, lugarresidenciatercero)
-										if errLugarResidencia == nil && fmt.Sprintf("%v", lugarresidenciaPost["System"]) != "map[]" && lugarresidenciaPost["Id"] != nil {
+										if errLugarResidencia == nil && fmt.Sprintf("%v", lugarresidenciaPost) != "map[]" && lugarresidenciaPost["Id"] != nil {
 											if lugarresidenciatercero["Status"] != 400 {
 												fmt.Println("Residencia")
 												// Direccion de residencia
@@ -712,7 +712,7 @@ func (c *PersonaController) GuardarDatosContacto() {
 												}
 
 												errDireccion := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &direccionPost, direcciontercero)
-												if errDireccion == nil && fmt.Sprintf("%v", direccionPost["System"]) != "map[]" && direccionPost["Id"] != nil {
+												if errDireccion == nil && fmt.Sprintf("%v", direccionPost) != "map[]" && direccionPost["Id"] != nil {
 													if direcciontercero["Status"] != 400 {
 														fmt.Println("Direccion")
 														// Estrato de quien costea
@@ -726,7 +726,7 @@ func (c *PersonaController) GuardarDatosContacto() {
 														}
 
 														errEstratoResponsable := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &estratoquiencosteaPost, estratoquiencosteatercero)
-														if errEstratoResponsable == nil && fmt.Sprintf("%v", estratoquiencosteaPost["System"]) != "map[]" && estratoquiencosteaPost["Id"] != nil {
+														if errEstratoResponsable == nil && fmt.Sprintf("%v", estratoquiencosteaPost) != "map[]" && estratoquiencosteaPost["Id"] != nil {
 															if estratoquiencosteatercero["Status"] != 400 {
 																fmt.Println("Responsable")
 																// Correo electronico tercero
@@ -743,7 +743,7 @@ func (c *PersonaController) GuardarDatosContacto() {
 																}
 
 																errCorreo := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &correoelectronicoPost, correoelectronicotercero)
-																if errCorreo == nil && fmt.Sprintf("%v", correoelectronicoPost["System"]) != "map[]" && correoelectronicoPost["Id"] != nil {
+																if errCorreo == nil && fmt.Sprintf("%v", correoelectronicoPost) != "map[]" && correoelectronicoPost["Id"] != nil {
 																	if correoelectronicotercero["Status"] != 400 {
 																		// Resultado final
 																		fmt.Println("Correo")
@@ -1532,7 +1532,7 @@ func (c *PersonaController) ConsultarDatosFamiliar() {
 			}
 			var relacionfamiliar []map[string]interface{}
 			errrelacionfamiliar := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero_familiar/?query=TerceroId.Id:"+idStr, &relacionfamiliar)
-			if errrelacionfamiliar == nil && fmt.Sprintf("%v", relacionfamiliar[0]["System"]) != "map[]" {
+			if errrelacionfamiliar == nil && fmt.Sprintf("%v", relacionfamiliar[0]) != "map[]" {
 				if relacionfamiliar[0]["Status"] != 404 {
 
 					// formatdata.JsonPrint(correofamiliar)
@@ -1604,7 +1604,7 @@ func (c *PersonaController) ConsultarDatosFormacionPregrado() {
 			resultado["Valido"] = personaInscrita[0]["Valido"]
 			var NumeroSemestre []map[string]interface{}
 			errNumeroSemestre := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/?query=TerceroId.Id:"+idStr+",InfoComplementariaId.Id:67", &NumeroSemestre)
-			if errNumeroSemestre == nil && fmt.Sprintf("%v", NumeroSemestre[0]["System"]) != "map[]" {
+			if errNumeroSemestre == nil && fmt.Sprintf("%v", NumeroSemestre[0]) != "map[]" {
 				if NumeroSemestre[0]["Status"] != 404 {
 					resultado["numeroSemestres"] = NumeroSemestre[0]
 
