@@ -490,7 +490,7 @@ func (c *InscripcionesController) ConsultarProyectosEventos() {
 	var EventosInscripcion []map[string]interface{}
 
 	erreVentos := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento/?query=EventoPadreId:"+idStr+"&limit=0", &EventosInscripcion)
-	if erreVentos == nil && fmt.Sprintf("%v", EventosInscripcion[0]["System"]) != "map[]" {
+	if erreVentos == nil && fmt.Sprintf("%v", EventosInscripcion[0]) != "map[]" {
 		if EventosInscripcion[0]["Status"] != 404 {
 
 			var Proyectos_academicos []map[string]interface{}
@@ -502,7 +502,7 @@ func (c *InscripcionesController) ConsultarProyectosEventos() {
 					var ProyectosAcademicosConEvento map[string]interface{}
 
 					erreproyectos := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia/"+fmt.Sprintf("%v", proyectoacademico["DependenciaId"]), &ProyectosAcademicosConEvento)
-					if erreproyectos == nil && fmt.Sprintf("%v", ProyectosAcademicosConEvento["System"]) != "map[]" {
+					if erreproyectos == nil && fmt.Sprintf("%v", ProyectosAcademicosConEvento) != "map[]" {
 						if ProyectosAcademicosConEvento["Status"] != 404 {
 							periodoevento := EventosInscripcion[i]["PeriodoId"]
 							fmt.Println(periodoevento)
@@ -549,7 +549,7 @@ func (c *InscripcionesController) ConsultarProyectosEventos() {
 		c.Data["system"] = erreVentos
 		c.Abort("404")
 	}
-  c.ServeJSON()
+	c.ServeJSON()
 }
 
 // PostInfoComplementariaTercero ...
@@ -560,7 +560,7 @@ func (c *InscripcionesController) ConsultarProyectosEventos() {
 // @Failure 403 body is empty
 // @router /info_complementaria_tercero [post]
 func (c *InscripcionesController) PostInfoComplementariaTercero() {
-	
+
 	var InfoComplementaria map[string]interface{}
 	var alerta models.Alert
 	alertas := append([]interface{}{"Response:"})
