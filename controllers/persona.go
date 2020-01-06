@@ -1421,7 +1421,8 @@ func (c *PersonaController) ConsultarDatosFamiliar() {
 	var persona []map[string]interface{}
 	fmt.Println("http://" + beego.AppConfig.String("TercerosService") + "/tercero_familiar/?query=TerceroId.Id:" + idStr + "&fields=TerceroFamiliarId")
 	errPersona := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero_familiar/?query=TerceroId.Id:"+idStr+"&fields=TerceroFamiliarId", &persona)
-	if errPersona == nil && fmt.Sprintf("%v", persona[0]["System"]) != "map[]" {
+	if errPersona == nil && fmt.Sprintf("%v", persona[0]) != "map[]" {
+		fmt.Println(persona[0])
 		if persona[0]["Status"] != 404 {
 			resultado = map[string]interface{}{"Principal": persona[0], "Alterno": persona[1]}
 			// formatdata.JsonPrint(persona)
@@ -1574,10 +1575,7 @@ func (c *PersonaController) ConsultarDatosFamiliar() {
 			}
 		}
 	} else {
-		logs.Error(persona)
-		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-		c.Data["system"] = errPersona
-		c.Abort("404")
+		c.Data["json"] = map[string]interface{}{}
 	}
 	c.ServeJSON()
 }
