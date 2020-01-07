@@ -504,7 +504,7 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 				errPrograma := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_institucion/?query=Id:"+
 					fmt.Sprintf("%v", formacion[u]["Titulacion"]), &programa)
 				if errPrograma == nil && fmt.Sprintf("%v", programa[0]["System"]) != "map[]" {
-					if programa[0]["Status"] != 404 && formacion[0]["Id"] != nil {
+					if programa[0]["Status"] != 404 && programa[0]["Id"] != nil {
 						//resultado institucion
 						var institucion []map[string]interface{}
 						formacion[u]["Titulacion"] = programa[0]
