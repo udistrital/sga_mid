@@ -11,6 +11,24 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
 basePath: /v1
 paths:
+  /admision/:
+    post:
+      tags:
+      - admision
+      description: Agregar CriterioIcfes
+      operationId: AdmisionController.PostCriterioIcfes
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar CriterioIcfes content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
   /archivo_icfes/:
     post:
       tags:
@@ -1046,3 +1064,6 @@ tags:
 - name: descuento_academico
   description: |
     DescuentoController ...
+- name: admision
+  description: |
+    AdmisionController ...
