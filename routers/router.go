@@ -88,6 +88,11 @@ func init() {
 				&controllers.DescuentoController{},
 			),
 		),
+		beego.NSNamespace("/admision",
+			beego.NSInclude(
+				&controllers.AdmisionController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
