@@ -15,6 +15,34 @@
     },
     "basePath": "/v1",
     "paths": {
+        "/admision/": {
+            "post": {
+                "tags": [
+                    "admision"
+                ],
+                "description": "Agregar CriterioIcfes",
+                "operationId": "AdmisionController.PostCriterioIcfes",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar CriterioIcfes content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
         "/archivo_icfes/": {
             "post": {
                 "tags": [
@@ -1573,6 +1601,10 @@
         {
             "name": "descuento_academico",
             "description": "DescuentoController ...\n"
+        },
+        {
+            "name": "admision",
+            "description": "AdmisionController ...\n"
         }
     ]
 }
