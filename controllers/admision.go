@@ -71,7 +71,6 @@ func (c *AdmisionController) PostCriterioIcfes() {
 						alertas = append(alertas, resultadoPutcriterio)
 						alerta.Type = "error"
 						alerta.Code = "400"
-						fmt.Println("1")
 					} else {
 						fmt.Println("Registro  PUT de criterios bien")
 					}
