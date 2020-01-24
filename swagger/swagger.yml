@@ -36,12 +36,11 @@ paths:
       description: Agregar ArchivoIcfes
       operationId: ArchivoIcfesController.PostArchivoIcfes
       parameters:
-      - in: body
-        name: body
+      - in: formData
+        name: archivo_icfes
         description: body Agregar ArchivoIcfes content
         required: true
-        schema:
-          $ref: '#/definitions/{}'
+        type: file
       responses:
         "200":
           description: '{}'
