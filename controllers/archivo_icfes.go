@@ -2,9 +2,10 @@ package controllers
 
 import (
 	// "encoding/json"
-	"strconv"
 	"fmt"
 	"io/ioutil"
+	"strconv"
+
 	// "time"
 	"strings"
 
@@ -26,7 +27,7 @@ func (c *ArchivoIcfesController) URLMapping() {
 // PostArchivoIcfes ...
 // @Title PostArchivoIcfes
 // @Description Agregar ArchivoIcfes
-// @Param   body        body    {}  true        "body Agregar ArchivoIcfes content"
+// @Param   archivo_icfes	formData  file	true   "body Agregar ArchivoIcfes content"
 // @Success 200 {}
 // @Failure 403 body is empty
 // @router / [post]
@@ -35,10 +36,10 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 	var alerta models.Alert
 	alertas := append([]interface{}{"Response:"})
 	periodo_id := "1"
-	fmt.Println("name",c.GetString("name"))
-	fmt.Println("periodo",periodo_id)
-	multipartFile, _, err := c.GetFile("archivo_icfes") 
-	if (err != nil) {
+	fmt.Println("name", c.GetString("name"))
+	fmt.Println("periodo", periodo_id)
+	multipartFile, _, err := c.GetFile("archivo_icfes")
+	if err != nil {
 		fmt.Println("err reading multipartFile", err)
 		alerta.Type = "error"
 		alerta.Code = "400"
@@ -49,7 +50,7 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 		return
 	}
 	file, err := ioutil.ReadAll(multipartFile)
-	if (err != nil) {
+	if err != nil {
 		fmt.Println("err reading file", err)
 		alerta.Type = "error"
 		alerta.Code = "400"
@@ -60,9 +61,10 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 		return
 	}
 	lines := strings.Split(strings.Replace(string(file), "\r\n", "\n", -1), "\n")
+	fmt.Println(lines)
 	//Probando que el archivo tenga el contenido necesario
 	if len(lines) < 2 {
-		fmt.Println("err in file content")
+		fmt.Println("err in file content lentg")
 		alerta.Type = "error"
 		alerta.Code = "400"
 		alertas = append(alertas, "err in file content")
@@ -71,7 +73,7 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 		c.ServeJSON()
 		return
 	}
-	testHeaderFile := strings.Split(lines[0],",")[0]
+	testHeaderFile := strings.Split(lines[0], ",")[0]
 	if testHeaderFile != "CODREGSNP" {
 		fmt.Println("err in file content")
 		alerta.Type = "error"
@@ -83,7 +85,7 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 		return
 	}
 	lines = lines[1:] // remove first element
-	evaluacionesInscripcion := make([]map[string]interface{},0)
+	evaluacionesInscripcion := make([]map[string]interface{}, 0)
 	for _, line := range lines {
 		// 0 código ICFEs del estudianate
 		// 1 para nombre del estudiante
@@ -92,8 +94,8 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 		// 13 PSC
 		// 14 PCN
 		// 15 PIN
-		recordFields := strings.Split(line,",")
-		if (len(recordFields) > 1) {
+		recordFields := strings.Split(line, ",")
+		if len(recordFields) > 1 {
 			aspirante_codigo_icfes := recordFields[0]
 			aspirante_nombre := recordFields[1]
 			aspirante_puntajes := map[string]interface{}{
@@ -139,31 +141,31 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 								if criterioTemp["RequisitoId"] != nil {
 									criterio := criterioTemp["RequisitoId"].(map[string]interface{})
 									// fmt.Println("criterio", criterio);
-									fmt.Println("inscripcion",aspirante_codigo_icfes,criterio["CodigoAbreviacion"],aspirante_puntajes[criterio["CodigoAbreviacion"].(string)]);
-									notaFinal, _ := strconv.ParseFloat(aspirante_puntajes[criterio["CodigoAbreviacion"].(string)].(string),64)
+									fmt.Println("inscripcion", aspirante_codigo_icfes, criterio["CodigoAbreviacion"], aspirante_puntajes[criterio["CodigoAbreviacion"].(string)])
+									notaFinal, _ := strconv.ParseFloat(aspirante_puntajes[criterio["CodigoAbreviacion"].(string)].(string), 64)
 									evaluacionesInscripcion = append(evaluacionesInscripcion, map[string]interface{}{
-										"Id": 0,
-										"InscripcionId": inscripcion["Id"],
-										"NotaFinal": notaFinal,
+										"Id":                           0,
+										"InscripcionId":                inscripcion["Id"],
+										"NotaFinal":                    notaFinal,
 										"RequisitoProgramaAcademicoId": criterio,
-										"Activo": true,
-									});
+										"Activo":                       true,
+									})
 								} else {
-									fmt.Println("no hay criterios para proyecto",proyecto_inscripcion,"para inscripcion",aspirante_codigo_icfes);
+									fmt.Println("no hay criterios para proyecto", proyecto_inscripcion, "para inscripcion", aspirante_codigo_icfes)
 								}
 							}
-						}	
+						}
 					} else {
-						fmt.Println("no hay inscripciones para ",aspirante_codigo_icfes);
+						fmt.Println("no hay inscripciones para ", aspirante_codigo_icfes)
 					}
 				}
-			}	
+			}
 		}
-	} 
+	}
 
 	// fmt.Println("evaluacionesInscripcion para registrar",evaluacionesInscripcion);
 	var resultadoArchivoIcfes map[string]interface{}
-	dataArchivoIcfes :=  map[string]interface{}{
+	dataArchivoIcfes := map[string]interface{}{
 		"EvaluacionesInscripcion": evaluacionesInscripcion,
 	}
 	errArchivoIcfes := request.SendJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"/tr_archivo_icfes", "POST", &resultadoArchivoIcfes, dataArchivoIcfes)
@@ -174,7 +176,7 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 	} else {
 		alertas = append(alertas, ArchivoIcfes)
 	}
-	
+
 	alerta.Body = alertas
 	c.Data["json"] = alerta
 	c.ServeJSON()
