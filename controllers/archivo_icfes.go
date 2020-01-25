@@ -242,7 +242,6 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 			// alertas = append(alertas, resultadoevaluacion)
 		}
 	}
-	fmt.Println("Ojoooo")
 	formatdata.JsonPrint(detallesEvaluacion)
 	for _, postdetalle := range detallesEvaluacion {
 		var resultadodetalle map[string]interface{}
