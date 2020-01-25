@@ -34,7 +34,7 @@ func (c *ArchivoIcfesController) URLMapping() {
 // @Failure 403 body is empty
 // @router / [post]
 func (c *ArchivoIcfesController) PostArchivoIcfes() {
-	// ArchivoIcfes := "Archivo procesado"
+	ArchivoIcfes := "Archivo procesado"
 	var alerta models.Alert
 	alertas := append([]interface{}{"Response:"})
 	periodo_id := "1"
@@ -63,7 +63,7 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 		return
 	}
 	lines := strings.Split(strings.Replace(string(file), "\r\n", "\n", -1), "\n")
-	fmt.Println(lines)
+	// fmt.Println(lines)
 	//Probando que el archivo tenga el contenido necesario
 	if len(lines) < 2 {
 		fmt.Println("err in file content lentg")
@@ -90,7 +90,7 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 	lines = lines[1:] // remove first element
 	evaluacionesInscripcion := make([]map[string]interface{}, 0)
 	detallesEvaluacion := make([]map[string]interface{}, 0)
-	fmt.Println(lines)
+	// fmt.Println(lines, len(lines))
 	for _, line := range lines {
 		// 0 código ICFEs del estudianate
 		// 1 para nombre del estudiante
@@ -100,8 +100,8 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 		// 14 PCN Ciencia Naturales
 		// 15 PIN Ingles
 		recordFields := strings.Split(line, ",")
-		fmt.Println("Separa")
-		fmt.Println(recordFields)
+		// fmt.Println("Separa")
+		// fmt.Println(recordFields)
 		if len(recordFields) > 1 {
 			aspirante_codigo_icfes := recordFields[0]
 			aspirante_nombre := recordFields[1]
@@ -132,7 +132,7 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 						// Extrae info de la inscripcion para saber el proyecto y la persona
 						inscripcion := inscripcionTemp["InscripcionId"].(map[string]interface{})
 						proyecto_inscripcion := inscripcion["ProgramaAcademicoId"]
-						fmt.Println("ProgramaAcademicoId", proyecto_inscripcion)
+						// fmt.Println("ProgramaAcademicoId", proyecto_inscripcion)
 						// cargar criterios de admisión con el proyecto dependiendo de la inscripcion
 						var criteriosRes []map[string]interface{}
 						// fmt.Println("url criterios", "http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"/requisito_programa_academico?limit=0&query=Activo:true,RequisitoId__Activo:true,PeriodoId:"+periodo_id+",ProgramaAcademicoId:"+fmt.Sprintf("%.f", proyecto_inscripcion))
@@ -144,22 +144,22 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 							alerta.Code = "400"
 							c.ServeJSON()
 						} else {
-							fmt.Println("criterios", criteriosRes)
-							formatdata.JsonPrint(criteriosRes)
+							// fmt.Println("criterios", criteriosRes)
+							// formatdata.JsonPrint(criteriosRes)
 							// si existe criterios para el proyecto del aspirante revisar desde aqui
 							//Revisar el for no es necesarios ps ya se maneja un solo criterio para los subcriterios
 							var porcentajes map[string]interface{}
 							for _, criterioTemp := range criteriosRes {
 								if criterioTemp["RequisitoId"] != nil {
-									fmt.Println("criterio")
-									formatdata.JsonPrint(criterioTemp["PorcentajeEspecifico"])
+									// fmt.Println("criterio")
+									// formatdata.JsonPrint(criterioTemp["PorcentajeEspecifico"])
 
 									if err := json.Unmarshal([]byte(criterioTemp["PorcentajeEspecifico"].(string)), &porcentajes); err != nil {
 										panic(err)
 									}
 
-									fmt.Println("salee")
-									formatdata.JsonPrint(aspirante_puntajes)
+									// fmt.Println("salee")
+									// formatdata.JsonPrint(aspirante_puntajes)
 									// Calculo de notas por su respectivo area y procentaje definido por carrera
 									//Matematicas
 									NotaMatematicas, _ := strconv.ParseFloat(aspirante_puntajes["PMA"].(string), 64)
@@ -203,7 +203,7 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 
 									detallesEvaluacion = append(detallesEvaluacion, map[string]interface{}{
 										"EvaluacionInscripcionId":      "viene del anterior",
-										"RequisitoProgramaAcademicoId": criteriosRes,
+										"RequisitoProgramaAcademicoId": map[string]interface{}{"Id": criteriosRes[0]["Id"].(float64)},
 										"NotaRequisito":                notaFinal,
 										"Activo":                       true,
 										"DetalleCalificacion":          requestBod,
@@ -211,31 +211,52 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 								} else {
 									fmt.Println("no hay criterios para proyecto", proyecto_inscripcion, "para inscripcion", aspirante_codigo_icfes)
 								}
+
 							}
-							formatdata.JsonPrint(evaluacionesInscripcion)
-							formatdata.JsonPrint(detallesEvaluacion)
+
 						}
+
 					} else {
 						fmt.Println("no hay inscripciones para ", aspirante_codigo_icfes)
 					}
+
 				}
+
 			}
 		}
+
 	}
 
-	// // fmt.Println("evaluacionesInscripcion para registrar",evaluacionesInscripcion);
-	// var resultadoArchivoIcfes map[string]interface{}
-	// dataArchivoIcfes := map[string]interface{}{
-	// 	"EvaluacionesInscripcion": evaluacionesInscripcion,
-	// }
-	// errArchivoIcfes := request.SendJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"/tr_archivo_icfes", "POST", &resultadoArchivoIcfes, dataArchivoIcfes)
-	// if resultadoArchivoIcfes["Type"] == "error" || errArchivoIcfes != nil || resultadoArchivoIcfes["Status"] == "404" || resultadoArchivoIcfes["Message"] != nil {
-	// 	alertas = append(alertas, resultadoArchivoIcfes)
-	// 	alerta.Type = "error"
-	// 	alerta.Code = "400"
-	// } else {
-	// 	alertas = append(alertas, ArchivoIcfes)
-	// }
+	formatdata.JsonPrint(evaluacionesInscripcion)
+
+	for i, postevaluacion := range evaluacionesInscripcion {
+		var resultadoevaluacion map[string]interface{}
+		errPostevaluacion := request.SendJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"/evaluacion_inscripcion", "POST", &resultadoevaluacion, postevaluacion)
+		if resultadoevaluacion["Type"] == "error" || errPostevaluacion != nil || resultadoevaluacion["Status"] == "404" || resultadoevaluacion["Message"] != nil {
+			alertas = append(alertas, resultadoevaluacion)
+			alerta.Type = "error"
+			alerta.Code = "400"
+		} else {
+			detallesEvaluacion[i]["EvaluacionInscripcionId"] = map[string]interface{}{"Id": resultadoevaluacion["Id"].(float64)}
+
+			// alertas = append(alertas, resultadoevaluacion)
+		}
+	}
+	fmt.Println("Ojoooo")
+	formatdata.JsonPrint(detallesEvaluacion)
+	for _, postdetalle := range detallesEvaluacion {
+		var resultadodetalle map[string]interface{}
+		errPostedetalle := request.SendJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"/detalle_evaluacion", "POST", &resultadodetalle, postdetalle)
+		if resultadodetalle["Type"] == "error" || errPostedetalle != nil || resultadodetalle["Status"] == "404" || resultadodetalle["Message"] != nil {
+			alertas = append(alertas, resultadodetalle)
+			alerta.Type = "error"
+			alerta.Code = "400"
+		} else {
+
+			alertas = append(alertas, ArchivoIcfes)
+		}
+
+	}
 
 	alerta.Body = alertas
 	c.Data["json"] = alerta
