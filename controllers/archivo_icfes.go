@@ -199,7 +199,13 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 									area3 := fmt.Sprintf("%v", TotalEspañol)
 									area4 := fmt.Sprintf("%v", TotalSociales)
 									area5 := fmt.Sprintf("%v", TotalIngles)
-									requestBod := "{\"Area1\": \"" + area1 + "\",\"Area2\": \"" + area2 + "\",\"Area3\": \"" + area3 + "\",\"Area4\": \"" + area4 + "\",\"Area5\": \"" + area5 + "\"}"
+									pma := fmt.Sprintf("%v", aspirante_puntajes["PMA"])
+									pcn := fmt.Sprintf("%v", aspirante_puntajes["PCN"])
+									plc := fmt.Sprintf("%v", aspirante_puntajes["PLC"])
+									pcs := fmt.Sprintf("%v", aspirante_puntajes["PSC"])
+									pin := fmt.Sprintf("%v", aspirante_puntajes["PIN"])
+
+									requestBod := "{\"Puntajes\":{\"PMA\": \"" + pma + "\", \"PCN\": \"" + pcn + "\", \"PLC\":\"" + plc + "\",\"PSC\": \"" + pcs + "\", \"PIN\": \"" + pin + "\" },\"Notas\":{\"Area1\": \"" + area1 + "\",\"Area2\": \"" + area2 + "\",\"Area3\": \"" + area3 + "\",\"Area4\": \"" + area4 + "\",\"Area5\": \"" + area5 + "\"}}"
 
 									detallesEvaluacion = append(detallesEvaluacion, map[string]interface{}{
 										"EvaluacionInscripcionId":      "viene del anterior",
