@@ -43,7 +43,7 @@
                 }
             }
         },
-        "/archivo_icfes/": {
+        "/archivo_icfes/{id}": {
             "post": {
                 "tags": [
                     "archivo_icfes"
@@ -51,6 +51,14 @@
                 "description": "Agregar ArchivoIcfes",
                 "operationId": "ArchivoIcfesController.PostArchivoIcfes",
                 "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "el id del periodo",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
                     {
                         "in": "formData",
                         "name": "archivo_icfes",
