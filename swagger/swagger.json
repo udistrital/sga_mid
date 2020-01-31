@@ -43,6 +43,34 @@
                 }
             }
         },
+        "/admision/consulta_puntaje": {
+            "post": {
+                "tags": [
+                    "admision"
+                ],
+                "description": "get PuntajeTotalCriteio by id_periodo and id_proyecto",
+                "operationId": "AdmisionController.GetPuntajeTotalByPeriodoByProyecto",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Get Puntaje total content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
         "/archivo_icfes/{id}": {
             "post": {
                 "tags": [

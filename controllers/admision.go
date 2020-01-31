@@ -20,6 +20,7 @@ type AdmisionController struct {
 // URLMapping ...
 func (c *AdmisionController) URLMapping() {
 	c.Mapping("PostCriterioIcfes", c.PostCriterioIcfes)
+	c.Mapping("GetPuntajeTotalByPeriodoByProyecto", c.GetPuntajeTotalByPeriodoByProyecto)
 }
 
 // PostCriterioIcfes ...
@@ -118,5 +119,102 @@ func (c *AdmisionController) PostCriterioIcfes() {
 	}
 	alerta.Body = alertas
 	c.Data["json"] = alerta
+	c.ServeJSON()
+}
+
+// ConsultarPuntajeTotalByPeriodoByProyecto ...
+// @Title GetPuntajeTotalByPeriodoByProyecto
+// @Description get PuntajeTotalCriteio by id_periodo and id_proyecto
+// @Param	body		body 	{}	true		"body for Get Puntaje total content"
+// @Success 201 {int}
+// @Failure 400 the request contains incorrect syntax
+// @router /consulta_puntaje [post]
+func (c *AdmisionController) GetPuntajeTotalByPeriodoByProyecto() {
+	var consulta map[string]interface{}
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &consulta); err == nil {
+
+		var resultado_puntaje []map[string]interface{}
+		errPuntaje := request.GetJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"detalle_evaluacion/?query=RequisitoProgramaAcademicoId.ProgramaAcademicoId:"+fmt.Sprintf("%v", consulta["Id_proyecto"])+",RequisitoProgramaAcademicoId.PeriodoId:"+fmt.Sprintf("%v", consulta["Id_periodo"]), &resultado_puntaje)
+
+		if errPuntaje == nil && fmt.Sprintf("%v", resultado_puntaje[0]) != "map[]" {
+			if resultado_puntaje[0]["Status"] != 404 {
+				// formatdata.JsonPrint(resultado_puntaje)
+				for i, resultado_tem := range resultado_puntaje {
+					id_inscripcion := (resultado_tem["EvaluacionInscripcionId"].(map[string]interface{})["InscripcionId"]).(float64)
+
+					var resultado_inscripcion map[string]interface{}
+					errGetInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion/"+fmt.Sprintf("%v", id_inscripcion), &resultado_inscripcion)
+					if errGetInscripcion == nil && fmt.Sprintf("%v", resultado_inscripcion) != "map[]" {
+						if resultado_inscripcion["Status"] != 404 {
+							id_persona := (resultado_inscripcion["PersonaId"]).(float64)
+
+							var resultado_persona map[string]interface{}
+							errGetPersona := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+fmt.Sprintf("%v", id_persona), &resultado_persona)
+							if errGetPersona == nil && fmt.Sprintf("%v", resultado_persona) != "map[]" {
+								if resultado_persona["Status"] != 404 {
+									fmt.Println(resultado_persona["NombreCompleto"])
+									resultado_puntaje[i]["NombreAspirante"] = resultado_persona["NombreCompleto"]
+								} else {
+									if resultado_persona["Message"] == "Not found resource" {
+										c.Data["json"] = nil
+									} else {
+										logs.Error(resultado_persona)
+										//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+										c.Data["system"] = errGetPersona
+										c.Abort("404")
+									}
+								}
+							} else {
+								logs.Error(resultado_persona)
+								//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+								c.Data["system"] = errGetPersona
+								c.Abort("404")
+
+							}
+						} else {
+							if resultado_inscripcion["Message"] == "Not found resource" {
+								c.Data["json"] = nil
+							} else {
+								logs.Error(resultado_inscripcion)
+								//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+								c.Data["system"] = errGetInscripcion
+								c.Abort("404")
+							}
+						}
+					} else {
+						logs.Error(resultado_inscripcion)
+						//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+						c.Data["system"] = errGetInscripcion
+						c.Abort("404")
+
+					}
+					c.Data["json"] = resultado_puntaje
+				}
+
+			} else {
+				if resultado_puntaje[0]["Message"] == "Not found resource" {
+					c.Data["json"] = nil
+				} else {
+					logs.Error(resultado_puntaje)
+					//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+					c.Data["system"] = errPuntaje
+					c.Abort("404")
+				}
+			}
+		} else {
+			logs.Error(resultado_puntaje)
+			//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+			c.Data["system"] = errPuntaje
+			c.Abort("404")
+
+		}
+
+	} else {
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("400")
+	}
 	c.ServeJSON()
 }
