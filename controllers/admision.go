@@ -153,8 +153,33 @@ func (c *AdmisionController) GetPuntajeTotalByPeriodoByProyecto() {
 							errGetPersona := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+fmt.Sprintf("%v", id_persona), &resultado_persona)
 							if errGetPersona == nil && fmt.Sprintf("%v", resultado_persona) != "map[]" {
 								if resultado_persona["Status"] != 404 {
-									fmt.Println(resultado_persona["NombreCompleto"])
 									resultado_puntaje[i]["NombreAspirante"] = resultado_persona["NombreCompleto"]
+									var resultado_documento []map[string]interface{}
+									errGetDocumento := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion/?query=TerceroId.Id:"+fmt.Sprintf("%v", id_persona), &resultado_documento)
+									if errGetDocumento == nil && fmt.Sprintf("%v", resultado_documento[0]) != "map[]" {
+										if resultado_documento[0]["Status"] != 404 {
+
+											resultado_puntaje[i]["TipoDocumento"] = resultado_documento[0]["TipoDocumentoId"].(map[string]interface{})["CodigoAbreviacion"]
+											resultado_puntaje[i]["NumeroDocumento"] = resultado_documento[0]["Numero"]
+										} else {
+											if resultado_documento[0]["Message"] == "Not found resource" {
+												c.Data["json"] = nil
+											} else {
+												logs.Error(resultado_documento[0])
+												//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+												c.Data["system"] = errGetDocumento
+												c.Abort("404")
+											}
+										}
+									} else {
+										logs.Error(resultado_documento[0])
+										//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+										c.Data["system"] = errGetDocumento
+										c.Abort("404")
+
+									}
+
+									//hh
 								} else {
 									if resultado_persona["Message"] == "Not found resource" {
 										c.Data["json"] = nil
