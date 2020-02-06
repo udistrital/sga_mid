@@ -71,6 +71,34 @@
                 }
             }
         },
+        "/admision/postcupos": {
+            "post": {
+                "tags": [
+                    "admision"
+                ],
+                "description": "Agregar PostCuposAdmision",
+                "operationId": "AdmisionController.PostCuposAdmision",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar PostCuposAdmision content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
         "/archivo_icfes/{id}": {
             "post": {
                 "tags": [

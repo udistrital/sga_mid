@@ -21,6 +21,7 @@ type AdmisionController struct {
 func (c *AdmisionController) URLMapping() {
 	c.Mapping("PostCriterioIcfes", c.PostCriterioIcfes)
 	c.Mapping("GetPuntajeTotalByPeriodoByProyecto", c.GetPuntajeTotalByPeriodoByProyecto)
+	c.Mapping("PostCuposAdmision", c.PostCuposAdmision)
 }
 
 // PostCriterioIcfes ...
@@ -241,5 +242,105 @@ func (c *AdmisionController) GetPuntajeTotalByPeriodoByProyecto() {
 		c.Data["system"] = err
 		c.Abort("400")
 	}
+	c.ServeJSON()
+}
+
+// PostCuposAdmision ...
+// @Title PostCuposAdmision
+// @Description Agregar PostCuposAdmision
+// @Param   body        body    {}  true        "body Agregar PostCuposAdmision content"
+// @Success 200 {}
+// @Failure 403 body is empty
+// @router /postcupos [post]
+func (c *AdmisionController) PostCuposAdmision() {
+	var CuposAdmision map[string]interface{}
+	var alerta models.Alert
+	alertas := append([]interface{}{"Response:"})
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &CuposAdmision); err == nil {
+
+		CuposProyectos := make([]map[string]interface{}, 0)
+		ComunidadesNegras := fmt.Sprintf("%v", CuposAdmision["CuposEspeciales"].(map[string]interface{})["ComunidadesNegras"])
+		DesplazadosVictimasConflicto := fmt.Sprintf("%v", CuposAdmision["CuposEspeciales"].(map[string]interface{})["DesplazadosVictimasConflicto"])
+		ComunidadesIndiginas := fmt.Sprintf("%v", CuposAdmision["CuposEspeciales"].(map[string]interface{})["ComunidadesIndiginas"])
+		MejorBachiller := fmt.Sprintf("%v", CuposAdmision["CuposEspeciales"].(map[string]interface{})["MejorBachiller"])
+		Ley1084 := fmt.Sprintf("%v", CuposAdmision["CuposEspeciales"].(map[string]interface{})["Ley1084"])
+		ProgramaReincorporacion := fmt.Sprintf("%v", CuposAdmision["CuposEspeciales"].(map[string]interface{})["ProgramaReincorporacion"])
+		requestBod := "{\"ComunidadesNegras\": \"" + ComunidadesNegras + "\",\"DesplazadosVictimasConflicto\": \"" + DesplazadosVictimasConflicto + "\",\"ComunidadesIndiginas\": \"" + ComunidadesIndiginas + "\",\"MejorBachiller\": \"" + MejorBachiller + "\",\"Ley1084\": \"" + Ley1084 + "\",\"ProgramaReincorporacion\": \"" + ProgramaReincorporacion + "\"}"
+
+		for i, cupoTemp := range CuposAdmision["Proyectos"].([]interface{}) {
+			cupoProyectos := cupoTemp.(map[string]interface{})
+
+			// // Verificar que no exista registro del cupo a cada proyecto
+			var cupos_existente []map[string]interface{}
+			errCupoExistente := request.GetJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"cupos_por_dependencia/?query=DependenciaId:"+fmt.Sprintf("%.f", cupoProyectos["Id"].(float64)), &cupos_existente)
+			if errCupoExistente == nil && fmt.Sprintf("%v", cupos_existente[0]) != "map[]" {
+				if cupos_existente[0]["Status"] != 404 {
+					fmt.Println("Existe cupos para el proyecto")
+					Id_cupo_existente := cupos_existente[0]["Id"]
+					fmt.Println(Id_cupo_existente)
+					CuposProyectos = append(CuposProyectos, map[string]interface{}{
+						"Activo":           true,
+						"PeriodoId":        CuposAdmision["Periodo"].(map[string]interface{})["Id"],
+						"CuposEspeciales":  requestBod,
+						"CuposHabilitados": CuposAdmision["CuposAsignados"],
+						"DependenciaId":    cupoProyectos["Id"],
+						"CuposOpcionados":  CuposAdmision["CuposOpcionados"],
+					})
+
+					// Put a cupo Existente
+
+					var resultadoPutcupo map[string]interface{}
+					errPutCriterio := request.SendJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"cupos_por_dependencia/"+fmt.Sprintf("%.f", Id_cupo_existente.(float64)), "PUT", &resultadoPutcupo, CuposProyectos[i])
+					if resultadoPutcupo["Type"] == "error" || errPutCriterio != nil || resultadoPutcupo["Status"] == "404" || resultadoPutcupo["Message"] != nil {
+						alertas = append(alertas, resultadoPutcupo)
+						alerta.Type = "error"
+						alerta.Code = "400"
+					} else {
+						fmt.Println("Registro  PUT de cupo bien")
+					}
+
+				} else {
+					if cupos_existente[0]["Message"] == "Not found resource" {
+						c.Data["json"] = nil
+					} else {
+
+						logs.Error(cupos_existente)
+						//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+						c.Data["system"] = errCupoExistente
+						c.Abort("404")
+					}
+				}
+			} else {
+				fmt.Println("No Existe cupo")
+				CuposProyectos = append(CuposProyectos, map[string]interface{}{
+					"Activo":           true,
+					"PeriodoId":        CuposAdmision["Periodo"].(map[string]interface{})["Id"],
+					"CuposEspeciales":  requestBod,
+					"CuposHabilitados": CuposAdmision["CuposAsignados"],
+					"DependenciaId":    cupoProyectos["Id"],
+					"CuposOpcionados":  CuposAdmision["CuposOpcionados"],
+				})
+
+				var resultadocupopost map[string]interface{}
+				errPostCupo := request.SendJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"cupos_por_dependencia", "POST", &resultadocupopost, CuposProyectos[i])
+				if resultadocupopost["Type"] == "error" || errPostCupo != nil || resultadocupopost["Status"] == "404" || resultadocupopost["Message"] != nil {
+					alertas = append(alertas, resultadocupopost)
+					alerta.Type = "error"
+					alerta.Code = "400"
+				} else {
+					fmt.Println("Registro de cupo bien")
+				}
+			}
+		}
+
+		alertas = append(alertas, CuposProyectos)
+
+	} else {
+		alerta.Type = "error"
+		alerta.Code = "400"
+		alertas = append(alertas, err.Error())
+	}
+	alerta.Body = alertas
+	c.Data["json"] = alerta
 	c.ServeJSON()
 }
