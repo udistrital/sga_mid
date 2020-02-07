@@ -29,6 +29,24 @@ paths:
           description: '{}'
         "403":
           description: body is empty
+  /admision/cambioestado:
+    post:
+      tags:
+      - admision
+      description: post cambioestadoaspirante by id_periodo and id_proyecto
+      operationId: AdmisionController.CambioEstadoAspiranteByPeriodoByProyecto
+      parameters:
+      - in: body
+        name: body
+        description: body for  post cambio estadocontent
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
   /admision/consulta_puntaje:
     post:
       tags:

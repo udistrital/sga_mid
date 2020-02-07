@@ -22,6 +22,7 @@ func (c *AdmisionController) URLMapping() {
 	c.Mapping("PostCriterioIcfes", c.PostCriterioIcfes)
 	c.Mapping("GetPuntajeTotalByPeriodoByProyecto", c.GetPuntajeTotalByPeriodoByProyecto)
 	c.Mapping("PostCuposAdmision", c.PostCuposAdmision)
+	c.Mapping("CambioEstadoAspiranteByPeriodoByProyecto", c.CambioEstadoAspiranteByPeriodoByProyecto)
 }
 
 // PostCriterioIcfes ...
@@ -342,5 +343,61 @@ func (c *AdmisionController) PostCuposAdmision() {
 	}
 	alerta.Body = alertas
 	c.Data["json"] = alerta
+	c.ServeJSON()
+}
+
+// CambioEstadoAspiranteByPeriodoByProyecto ...
+// @Title CambioEstadoAspiranteByPeriodoByProyecto
+// @Description post cambioestadoaspirante by id_periodo and id_proyecto
+// @Param   body        body    {}  true        "body for  post cambio estadocontent"
+// @Success 200 {}
+// @Failure 403 body is empty
+// @router /cambioestado [post]
+func (c *AdmisionController) CambioEstadoAspiranteByPeriodoByProyecto() {
+	var consultaestado map[string]interface{}
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &consultaestado); err == nil {
+		Id_periodo := consultaestado["Periodo"].(map[string]interface{})["Id"]
+		for i, proyectotemp := range consultaestado["Proyectos"].([]interface{}) {
+			EstadoProyectos := proyectotemp.(map[string]interface{})
+
+			fmt.Println(EstadoProyectos["Id"])
+			fmt.Println(Id_periodo)
+			fmt.Println(i)
+
+			var resultadocupo []map[string]interface{}
+			errCupo := request.GetJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"cupos_por_dependencia/?query=DependenciaId:"+fmt.Sprintf("%v", EstadoProyectos["Id"])+",PeriodoId:"+fmt.Sprintf("%v", Id_periodo), &resultadocupo)
+
+			if errCupo == nil && fmt.Sprintf("%v", resultadocupo[0]) != "map[]" {
+				if resultadocupo[0]["Status"] != 404 {
+					CuposHabilitados := resultadocupo[0]["CuposHabilitados"]
+					CuposOpcionados := resultadocupo[0]["CuposOpcionados"]
+					fmt.Println(CuposHabilitados)
+					fmt.Println(CuposOpcionados)
+				} else {
+					if resultadocupo[0]["Message"] == "Not found resource" {
+						c.Data["json"] = nil
+					} else {
+						logs.Error(resultadocupo)
+						//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+						c.Data["system"] = errCupo
+						c.Abort("404")
+					}
+				}
+			} else {
+				logs.Error(resultadocupo)
+				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+				c.Data["system"] = errCupo
+				c.Abort("404")
+
+			}
+		}
+
+	} else {
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("400")
+	}
 	c.ServeJSON()
 }
