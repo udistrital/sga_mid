@@ -5,6 +5,7 @@ import (
 
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
@@ -373,8 +374,8 @@ func (c *AdmisionController) CambioEstadoAspiranteByPeriodoByProyecto() {
 
 			if errCupo == nil && fmt.Sprintf("%v", resultadocupo[0]) != "map[]" {
 				if resultadocupo[0]["Status"] != 404 {
-					CuposHabilitados := resultadocupo[0]["CuposHabilitados"]
-					CuposOpcionados := resultadocupo[0]["CuposOpcionados"]
+					CuposHabilitados, _ := strconv.ParseInt(fmt.Sprintf("%v", resultadocupo[0]["CuposHabilitados"]), 10, 64)
+					CuposOpcionados, _ := strconv.ParseInt(fmt.Sprintf("%v", resultadocupo[0]["CuposOpcionados"]), 10, 64)
 					fmt.Println("CuposHabilitados")
 					fmt.Println(CuposHabilitados)
 					fmt.Println("CuposOpcionados")
@@ -386,6 +387,21 @@ func (c *AdmisionController) CambioEstadoAspiranteByPeriodoByProyecto() {
 						if resultadoaspirantenota[0]["Status"] != 404 {
 							fmt.Println("Json Consulta")
 							formatdata.JsonPrint(resultadoaspirantenota)
+							for e, estadotemp := range resultadoaspirantenota {
+								if e < (int(CuposHabilitados)) {
+									fmt.Println("Admitidos")
+									formatdata.JsonPrint(estadotemp["EvaluacionInscripcionId"])
+								}
+								if e >= int(CuposHabilitados) && e < (int(CuposHabilitados)+int(CuposOpcionados)) {
+									fmt.Println("Opcinados")
+									formatdata.JsonPrint(estadotemp["EvaluacionInscripcionId"])
+								}
+								if e >= (int(CuposHabilitados) + int(CuposOpcionados)) {
+									fmt.Println("No admitidos")
+									formatdata.JsonPrint(estadotemp["EvaluacionInscripcionId"])
+								}
+
+							}
 
 						} else {
 							if resultadoaspirantenota[0]["Message"] == "Not found resource" {
