@@ -9,6 +9,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
+	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 )
 
@@ -360,10 +361,12 @@ func (c *AdmisionController) CambioEstadoAspiranteByPeriodoByProyecto() {
 		Id_periodo := consultaestado["Periodo"].(map[string]interface{})["Id"]
 		for i, proyectotemp := range consultaestado["Proyectos"].([]interface{}) {
 			EstadoProyectos := proyectotemp.(map[string]interface{})
-
-			fmt.Println(EstadoProyectos["Id"])
-			fmt.Println(Id_periodo)
+			fmt.Println("Contador")
 			fmt.Println(i)
+			fmt.Println("Id Proycto")
+			fmt.Println(EstadoProyectos["Id"])
+			fmt.Println("Id periodo")
+			fmt.Println(Id_periodo)
 
 			var resultadocupo []map[string]interface{}
 			errCupo := request.GetJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"cupos_por_dependencia/?query=DependenciaId:"+fmt.Sprintf("%v", EstadoProyectos["Id"])+",PeriodoId:"+fmt.Sprintf("%v", Id_periodo), &resultadocupo)
@@ -372,8 +375,36 @@ func (c *AdmisionController) CambioEstadoAspiranteByPeriodoByProyecto() {
 				if resultadocupo[0]["Status"] != 404 {
 					CuposHabilitados := resultadocupo[0]["CuposHabilitados"]
 					CuposOpcionados := resultadocupo[0]["CuposOpcionados"]
+					fmt.Println("CuposHabilitados")
 					fmt.Println(CuposHabilitados)
+					fmt.Println("CuposOpcionados")
 					fmt.Println(CuposOpcionados)
+					// consulta id inscripcion y nota final para cada proyecto con periodo, organiza el array de forma de descendente por el campo nota final para organizar del mayor puntaje al menor
+					var resultadoaspirantenota []map[string]interface{}
+					errconsulta := request.GetJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"detalle_evaluacion/?query=RequisitoProgramaAcademicoId.ProgramaAcademicoId:"+fmt.Sprintf("%v", EstadoProyectos["Id"])+",RequisitoProgramaAcademicoId.PeriodoId:"+fmt.Sprintf("%v", Id_periodo)+"&limit=0&sortby=EvaluacionInscripcionId__NotaFinal&order=desc", &resultadoaspirantenota)
+					if errconsulta == nil && fmt.Sprintf("%v", resultadoaspirantenota[0]) != "map[]" {
+						if resultadoaspirantenota[0]["Status"] != 404 {
+							fmt.Println("Json Consulta")
+							formatdata.JsonPrint(resultadoaspirantenota)
+
+						} else {
+							if resultadoaspirantenota[0]["Message"] == "Not found resource" {
+								c.Data["json"] = nil
+							} else {
+								logs.Error(resultadoaspirantenota)
+								//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+								c.Data["system"] = errconsulta
+								c.Abort("404")
+							}
+						}
+					} else {
+						logs.Error(resultadoaspirantenota)
+						//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+						c.Data["system"] = errconsulta
+						c.Abort("404")
+
+					}
+
 				} else {
 					if resultadocupo[0]["Message"] == "Not found resource" {
 						c.Data["json"] = nil
