@@ -10,7 +10,6 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
-	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 )
 
@@ -357,17 +356,14 @@ func (c *AdmisionController) PostCuposAdmision() {
 // @router /cambioestado [post]
 func (c *AdmisionController) CambioEstadoAspiranteByPeriodoByProyecto() {
 	var consultaestado map[string]interface{}
+	EstadoActulizado := "Estados Actualizados"
+	var alerta models.Alert
+	alertas := append([]interface{}{"Response:"})
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &consultaestado); err == nil {
 		Id_periodo := consultaestado["Periodo"].(map[string]interface{})["Id"]
-		for i, proyectotemp := range consultaestado["Proyectos"].([]interface{}) {
+		for _, proyectotemp := range consultaestado["Proyectos"].([]interface{}) {
 			EstadoProyectos := proyectotemp.(map[string]interface{})
-			fmt.Println("Contador")
-			fmt.Println(i)
-			fmt.Println("Id Proycto")
-			fmt.Println(EstadoProyectos["Id"])
-			fmt.Println("Id periodo")
-			fmt.Println(Id_periodo)
 
 			var resultadocupo []map[string]interface{}
 			errCupo := request.GetJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"cupos_por_dependencia/?query=DependenciaId:"+fmt.Sprintf("%v", EstadoProyectos["Id"])+",PeriodoId:"+fmt.Sprintf("%v", Id_periodo), &resultadocupo)
@@ -376,29 +372,161 @@ func (c *AdmisionController) CambioEstadoAspiranteByPeriodoByProyecto() {
 				if resultadocupo[0]["Status"] != 404 {
 					CuposHabilitados, _ := strconv.ParseInt(fmt.Sprintf("%v", resultadocupo[0]["CuposHabilitados"]), 10, 64)
 					CuposOpcionados, _ := strconv.ParseInt(fmt.Sprintf("%v", resultadocupo[0]["CuposOpcionados"]), 10, 64)
-					fmt.Println("CuposHabilitados")
-					fmt.Println(CuposHabilitados)
-					fmt.Println("CuposOpcionados")
-					fmt.Println(CuposOpcionados)
 					// consulta id inscripcion y nota final para cada proyecto con periodo, organiza el array de forma de descendente por el campo nota final para organizar del mayor puntaje al menor
 					var resultadoaspirantenota []map[string]interface{}
 					errconsulta := request.GetJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"detalle_evaluacion/?query=RequisitoProgramaAcademicoId.ProgramaAcademicoId:"+fmt.Sprintf("%v", EstadoProyectos["Id"])+",RequisitoProgramaAcademicoId.PeriodoId:"+fmt.Sprintf("%v", Id_periodo)+"&limit=0&sortby=EvaluacionInscripcionId__NotaFinal&order=desc", &resultadoaspirantenota)
 					if errconsulta == nil && fmt.Sprintf("%v", resultadoaspirantenota[0]) != "map[]" {
 						if resultadoaspirantenota[0]["Status"] != 404 {
-							fmt.Println("Json Consulta")
-							formatdata.JsonPrint(resultadoaspirantenota)
+
 							for e, estadotemp := range resultadoaspirantenota {
 								if e < (int(CuposHabilitados)) {
-									fmt.Println("Admitidos")
-									formatdata.JsonPrint(estadotemp["EvaluacionInscripcionId"])
+
+									// Se realiza get a la informacion del inscrito
+									var resultadoaspiranteinscripcion map[string]interface{}
+									errinscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion/"+fmt.Sprintf("%v", estadotemp["EvaluacionInscripcionId"].(map[string]interface{})["InscripcionId"]), &resultadoaspiranteinscripcion)
+									if errinscripcion == nil && fmt.Sprintf("%v", resultadoaspiranteinscripcion) != "map[]" {
+										if resultadoaspiranteinscripcion["Status"] != 404 {
+
+											//Actualiza el estado de inscripcio id =2 = ADMITIDO
+											resultadoaspiranteinscripcion["EstadoInscripcionId"] = map[string]interface{}{"Id": 2}
+
+											var inscripcionPut map[string]interface{}
+											errInscripcionPut := request.SendJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion/"+fmt.Sprintf("%.f", estadotemp["EvaluacionInscripcionId"].(map[string]interface{})["InscripcionId"].(float64)), "PUT", &inscripcionPut, resultadoaspiranteinscripcion)
+											if errInscripcionPut == nil && fmt.Sprintf("%v", inscripcionPut) != "map[]" && inscripcionPut["Id"] != nil {
+												if inscripcionPut["Status"] != 400 {
+													fmt.Println("Put correcto Admitido")
+
+												} else {
+													var resultado2 map[string]interface{}
+													request.SendJson("http://"+beego.AppConfig.String("InscripcionService")+"/inscripcion/"+fmt.Sprintf("%v", estadotemp["EvaluacionInscripcionId"].(map[string]interface{})["InscripcionId"]), "DELETE", &resultado2, nil)
+													logs.Error(errInscripcionPut)
+													//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
+													c.Data["system"] = inscripcionPut
+													c.Abort("400")
+												}
+											} else {
+												logs.Error(errInscripcionPut)
+												//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+												c.Data["system"] = inscripcionPut
+												c.Abort("400")
+											}
+
+										} else {
+											if resultadoaspiranteinscripcion["Message"] == "Not found resource" {
+												c.Data["json"] = nil
+											} else {
+												logs.Error(resultadoaspiranteinscripcion)
+												//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+												c.Data["system"] = errinscripcion
+												c.Abort("404")
+											}
+										}
+									} else {
+										logs.Error(resultadoaspiranteinscripcion)
+										//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+										c.Data["system"] = errinscripcion
+										c.Abort("404")
+
+									}
+
 								}
 								if e >= int(CuposHabilitados) && e < (int(CuposHabilitados)+int(CuposOpcionados)) {
-									fmt.Println("Opcinados")
-									formatdata.JsonPrint(estadotemp["EvaluacionInscripcionId"])
+
+									var resultadoaspiranteinscripcion map[string]interface{}
+									errinscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion/"+fmt.Sprintf("%v", estadotemp["EvaluacionInscripcionId"].(map[string]interface{})["InscripcionId"]), &resultadoaspiranteinscripcion)
+									if errinscripcion == nil && fmt.Sprintf("%v", resultadoaspiranteinscripcion) != "map[]" {
+										if resultadoaspiranteinscripcion["Status"] != 404 {
+
+											//Actualiza el estado de inscripcio id =3 = OPCIONADO
+											resultadoaspiranteinscripcion["EstadoInscripcionId"] = map[string]interface{}{"Id": 3}
+
+											var inscripcionPut map[string]interface{}
+											errInscripcionPut := request.SendJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion/"+fmt.Sprintf("%.f", estadotemp["EvaluacionInscripcionId"].(map[string]interface{})["InscripcionId"].(float64)), "PUT", &inscripcionPut, resultadoaspiranteinscripcion)
+											if errInscripcionPut == nil && fmt.Sprintf("%v", inscripcionPut) != "map[]" && inscripcionPut["Id"] != nil {
+												if inscripcionPut["Status"] != 400 {
+													fmt.Println("Put correcto OPCIONADO")
+
+												} else {
+													var resultado2 map[string]interface{}
+													request.SendJson("http://"+beego.AppConfig.String("InscripcionService")+"/inscripcion/"+fmt.Sprintf("%v", estadotemp["EvaluacionInscripcionId"].(map[string]interface{})["InscripcionId"]), "DELETE", &resultado2, nil)
+													logs.Error(errInscripcionPut)
+													//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
+													c.Data["system"] = inscripcionPut
+													c.Abort("400")
+												}
+											} else {
+												logs.Error(errInscripcionPut)
+												//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+												c.Data["system"] = inscripcionPut
+												c.Abort("400")
+											}
+
+										} else {
+											if resultadoaspiranteinscripcion["Message"] == "Not found resource" {
+												c.Data["json"] = nil
+											} else {
+												logs.Error(resultadoaspiranteinscripcion)
+												//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+												c.Data["system"] = errinscripcion
+												c.Abort("404")
+											}
+										}
+									} else {
+										logs.Error(resultadoaspiranteinscripcion)
+										//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+										c.Data["system"] = errinscripcion
+										c.Abort("404")
+
+									}
 								}
 								if e >= (int(CuposHabilitados) + int(CuposOpcionados)) {
-									fmt.Println("No admitidos")
-									formatdata.JsonPrint(estadotemp["EvaluacionInscripcionId"])
+
+									var resultadoaspiranteinscripcion map[string]interface{}
+									errinscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion/"+fmt.Sprintf("%v", estadotemp["EvaluacionInscripcionId"].(map[string]interface{})["InscripcionId"]), &resultadoaspiranteinscripcion)
+									if errinscripcion == nil && fmt.Sprintf("%v", resultadoaspiranteinscripcion) != "map[]" {
+										if resultadoaspiranteinscripcion["Status"] != 404 {
+
+											//Actualiza el estado de inscripcio id =4 = NOADMITIDO
+											resultadoaspiranteinscripcion["EstadoInscripcionId"] = map[string]interface{}{"Id": 4}
+
+											var inscripcionPut map[string]interface{}
+											errInscripcionPut := request.SendJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion/"+fmt.Sprintf("%.f", estadotemp["EvaluacionInscripcionId"].(map[string]interface{})["InscripcionId"].(float64)), "PUT", &inscripcionPut, resultadoaspiranteinscripcion)
+											if errInscripcionPut == nil && fmt.Sprintf("%v", inscripcionPut) != "map[]" && inscripcionPut["Id"] != nil {
+												if inscripcionPut["Status"] != 400 {
+													fmt.Println("Put correcto NO ADMITIDO")
+
+												} else {
+													var resultado2 map[string]interface{}
+													request.SendJson("http://"+beego.AppConfig.String("InscripcionService")+"/inscripcion/"+fmt.Sprintf("%v", estadotemp["EvaluacionInscripcionId"].(map[string]interface{})["InscripcionId"]), "DELETE", &resultado2, nil)
+													logs.Error(errInscripcionPut)
+													//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
+													c.Data["system"] = inscripcionPut
+													c.Abort("400")
+												}
+											} else {
+												logs.Error(errInscripcionPut)
+												//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+												c.Data["system"] = inscripcionPut
+												c.Abort("400")
+											}
+
+										} else {
+											if resultadoaspiranteinscripcion["Message"] == "Not found resource" {
+												c.Data["json"] = nil
+											} else {
+												logs.Error(resultadoaspiranteinscripcion)
+												//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+												c.Data["system"] = errinscripcion
+												c.Abort("404")
+											}
+										}
+									} else {
+										logs.Error(resultadoaspiranteinscripcion)
+										//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+										c.Data["system"] = errinscripcion
+										c.Abort("404")
+
+									}
 								}
 
 							}
@@ -439,6 +567,7 @@ func (c *AdmisionController) CambioEstadoAspiranteByPeriodoByProyecto() {
 
 			}
 		}
+		alertas = append(alertas, EstadoActulizado)
 
 	} else {
 		logs.Error(err)
@@ -446,5 +575,8 @@ func (c *AdmisionController) CambioEstadoAspiranteByPeriodoByProyecto() {
 		c.Data["system"] = err
 		c.Abort("400")
 	}
+
+	alerta.Body = alertas
+	c.Data["json"] = alerta
 	c.ServeJSON()
 }
