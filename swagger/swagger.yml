@@ -47,6 +47,24 @@ paths:
           description: '{}'
         "403":
           description: body is empty
+  /admision/consulta_aspirantes:
+    post:
+      tags:
+      - admision
+      description: get Aspirantes by id_periodo and id_proyecto
+      operationId: AdmisionController.GetAspirantesByPeriodoByProyecto
+      parameters:
+      - in: body
+        name: body
+        description: body for Get Aspirantes content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
   /admision/consulta_puntaje:
     post:
       tags:
