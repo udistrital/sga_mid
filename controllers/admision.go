@@ -10,7 +10,6 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
-	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 )
 
@@ -59,7 +58,6 @@ func (c *AdmisionController) PostCriterioIcfes() {
 				if criterio_existente[0]["Status"] != 404 {
 					fmt.Println("Existe criterio")
 					Id_criterio_existente := criterio_existente[0]["Id"]
-					fmt.Println(Id_criterio_existente)
 					criterioProyecto = append(criterioProyecto, map[string]interface{}{
 						"Activo":               true,
 						"PeriodoId":            CriterioIcfes["Periodo"].(map[string]interface{})["Id"],
@@ -281,7 +279,6 @@ func (c *AdmisionController) PostCuposAdmision() {
 				if cupos_existente[0]["Status"] != 404 {
 					fmt.Println("Existe cupos para el proyecto")
 					Id_cupo_existente := cupos_existente[0]["Id"]
-					fmt.Println(Id_cupo_existente)
 					CuposProyectos = append(CuposProyectos, map[string]interface{}{
 						"Activo":           true,
 						"PeriodoId":        CuposAdmision["Periodo"].(map[string]interface{})["Id"],
@@ -599,59 +596,80 @@ func (c *AdmisionController) GetAspirantesByPeriodoByProyecto() {
 		errAspirante := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion/?query=ProgramaAcademicoId:"+fmt.Sprintf("%v", consulta["Id_proyecto"])+",PeriodoId:"+fmt.Sprintf("%v", consulta["Id_periodo"]), &resultado_aspirante)
 		if errAspirante == nil && fmt.Sprintf("%v", resultado_aspirante[0]) != "map[]" {
 			if resultado_aspirante[0]["Status"] != 404 {
-				formatdata.JsonPrint(resultado_aspirante)
+				// formatdata.JsonPrint(resultado_aspirante)
 				for i, resultado_tem := range resultado_aspirante {
 
-					id_persona := (resultado_tem["PersonaId"]).(float64)
+					id_inscripcion := (resultado_tem["Id"]).(float64)
+					var resultado_nota []map[string]interface{}
+					errGetNota := request.GetJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"evaluacion_inscripcion/?query=InscripcionId:"+fmt.Sprintf("%v", id_inscripcion), &resultado_nota)
+					if errGetNota == nil && fmt.Sprintf("%v", resultado_nota[0]) != "map[]" {
+						if resultado_nota[0]["Status"] != 404 {
+							resultado_aspirante[i]["NotaFinal"] = resultado_nota[0]["NotaFinal"]
 
-					var resultado_persona map[string]interface{}
-					errGetPersona := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+fmt.Sprintf("%v", id_persona), &resultado_persona)
-					if errGetPersona == nil && fmt.Sprintf("%v", resultado_persona) != "map[]" {
-						if resultado_persona["Status"] != 404 {
-							fmt.Println("Persona")
-							formatdata.JsonPrint(resultado_persona)
-							resultado_aspirante[i]["NombreAspirante"] = resultado_persona["NombreCompleto"]
-							var resultado_documento []map[string]interface{}
-							errGetDocumento := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion/?query=TerceroId.Id:"+fmt.Sprintf("%v", id_persona), &resultado_documento)
-							if errGetDocumento == nil && fmt.Sprintf("%v", resultado_documento[0]) != "map[]" {
-								if resultado_documento[0]["Status"] != 404 {
-									fmt.Println("Documento")
-									formatdata.JsonPrint(resultado_documento)
-									resultado_aspirante[i]["TipoDocumento"] = resultado_documento[0]["TipoDocumentoId"].(map[string]interface{})["CodigoAbreviacion"]
-									resultado_aspirante[i]["NumeroDocumento"] = resultado_documento[0]["Numero"]
-								} else {
-									if resultado_documento[0]["Message"] == "Not found resource" {
-										c.Data["json"] = nil
+							id_persona := (resultado_tem["PersonaId"]).(float64)
+
+							var resultado_persona map[string]interface{}
+							errGetPersona := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+fmt.Sprintf("%v", id_persona), &resultado_persona)
+							if errGetPersona == nil && fmt.Sprintf("%v", resultado_persona) != "map[]" {
+								if resultado_persona["Status"] != 404 {
+									resultado_aspirante[i]["NombreAspirante"] = resultado_persona["NombreCompleto"]
+									var resultado_documento []map[string]interface{}
+									errGetDocumento := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion/?query=TerceroId.Id:"+fmt.Sprintf("%v", id_persona), &resultado_documento)
+									if errGetDocumento == nil && fmt.Sprintf("%v", resultado_documento[0]) != "map[]" {
+										if resultado_documento[0]["Status"] != 404 {
+											resultado_aspirante[i]["TipoDocumento"] = resultado_documento[0]["TipoDocumentoId"].(map[string]interface{})["CodigoAbreviacion"]
+											resultado_aspirante[i]["NumeroDocumento"] = resultado_documento[0]["Numero"]
+										} else {
+											if resultado_documento[0]["Message"] == "Not found resource" {
+												c.Data["json"] = nil
+											} else {
+												logs.Error(resultado_documento[0])
+												//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+												c.Data["system"] = errGetDocumento
+												c.Abort("404")
+											}
+										}
 									} else {
 										logs.Error(resultado_documento[0])
 										//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 										c.Data["system"] = errGetDocumento
 										c.Abort("404")
+
+									}
+
+									//hh
+								} else {
+									if resultado_persona["Message"] == "Not found resource" {
+										c.Data["json"] = nil
+									} else {
+										logs.Error(resultado_persona)
+										//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+										c.Data["system"] = errGetPersona
+										c.Abort("404")
 									}
 								}
-							} else {
-								logs.Error(resultado_documento[0])
-								//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-								c.Data["system"] = errGetDocumento
-								c.Abort("404")
-
-							}
-
-							//hh
-						} else {
-							if resultado_persona["Message"] == "Not found resource" {
-								c.Data["json"] = nil
 							} else {
 								logs.Error(resultado_persona)
 								//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 								c.Data["system"] = errGetPersona
 								c.Abort("404")
+
+							}
+							//ojo
+						} else {
+							if resultado_nota[0]["Message"] == "Not found resource" {
+								c.Data["json"] = nil
+							} else {
+								logs.Error(resultado_nota)
+								//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+								c.Data["system"] = errGetNota
+								c.Abort("404")
 							}
 						}
 					} else {
-						logs.Error(resultado_persona)
+						logs.Error(resultado_nota)
 						//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-						c.Data["system"] = errGetPersona
+						c.Data["system"] = errGetNota
 						c.Abort("404")
 
 					}
