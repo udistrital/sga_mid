@@ -43,7 +43,119 @@
                 }
             }
         },
-        "/archivo_icfes/": {
+        "/admision/cambioestado": {
+            "post": {
+                "tags": [
+                    "admision"
+                ],
+                "description": "post cambioestadoaspirante by id_periodo and id_proyecto",
+                "operationId": "AdmisionController.CambioEstadoAspiranteByPeriodoByProyecto",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for  post cambio estadocontent",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/admision/consulta_aspirantes": {
+            "post": {
+                "tags": [
+                    "admision"
+                ],
+                "description": "get Aspirantes by id_periodo and id_proyecto",
+                "operationId": "AdmisionController.GetAspirantesByPeriodoByProyecto",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Get Aspirantes content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
+        "/admision/consulta_puntaje": {
+            "post": {
+                "tags": [
+                    "admision"
+                ],
+                "description": "get PuntajeTotalCriteio by id_periodo and id_proyecto",
+                "operationId": "AdmisionController.GetPuntajeTotalByPeriodoByProyecto",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Get Puntaje total content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
+        "/admision/postcupos": {
+            "post": {
+                "tags": [
+                    "admision"
+                ],
+                "description": "Agregar PostCuposAdmision",
+                "operationId": "AdmisionController.PostCuposAdmision",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar PostCuposAdmision content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/archivo_icfes/{id}": {
             "post": {
                 "tags": [
                     "archivo_icfes"
@@ -51,6 +163,14 @@
                 "description": "Agregar ArchivoIcfes",
                 "operationId": "ArchivoIcfesController.PostArchivoIcfes",
                 "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "el id del periodo",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
                     {
                         "in": "formData",
                         "name": "archivo_icfes",
