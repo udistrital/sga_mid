@@ -20,14 +20,77 @@ func init() {
 				&controllers.ArchivoIcfesController{},
 			),
 		),
+		beego.NSNamespace("/proyecto_academico",
+			beego.NSInclude(
+				&controllers.CrearProyectoAcademicoController{},
+			),
+		),
+		beego.NSNamespace("/consulta_proyecto_academico",
+			beego.NSInclude(
+				&controllers.ConsultaProyectoAcademicoController{},
+			),
+		),
+
 		beego.NSNamespace("/evento",
 			beego.NSInclude(
 				&controllers.EventoController{},
 			),
 		),
+		beego.NSNamespace("/generar_codigo",
+			beego.NSInclude(
+				&controllers.GeneradorCodigoBarrasController{},
+			),
+		),
 		beego.NSNamespace("/produccion_academica",
 			beego.NSInclude(
 				&controllers.ProduccionAcademicaController{},
+			),
+		),
+
+		beego.NSNamespace("/consulta_academica",
+			beego.NSInclude(
+				&controllers.ConsultaOfertaAcademicaController{},
+			),
+		),
+
+		beego.NSNamespace("/persona",
+			beego.NSInclude(
+				&controllers.PersonaController{},
+			),
+		),
+
+		beego.NSNamespace("/inscripciones",
+			beego.NSInclude(
+				&controllers.InscripcionesController{},
+			),
+		),
+
+		beego.NSNamespace("/tercero",
+			beego.NSInclude(
+				&controllers.TerceroController{},
+			),
+		),
+
+		beego.NSNamespace("/formacion_academica",
+			beego.NSInclude(
+				&controllers.FormacionController{},
+			),
+		),
+
+		beego.NSNamespace("/experiencia_laboral",
+			beego.NSInclude(
+				&controllers.ExperienciaLaboralController{},
+			),
+		),
+
+		beego.NSNamespace("/descuento_academico",
+			beego.NSInclude(
+				&controllers.DescuentoController{},
+			),
+		),
+		beego.NSNamespace("/admision",
+			beego.NSInclude(
+				&controllers.AdmisionController{},
 			),
 		),
 	)

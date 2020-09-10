@@ -11,16 +11,16 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
 basePath: /v1
 paths:
-  /archivo_icfes/:
+  /admision/:
     post:
       tags:
-      - archivo_icfes
-      description: Agregar ArchivoIcfes
-      operationId: ArchivoIcfesController.PostArchivoIcfes
+      - admision
+      description: Agregar CriterioIcfes
+      operationId: AdmisionController.PostCriterioIcfes
       parameters:
       - in: body
         name: body
-        description: body Agregar ArchivoIcfes content
+        description: body Agregar CriterioIcfes content
         required: true
         schema:
           $ref: '#/definitions/{}'
@@ -29,6 +29,348 @@ paths:
           description: '{}'
         "403":
           description: body is empty
+  /admision/cambioestado:
+    post:
+      tags:
+      - admision
+      description: post cambioestadoaspirante by id_periodo and id_proyecto
+      operationId: AdmisionController.CambioEstadoAspiranteByPeriodoByProyecto
+      parameters:
+      - in: body
+        name: body
+        description: body for  post cambio estadocontent
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /admision/consulta_aspirantes:
+    post:
+      tags:
+      - admision
+      description: get Aspirantes by id_periodo and id_proyecto
+      operationId: AdmisionController.GetAspirantesByPeriodoByProyecto
+      parameters:
+      - in: body
+        name: body
+        description: body for Get Aspirantes content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
+  /admision/consulta_puntaje:
+    post:
+      tags:
+      - admision
+      description: get PuntajeTotalCriteio by id_periodo and id_proyecto
+      operationId: AdmisionController.GetPuntajeTotalByPeriodoByProyecto
+      parameters:
+      - in: body
+        name: body
+        description: body for Get Puntaje total content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
+  /admision/postcupos:
+    post:
+      tags:
+      - admision
+      description: Agregar PostCuposAdmision
+      operationId: AdmisionController.PostCuposAdmision
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar PostCuposAdmision content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /archivo_icfes/{id}:
+    post:
+      tags:
+      - archivo_icfes
+      description: Agregar ArchivoIcfes
+      operationId: ArchivoIcfesController.PostArchivoIcfes
+      parameters:
+      - in: path
+        name: id
+        description: el id del periodo
+        required: true
+        type: integer
+        format: int64
+      - in: formData
+        name: archivo_icfes
+        description: body Agregar ArchivoIcfes content
+        required: true
+        type: file
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /consulta_academica/:
+    get:
+      tags:
+      - consulta_academica
+      description: get ConsultaOfertaAcademica
+      operationId: ConsultaOfertaAcademicaController.GetAll
+      parameters:
+      - in: query
+        name: query
+        description: Filter. e.g. col1:v1,col2:v2 ...
+        type: string
+      - in: query
+        name: fields
+        description: Fields returned. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: sortby
+        description: Sorted-by fields. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: order
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
+        type: string
+      - in: query
+        name: limit
+        description: Limit the size of result set. Must be an integer
+        type: string
+      - in: query
+        name: offset
+        description: Start position of result set. Must be an integer
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.ConsultaOfertaAcademica'
+        "403":
+          description: ""
+  /consulta_academica/{id}:
+    get:
+      tags:
+      - consulta_academica
+      description: get ConsultaOfertaAcademica by id
+      operationId: ConsultaOfertaAcademicaController.GetOneEventoPorPeriodo
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.ConsultaOfertaAcademica'
+        "403":
+          description: :id is empty
+  /consulta_proyecto_academico/:
+    get:
+      tags:
+      - consulta_proyecto_academico
+      description: get ConsultaProyectoAcademico
+      operationId: ConsultaProyectoAcademicoController.GetAll
+      parameters:
+      - in: query
+        name: query
+        description: Filter. e.g. col1:v1,col2:v2 ...
+        type: string
+      - in: query
+        name: fields
+        description: Fields returned. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: sortby
+        description: Sorted-by fields. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: order
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
+        type: string
+      - in: query
+        name: limit
+        description: Limit the size of result set. Must be an integer
+        type: string
+      - in: query
+        name: offset
+        description: Start position of result set. Must be an integer
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.ConsultaProyectoAcademico'
+        "403":
+          description: ""
+  /consulta_proyecto_academico/{id}:
+    get:
+      tags:
+      - consulta_proyecto_academico
+      description: get ConsultaProyectoAcademico by id
+      operationId: ConsultaProyectoAcademicoController.GetOnePorId
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.ConsultaProyectoAcademico'
+        "403":
+          description: :id is empty
+  /consulta_proyecto_academico/get_registro/{id}:
+    get:
+      tags:
+      - consulta_proyecto_academico
+      description: get ConsultaRegistro by id
+      operationId: ConsultaProyectoAcademicoController.GetOneRegistroPorId
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.ConsultaProyectoAcademico'
+        "403":
+          description: :id is empty
+  /consulta_proyecto_academico/inhabilitar_proyecto/{id}:
+    put:
+      tags:
+      - consulta_proyecto_academico
+      description: Inhabilitar Proyecto
+      operationId: ConsultaProyectoAcademicoController.PutInhabilitarProyecto
+      parameters:
+      - in: path
+        name: id
+        description: el id del proyecto a inhabilitar
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body Inhabilitar Proyecto content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: :id is empty
+  /descuento_academico/:
+    get:
+      tags:
+      - descuento_academico
+      description: consultar Descuento Academico por userid
+      operationId: DescuentoController.GetDescuentoAcademico
+      parameters:
+      - in: query
+        name: PersonaId
+        description: Id de la persona
+        required: true
+        type: integer
+        format: int64
+      - in: query
+        name: SolicitudId
+        description: Id de la solicitud
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+    post:
+      tags:
+      - descuento_academico
+      description: Agregar Descuento Academico
+      operationId: DescuentoController.PostDescuentoAcademico
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar Descuento Academico content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
+  /descuento_academico/{persona_id}:
+    get:
+      tags:
+      - descuento_academico
+      description: consultar Descuento Academico por userid
+      operationId: DescuentoController.GetDescuentoAcademicoByPersona
+      parameters:
+      - in: path
+        name: persona_id
+        description: Id de la persona
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+  /descuento_academico/descuentopersonaperiododependencia/:
+    get:
+      tags:
+      - descuento_academico
+      description: consultar Descuento Academico por userid
+      operationId: DescuentoController.GetDescuentoByPersonaPeriodoDependencia
+      parameters:
+      - in: query
+        name: PersonaId
+        description: Id de la persona
+        required: true
+        type: integer
+        format: int64
+      - in: query
+        name: DependenciaId
+        description: Id de la dependencia
+        required: true
+        type: integer
+        format: int64
+      - in: query
+        name: PeriodoId
+        description: Id del periodo académico
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
   /evento/:
     post:
       tags:
@@ -103,6 +445,431 @@ paths:
           description: '{}'
         "403":
           description: :persona is empty
+  /experiencia_laboral/:
+    post:
+      tags:
+      - experiencia_laboral
+      description: Agregar Experiencia Laboral
+      operationId: ExperienciaLaboralController.PostExperienciaLaboral
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar Experiencia Laboral content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
+  /experiencia_laboral/{id}:
+    get:
+      tags:
+      - experiencia_laboral
+      description: consultar Experiencia Laboral por id
+      operationId: ExperienciaLaboralController.GetExperienciaLaboral
+      parameters:
+      - in: path
+        name: id
+        description: Id de la experiencia
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+  /experiencia_laboral/by_tercero/{id_tercero}:
+    get:
+      tags:
+      - experiencia_laboral
+      description: consultar Experiencia Laboral por id del tercero
+      operationId: ExperienciaLaboralController.GetExperienciaLaboralByTercero
+      parameters:
+      - in: query
+        name: Tercero
+        description: Id del tercero
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+  /formacion_academica/:
+    post:
+      tags:
+      - formacion_academica
+      description: Agregar Formacion Academica ud
+      operationId: FormacionController.PostFormacionAcademica
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar Formacion Academica content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
+  /formacion_academica/by_tercero/{id_tercero}:
+    get:
+      tags:
+      - formacion_academica
+      description: consultar Fromacion Academica por id del tercero
+      operationId: FormacionController.GetFormacionAcademicaByTercero
+      parameters:
+      - in: path
+        name: Tercero
+        description: Id del tercero
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+  /generar_codigo/:
+    post:
+      tags:
+      - generar_codigo
+      description: Creacion de codigo de barras
+      operationId: GeneradorCodigoBarrasController.GenerarCodigoBarras
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar ProduccionAcademica content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /inscripciones/consultar_proyectos_eventos/{evento_padre_id}:
+    get:
+      tags:
+      - inscripciones
+      description: get ConsultarProyectosEventos by id
+      operationId: InscripcionesController.ConsultarProyectosEventos
+      parameters:
+      - in: path
+        name: evento_padre_id
+        description: Id del Evento Padre
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+  /inscripciones/info_complementaria_tercero:
+    post:
+      tags:
+      - inscripciones
+      description: Agregar PostInfoComplementariaTercero
+      operationId: InscripcionesController.PostInfoComplementariaTercero
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar PostInfoComplementariaTercero content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /inscripciones/info_complementaria_tercero/{persona_id}:
+    get:
+      tags:
+      - inscripciones
+      description: consultar la información complementaria del tercero
+      operationId: InscripcionesController.GetInfoComplementariaTercero
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+  /inscripciones/info_complementaria_universidad:
+    post:
+      tags:
+      - inscripciones
+      description: Agregar InfoComplementariaUniversidad
+      operationId: InscripcionesController.PostInfoComplementariaUniversidad
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar InfoComplementariaUniversidad content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /inscripciones/post_info_icfes_colegio:
+    post:
+      tags:
+      - inscripciones
+      description: Agregar InfoIcfesColegio
+      operationId: InscripcionesController.PostInfoIcfesColegio
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar InfoIcfesColegio content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /inscripciones/post_info_icfes_colegio_nuevo:
+    post:
+      tags:
+      - inscripciones
+      description: Agregar InfoIcfesColegio
+      operationId: InscripcionesController.PostInfoIcfesColegioNuevo
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar InfoIcfesColegio content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /inscripciones/post_informacion_familiar:
+    post:
+      tags:
+      - inscripciones
+      description: Agregar Información Familiar
+      operationId: InscripcionesController.PostInformacionFamiliar
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar PostInformacionFamiliar content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /inscripciones/post_preinscripcion:
+    post:
+      tags:
+      - inscripciones
+      description: Agregar Preinscripcion
+      operationId: InscripcionesController.PostPreinscripcion
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar Preinscripcion content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /inscripciones/post_reintegro:
+    post:
+      tags:
+      - inscripciones
+      description: Agregar Reintegro
+      operationId: InscripcionesController.PostReintegro
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar Reintegro content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /inscripciones/post_transferencia:
+    post:
+      tags:
+      - inscripciones
+      description: Agregar Transferencia
+      operationId: InscripcionesController.PostTransferencia
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar Transferencia content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /persona/consultar_complementarios/{tercero_id}:
+    get:
+      tags:
+      - persona
+      description: get ConsultarDatosComplementarios by id
+      operationId: PersonaController.ConsultarDatosComplementarios
+      parameters:
+      - in: path
+        name: tercero_id
+        description: Id del ente
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+  /persona/consultar_contacto/{tercero_id}:
+    get:
+      tags:
+      - persona
+      description: get ConsultarDatosContacto by id
+      operationId: PersonaController.ConsultarDatosContacto
+      parameters:
+      - in: path
+        name: tercero_id
+        description: Id del Tercero
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+  /persona/consultar_familiar/{tercero_id}:
+    get:
+      tags:
+      - persona
+      description: get ConsultarDatosFamiliar by id
+      operationId: PersonaController.ConsultarDatosFamiliar
+      parameters:
+      - in: path
+        name: tercero_id
+        description: Id del Tercero
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+  /persona/consultar_formacion_pregrado/{tercero_id}:
+    get:
+      tags:
+      - persona
+      description: get ConsultarDatosFormacionPregrado by id
+      operationId: PersonaController.ConsultarDatosFormacionPregrado
+      parameters:
+      - in: path
+        name: tercero_id
+        description: Id del Tercero
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+  /persona/consultar_persona/{tercero_id}:
+    get:
+      tags:
+      - persona
+      description: get ConsultaPersona by id
+      operationId: PersonaController.ConsultarPersona
+      parameters:
+      - in: path
+        name: tercero_id
+        description: Id del tercero
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+  /persona/guardar_complementarios:
+    post:
+      tags:
+      - persona
+      description: Guardar Datos Complementarios Persona
+      operationId: PersonaController.GuardarDatosComplementarios
+      parameters:
+      - in: body
+        name: body
+        description: body for Guardar Datos Complementarios Persona content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
+  /persona/guardar_datos_contacto:
+    post:
+      tags:
+      - persona
+      description: Guardar DatosContacto
+      operationId: PersonaController.PostrDatosContacto
+      parameters:
+      - in: body
+        name: body
+        description: body for Guardar DatosContacto content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
+  /persona/guardar_persona:
+    post:
+      tags:
+      - persona
+      description: Guardar Persona
+      operationId: PersonaController.PostPersona
+      parameters:
+      - in: body
+        name: body
+        description: body for Guardar Persona content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
   /produccion_academica/:
     post:
       tags:
@@ -117,10 +884,10 @@ paths:
         schema:
           $ref: '#/definitions/{}'
       responses:
-        "200":
-          description: '{}'
-        "403":
-          description: body is empty
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
   /produccion_academica/{id}:
     put:
       tags:
@@ -132,7 +899,8 @@ paths:
         name: id
         description: el id de la Produccion academica a modificar
         required: true
-        type: string
+        type: integer
+        format: int64
       - in: body
         name: body
         description: body Modificar ProduccionAcademica content
@@ -142,8 +910,8 @@ paths:
       responses:
         "200":
           description: '{}'
-        "403":
-          description: :id is empty
+        "400":
+          description: the request contains incorrect syntax
     delete:
       tags:
       - produccion_academica
@@ -154,29 +922,31 @@ paths:
         name: id
         description: Id de la Produccion Academica
         required: true
-        type: string
+        type: integer
+        format: int64
       responses:
         "200":
-          description: '{}'
-        "403":
-          description: :id is empty
-  /produccion_academica/{persona}:
+          description: '{string} delete success!'
+        "404":
+          description: not found resource
+  /produccion_academica/{tercero}:
     get:
       tags:
       - produccion_academica
-      description: consultar Produccion Academica por persona
+      description: consultar Produccion Academica por tercero
       operationId: ProduccionAcademicaController.GetProduccionAcademica
       parameters:
       - in: path
-        name: persona
-        description: Persona
+        name: tercero
+        description: Tercero
         required: true
-        type: string
+        type: integer
+        format: int64
       responses:
         "200":
           description: '{}'
-        "403":
-          description: :persona is empty
+        "404":
+          description: not found resource
   /produccion_academica/estado_autor_produccion/{id}:
     put:
       tags:
@@ -188,7 +958,8 @@ paths:
         name: id
         description: el id del autor a modificar
         required: true
-        type: string
+        type: integer
+        format: int64
       - in: body
         name: body
         description: body Modificar AutorProduccionAcademica content
@@ -198,19 +969,178 @@ paths:
       responses:
         "200":
           description: '{}'
+        "400":
+          description: the request contains incorrect syntax
+  /proyecto_academico/:
+    post:
+      tags:
+      - proyecto_academico
+      description: Crear Proyecto
+      operationId: CrearProyectoAcademicoController.PostProyecto
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar Proyecto content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /proyecto_academico/coordinador/{id}:
+    post:
+      tags:
+      - proyecto_academico
+      description: Post a de un cordinador de un proyecto existente, cambia estado
+        activo a false a los coordinadores anteriores y crea el nuevo
+      operationId: CrearProyectoAcademicoController.PostCoordinadorById
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body Agregar Registro content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.ConsultaProyectoAcademico'
         "403":
           description: :id is empty
+  /proyecto_academico/registro_alta_calidad/{id}:
+    post:
+      tags:
+      - proyecto_academico
+      description: Post a de un registro de un proyecto existente, cambia estado activo
+        a false a los registro anteriores y crea el nuevo
+      operationId: CrearProyectoAcademicoController.PostRegistroAltaCalidadById
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body Agregar Registro content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.ConsultaProyectoAcademico'
+        "403":
+          description: :id is empty
+  /proyecto_academico/registro_calificado/{id}:
+    post:
+      tags:
+      - proyecto_academico
+      description: Post a de un registro de un proyecto existente, cambia estado activo
+        a false a los registro anteriores y crea el nuevo
+      operationId: CrearProyectoAcademicoController.PostRegistroCalificadoById
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body Agregar Registro content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.ConsultaProyectoAcademico'
+        "403":
+          description: :id is empty
+  /tercero/identificacion/:
+    get:
+      tags:
+      - tercero
+      description: get Organizacion by Identificación
+      operationId: TerceroController.GetByIdentificacion
+      parameters:
+      - in: query
+        name: Id
+        description: Identification number as id
+        required: true
+        type: integer
+        format: int64
+      - in: query
+        name: TipoId
+        description: TipoIdentificacion number as nit
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
 definitions:
   '{}':
     title: '{}'
+    type: object
+  models.ConsultaOfertaAcademica:
+    title: ConsultaOfertaAcademica
+    type: object
+  models.ConsultaProyectoAcademico:
+    title: ConsultaProyectoAcademico
     type: object
 tags:
 - name: archivo_icfes
   description: |
     ArchivoIcfesController ...
+- name: proyecto_academico
+  description: |
+    CrearProyectoAcademicoController
+- name: consulta_proyecto_academico
+  description: |
+    ConsultaProyectoAcademicoController operations for Consulta_proyecto_academico
 - name: evento
   description: |
     EventoController ...
+- name: generar_codigo
+  description: |
+    GeneradorCodigoBarrasController ...
 - name: produccion_academica
   description: |
     ProduccionAcademicaController ...
+- name: consulta_academica
+  description: |
+    ConsultaOfertaAcademicaController operations for Consulta_oferta_academica
+- name: persona
+  description: |
+    PersonaController ...
+- name: inscripciones
+  description: |
+    InscripcionesController ...
+- name: tercero
+  description: |
+    TerceroController operations for Organizacion
+- name: formacion_academica
+  description: |
+    FormacionController ...
+- name: experiencia_laboral
+  description: |
+    ExperienciaLaboralController ...
+- name: descuento_academico
+  description: |
+    DescuentoController ...
+- name: admision
+  description: |
+    AdmisionController ...
