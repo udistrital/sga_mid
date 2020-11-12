@@ -276,6 +276,93 @@
                 }
             }
         },
+        "/consulta_calendario_academico/": {
+            "get": {
+                "tags": [
+                    "consulta_calendario_academico"
+                ],
+                "description": "get ConsultaCalendarioAcademico",
+                "operationId": "ConsultaCalendarioAcademicoController.GetAll",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "query",
+                        "description": "Filter. e.g. col1:v1,col2:v2 ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "fields",
+                        "description": "Fields returned. e.g. col1,col2 ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "sortby",
+                        "description": "Sorted-by fields. e.g. col1,col2 ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "order",
+                        "description": "Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "limit",
+                        "description": "Limit the size of result set. Must be an integer",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "offset",
+                        "description": "Start position of result set. Must be an integer",
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.ConsultaCalendarioAcademico"
+                        }
+                    },
+                    "403": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/consulta_calendario_academico/{id}": {
+            "get": {
+                "tags": [
+                    "consulta_calendario_academico"
+                ],
+                "description": "get ConsultaCalendarioAcademico by id",
+                "operationId": "ConsultaCalendarioAcademicoController.GetOnePorId",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "The key for staticblock",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.ConsultaCalendarioAcademico"
+                        }
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
+            }
+        },
         "/consulta_proyecto_academico/": {
             "get": {
                 "tags": [
@@ -1654,6 +1741,10 @@
         }
     },
     "definitions": {
+        "models.ConsultaCalendarioAcademico": {
+            "title": "ConsultaCalendarioAcademico",
+            "type": "object"
+        },
         "models.ConsultaOfertaAcademica": {
             "title": "ConsultaOfertaAcademica",
             "type": "object"
@@ -1723,6 +1814,10 @@
         {
             "name": "admision",
             "description": "AdmisionController ...\n"
+        },
+        {
+            "name": "consulta_calendario_academico",
+            "description": "ConsultaCalendarioAcademicoController operations for Consulta_calendario_academico\n"
         }
     ]
 }
