@@ -1,7 +1,11 @@
 package controllers
 
 import (
+	"fmt"
+
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
+	"github.com/udistrital/utils_oas/request"
 )
 
 // ConsultaCalendarioAcademicoController operations for Consulta_calendario_academico
@@ -28,6 +32,41 @@ func (c *ConsultaCalendarioAcademicoController) URLMapping() {
 // @Failure 403
 // @router / [get]
 func (c *ConsultaCalendarioAcademicoController) GetAll() {
+	var resultados []map[string]interface{}
+	var calendarios []map[string]interface{}
+	var periodo map[string]interface{}
+
+	errCalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?limit=0", &calendarios)
+	if errCalendario == nil && fmt.Sprintf("%v", calendarios[0]["Nombre"]) != "map[]" {
+		for _, calendario := range calendarios {
+			periodoId := fmt.Sprintf("%.f", calendario["PeriodoId"].(float64))
+			errPeriodo := request.GetJson("http://"+beego.AppConfig.String("CoreService")+"periodo/"+periodoId, &periodo)
+			if errPeriodo == nil {
+				resultado := map[string]interface{}{
+					"Id":      calendario["Id"].(float64),
+					"Nombre":  calendario["Nombre"].(string),
+					"Nivel":   calendario["Nivel"].(float64),
+					"Activo":  calendario["Activo"].(bool),
+					"Periodo": periodo["Nombre"].(string),
+				}
+				resultados = append(resultados, resultado)
+			} else {
+				logs.Error(errPeriodo)
+				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+				c.Data["system"] = errPeriodo
+				c.Abort("404")
+			}
+		}
+
+	} else {
+		logs.Error(errCalendario)
+		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = errCalendario
+		c.Abort("404")
+	}
+
+	c.Data["json"] = resultados
+	c.ServeJSON()
 }
 
 // GetOnePorId ...
