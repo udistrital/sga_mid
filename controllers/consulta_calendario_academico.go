@@ -296,5 +296,18 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 			c.Data["json"] = alerta
 
 		}
+
+	} else {
+		if resultado["Body"] == "<QuerySeter> no row found" {
+			c.Data["json"] = nil
+		} else {
+			alertas = append(alertas, resultado["Body"])
+			alerta.Code = "400"
+			alerta.Type = "error"
+			alerta.Body = alertas
+			c.Data["json"] = alerta
+		}
 	}
+	c.ServeJSON()
+
 }
