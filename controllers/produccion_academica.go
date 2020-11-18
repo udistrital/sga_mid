@@ -54,7 +54,7 @@ func (c *ProduccionAcademicaController) PostProduccionAcademica() {
 		for _, autorTemp := range produccionAcademica["Autores"].([]interface{}) {
 			autor := autorTemp.(map[string]interface{})
 			autores = append(autores, map[string]interface{}{
-				"PersonaId":               autor["PersonaId"],
+				"Persona":                 autor["PersonaId"],
 				"EstadoAutorProduccionId": autor["EstadoAutorProduccionId"],
 				"ProduccionAcademicaId":   map[string]interface{}{"Id": 0},
 				"Activo":                  true,
@@ -82,7 +82,7 @@ func (c *ProduccionAcademicaController) PostProduccionAcademica() {
 		produccionAcademicaPost["Metadatos"] = metadatos
 		var resultadoProduccionAcademica map[string]interface{}
 		errProduccion := request.SendJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica", "POST", &resultadoProduccionAcademica, produccionAcademicaPost)
-		if errProduccion == nil && fmt.Sprintf("%v", resultadoProduccionAcademica["System"]) != "map[]" &&  resultadoProduccionAcademica["ProduccionAcademica"] != nil {
+		if errProduccion == nil && fmt.Sprintf("%v", resultadoProduccionAcademica["System"]) != "map[]" && resultadoProduccionAcademica["ProduccionAcademica"] != nil {
 			if resultadoProduccionAcademica["Status"] != 400 {
 				resultado = produccionAcademica
 				c.Data["json"] = resultado
@@ -200,7 +200,7 @@ func (c *ProduccionAcademicaController) PutProduccionAcademica() {
 		for _, metadatoTemp := range produccionAcademica["Metadatos"].([]interface{}) {
 			metadato := metadatoTemp.(map[string]interface{})
 			metadatos = append(metadatos, map[string]interface{}{
-				"Valor": metadato["Valor"],
+				"Valor":                       metadato["Valor"],
 				"MetadatoSubtipoProduccionId": metadato["MetadatoSubtipoProduccionId"],
 				"Activo":                      true,
 			})
@@ -260,18 +260,21 @@ func (c *ProduccionAcademicaController) GetProduccionAcademica() {
 				autores := produccion["Autores"].([]interface{})
 				for _, autorTemp := range autores {
 					autor := autorTemp.(map[string]interface{})
-					fmt.Println("autor",autor["PersonaId"], idTercero);
-					if fmt.Sprintf("%v", autor["PersonaId"]) == fmt.Sprintf("%v", idTercero) {
+					fmt.Println("autor", autor["Persona"], idTercero)
+					fmt.Println(autor)
+					if fmt.Sprintf("%v", autor["Persona"]) == fmt.Sprintf("%v", idTercero) {
+						// fmt.Println(produccion)
 						produccion["EstadoEnteAutorId"] = autor
 					}
 					//cargar nombre del autor
 					var autorProduccion map[string]interface{}
 
-					errAutor := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%v", autor["PersonaId"]), &autorProduccion)
+					errAutor := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%v", autor["Persona"]), &autorProduccion)
+					fmt.Println(autorProduccion)
 					if errAutor == nil && fmt.Sprintf("%v", autorProduccion["System"]) != "map[]" {
 						if autorProduccion["Status"] != 404 {
 							// autor["Nombre"] = autorProduccion["PrimerNombre"].(string) + " " + autorProduccion["SegundoNombre"].(string) + " " +
-								// autorProduccion["PrimerApellido"].(string) + " " + autorProduccion["SegundoApellido"].(string)
+							// autorProduccion["PrimerApellido"].(string) + " " + autorProduccion["SegundoApellido"].(string)
 							autor["Nombre"] = autorProduccion["NombreCompleto"].(string)
 						} else {
 							if autorProduccion["Message"] == "Not found resource" {
