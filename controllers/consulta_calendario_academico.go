@@ -5,11 +5,8 @@ import (
 	"fmt"
 
 	"github.com/astaxie/beego"
-<<<<<<< HEAD
 	"github.com/astaxie/beego/logs"
-=======
 	"github.com/udistrital/sga_mid/models"
->>>>>>> 292d6f0... fix: Ajustar funcionalidad de la tabla de consulta
 	"github.com/udistrital/utils_oas/request"
 )
 
@@ -299,18 +296,5 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 			c.Data["json"] = alerta
 
 		}
-
-	} else {
-		if resultado["Body"] == "<QuerySeter> no row found" {
-			c.Data["json"] = nil
-		} else {
-			alertas = append(alertas, resultado["Body"])
-			alerta.Code = "400"
-			alerta.Type = "error"
-			alerta.Body = alertas
-			c.Data["json"] = alerta
-		}
 	}
-	c.ServeJSON()
-
 }
