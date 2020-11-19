@@ -7,6 +7,15 @@ import (
 
 func init() {
 
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ActividadCalendarioController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ActividadCalendarioController"],
+        beego.ControllerComments{
+            Method: "PostActividadCalendario",
+            Router: "/",
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:AdmisionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:AdmisionController"],
         beego.ControllerComments{
             Method: "PostCriterioIcfes",
