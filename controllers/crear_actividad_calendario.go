@@ -69,8 +69,7 @@ func (c *ActividadCalendarioController) PostActividadCalendario() {
 
 		for _, publicoTemp := range totalPublico {
 			CalendarioEventoTipoPersona := map[string]interface{}{
-				//"TipoPublicoId":      {"Id": totalPublico[0]["Publico"].([]map[string]interface{})["Id_publico"].(float64)},
-				//"CalendarioEventoId": {"Id": IdActividad.(float64)},
+
 				"Activo":             true,
 				"TipoPublicoId":      publicoTemp["Publico"].(map[string]interface{})["Id_publico"].(float64),
 				"CalendarioEventoId": IdActividad.(float64),
