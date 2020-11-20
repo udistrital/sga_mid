@@ -225,13 +225,15 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 
 									if errresponsable == nil {
 										if responsables != nil {
-											var responsablesID map[string]interface{}
-											responsablesID = responsables[0]["TipoPublicoId"].(map[string]interface{})
-											responsableID := fmt.Sprintf(responsablesID["Nombre"].(string))
+											for _, listRresponsable := range responsables {
+												var responsablesID map[string]interface{}
+												responsablesID = listRresponsable["TipoPublicoId"].(map[string]interface{})
+												responsableID := fmt.Sprintf(responsablesID["Nombre"].(string))
 
-											responsableString = responsableID + ", " + responsableString
+												responsableString = responsableID + ", " + responsableString
+											}
 										} else {
-											// c.Data["json"] = responsables
+											c.Data["json"] = responsables
 										}
 									} else {
 										alertas = append(alertas, errresponsable.Error())
