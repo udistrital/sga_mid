@@ -233,7 +233,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 												responsableString = responsableID + ", " + responsableString
 											}
 										} else {
-											c.Data["json"] = responsables
+											// c.Data["json"] = responsables
 										}
 									} else {
 										alertas = append(alertas, errresponsable.Error())

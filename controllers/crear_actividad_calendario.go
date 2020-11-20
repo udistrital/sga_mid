@@ -1,12 +1,12 @@
 package controllers
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/utils_oas/request"
-
-	"encoding/json"
-	"fmt"
 )
 
 type ActividadCalendarioController struct {
@@ -39,7 +39,7 @@ func (c *ActividadCalendarioController) PostActividadCalendario() {
 		errActividad := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento", "POST", &resActividad, actividad)
 		if errActividad == nil && fmt.Sprintf("%v", resActividad["System"]) != "map[]" && resActividad["Id"] != nil {
 			if resActividad["Status"] != 400 {
-				IdActividad = resActividad["actividadId"] //.(map[string]interface{})[""]
+				IdActividad = resActividad["actividadId"]
 				resultado := map[string]interface{}{
 					"Nombre":       actividadCalendarioPost["Nombre"],
 					"Descripcion":  actividadCalendarioPost["Descripcion"],
