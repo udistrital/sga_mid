@@ -86,6 +86,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 	var alerta models.Alert
 	alertas := append([]interface{}{"Response:"})
 	var versionCalendario map[string]interface{}
+	var versionCalendarioResultado []map[string]interface{}
 	var calendarioPadreID map[string]interface{}
 	var documento map[string]interface{}
 	var resolucion map[string]interface{}
@@ -119,6 +120,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 									"Id":     padreID,
 									"Nombre": calendariosPadre[0]["TipoEventoId"].(map[string]interface{})["CalendarioID"].(map[string]interface{})["Nombre"],
 								}
+								versionCalendarioResultado = append(versionCalendarioResultado, versionCalendario)
 							} else {
 								alertas = append(alertas, errcalendarioPadre.Error())
 								alerta.Code = "400"
@@ -136,6 +138,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 							"Id":     "",
 							"Nombre": "",
 						}
+						versionCalendarioResultado = append(versionCalendarioResultado, versionCalendario)
 					}
 				}
 
@@ -146,7 +149,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 
 				if errdocumento == nil {
 
-					if documentos != nil && documentos["Status"] != "404" {
+					if documentos != nil {
 
 						metadatoJSON := documentos["Metadatos"].(string)
 						var metadato models.Metadatos
@@ -160,6 +163,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 							"Anno":       metadato.Anno,
 						}
 					} else {
+
 						c.Data["json"] = documentos
 					}
 
@@ -170,6 +174,13 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 					alerta.Body = alertas
 					c.Data["json"] = alerta
 				}
+
+				// resolucion = map[string]interface{}{
+				// 	"Id":         1,
+				// 	"Enlace":     "enlace",
+				// 	"Resolucion": "resolucion",
+				// 	"Anno":       "2020",
+				// }
 
 				// recorrer el calendario para agrupar las actividades por proceso
 				for _, calendario := range calendarios {
@@ -212,7 +223,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 							for _, proceso := range procesos {
 
 								// consultar responsables
-								var responsableString string
+								var responsableString = ""
 								for _, responsable := range procesos {
 
 									calendarioResponsableID := fmt.Sprintf("%.f", responsable["Id"].(float64))
@@ -227,7 +238,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 
 											responsableString = responsableID + ", " + responsableString
 										} else {
-											c.Data["json"] = responsables
+											// c.Data["json"] = responsables
 										}
 									} else {
 										alertas = append(alertas, errresponsable.Error())
@@ -238,7 +249,9 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 									}
 								}
 
-								responsableString = responsableString[:len(responsableString)-2]
+								if responsableString != "" {
+									responsableString = responsableString[:len(responsableString)-2]
+								}
 
 								actividad = nil
 								actividad = map[string]interface{}{
@@ -277,7 +290,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 				resultado = map[string]interface{}{
 					"Id":              idStr,
 					"Nombre":          calendarios[0]["TipoEventoId"].(map[string]interface{})["CalendarioID"].(map[string]interface{})["Nombre"].(string),
-					"ListaCalendario": versionCalendario,
+					"ListaCalendario": versionCalendarioResultado,
 					"resolucion":      resolucion,
 					"proceso":         procesoResultado,
 				}
