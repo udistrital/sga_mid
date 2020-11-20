@@ -175,13 +175,6 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 					c.Data["json"] = alerta
 				}
 
-				// resolucion = map[string]interface{}{
-				// 	"Id":         1,
-				// 	"Enlace":     "enlace",
-				// 	"Resolucion": "resolucion",
-				// 	"Anno":       "2020",
-				// }
-
 				// recorrer el calendario para agrupar las actividades por proceso
 				for _, calendario := range calendarios {
 					proceso = nil
