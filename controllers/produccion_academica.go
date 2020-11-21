@@ -170,6 +170,9 @@ func (c *ProduccionAcademicaController) PutEstadoAutorProduccionAcademica() {
 func (c *ProduccionAcademicaController) PutProduccionAcademica() {
 	idStr := c.Ctx.Input.Param(":id")
 	fmt.Println("Id es: " + idStr)
+
+	date := time_bogota.TiempoBogotaFormato()
+
 	//resultado experiencia
 	var resultado map[string]interface{}
 	//produccion academica
@@ -181,28 +184,17 @@ func (c *ProduccionAcademicaController) PutProduccionAcademica() {
 			"Resumen":             produccionAcademica["Resumen"],
 			"Fecha":               produccionAcademica["Fecha"],
 			"SubtipoProduccionId": produccionAcademica["SubtipoProduccionId"],
+			"FechaModificacion":   date,
 		}
-
-		/*
-			var autores []map[string]interface{}
-			for _, autorTemp := range produccionAcademica["Autores"].([]interface{}) {
-				autor := autorTemp.(map[string]interface{})
-				autores = append(autores,map[string]interface{}{
-					"Ente": autor["Ente"],
-					"EstadoAutorProduccion": autor["EstadoAutorProduccion"],
-					"ProduccionAcademica": map[string]interface{}{"Id":0},
-				})
-			}
-			produccionAcademicaPost["Autores"] = autores
-		*/
 
 		var metadatos []map[string]interface{}
 		for _, metadatoTemp := range produccionAcademica["Metadatos"].([]interface{}) {
 			metadato := metadatoTemp.(map[string]interface{})
 			metadatos = append(metadatos, map[string]interface{}{
 				"Valor":                       metadato["Valor"],
-				"MetadatoSubtipoProduccionId": metadato["MetadatoSubtipoProduccionId"],
+				"MetadatoSubtipoProduccionId": map[string]interface{}{"Id": metadato["MetadatoSubtipoProduccionId"]},
 				"Activo":                      true,
+				"FechaModificacion":           date,
 			})
 		}
 
@@ -218,19 +210,16 @@ func (c *ProduccionAcademicaController) PutProduccionAcademica() {
 				c.Data["json"] = resultado
 			} else {
 				logs.Error(errProduccion)
-				//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
 				c.Data["system"] = resultadoProduccionAcademica
 				c.Abort("400")
 			}
 		} else {
 			logs.Error(errProduccion)
-			//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 			c.Data["system"] = resultadoProduccionAcademica
 			c.Abort("400")
 		}
 	} else {
 		logs.Error(err)
-		//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
 		c.Data["system"] = err
 		c.Abort("400")
 	}
@@ -261,7 +250,6 @@ func (c *ProduccionAcademicaController) GetProduccionAcademica() {
 				for _, autorTemp := range autores {
 					autor := autorTemp.(map[string]interface{})
 					fmt.Println("autor", autor["Persona"], idTercero)
-					fmt.Println(autor)
 					if fmt.Sprintf("%v", autor["Persona"]) == fmt.Sprintf("%v", idTercero) {
 						// fmt.Println(produccion)
 						produccion["EstadoEnteAutorId"] = autor
