@@ -35,7 +35,7 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarByProjectId() {
 	alertas := append([]interface{}{"Response:"})
 	idStr, _ := strconv.Atoi(c.Ctx.Input.Param(":id"))
 
-	errCalendarios := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"/calendario?query=Activo:true&limit=0", &calendarios)
+	errCalendarios := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Activo:true&limit=0", &calendarios)
 	if errCalendarios == nil && fmt.Sprintf("%v", calendarios[0]["Nombre"]) != "map[]" {
 		for _, calendario := range calendarios {
 			DependenciaId := calendario["DependenciaId"].(string)
@@ -50,7 +50,7 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarByProjectId() {
 				}
 			}
 			if CalendarioId != "" {
-				var url = "http://localhost:" + beego.AppConfig.String("httpport") + "/v1/consulta_calendario_academico/" + CalendarioId
+				var url = "http://127.0.0.1:" + beego.AppConfig.String("httpport") + "/v1/consulta_calendario_academico/" + CalendarioId
 				errCalendario := request.GetJson(url, &Calendario)
 				if errCalendario == nil {
 					c.Data["json"] = Calendario
