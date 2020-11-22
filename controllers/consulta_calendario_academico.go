@@ -100,7 +100,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 	if resultado["Type"] != "error" {
 		// consultar calendario evento por tipo evento
 		var calendarios []map[string]interface{}
-		errcalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento?query=TipoEventoId__Id.CalendarioID__Id:"+idStr, &calendarios)
+		errcalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento?query=TipoEventoId__Id.CalendarioID__Id:"+idStr, &calendarios)
 		if errcalendario == nil {
 			if calendarios[0]["Id"] != nil {
 
@@ -113,7 +113,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 					// obtener informacion calendario padre si existe
 					if padreID != "" {
 						var calendariosPadre []map[string]interface{}
-						errcalendarioPadre := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento?query=TipoEventoId__Id.CalendarioID__Id:"+padreID, &calendariosPadre)
+						errcalendarioPadre := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento?query=TipoEventoId__Id.CalendarioID__Id:"+padreID, &calendariosPadre)
 						if calendariosPadre[0] != nil {
 							if errcalendarioPadre == nil {
 								versionCalendario = map[string]interface{}{
@@ -145,7 +145,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 				documento = calendarios[0]["TipoEventoId"].(map[string]interface{})["CalendarioID"].(map[string]interface{})
 				documentoID := fmt.Sprintf("%.f", documento["DocumentoId"].(float64))
 				var documentos map[string]interface{}
-				errdocumento := request.GetJson("http://"+beego.AppConfig.String("DocumentosService")+"/documento/"+documentoID, &documentos)
+				errdocumento := request.GetJson("http://"+beego.AppConfig.String("DocumentosService")+"documento/"+documentoID, &documentos)
 
 				if errdocumento == nil {
 
@@ -209,7 +209,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 				for _, procesoList := range arr {
 
 					var procesos []map[string]interface{}
-					errproceso := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento?query=TipoEventoId.Id:"+procesoList+"&TipoEventoId__Id.CalendarioID__Id:"+idStr, &procesos)
+					errproceso := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento?query=TipoEventoId.Id:"+procesoList+"&TipoEventoId__Id.CalendarioID__Id:"+idStr, &procesos)
 
 					if errproceso == nil {
 						if procesos != nil {
@@ -221,7 +221,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 
 									calendarioResponsableID := fmt.Sprintf("%.f", responsable["Id"].(float64))
 									var responsables []map[string]interface{}
-									errresponsable := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento_tipo_publico?query=CalendarioEventoId__Id:"+calendarioResponsableID, &responsables)
+									errresponsable := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento_tipo_publico?query=CalendarioEventoId__Id:"+calendarioResponsableID, &responsables)
 
 									if errresponsable == nil {
 										if responsables != nil {

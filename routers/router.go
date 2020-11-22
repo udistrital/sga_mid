@@ -98,6 +98,11 @@ func init() {
 				&controllers.ConsultaCalendarioAcademicoController{},
 			),
 		),
+		beego.NSNamespace("/consulta_calendario_proyecto",
+			beego.NSInclude(
+				&controllers.ConsultaCalendarioProyectoController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
