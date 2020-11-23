@@ -50,7 +50,7 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarByProjectId() {
 				}
 			}
 			if CalendarioId != "" {
-				var url = "http://127.0.0.1:" + beego.AppConfig.String("httpport") + "/v1/consulta_calendario_academico/" + CalendarioId
+				var url = "http://127.0.0.1:8119/v1/consulta_calendario_academico/" + CalendarioId
 				errCalendario := request.GetJson(url, &Calendario)
 				if errCalendario == nil {
 					c.Data["json"] = Calendario
