@@ -26,7 +26,7 @@ func (c *ModificaCalendarioAcademicoController) URLMapping() {
 // e inhabilita el calendario padre
 // @Param   body        body    {}  true        "body crear calendario hijo content"
 // @Success 200 {}
-// @Failure 403 :id is empty
+// @Failure 403 :body is empty
 // @router /crear_calendario_hijo/:id [poat]
 func (c *ModificaCalendarioAcademicoController) PostCalendarioHijo() {
 

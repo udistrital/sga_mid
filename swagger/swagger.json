@@ -155,6 +155,34 @@
                 }
             }
         },
+        "/actividad_calendario/postactividad": {
+            "post":{
+                "tags":[
+                    "actividad_calendario"
+                ],
+                "description":"Agregar actividad calendario, tipo_publico y tabla de rompimiento calendario_evento_tipo_publico",
+                "operationId": "ActividadCalendarioController.PostActividadCalendario",
+                "parameters":[
+                    {
+                        "in":"body",
+                        "name": "body",
+                        "description": "body Agregar Actividad calendario content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses":{
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
         "/archivo_icfes/{id}": {
             "post": {
                 "tags": [
