@@ -20,7 +20,7 @@ func (c *SolicitudDocenteController) URLMapping() {
 	c.Mapping("PostSolicitudDocente", c.PostSolicitudDocente)
 	c.Mapping("GetAllSolicitudDocente", c.GetAllSolicitudDocente)
 	c.Mapping("GetOneSolicitudDocente", c.GetOneSolicitudDocente)
-	c.Mapping("GetSolicitudDocente", c.GetSolicitudDocente)
+	c.Mapping("GetSolicitudDocenteTercero", c.GetSolicitudDocenteTercero)
 	c.Mapping("DeleteSolicitudDocente", c.DeleteSolicitudDocente)
 	c.Mapping("PutEstadoSolicitudDocente", c.PutEstadoSolicitudDocente)
 }
@@ -42,13 +42,13 @@ func (c *SolicitudDocenteController) PostSolicitudDocente() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &SolicitudDocente); err == nil {
 		produccionAcademicaPost := SolicitudDocente["ProduccionAcademica"]
 		var resultadoProduccionAcademica map[string]interface{}
-		errProduccion := request.SendJson(
+		errSolicitud := request.SendJson(
 			"http://"+beego.AppConfig.String("SgaMidService"),
 			"POST",
 			&resultadoProduccionAcademica,
 			produccionAcademicaPost,
 		)
-		if errProduccion == nil &&
+		if errSolicitud == nil &&
 			fmt.Sprintf("%v", resultadoProduccionAcademica["System"]) != "map[]" &&
 			resultadoProduccionAcademica["ProduccionAcademica"] != nil {
 
@@ -104,7 +104,7 @@ func (c *SolicitudDocenteController) PostSolicitudDocente() {
 				c.Abort("400")
 			}
 		} else {
-			logs.Error(errProduccion)
+			logs.Error(errSolicitud)
 			c.Data["system"] = resultadoProduccionAcademica
 			c.Abort("400")
 		}
@@ -185,14 +185,14 @@ func (c *SolicitudDocenteController) GetOneSolicitudDocente() {
 	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/solicitud/?limit=0&query=Id:"+idSolicitud, &solicitudes)
 	if errSolicitud == nil && fmt.Sprintf("%v", solicitudes[0]["System"]) != "map[]" {
 		if solicitudes[0]["Status"] != 404 && solicitudes[0]["Id"] != nil {
-			var autoresProduccion []map[string]interface{}
-			errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/autor_produccion_academica/?query=SolicitudDocenteId:"+idSolicitud, &autoresProduccion)
-			if errSolicitud == nil && fmt.Sprintf("%v", autoresProduccion[0]["System"]) != "map[]" {
-				if autoresProduccion[0]["Status"] != 404 && autoresProduccion[0]["Id"] != nil {
-					var metadatos []map[string]interface{}
-					errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/metadato_produccion_academica/?limit=0&query=SolicitudDocenteId:"+idSolicitud, &metadatos)
-					if errSolicitud == nil && fmt.Sprintf("%v", metadatos[0]["System"]) != "map[]" {
-						if metadatos[0]["Status"] != 404 && metadatos[0]["Id"] != nil {
+			var solicitantes []map[string]interface{}
+			errSolicitante := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/solicitante/?query=SolicitudId:"+idSolicitud, &solicitantes)
+			if errSolicitante == nil && fmt.Sprintf("%v", solicitantes[0]["System"]) != "map[]" {
+				if solicitantes[0]["Status"] != 404 && solicitantes[0]["Id"] != nil {
+					var evolucionEstado []map[string]interface{}
+					errEvolucion := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/metadato_produccion_academica/?limit=0&query=SolicitudDocenteId:"+idSolicitud, &evolucionEstado)
+					if errEvolucion == nil && fmt.Sprintf("%v", evolucionEstado[0]["System"]) != "map[]" {
+						if evolucionEstado[0]["Status"] != 404 && evolucionEstado[0]["Id"] != nil {
 							var v []interface{}
 							v = append(v, map[string]interface{}{
 								"Id":                  solicitudes[0]["Id"],
@@ -200,27 +200,27 @@ func (c *SolicitudDocenteController) GetOneSolicitudDocente() {
 								"Resumen":             solicitudes[0]["Resumen"],
 								"Fecha":               solicitudes[0]["Fecha"],
 								"SubtipoProduccionId": solicitudes[0]["SubtipoProduccionId"],
-								"Autores":             &autoresProduccion,
-								"Metadatos":           &metadatos,
+								"Solicitantes":        &solicitantes,
+								"EvolucionEstado":     &evolucionEstado,
 							})
 							c.Data["json"] = v
 						}
 					} else {
-						if metadatos[0]["Message"] == "Not found resource" {
+						if evolucionEstado[0]["Message"] == "Not found resource" {
 							c.Data["json"] = nil
 						} else {
-							logs.Error(metadatos)
-							c.Data["system"] = errSolicitud
+							logs.Error(evolucionEstado)
+							c.Data["system"] = errEvolucion
 							c.Abort("404")
 						}
 					}
 				}
 			} else {
-				if autoresProduccion[0]["Message"] == "Not found resource" {
+				if solicitantes[0]["Message"] == "Not found resource" {
 					c.Data["json"] = nil
 				} else {
-					logs.Error(autoresProduccion)
-					c.Data["system"] = errSolicitud
+					logs.Error(solicitantes)
+					c.Data["system"] = errSolicitante
 					c.Abort("404")
 				}
 			}
@@ -252,58 +252,55 @@ func (c *SolicitudDocenteController) GetAllSolicitudDocente() {
 	//resultado resultado final
 	var resultado []map[string]interface{}
 	//resultado experiencia
-	var producciones []map[string]interface{}
+	var solicitudes []map[string]interface{}
 
-	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_produccion_academica/?limit=0", &producciones)
-	if errSolicitud == nil && fmt.Sprintf("%v", producciones[0]["System"]) != "map[]" {
-		if producciones[0]["Status"] != 404 && producciones[0]["Id"] != nil {
-			for _, produccion := range producciones {
-				autores := produccion["Autores"].([]interface{})
-				for _, autorTemp := range autores {
-					autor := autorTemp.(map[string]interface{})
-					produccion["EstadoEnteAutorId"] = autor
+	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud_docente/?limit=0", &solicitudes)
+	if errSolicitud == nil && fmt.Sprintf("%v", solicitudes[0]["System"]) != "map[]" {
+		if solicitudes[0]["Status"] != 404 && solicitudes[0]["Id"] != nil {
+			for _, solicitud := range solicitudes {
+				solicitantes := solicitud["Solicitantes"].([]interface{})
+				for _, solicitanteTemp := range solicitantes {
+					solicitante := solicitanteTemp.(map[string]interface{})
+					solicitud["EstadoEnteAutorId"] = solicitante
 					//cargar nombre del autor
-					var autorProduccion map[string]interface{}
+					var solicitateSolicitud map[string]interface{}
 
-					errAutor := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%v", autor["Persona"]), &autorProduccion)
-					fmt.Println(autorProduccion)
-					if errAutor == nil && fmt.Sprintf("%v", autorProduccion["System"]) != "map[]" {
-						if autorProduccion["Status"] != 404 {
-							// autor["Nombre"] = autorProduccion["PrimerNombre"].(string) + " " + autorProduccion["SegundoNombre"].(string) + " " +
-							// autorProduccion["PrimerApellido"].(string) + " " + autorProduccion["SegundoApellido"].(string)
-							autor["Nombre"] = autorProduccion["NombreCompleto"].(string)
+					errSolicitante := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%v", solicitante["TerceroId"]), &solicitateSolicitud)
+					if errSolicitante == nil && fmt.Sprintf("%v", solicitateSolicitud["System"]) != "map[]" {
+						if solicitateSolicitud["Status"] != 404 {
+							solicitante["Nombre"] = solicitateSolicitud["NombreCompleto"].(string)
 						} else {
-							if autorProduccion["Message"] == "Not found resource" {
+							if solicitateSolicitud["Message"] == "Not found resource" {
 								c.Data["json"] = nil
 							} else {
-								logs.Error(autorProduccion)
+								logs.Error(solicitateSolicitud)
 								//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-								c.Data["system"] = errAutor
+								c.Data["system"] = errSolicitante
 								c.Abort("404")
 							}
 						}
 					} else {
-						logs.Error(autorProduccion)
+						logs.Error(solicitateSolicitud)
 						//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-						c.Data["system"] = errAutor
+						c.Data["system"] = errSolicitante
 						c.Abort("404")
 					}
 				}
 			}
-			resultado = producciones
+			resultado = solicitudes
 			c.Data["json"] = resultado
 		} else {
-			if producciones[0]["Message"] == "Not found resource" {
+			if solicitudes[0]["Message"] == "Not found resource" {
 				c.Data["json"] = nil
 			} else {
-				logs.Error(producciones)
+				logs.Error(solicitudes)
 				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 				c.Data["system"] = errSolicitud
 				c.Abort("404")
 			}
 		}
 	} else {
-		logs.Error(producciones)
+		logs.Error(solicitudes)
 		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 		c.Data["system"] = errSolicitud
 		c.Abort("404")
@@ -311,78 +308,75 @@ func (c *SolicitudDocenteController) GetAllSolicitudDocente() {
 	c.ServeJSON()
 }
 
-// GetSolicitudDocente ...
-// @Title GetSolicitudDocente
+// GetSolicitudDocenteTercero ...
+// @Title GetSolicitudDocenteTercero
 // @Description consultar Produccion Academica por tercero
 // @Param   tercero      path    int  true        "Tercero"
 // @Success 200 {}
 // @Failure 404 not found resource
 // @router /:tercero [get]
-func (c *SolicitudDocenteController) GetSolicitudDocente() {
+func (c *SolicitudDocenteController) GetSolicitudDocenteTercero() {
 	//Id del tercero
 	idTercero := c.Ctx.Input.Param(":tercero")
 	fmt.Println("Consultando producciones de tercero: " + idTercero)
 	//resultado resultado final
 	var resultado []map[string]interface{}
 	//resultado experiencia
-	var producciones []map[string]interface{}
+	var solicitudes []map[string]interface{}
 
-	errProduccion := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_produccion_academica/"+idTercero, &producciones)
-	if errProduccion == nil && fmt.Sprintf("%v", producciones[0]["System"]) != "map[]" {
-		if producciones[0]["Status"] != 404 && producciones[0]["Id"] != nil {
-			for _, produccion := range producciones {
-				autores := produccion["Autores"].([]interface{})
-				for _, autorTemp := range autores {
-					autor := autorTemp.(map[string]interface{})
-					fmt.Println("autor", autor["Persona"], idTercero)
-					if fmt.Sprintf("%v", autor["Persona"]) == fmt.Sprintf("%v", idTercero) {
-						// fmt.Println(produccion)
-						produccion["EstadoEnteAutorId"] = autor
+	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud_docente/"+idTercero, &solicitudes)
+	if errSolicitud == nil && fmt.Sprintf("%v", solicitudes[0]["System"]) != "map[]" {
+		if solicitudes[0]["Status"] != 404 && solicitudes[0]["Id"] != nil {
+			for _, solicitud := range solicitudes {
+				solicitantes := solicitud["Solicitantes"].([]interface{})
+				for _, solicitnateTemp := range solicitantes {
+					solicitnate := solicitnateTemp.(map[string]interface{})
+					if fmt.Sprintf("%v", solicitnate["TerceroId"]) == fmt.Sprintf("%v", idTercero) {
+						// fmt.Println(Solicitud)
+						solicitud["EstadoEnteAutorId"] = solicitnate
 					}
 					//cargar nombre del autor
-					var autorProduccion map[string]interface{}
+					var solicitanteSolicitud map[string]interface{}
 
-					errAutor := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%v", autor["Persona"]), &autorProduccion)
-					fmt.Println(autorProduccion)
-					if errAutor == nil && fmt.Sprintf("%v", autorProduccion["System"]) != "map[]" {
-						if autorProduccion["Status"] != 404 {
-							// autor["Nombre"] = autorProduccion["PrimerNombre"].(string) + " " + autorProduccion["SegundoNombre"].(string) + " " +
-							// autorProduccion["PrimerApellido"].(string) + " " + autorProduccion["SegundoApellido"].(string)
-							autor["Nombre"] = autorProduccion["NombreCompleto"].(string)
+					errSolicitante := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%v", solicitnate["TerceroId"]), &solicitanteSolicitud)
+					fmt.Println(solicitanteSolicitud)
+					if errSolicitante == nil && fmt.Sprintf("%v", solicitanteSolicitud["System"]) != "map[]" {
+						if solicitanteSolicitud["Status"] != 404 {
+							solicitnate["Nombre"] = solicitanteSolicitud["NombreCompleto"].(string)
 						} else {
-							if autorProduccion["Message"] == "Not found resource" {
+							if solicitanteSolicitud["Message"] == "Not found resource" {
 								c.Data["json"] = nil
 							} else {
-								logs.Error(autorProduccion)
+								logs.Error(solicitanteSolicitud)
 								//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-								c.Data["system"] = errAutor
+								c.Data["system"] = errSolicitante
 								c.Abort("404")
 							}
 						}
 					} else {
-						logs.Error(autorProduccion)
+						logs.Error(solicitanteSolicitud)
 						//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-						c.Data["system"] = errAutor
+						c.Data["system"] = errSolicitante
 						c.Abort("404")
 					}
 				}
 			}
-			resultado = producciones
+			resultado = solicitudes
 			c.Data["json"] = resultado
 		} else {
-			if producciones[0]["Message"] == "Not found resource" {
+			if solicitudes[0]["Message"] == "Not found resource" {
 				c.Data["json"] = nil
 			} else {
-				logs.Error(producciones)
+				logs.Error(solicitudes)
 				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-				c.Data["system"] = errProduccion
+				c.Data["system"] = errSolicitud
 				c.Abort("404")
 			}
 		}
 	} else {
-		logs.Error(producciones)
+		logs.Error(solicitudes)
 		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-		c.Data["system"] = errProduccion
+		c.Data["system"] = errSolicitud
 		c.Abort("404")
 	}
 	c.ServeJSON()
@@ -390,7 +384,7 @@ func (c *SolicitudDocenteController) GetSolicitudDocente() {
 
 // DeleteSolicitudDocente ...
 // @Title DeleteSolicitudDocente
-// @Description eliminar Produccion Academica por id
+// @Description eliminar Solicitud Academica por id
 // @Param   id      path    int  true        "Id de la Produccion Academica"
 // @Success 200 {string} delete success!
 // @Failure 404 not found resource
@@ -401,7 +395,7 @@ func (c *SolicitudDocenteController) DeleteSolicitudDocente() {
 	//resultados eliminacion
 	var borrado map[string]interface{}
 
-	errDelete := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_produccion_academica/"+idStr, "DELETE", &borrado, nil)
+	errDelete := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud_docente/"+idStr, "DELETE", &borrado, nil)
 	fmt.Println(borrado)
 	if errDelete == nil && fmt.Sprintf("%v", borrado["System"]) != "map[]" {
 		if borrado["Status"] != 404 {
