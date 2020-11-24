@@ -363,6 +363,35 @@
                 }
             }
         },
+        "/consulta_calendario_proyecto/{id}": {
+            "get": {
+                "tags": [
+                    "consulta_calendario_proyecto"
+                ],
+                "description": "get ConsultaCalendarioAcademico by id",
+                "operationId": "ConsultaCalendarioProyectoController.GetCalendarByProjectId",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "The key for staticblock",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.ConsultaCalendarioAcademico"
+                        }
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
+            }
+        },
         "/consulta_proyecto_academico/": {
             "get": {
                 "tags": [
