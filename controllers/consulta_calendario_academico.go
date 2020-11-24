@@ -154,7 +154,6 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 						metadatoJSON := documentos["Metadatos"].(string)
 						var metadato models.Metadatos
 						json.Unmarshal([]byte(metadatoJSON), &metadato)
-						// fmt.Printf("Resolucion: %s, Anno: %s", metadato.Resolucion, metadato.Anno)
 
 						resolucion = map[string]interface{}{
 							"Id":         documentos["Id"],
@@ -293,7 +292,62 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 				c.Data["json"] = resultados
 
 			} else {
-				c.Data["json"] = calendarios
+				var calendario map[string]interface{}
+				errcalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario/"+idStr, &calendario)
+				if errcalendario == nil {
+					if calendario["Id"] != nil {
+
+						if calendario["CalendarioPadreId"] != nil {
+							padreID := fmt.Sprintf("%.f", calendario["CalendarioPadreId"].(map[string]interface{})["Id"].(float64))
+							versionCalendario = map[string]interface{}{
+								"Id":     padreID,
+								"Nombre": calendario["CalendarioPadreId"].(map[string]interface{})["Nombre"],
+							}
+							versionCalendarioResultado = append(versionCalendarioResultado, versionCalendario)
+						}
+
+						documentoID := fmt.Sprintf("%.f", calendario["DocumentoId"].(float64))
+						var documentos map[string]interface{}
+						errdocumento := request.GetJson("http://"+beego.AppConfig.String("DocumentosService")+"documento/"+documentoID, &documentos)
+
+						if errdocumento == nil {
+
+							if documentos != nil {
+
+								metadatoJSON := documentos["Metadatos"].(string)
+								var metadato models.Metadatos
+								json.Unmarshal([]byte(metadatoJSON), &metadato)
+
+								resolucion = map[string]interface{}{
+									"Id":         documentos["Id"],
+									"Enlace":     documentos["Enlace"],
+									"Resolucion": metadato.Resolucion,
+									"Anno":       metadato.Anno,
+								}
+							} else {
+								c.Data["json"] = documentos
+							}
+
+						} else {
+							alertas = append(alertas, errdocumento.Error())
+							alerta.Code = "400"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = alerta
+						}
+						resultado = map[string]interface{}{
+							"Id":              idStr,
+							"Nombre":          calendario["Nombre"].(string),
+							"ListaCalendario": versionCalendarioResultado,
+							"resolucion":      resolucion,
+							"proceso":         procesoResultado,
+						}
+						resultados = append(resultados, resultado)
+						c.Data["json"] = resultados
+					}
+				} else {
+					c.Data["json"] = calendarios
+				}
 			}
 
 		} else {
