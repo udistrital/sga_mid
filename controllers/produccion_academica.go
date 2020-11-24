@@ -82,9 +82,9 @@ func (c *ProduccionAcademicaController) PostProduccionAcademica() {
 		produccionAcademicaPost["Metadatos"] = metadatos
 		var resultadoProduccionAcademica map[string]interface{}
 		errProduccion := request.SendJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica", "POST", &resultadoProduccionAcademica, produccionAcademicaPost)
-		if errProduccion == nil && fmt.Sprintf("%v", resultadoProduccionAcademica["System"]) != "map[]" &&  resultadoProduccionAcademica["ProduccionAcademica"] != nil {
+		if errProduccion == nil && fmt.Sprintf("%v", resultadoProduccionAcademica["System"]) != "map[]" && resultadoProduccionAcademica["ProduccionAcademica"] != nil {
 			if resultadoProduccionAcademica["Status"] != 400 {
-				resultado = produccionAcademica
+				resultado = resultadoProduccionAcademica
 				c.Data["json"] = resultado
 			} else {
 				logs.Error(errProduccion)
@@ -200,7 +200,7 @@ func (c *ProduccionAcademicaController) PutProduccionAcademica() {
 		for _, metadatoTemp := range produccionAcademica["Metadatos"].([]interface{}) {
 			metadato := metadatoTemp.(map[string]interface{})
 			metadatos = append(metadatos, map[string]interface{}{
-				"Valor": metadato["Valor"],
+				"Valor":                       metadato["Valor"],
 				"MetadatoSubtipoProduccionId": metadato["MetadatoSubtipoProduccionId"],
 				"Activo":                      true,
 			})
@@ -260,7 +260,7 @@ func (c *ProduccionAcademicaController) GetProduccionAcademica() {
 				autores := produccion["Autores"].([]interface{})
 				for _, autorTemp := range autores {
 					autor := autorTemp.(map[string]interface{})
-					fmt.Println("autor",autor["PersonaId"], idTercero);
+					fmt.Println("autor", autor["PersonaId"], idTercero)
 					if fmt.Sprintf("%v", autor["PersonaId"]) == fmt.Sprintf("%v", idTercero) {
 						produccion["EstadoEnteAutorId"] = autor
 					}
@@ -271,7 +271,7 @@ func (c *ProduccionAcademicaController) GetProduccionAcademica() {
 					if errAutor == nil && fmt.Sprintf("%v", autorProduccion["System"]) != "map[]" {
 						if autorProduccion["Status"] != 404 {
 							// autor["Nombre"] = autorProduccion["PrimerNombre"].(string) + " " + autorProduccion["SegundoNombre"].(string) + " " +
-								// autorProduccion["PrimerApellido"].(string) + " " + autorProduccion["SegundoApellido"].(string)
+							// autorProduccion["PrimerApellido"].(string) + " " + autorProduccion["SegundoApellido"].(string)
 							autor["Nombre"] = autorProduccion["NombreCompleto"].(string)
 						} else {
 							if autorProduccion["Message"] == "Not found resource" {
