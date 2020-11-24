@@ -86,6 +86,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 	var alerta models.Alert
 	alertas := append([]interface{}{"Response:"})
 	var versionCalendario map[string]interface{}
+	var versionCalendarioResultado []map[string]interface{}
 	var calendarioPadreID map[string]interface{}
 	var documento map[string]interface{}
 	var resolucion map[string]interface{}
@@ -99,7 +100,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 	if resultado["Type"] != "error" {
 		// consultar calendario evento por tipo evento
 		var calendarios []map[string]interface{}
-		errcalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento?query=TipoEventoId__Id.CalendarioID__Id:"+idStr, &calendarios)
+		errcalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento?query=TipoEventoId__Id.CalendarioID__Id:"+idStr, &calendarios)
 		if errcalendario == nil {
 			if calendarios[0]["Id"] != nil {
 
@@ -112,13 +113,14 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 					// obtener informacion calendario padre si existe
 					if padreID != "" {
 						var calendariosPadre []map[string]interface{}
-						errcalendarioPadre := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento?query=TipoEventoId__Id.CalendarioID__Id:"+padreID, &calendariosPadre)
+						errcalendarioPadre := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento?query=TipoEventoId__Id.CalendarioID__Id:"+padreID, &calendariosPadre)
 						if calendariosPadre[0] != nil {
 							if errcalendarioPadre == nil {
 								versionCalendario = map[string]interface{}{
 									"Id":     padreID,
 									"Nombre": calendariosPadre[0]["TipoEventoId"].(map[string]interface{})["CalendarioID"].(map[string]interface{})["Nombre"],
 								}
+								versionCalendarioResultado = append(versionCalendarioResultado, versionCalendario)
 							} else {
 								alertas = append(alertas, errcalendarioPadre.Error())
 								alerta.Code = "400"
@@ -136,22 +138,22 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 							"Id":     "",
 							"Nombre": "",
 						}
+						versionCalendarioResultado = append(versionCalendarioResultado, versionCalendario)
 					}
 				}
 
 				documento = calendarios[0]["TipoEventoId"].(map[string]interface{})["CalendarioID"].(map[string]interface{})
 				documentoID := fmt.Sprintf("%.f", documento["DocumentoId"].(float64))
 				var documentos map[string]interface{}
-				errdocumento := request.GetJson("http://"+beego.AppConfig.String("DocumentosService")+"/documento/"+documentoID, &documentos)
+				errdocumento := request.GetJson("http://"+beego.AppConfig.String("DocumentosService")+"documento/"+documentoID, &documentos)
 
 				if errdocumento == nil {
 
-					if documentos != nil && documentos["Status"] != "404" {
+					if documentos != nil {
 
 						metadatoJSON := documentos["Metadatos"].(string)
 						var metadato models.Metadatos
 						json.Unmarshal([]byte(metadatoJSON), &metadato)
-						// fmt.Printf("Resolucion: %s, Anno: %s", metadato.Resolucion, metadato.Anno)
 
 						resolucion = map[string]interface{}{
 							"Id":         documentos["Id"],
@@ -160,6 +162,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 							"Anno":       metadato.Anno,
 						}
 					} else {
+
 						c.Data["json"] = documentos
 					}
 
@@ -205,27 +208,29 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 				for _, procesoList := range arr {
 
 					var procesos []map[string]interface{}
-					errproceso := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento?query=TipoEventoId.Id:"+procesoList+"&TipoEventoId__Id.CalendarioID__Id:"+idStr, &procesos)
+					errproceso := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento?query=TipoEventoId.Id:"+procesoList+"&TipoEventoId__Id.CalendarioID__Id:"+idStr, &procesos)
 
 					if errproceso == nil {
 						if procesos != nil {
 							for _, proceso := range procesos {
 
 								// consultar responsables
-								var responsableString string
+								var responsableString = ""
 								for _, responsable := range procesos {
 
 									calendarioResponsableID := fmt.Sprintf("%.f", responsable["Id"].(float64))
 									var responsables []map[string]interface{}
-									errresponsable := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento_tipo_publico?query=CalendarioEventoId__Id:"+calendarioResponsableID, &responsables)
+									errresponsable := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento_tipo_publico?query=CalendarioEventoId__Id:"+calendarioResponsableID, &responsables)
 
 									if errresponsable == nil {
 										if responsables != nil {
-											var responsablesID map[string]interface{}
-											responsablesID = responsables[0]["TipoPublicoId"].(map[string]interface{})
-											responsableID := fmt.Sprintf(responsablesID["Nombre"].(string))
+											for _, listRresponsable := range responsables {
+												var responsablesID map[string]interface{}
+												responsablesID = listRresponsable["TipoPublicoId"].(map[string]interface{})
+												responsableID := fmt.Sprintf(responsablesID["Nombre"].(string))
 
-											responsableString = responsableID + ", " + responsableString
+												responsableString = responsableID + ", " + responsableString
+											}
 										} else {
 											c.Data["json"] = responsables
 										}
@@ -238,7 +243,9 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 									}
 								}
 
-								responsableString = responsableString[:len(responsableString)-2]
+								if responsableString != "" {
+									responsableString = responsableString[:len(responsableString)-2]
+								}
 
 								actividad = nil
 								actividad = map[string]interface{}{
@@ -277,7 +284,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 				resultado = map[string]interface{}{
 					"Id":              idStr,
 					"Nombre":          calendarios[0]["TipoEventoId"].(map[string]interface{})["CalendarioID"].(map[string]interface{})["Nombre"].(string),
-					"ListaCalendario": versionCalendario,
+					"ListaCalendario": versionCalendarioResultado,
 					"resolucion":      resolucion,
 					"proceso":         procesoResultado,
 				}
@@ -285,7 +292,62 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 				c.Data["json"] = resultados
 
 			} else {
-				c.Data["json"] = calendarios
+				var calendario map[string]interface{}
+				errcalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario/"+idStr, &calendario)
+				if errcalendario == nil {
+					if calendario["Id"] != nil {
+
+						if calendario["CalendarioPadreId"] != nil {
+							padreID := fmt.Sprintf("%.f", calendario["CalendarioPadreId"].(map[string]interface{})["Id"].(float64))
+							versionCalendario = map[string]interface{}{
+								"Id":     padreID,
+								"Nombre": calendario["CalendarioPadreId"].(map[string]interface{})["Nombre"],
+							}
+							versionCalendarioResultado = append(versionCalendarioResultado, versionCalendario)
+						}
+
+						documentoID := fmt.Sprintf("%.f", calendario["DocumentoId"].(float64))
+						var documentos map[string]interface{}
+						errdocumento := request.GetJson("http://"+beego.AppConfig.String("DocumentosService")+"documento/"+documentoID, &documentos)
+
+						if errdocumento == nil {
+
+							if documentos != nil {
+
+								metadatoJSON := documentos["Metadatos"].(string)
+								var metadato models.Metadatos
+								json.Unmarshal([]byte(metadatoJSON), &metadato)
+
+								resolucion = map[string]interface{}{
+									"Id":         documentos["Id"],
+									"Enlace":     documentos["Enlace"],
+									"Resolucion": metadato.Resolucion,
+									"Anno":       metadato.Anno,
+								}
+							} else {
+								c.Data["json"] = documentos
+							}
+
+						} else {
+							alertas = append(alertas, errdocumento.Error())
+							alerta.Code = "400"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = alerta
+						}
+						resultado = map[string]interface{}{
+							"Id":              idStr,
+							"Nombre":          calendario["Nombre"].(string),
+							"ListaCalendario": versionCalendarioResultado,
+							"resolucion":      resolucion,
+							"proceso":         procesoResultado,
+						}
+						resultados = append(resultados, resultado)
+						c.Data["json"] = resultados
+					}
+				} else {
+					c.Data["json"] = calendarios
+				}
 			}
 
 		} else {

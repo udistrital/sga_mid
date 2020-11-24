@@ -7,6 +7,7 @@ import (
 
 func init() {
 
+
 	beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ActividadCalendarioController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ActividadCalendarioController"],
 		beego.ControllerComments{
 			Method:           "PostActividadCalendario",
