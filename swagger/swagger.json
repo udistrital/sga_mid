@@ -1411,6 +1411,21 @@
             }
         },
         "/produccion_academica/": {
+            "get": {
+                "tags": [
+                    "produccion_academica"
+                ],
+                "description": "consultar todas las Producciones académicas",
+                "operationId": "ProduccionAcademicaController.GetAllProduccionAcademica",
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            },
             "post": {
                 "tags": [
                     "produccion_academica"
@@ -1470,6 +1485,33 @@
                     },
                     "400": {
                         "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
+        "/produccion_academica/get_one/{id}": {
+            "get": {
+                "tags": [
+                    "produccion_academica"
+                ],
+                "description": "consultar Produccion Academica por id",
+                "operationId": "ProduccionAcademicaController.GetOneProduccionAcademica",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "Id",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
                     }
                 }
             }

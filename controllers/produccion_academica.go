@@ -19,6 +19,8 @@ type ProduccionAcademicaController struct {
 func (c *ProduccionAcademicaController) URLMapping() {
 	c.Mapping("PostProduccionAcademica", c.PostProduccionAcademica)
 	c.Mapping("PutProduccionAcademica", c.PutProduccionAcademica)
+	c.Mapping("GetAllProduccionAcademica", c.GetAllProduccionAcademica)
+	c.Mapping("GetOneProduccionAcademica", c.GetOneProduccionAcademica)
 	c.Mapping("GetProduccionAcademica", c.GetProduccionAcademica)
 	c.Mapping("DeleteProduccionAcademica", c.DeleteProduccionAcademica)
 	c.Mapping("PutEstadoAutorProduccionAcademica", c.PutEstadoAutorProduccionAcademica)
@@ -222,6 +224,152 @@ func (c *ProduccionAcademicaController) PutProduccionAcademica() {
 		logs.Error(err)
 		c.Data["system"] = err
 		c.Abort("400")
+	}
+	c.ServeJSON()
+}
+
+// GetOneProduccionAcademica ...
+// @Title GetOneProduccionAcademica
+// @Description consultar Produccion Academica por id
+// @Param   id      path    int  true        "Id"
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router /get_one/:id [get]
+func (c *ProduccionAcademicaController) GetOneProduccionAcademica() {
+	//Id de la producción
+	idProduccion := c.Ctx.Input.Param(":id")
+	fmt.Println("Consultando produccion de id: " + idProduccion)
+	//resultado resultado final
+	// var resultado []map[string]interface{}
+	//resultado experiencia
+	var producciones []map[string]interface{}
+
+	errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/produccion_academica/?limit=0&query=Id:"+idProduccion, &producciones)
+	fmt.Println(producciones)
+	if errProduccion == nil && fmt.Sprintf("%v", producciones[0]["System"]) != "map[]" {
+		if producciones[0]["Status"] != 404 && producciones[0]["Id"] != nil {
+			var autoresProduccion []map[string]interface{}
+			errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/autor_produccion_academica/?query=ProduccionAcademicaId:"+idProduccion, &autoresProduccion)
+			if errProduccion == nil && fmt.Sprintf("%v", autoresProduccion[0]["System"]) != "map[]" {
+				if autoresProduccion[0]["Status"] != 404 && autoresProduccion[0]["Id"] != nil {
+					var metadatos []map[string]interface{}
+					errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/metadato_produccion_academica/?limit=0&query=ProduccionAcademicaId:"+idProduccion, &metadatos)
+					if errProduccion == nil && fmt.Sprintf("%v", metadatos[0]["System"]) != "map[]" {
+						if metadatos[0]["Status"] != 404 && metadatos[0]["Id"] != nil {
+							var v []interface{}
+							v = append(v, map[string]interface{}{
+								"Id":                  producciones[0]["Id"],
+								"Titulo":              producciones[0]["Titulo"],
+								"Resumen":             producciones[0]["Resumen"],
+								"Fecha":               producciones[0]["Fecha"],
+								"SubtipoProduccionId": producciones[0]["SubtipoProduccionId"],
+								"Autores":             &autoresProduccion,
+								"Metadatos":           &metadatos,
+							})
+							c.Data["json"] = v
+						}
+					} else {
+						if metadatos[0]["Message"] == "Not found resource" {
+							c.Data["json"] = nil
+						} else {
+							logs.Error(metadatos)
+							c.Data["system"] = errProduccion
+							c.Abort("404")
+						}
+					}
+				}
+			} else {
+				if autoresProduccion[0]["Message"] == "Not found resource" {
+					c.Data["json"] = nil
+				} else {
+					logs.Error(autoresProduccion)
+					c.Data["system"] = errProduccion
+					c.Abort("404")
+				}
+			}
+		} else {
+			if producciones[0]["Message"] == "Not found resource" {
+				c.Data["json"] = nil
+			} else {
+				logs.Error(producciones)
+				c.Data["system"] = errProduccion
+				c.Abort("404")
+			}
+		}
+	} else {
+		logs.Error(producciones)
+		c.Data["system"] = errProduccion
+		c.Abort("404")
+	}
+	c.ServeJSON()
+}
+
+// GetAllProduccionAcademica ...
+// @Title GetAllProduccionAcademica
+// @Description consultar todas las Producciones académicas
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router / [get]
+func (c *ProduccionAcademicaController) GetAllProduccionAcademica() {
+	fmt.Println("Consultando todas las producciones")
+	//resultado resultado final
+	var resultado []map[string]interface{}
+	//resultado experiencia
+	var producciones []map[string]interface{}
+
+	errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/?limit=0", &producciones)
+	if errProduccion == nil && fmt.Sprintf("%v", producciones[0]["System"]) != "map[]" {
+		if producciones[0]["Status"] != 404 && producciones[0]["Id"] != nil {
+			for _, produccion := range producciones {
+				autores := produccion["Autores"].([]interface{})
+				for _, autorTemp := range autores {
+					autor := autorTemp.(map[string]interface{})
+					produccion["EstadoEnteAutorId"] = autor
+					//cargar nombre del autor
+					var autorProduccion map[string]interface{}
+
+					errAutor := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%v", autor["Persona"]), &autorProduccion)
+					fmt.Println(autorProduccion)
+					if errAutor == nil && fmt.Sprintf("%v", autorProduccion["System"]) != "map[]" {
+						if autorProduccion["Status"] != 404 {
+							// autor["Nombre"] = autorProduccion["PrimerNombre"].(string) + " " + autorProduccion["SegundoNombre"].(string) + " " +
+							// autorProduccion["PrimerApellido"].(string) + " " + autorProduccion["SegundoApellido"].(string)
+							autor["Nombre"] = autorProduccion["NombreCompleto"].(string)
+						} else {
+							if autorProduccion["Message"] == "Not found resource" {
+								c.Data["json"] = nil
+							} else {
+								logs.Error(autorProduccion)
+								//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+								c.Data["system"] = errAutor
+								c.Abort("404")
+							}
+						}
+					} else {
+						logs.Error(autorProduccion)
+						//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+						c.Data["system"] = errAutor
+						c.Abort("404")
+					}
+				}
+			}
+			resultado = producciones
+			c.Data["json"] = resultado
+		} else {
+			if producciones[0]["Message"] == "Not found resource" {
+				c.Data["json"] = nil
+			} else {
+				logs.Error(producciones)
+				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+				c.Data["system"] = errProduccion
+				c.Abort("404")
+			}
+		}
+	} else {
+		logs.Error(producciones)
+		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = errProduccion
+		c.Abort("404")
 	}
 	c.ServeJSON()
 }
