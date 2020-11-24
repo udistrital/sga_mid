@@ -155,34 +155,6 @@
                 }
             }
         },
-        "/actividad_calendario/postactividad": {
-            "post":{
-                "tags":[
-                    "actividad_calendario"
-                ],
-                "description":"Agregar actividad calendario, tipo_publico y tabla de rompimiento calendario_evento_tipo_publico",
-                "operationId": "ActividadCalendarioController.PostActividadCalendario",
-                "parameters":[
-                    {
-                        "in":"body",
-                        "name": "body",
-                        "description": "body Agregar Actividad calendario content",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/{}"
-                        }
-                    }
-                ],
-                "responses":{
-                    "200": {
-                        "description": "{}"
-                    },
-                    "403": {
-                        "description": "body is empty"
-                    }
-                }
-            }
-        },
         "/archivo_icfes/{id}": {
             "post": {
                 "tags": [
@@ -369,6 +341,35 @@
                 ],
                 "description": "get ConsultaCalendarioAcademico by id",
                 "operationId": "ConsultaCalendarioAcademicoController.GetOnePorId",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "The key for staticblock",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.ConsultaCalendarioAcademico"
+                        }
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
+            }
+        },
+        "/consulta_calendario_proyecto/{id}": {
+            "get": {
+                "tags": [
+                    "consulta_calendario_proyecto"
+                ],
+                "description": "get ConsultaCalendarioAcademico by id",
+                "operationId": "ConsultaCalendarioProyectoController.GetCalendarByProjectId",
                 "parameters": [
                     {
                         "in": "path",
