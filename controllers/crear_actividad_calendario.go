@@ -39,7 +39,7 @@ func (c *ActividadCalendarioController) PostActividadCalendario() {
 		errActividad := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento", "POST", &resActividad, actividad)
 		if errActividad == nil && fmt.Sprintf("%v", resActividad["System"]) != "map[]" && resActividad["actividadId"] != nil {
 			if resActividad["Status"] != 400 {
-				IdActividad = resActividad["actividadId"]
+				IdActividad = resActividad["Id"]
 				resultado := map[string]interface{}{
 					"Nombre":       actividadCalendarioPost["Nombre"],
 					"Descripcion":  actividadCalendarioPost["Descripcion"],
@@ -71,7 +71,7 @@ func (c *ActividadCalendarioController) PostActividadCalendario() {
 			CalendarioEventoTipoPersona := map[string]interface{}{
 
 				"Activo":             true,
-				"TipoPublicoId":      publicoTemp["Publico"].(map[string]interface{})["Id_publico"].(float64),
+				"TipoPublicoId":      publicoTemp["Publico"].(map[string]interface{})["IdPublico"].(float64),
 				"CalendarioEventoId": IdActividad.(float64),
 			}
 
@@ -96,7 +96,7 @@ func (c *ActividadCalendarioController) PostActividadCalendario() {
 
 				} else {
 					var resultado2 map[string]interface{}
-					request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento/%.f", actividadCalendarioPost["ActividadId"]), "DELETE", &resultado2, nil)
+					request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento/%.f", actividadCalendarioPost["Id"]), "DELETE", &resultado2, nil)
 					logs.Error(errActividadPersona)
 					c.Data["system"] = resActividadPersona
 					c.Abort("400")
