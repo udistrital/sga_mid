@@ -84,9 +84,6 @@ func (c *ActividadCalendarioController) PostActividadCalendario() {
 				if resActividadPersona["Status"] != 400 {
 					//IdActividadPersona := resActividadPersona["Id"] //.(map[string]interface{})[""]
 					resultado := map[string]interface{}{
-						"Id":                 actividadPersonaPost["Id"],
-						"FechaCreacion":      actividadPersonaPost["FechaCreacion"],
-						"FechaModificacion":  actividadPersonaPost["FechaModificacion"],
 						"Activo":             true,
 						"TipoPublicoId":      actividadPersonaPost["TipoPublicoId"],
 						"CalendarioEventoId": actividadPersonaPost["CalendarioEventoId"],
