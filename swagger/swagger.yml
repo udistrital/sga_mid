@@ -372,7 +372,7 @@ paths:
       responses:
         "200":
           description: '{}'
-        "400":
+        "403":
           description: body is empty
   /descuento_academico/:
     get:
