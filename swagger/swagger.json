@@ -189,6 +189,34 @@
                 }
             }
         },
+        "/clonar_calendario/": {
+            "post": {
+                "tags": [
+                    "clonar_calendario"
+                ],
+                "description": "Clona calendario, crea tipo_evento si lo tiene, crea calendario_evento si tiene, crea calendario_evento_tipo_publico si tiene, crea tipo_publico si lo tiene",
+                "operationId": "CalendarioController.Calendario",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body id calendario content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
         "/consulta_academica/": {
             "get": {
                 "tags": [

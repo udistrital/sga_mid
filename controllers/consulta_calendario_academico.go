@@ -348,6 +348,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 				} else {
 					c.Data["json"] = calendarios
 				}
+
 			}
 
 		} else {

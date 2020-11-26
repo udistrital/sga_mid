@@ -108,6 +108,11 @@ func init() {
 				&controllers.ActividadCalendarioController{},
 			),
 		),
+		beego.NSNamespace("/clonar_calendario",
+			beego.NSInclude(
+				&controllers.CalendarioController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
