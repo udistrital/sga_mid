@@ -413,7 +413,7 @@ func (c *ConsultaCalendarioAcademicoController) PutInhabilitarClendario() {
 
 					errCalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"tipo_evento?query=CalendarioID__Id:"+idCalendario, &tipoEvento)
 					if errCalendario == nil {
-						if tipoEvento != nil {
+						if tipoEvento != nil && tipoEvento[0] != nil && len(tipoEvento[0]) > 0 {
 
 							for _, tEvento := range tipoEvento {
 
@@ -429,7 +429,7 @@ func (c *ConsultaCalendarioAcademicoController) PutInhabilitarClendario() {
 
 									errCalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento?query=TipoEventoId__Id:"+idEvento, &calendarioEvento)
 									if errCalendario == nil {
-										if calendarioEvento != nil {
+										if calendarioEvento != nil && calendarioEvento[0] != nil && len(calendarioEvento[0]) > 0 {
 
 											for _, cEvento := range calendarioEvento {
 
@@ -445,7 +445,7 @@ func (c *ConsultaCalendarioAcademicoController) PutInhabilitarClendario() {
 
 													errCalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento_tipo_publico?query=CalendarioEventoId__Id:"+idCalendarioEvento, &calendarioEventoTipoPublico)
 													if errCalendario == nil {
-														if calendarioEventoTipoPublico != nil {
+														if calendarioEventoTipoPublico != nil && calendarioEventoTipoPublico[0] != nil && len(calendarioEventoTipoPublico[0]) > 0 {
 
 															for _, cEventoTipoPublico := range calendarioEventoTipoPublico {
 
@@ -463,7 +463,7 @@ func (c *ConsultaCalendarioAcademicoController) PutInhabilitarClendario() {
 
 																	errCalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"tipo_publico/"+idTipoPublico, &tipoPublico)
 																	if errCalendario == nil {
-																		if tipoPublico != nil {
+																		if tipoPublico != nil && len(tipoPublico) > 0 {
 
 																			tipoPublico["Activo"] = false
 
