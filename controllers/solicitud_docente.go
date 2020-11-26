@@ -36,68 +36,55 @@ func (c *SolicitudDocenteController) PostSolicitudDocente() {
 	//resultado experiencia
 	var resultado map[string]interface{}
 	var SolicitudDocente map[string]interface{}
+	fmt.Println("Post Solicitud")
 
 	date := time_bogota.TiempoBogotaFormato()
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &SolicitudDocente); err == nil {
-		produccionAcademicaPost := SolicitudDocente["ProduccionAcademica"]
-		var resultadoProduccionAcademica map[string]interface{}
-		errSolicitud := request.SendJson(
-			"http://"+beego.AppConfig.String("SgaMidService"),
-			"POST",
-			&resultadoProduccionAcademica,
-			produccionAcademicaPost,
-		)
-		if errSolicitud == nil &&
-			fmt.Sprintf("%v", resultadoProduccionAcademica["System"]) != "map[]" &&
-			resultadoProduccionAcademica["ProduccionAcademica"] != nil {
+		SolicitudDocentePost := make(map[string]interface{})
+		SolicitudDocentePost["Solicitud"] = map[string]interface{}{
+			"Referencia":            SolicitudDocente["Referencia"],
+			"FechaRadicacion":       date,
+			"EstadoTipoSolicitudId": SolicitudDocente["EstadoTipoSolicitudId"],
+			"Activo":                true,
+			"FechaCreacion":         date,
+			"FechaModificacion":     date,
+		}
 
-			SolicitudDocentePost := make(map[string]interface{})
-			SolicitudDocentePost["SolicitudDocente"] = map[string]interface{}{
-				"Referencia":            resultadoProduccionAcademica["ProduccionAcademica"],
-				"FechaRadicacion":       date,
-				"EstadoTipoSolicitudId": map[string]interface{}{"Id": SolicitudDocente["EstadoTipoSolicitudId"]},
-				"Activo":                true,
-				"FechaCreacion":         date,
-				"FechaModificacion":     date,
-			}
+		var terceroID interface{}
+		var solicitantes []map[string]interface{}
+		for _, solicitanteTemp := range SolicitudDocente["Autores"].([]interface{}) {
+			solicitante := solicitanteTemp.(map[string]interface{})
+			terceroID = solicitante["Persona"]
+			solicitantes = append(solicitantes, map[string]interface{}{
+				"TerceroId":         solicitante["Persona"],
+				"SolicitudId":       map[string]interface{}{"Id": 0},
+				"Activo":            true,
+				"FechaCreacion":     date,
+				"FechaModificacion": date,
+			})
+		}
+		SolicitudDocentePost["Solicitantes"] = solicitantes
 
-			var solicitantes []map[string]interface{}
-			for _, solicitanteTemp := range resultadoProduccionAcademica["Autores"].([]interface{}) {
-				solicitante := solicitanteTemp.(map[string]interface{})
-				solicitantes = append(solicitantes, map[string]interface{}{
-					"TerceroId":         solicitante["PersonaId"],
-					"SolicitudId":       map[string]interface{}{"Id": 0},
-					"Activo":            true,
-					"FechaCreacion":     date,
-					"FechaModificacion": date,
-				})
-			}
-			SolicitudDocentePost["Solicitantes"] = solicitantes
+		SolicitudEvolucionEstado := make(map[string]interface{})
+		SolicitudEvolucionEstado = map[string]interface{}{
+			"TerceroId":             terceroID,
+			"SolicitudId":           map[string]interface{}{"Id": 0},
+			"EstadoTipoSolicitudId": SolicitudDocente["EstadoTipoSolicitudId"],
+			// "FechaLimite":           calcularFecha(date, SolicitudDocente["EstadoTipoSolicitudId"]), // Crear funcion que calcule fecha limite
+			"FechaLimite":       date,
+			"Activo":            true,
+			"FechaCreacion":     date,
+			"FechaModificacion": date,
+		}
 
-			SolicitudEvolucionEstado := make(map[string]interface{})
-			SolicitudEvolucionEstado = map[string]interface{}{
-				"TerceroId":             map[string]interface{}{"Id": SolicitudDocentePost["Solicitantes"]}, //id Tercero
-				"SolicitudId":           map[string]interface{}{"Id": 0},
-				"EstadoTipoSolicitudId": map[string]interface{}{"Id": SolicitudDocente["EstadoTipoSolicitudId"]},
-				"FechaLimite":           date, // Crear funcion que calcule fecha limite
-				"Activo":                true,
-				"FechaCreacion":         date,
-				"FechaModificacion":     date,
-			}
-
-			SolicitudDocentePost["SolicitudEvolucionEstado"] = SolicitudEvolucionEstado
-			var resultadoSolicitudDocente map[string]interface{}
-			errSolicitud := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud_docente", "POST", &resultadoSolicitudDocente, SolicitudDocentePost)
-			if errSolicitud == nil && fmt.Sprintf("%v", resultadoSolicitudDocente["System"]) != "map[]" && resultadoSolicitudDocente["SolicitudDocente"] != nil {
-				if resultadoSolicitudDocente["Status"] != 400 {
-					resultado = SolicitudDocente
-					c.Data["json"] = resultado
-				} else {
-					logs.Error(errSolicitud)
-					c.Data["system"] = resultadoSolicitudDocente
-					c.Abort("400")
-				}
+		SolicitudDocentePost["EvolucionEstado"] = SolicitudEvolucionEstado
+		var resultadoSolicitudDocente map[string]interface{}
+		errSolicitud := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud_crear", "POST", &resultadoSolicitudDocente, SolicitudDocentePost)
+		if errSolicitud == nil && fmt.Sprintf("%v", resultadoSolicitudDocente["System"]) != "map[]" && resultadoSolicitudDocente["Solicitud"] != nil {
+			if resultadoSolicitudDocente["Status"] != 400 {
+				resultado = SolicitudDocente
+				c.Data["json"] = resultado
 			} else {
 				logs.Error(errSolicitud)
 				c.Data["system"] = resultadoSolicitudDocente
@@ -105,7 +92,7 @@ func (c *SolicitudDocenteController) PostSolicitudDocente() {
 			}
 		} else {
 			logs.Error(errSolicitud)
-			c.Data["system"] = resultadoProduccionAcademica
+			c.Data["system"] = resultadoSolicitudDocente
 			c.Abort("400")
 		}
 	} else {
@@ -114,6 +101,12 @@ func (c *SolicitudDocenteController) PostSolicitudDocente() {
 		c.Abort("400")
 	}
 	c.ServeJSON()
+}
+
+func calcularFecha(date string, EstadoTipoSolicitud interface{}) (result string) {
+	fmt.Println(EstadoTipoSolicitud)
+	result = "Hola a todos"
+	return
 }
 
 // PutEstadoSolicitudDocente ...
