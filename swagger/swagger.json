@@ -565,7 +565,7 @@
                     "200": {
                         "description": "{}"
                     },
-                    "403": {
+                    "400": {
                         "description": "body is empty"
                     }
                 }
