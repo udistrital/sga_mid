@@ -195,7 +195,7 @@
                     "clonar_calendario"
                 ],
                 "description": "Clona calendario, crea tipo_evento si lo tiene, crea calendario_evento si tiene, crea calendario_evento_tipo_publico si tiene, crea tipo_publico si lo tiene",
-                "operationId": "CalendarioController.Calendario",
+                "operationId": "CalendarioController.PostCalendario",
                 "parameters": [
                     {
                         "in": "body",
@@ -358,6 +358,41 @@
                     },
                     "403": {
                         "description": ""
+                    }
+                }
+            }
+        },
+        "/consulta_calendario_academico/inhabilitar_calendario/{id}": {
+            "put": {
+                "tags": [
+                    "consulta_calendario_academico"
+                ],
+                "description": "Inhabilitar Calendario",
+                "operationId": "ConsultaCalendarioAcademicoController.PutInhabilitarClendario",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "el id del calendario a inhabilitar",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Inhabilitar calendario content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": ":id is empty"
                     }
                 }
             }

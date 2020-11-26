@@ -97,6 +97,15 @@ func init() {
             Filters: nil,
             Params: nil})
 
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ConsultaCalendarioAcademicoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ConsultaCalendarioAcademicoController"],
+        beego.ControllerComments{
+            Method: "PutInhabilitarClendario",
+            Router: "/inhabilitar_calendario/:id",
+            AllowHTTPMethods: []string{"put"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ConsultaCalendarioProyectoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ConsultaCalendarioProyectoController"],
         beego.ControllerComments{
             Method: "GetCalendarByProjectId",
