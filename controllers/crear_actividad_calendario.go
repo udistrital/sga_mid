@@ -34,69 +34,49 @@ func (c *ActividadCalendarioController) PostActividadCalendario() {
 	var actividadPersonaPost map[string]interface{}
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &actividadCalendario); err == nil {
+		Actividad := actividadCalendario["Actividad"]
 		//Solicitid post a eventos service enviando el json recibido
-		errActividad := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento", "POST", &actividadCalendarioPost, actividadCalendario)
-		if errActividad == nil && fmt.Sprintf("%v", actividadCalendarioPost["System"]) != "map[]" && actividadCalendarioPost["actividadId"] != nil {
-			if actividadCalendarioPost["Status"] != 403 {
-				IdActividad = actividadCalendarioPost["actividadId"]
-				resultado := map[string]interface{}{
-					"Id":           actividadCalendarioPost["actividadId"],
-					"Nombre":       actividadCalendarioPost["Nombre"],
-					"Descripcion":  actividadCalendarioPost["Descripcion"],
-					"FechaInicio":  actividadCalendarioPost["FechaInicio"],
-					"FechaFin":     actividadCalendarioPost["FechaFin"],
-					"Activo":       true,
-					"TipoEventoId": actividadCalendarioPost["TipoEventoId"],
-					//"TipoEventoId": map[string]interface{}{"Id": 0},
-				}
-				fmt.Println(IdActividad)
-				resultado["DocumentoId"] = actividadCalendarioPost["DocumentoId"]
-				c.Data["json"] = resultado
-
+		errActividad := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento", "POST", &actividadCalendarioPost, Actividad)
+		if errActividad == nil && fmt.Sprintf("%v", actividadCalendarioPost["System"]) != "map[]" && actividadCalendarioPost["Id"] != nil {
+			if actividadCalendarioPost["Status"] != 400 {
+				IdActividad = actividadCalendarioPost["Id"]
+				c.Data["json"] = actividadCalendarioPost
 			} else {
 				logs.Error(errActividad)
-				c.Data["json"] = map[string]interface{}{"Code": "403", "Body": errActividad.Error(), "Type": "error"}
+				c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errActividad.Error(), "Type": "error"}
 				c.Data["system"] = actividadCalendarioPost
-				c.Abort("403")
+				c.Abort("400")
 			}
 		} else {
 			logs.Error(errActividad)
-			c.Data["json"] = map[string]interface{}{"Code": "403", "Body": errActividad.Error(), "Type": "error"}
+			c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errActividad.Error(), "Type": "error"}
 			c.Data["system"] = actividadCalendarioPost
-			c.Abort("403")
+			c.Abort("400")
 		}
 
-		var totalPublico []map[string]interface{}
-
-		//Guarda el JSON de la tabla publico
-		totalPublico = actividadCalendario["responsable"].([]map[string]interface{})
+		var totalPublico []interface{}
+		//Guarda el JSON de la tabla tipo publico
+		totalPublico = actividadCalendario["responsable"].([]interface{})
 
 		for _, publicoTemp := range totalPublico {
+			fmt.Println(publicoTemp)
 			CalendarioEventoTipoPersona := map[string]interface{}{
 				"Activo":             true,
-				"responsable":        publicoTemp["responsable"].(map[string]interface{})["IdPublico"].(float64),
-				"CalendarioEventoId": IdActividad.(float64),
+				"TipoPublicoId":      map[string]interface{}{"Id": publicoTemp.(map[string]interface{})["IdPublico"].(float64)},
+				"CalendarioEventoId": map[string]interface{}{"Id": IdActividad.(float64)},
 			}
 
-			errActividadPersona := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento_tipo_publico", "POST", &actividadPersonaPost, CalendarioEventoTipoPersona)
+			errActividadPersona := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento_tipo_publico", "POST", &actividadPersonaPost, CalendarioEventoTipoPersona)
 
 			if errActividadPersona == nil && fmt.Sprintf("%v", actividadPersonaPost["System"]) != "map[]" && actividadPersonaPost["Id"] != nil {
-				if actividadPersonaPost["Status"] != 403 {
-					resultado := map[string]interface{}{
-						"Activo":             true,
-						"TipoPublicoId":      actividadPersonaPost["TipoPublicoId"],
-						"CalendarioEventoId": actividadPersonaPost["CalendarioEventoId"],
-					}
-					resultado["DocumentoId"] = actividadPersonaPost["DocumentoId"]
-					c.Data["json"] = resultado
-
+				if actividadPersonaPost["Status"] != 400 {
+					c.Data["json"] = actividadPersonaPost
 				} else {
 					var resultado2 map[string]interface{}
-					request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento/%.f", actividadCalendarioPost["actividadId"]), "DELETE", &resultado2, nil)
+					request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento/%.f", actividadCalendarioPost["Id"]), "DELETE", &resultado2, nil)
 					logs.Error(errActividadPersona)
 					c.Data["system"] = actividadPersonaPost
 					c.Abort("400")
-
 				}
 			} else {
 				logs.Error(errActividadPersona)
