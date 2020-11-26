@@ -19,6 +19,7 @@ type ConsultaCalendarioAcademicoController struct {
 func (c *ConsultaCalendarioAcademicoController) URLMapping() {
 	c.Mapping("GetAll", c.GetAll)
 	c.Mapping("GetOnePorId", c.GetOnePorId)
+	c.Mapping("Put", c.PutInhabilitarClendario)
 }
 
 // GetAll ...
@@ -348,6 +349,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 				} else {
 					c.Data["json"] = calendarios
 				}
+
 			}
 
 		} else {
@@ -370,6 +372,151 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 			c.Data["json"] = alerta
 		}
 	}
+	c.ServeJSON()
+
+}
+
+// PutInhabilitarClendario ...
+// @Title PutInhabilitarClendario
+// @Description Inhabilitar Calendario
+// @Param	id		path 	string	true		"el id del calendario a inhabilitar"
+// @Param   body        body    {}  true        "body Inhabilitar calendario content"
+// @Success 200 {}
+// @Failure 403 :id is empty
+// @router /inhabilitar_calendario/:id [put]
+func (c *ConsultaCalendarioAcademicoController) PutInhabilitarClendario() {
+
+	idCalendario := c.Ctx.Input.Param(":id")
+	var calendario map[string]interface{}
+	var tipoEvento []map[string]interface{}
+	var calendarioEvento []map[string]interface{}
+	var calendarioEventoTipoPublico []map[string]interface{}
+	var tipoPublico map[string]interface{}
+	var resultado map[string]interface{}
+	var dataPut map[string]interface{}
+	var alerta models.Alert
+	alertas := append([]interface{}{"Response:"})
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &dataPut); err == nil {
+
+		errCalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario/"+idCalendario, &calendario)
+		if errCalendario == nil {
+			if calendario != nil {
+
+				calendario["Activo"] = false
+
+				errCalendario := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"calendario/"+idCalendario, "PUT", &resultado, calendario)
+				if resultado["Type"] == "error" || errCalendario != nil || resultado["Status"] == "404" || resultado["Message"] != nil {
+					alertas = append(alertas, resultado)
+					alerta.Type = "error"
+					alerta.Code = "400"
+				} else {
+
+					errCalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"tipo_evento?query=CalendarioID__Id:"+idCalendario, &tipoEvento)
+					if errCalendario == nil {
+						if tipoEvento != nil && tipoEvento[0] != nil && len(tipoEvento[0]) > 0 {
+
+							for _, tEvento := range tipoEvento {
+
+								idEvento := fmt.Sprintf("%.f", tEvento["Id"].(float64))
+								tEvento["Activo"] = false
+
+								errCalendario := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"tipo_evento/"+idEvento, "PUT", &resultado, tEvento)
+								if resultado["Type"] == "error" || errCalendario != nil || resultado["Status"] == "404" || resultado["Message"] != nil {
+									alertas = append(alertas, resultado)
+									alerta.Type = "error"
+									alerta.Code = "400"
+								} else {
+
+									errCalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento?query=TipoEventoId__Id:"+idEvento, &calendarioEvento)
+									if errCalendario == nil {
+										if calendarioEvento != nil && calendarioEvento[0] != nil && len(calendarioEvento[0]) > 0 {
+
+											for _, cEvento := range calendarioEvento {
+
+												idCalendarioEvento := fmt.Sprintf("%.f", cEvento["Id"].(float64))
+												cEvento["Activo"] = false
+
+												errCalendario := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento/"+idCalendarioEvento, "PUT", &resultado, cEvento)
+												if resultado["Type"] == "error" || errCalendario != nil || resultado["Status"] == "404" || resultado["Message"] != nil {
+													alertas = append(alertas, resultado)
+													alerta.Type = "error"
+													alerta.Code = "400"
+												} else {
+
+													errCalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento_tipo_publico?query=CalendarioEventoId__Id:"+idCalendarioEvento, &calendarioEventoTipoPublico)
+													if errCalendario == nil {
+														if calendarioEventoTipoPublico != nil && calendarioEventoTipoPublico[0] != nil && len(calendarioEventoTipoPublico[0]) > 0 {
+
+															for _, cEventoTipoPublico := range calendarioEventoTipoPublico {
+
+																idCalendarioEventoTipoPublico := fmt.Sprintf("%.f", cEventoTipoPublico["Id"].(float64))
+																cEventoTipoPublico["Activo"] = false
+
+																request.SendJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento_tipo_publico/"+idCalendarioEventoTipoPublico, "PUT", &resultado, cEventoTipoPublico)
+																if resultado["Type"] == "error" || resultado["Status"] == "404" || resultado["Message"] != nil {
+																	alertas = append(alertas, resultado)
+																	alerta.Type = "error"
+																	alerta.Code = "400"
+																} else {
+
+																	idTipoPublico := fmt.Sprintf("%.f", cEventoTipoPublico["TipoPublicoId"].(map[string]interface{})["Id"].(float64))
+
+																	errCalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"tipo_publico/"+idTipoPublico, &tipoPublico)
+																	if errCalendario == nil {
+																		if tipoPublico != nil && len(tipoPublico) > 0 {
+
+																			tipoPublico["Activo"] = false
+
+																			errCalendario := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"tipo_publico/"+idTipoPublico, "PUT", &resultado, tipoPublico)
+																			if resultado["Type"] == "error" || errCalendario != nil || resultado["Status"] == "404" || resultado["Message"] != nil {
+																				alertas = append(alertas, resultado)
+																				alerta.Type = "error"
+																				alerta.Code = "400"
+																			}
+
+																		}
+																	}
+
+																}
+
+															}
+
+														}
+													}
+
+												}
+
+											}
+
+										}
+									}
+
+								}
+
+							}
+
+						}
+					}
+				}
+			} else {
+				c.Data["json"] = calendario
+			}
+			logs.Error(calendario)
+			c.Data["system"] = calendario
+			c.Abort("200")
+		} else {
+			logs.Error(errCalendario)
+			c.Data["system"] = errCalendario
+			c.Abort("400")
+		}
+
+	} else {
+		alerta.Type = "error"
+		alerta.Code = "400"
+		alertas = append(alertas, err.Error())
+	}
+	alerta.Body = alertas
+	c.Data["json"] = alerta
 	c.ServeJSON()
 
 }
