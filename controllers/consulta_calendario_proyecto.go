@@ -29,8 +29,8 @@ func (c *ConsultaCalendarioProyectoController) URLMapping() {
 func (c *ConsultaCalendarioProyectoController) GetCalendarByProjectId() {
 
 	var calendarios []map[string]interface{}
-	var CalendarioId string
-	var Calendario interface{}
+	var CalendarioId string = "0"
+	var Calendario map[string]interface{}
 	var alerta models.Alert
 	alertas := append([]interface{}{"Response:"})
 	idStr, _ := strconv.Atoi(c.Ctx.Input.Param(":id"))
@@ -49,22 +49,14 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarByProjectId() {
 					}
 				}
 			}
-			if CalendarioId != "" {
-				var url = "http://127.0.0.1:8119/v1/consulta_calendario_academico/" + CalendarioId
-				errCalendario := request.GetJson(url, &Calendario)
-				if errCalendario == nil {
-					c.Data["json"] = Calendario
-				} else {
-					alertas = append(alertas, errCalendario.Error())
-					alerta.Code = "400"
-					alerta.Type = "error"
-					alerta.Body = alertas
-					c.Data["json"] = alerta
-				}
+			if CalendarioId != "0" {
 				break
 			}
 		}
-
+		Calendario = map[string]interface{}{
+			"CalendarioId": CalendarioId,
+		}
+		c.Data["json"] = Calendario
 	} else {
 		alertas = append(alertas, errCalendarios.Error())
 		alerta.Code = "400"
