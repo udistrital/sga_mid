@@ -124,6 +124,24 @@ paths:
           description: '{}'
         "403":
           description: body is empty
+  /clonar_calendario/:
+    post:
+      tags:
+      - clonar_calendario
+      description: Clona calendario, crea tipo_evento si lo tiene, crea calendario_evento si tiene, crea calendario_evento_tipo_publico si tiene, crea tipo_publico si lo tiene
+      operationId: CalendarioController.PostCalendario
+      parameters:
+      - in: body
+        name: body
+        description: body id calendario content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
   /consulta_academica/:
     get:
       tags:
@@ -238,6 +256,32 @@ paths:
             $ref: '#/definitions/models.ConsultaCalendarioAcademico'
         "403":
           description: :id is empty
+<<<<<<< HEAD
+=======
+  /consulta_calendario_academico/inhabilitar_calendario/{id}:
+    put:
+      tags:
+      - consulta_calendario_academico
+      description: Inhabilitar Calendario
+      operationId: ConsultaCalendarioAcademicoController.PutInhabilitarClendario
+      parameters:
+      - in: path
+        name: id
+        description: el id del calendario a inhabilitar
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body Inhabilitar calendario content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: :id is empty
+>>>>>>> a9002c9b874d424629c0a939c71ce39efc32800d
   /consulta_calendario_proyecto/{id}:
     get:
       tags:
@@ -356,6 +400,24 @@ paths:
           description: '{}'
         "403":
           description: :id is empty
+  /crear_actividad_calendario/:
+    post:
+      tags:
+      - crear_actividad_calendario
+      description: Agregar actividad calendario, tipo_publico y tabla de rompimiento calendario_evento_tipo_publico
+      operationId: ActividadCalendarioController.PostActividadCalendario
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar Actividad calendario content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
   /descuento_academico/:
     get:
       tags:
@@ -945,6 +1007,16 @@ paths:
         "400":
           description: the request contains incorrect syntax
   /produccion_academica/:
+    get:
+      tags:
+      - produccion_academica
+      description: consultar todas las Producciones académicas
+      operationId: ProduccionAcademicaController.GetAllProduccionAcademica
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
     post:
       tags:
       - produccion_academica
@@ -1045,6 +1117,24 @@ paths:
           description: '{}'
         "400":
           description: the request contains incorrect syntax
+  /produccion_academica/get_one/{id}:
+    get:
+      tags:
+      - produccion_academica
+      description: consultar Produccion Academica por id
+      operationId: ProduccionAcademicaController.GetOneProduccionAcademica
+      parameters:
+      - in: path
+        name: id
+        description: Id
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
   /proyecto_academico/:
     post:
       tags:
