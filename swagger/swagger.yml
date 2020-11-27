@@ -411,10 +411,10 @@ paths:
         schema:
           $ref: '#/definitions/{}'
       responses:
-        "201":
-          description: '{int}'
-        "400":
-          description: the request contains incorrect syntax
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
   /descuento_academico/:
     get:
       tags:
