@@ -256,8 +256,6 @@ paths:
             $ref: '#/definitions/models.ConsultaCalendarioAcademico'
         "403":
           description: :id is empty
-<<<<<<< HEAD
-=======
   /consulta_calendario_academico/inhabilitar_calendario/{id}:
     put:
       tags:
@@ -281,7 +279,6 @@ paths:
           description: '{}'
         "403":
           description: :id is empty
->>>>>>> a9002c9b874d424629c0a939c71ce39efc32800d
   /consulta_calendario_proyecto/{id}:
     get:
       tags:
@@ -417,6 +414,24 @@ paths:
         "200":
           description: '{}'
         "403":
+          description: body is empty
+  /crear_concepto/:
+    post:
+      tags:
+      - crear_concepto
+      description: Agregar un concepto
+      operationId: ConceptoController.PostConcepto
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar Concepto content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "400":
           description: body is empty
   /descuento_academico/:
     get:

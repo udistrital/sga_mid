@@ -70,15 +70,18 @@ func init() {
             Filters: nil,
             Params: nil})
 
-<<<<<<< HEAD
-    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ConceptoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ConceptoController"],
-        beego.ControllerComments{
-            Method: "PostConcepto",
-=======
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:CalendarioController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:CalendarioController"],
         beego.ControllerComments{
             Method: "PostCalendario",
->>>>>>> a9002c9b874d424629c0a939c71ce39efc32800d
+            Router: "/",
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ConceptoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ConceptoController"],
+        beego.ControllerComments{
+            Method: "PostConcepto",
             Router: "/",
             AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
