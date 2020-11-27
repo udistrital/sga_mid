@@ -21,7 +21,7 @@ func (c *ActividadCalendarioController) URLMapping() {
 // @Title PostActividadCalendario
 // @Description Agregar actividad calendario, tipo_publico y tabla de rompimiento calendario_evento_tipo_publico
 // @Param	body		body 	{}	true		"body Agregar Actividad calendario content"
-// @Success 201 {int}
+// @Success 201 {}
 // @Failure 400 the request contains incorrect syntax
 // @router / [post]
 func (c *ActividadCalendarioController) PostActividadCalendario() {
