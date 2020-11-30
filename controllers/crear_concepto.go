@@ -52,16 +52,11 @@ func (c *ConceptoController) PostConcepto() {
 			c.Data["system"] = ConceptoPost
 		}
 
-		fmt.Println("Punto de control 2")
 		Vigencia = ConceptoFactor["Vigencia"] //Valor del id de la vigencia (periodo)
 		NumFactor = ConceptoFactor["Factor"]  //Valor que trae el numero del factor y el salario minimo
 
-		fmt.Println(Vigencia)
-		fmt.Println(NumFactor)
-
 		ValorFactor := fmt.Sprintf("%v", NumFactor.(map[string]interface{})["Valor"].(map[string]interface{})["NumFactor"])
-		SalarioMin := fmt.Sprintf("%v", NumFactor.(map[string]interface{})["Valor"].(map[string]interface{})["SalarioMinimo"])
-		Valor := "{\n    \"NumFactor\": " + ValorFactor + ", \n \"SalarioMinimo\": " + SalarioMin + "\n  }"
+		Valor := "{\n    \"NumFactor\": " + ValorFactor + " \n}"
 
 		Factor := map[string]interface{}{
 			"ParametroId":       map[string]interface{}{"Id": IdConcepto.(float64)},
