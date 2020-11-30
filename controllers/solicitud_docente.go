@@ -66,8 +66,8 @@ func (c *SolicitudDocenteController) PostSolicitudDocente() {
 		}
 		SolicitudDocentePost["Solicitantes"] = solicitantes
 
-		SolicitudEvolucionEstado := make(map[string]interface{})
-		SolicitudEvolucionEstado = map[string]interface{}{
+		var solicitudesEvolucionEstado []map[string]interface{}
+		solicitudesEvolucionEstado = append(solicitudesEvolucionEstado, map[string]interface{}{
 			"TerceroId":             terceroID,
 			"SolicitudId":           map[string]interface{}{"Id": 0},
 			"EstadoTipoSolicitudId": SolicitudDocente["EstadoTipoSolicitudId"],
@@ -76,12 +76,12 @@ func (c *SolicitudDocenteController) PostSolicitudDocente() {
 			"Activo":            true,
 			"FechaCreacion":     date,
 			"FechaModificacion": date,
-		}
+		})
 
-		SolicitudDocentePost["EvolucionEstado"] = SolicitudEvolucionEstado
+		SolicitudDocentePost["EvolucionesEstado"] = solicitudesEvolucionEstado
 		SolicitudDocentePost["Observaciones"] = nil
 		var resultadoSolicitudDocente map[string]interface{}
-		errSolicitud := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud_crear", "POST", &resultadoSolicitudDocente, SolicitudDocentePost)
+		errSolicitud := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud", "POST", &resultadoSolicitudDocente, SolicitudDocentePost)
 		if errSolicitud == nil && fmt.Sprintf("%v", resultadoSolicitudDocente["System"]) != "map[]" && resultadoSolicitudDocente["Solicitud"] != nil {
 			if resultadoSolicitudDocente["Status"] != 400 {
 				resultado = SolicitudDocente
@@ -266,7 +266,7 @@ func (c *SolicitudDocenteController) GetAllSolicitudDocente() {
 	//resultado experiencia
 	var solicitudes []map[string]interface{}
 
-	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud_crear/?limit=0", &solicitudes)
+	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud/?limit=0", &solicitudes)
 	if errSolicitud == nil && fmt.Sprintf("%v", solicitudes[0]["System"]) != "map[]" {
 		if solicitudes[0]["Status"] != 404 && solicitudes[0]["Id"] != nil {
 			for _, solicitud := range solicitudes {
@@ -317,7 +317,7 @@ func (c *SolicitudDocenteController) GetAllSolicitudDocente() {
 
 // GetSolicitudDocenteTercero ...
 // @Title GetSolicitudDocenteTercero
-// @Description consultar Produccion Academica por tercero
+// @Description consultar solicitud docente por tercero
 // @Param   tercero      path    int  true        "Tercero"
 // @Success 200 {}
 // @Failure 404 not found resource
@@ -331,7 +331,7 @@ func (c *SolicitudDocenteController) GetSolicitudDocenteTercero() {
 	//resultado experiencia
 	var solicitudes []map[string]interface{}
 
-	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud_crear/"+idTercero, &solicitudes)
+	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud/"+idTercero, &solicitudes)
 	if errSolicitud == nil && fmt.Sprintf("%v", solicitudes[0]["System"]) != "map[]" {
 		if solicitudes[0]["Status"] != 404 && solicitudes[0]["Id"] != nil {
 			for _, solicitud := range solicitudes {
@@ -393,7 +393,7 @@ func (c *SolicitudDocenteController) DeleteSolicitudDocente() {
 	//resultados eliminacion
 	var borrado map[string]interface{}
 
-	errDelete := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud_docente/"+idStr, "DELETE", &borrado, nil)
+	errDelete := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud/"+idStr, "DELETE", &borrado, nil)
 	fmt.Println(borrado)
 	if errDelete == nil && fmt.Sprintf("%v", borrado["System"]) != "map[]" {
 		if borrado["Status"] != 404 {
