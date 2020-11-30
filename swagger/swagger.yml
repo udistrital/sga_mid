@@ -256,8 +256,6 @@ paths:
             $ref: '#/definitions/models.ConsultaCalendarioAcademico'
         "403":
           description: :id is empty
-<<<<<<< HEAD
-=======
   /consulta_calendario_academico/inhabilitar_calendario/{id}:
     put:
       tags:
@@ -281,7 +279,6 @@ paths:
           description: '{}'
         "403":
           description: :id is empty
->>>>>>> a9002c9b874d424629c0a939c71ce39efc32800d
   /consulta_calendario_proyecto/{id}:
     get:
       tags:
