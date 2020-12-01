@@ -40,7 +40,6 @@ func (c *ActividadCalendarioController) PostActividadCalendario() {
 		if errActividad == nil && fmt.Sprintf("%v", actividadCalendarioPost["System"]) != "map[]" && actividadCalendarioPost["Id"] != nil {
 			if actividadCalendarioPost["Status"] != 400 {
 				IdActividad = actividadCalendarioPost["Id"]
-				c.Data["json"] = actividadCalendarioPost
 			} else {
 				logs.Error(errActividad)
 				c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errActividad.Error(), "Type": "error"}
@@ -70,7 +69,8 @@ func (c *ActividadCalendarioController) PostActividadCalendario() {
 
 			if errActividadPersona == nil && fmt.Sprintf("%v", actividadPersonaPost["System"]) != "map[]" && actividadPersonaPost["Id"] != nil {
 				if actividadPersonaPost["Status"] != 400 {
-					c.Data["json"] = actividadPersonaPost
+					//c.Data["json"] = actividadPersonaPost
+					c.Data["json"] = actividadCalendarioPost
 				} else {
 					var resultado2 map[string]interface{}
 					request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento/%.f", actividadCalendarioPost["Id"]), "DELETE", &resultado2, nil)
