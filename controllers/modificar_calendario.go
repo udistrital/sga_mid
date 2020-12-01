@@ -22,89 +22,43 @@ func (c *ModificaCalendarioAcademicoController) URLMapping() {
 
 // PostCalendarioHijo ...
 // @Title PostCalendarioHijo
-// @Description  Proyecto obtener el Id de calendario padre, crear el nuevo calendario (hijo)
-// e inhabilita el calendario padre
+// @Description  Proyecto obtener el Id de calendario padre, crear el nuevo calendario (hijo) e inactivar el calendario padre
 // @Param   body        body    {}  true        "body crear calendario hijo content"
 // @Success 200 {}
 // @Failure 403 :body is empty
-// @router /crear_calendario_hijo/:id [poat]
+// @router / [post]
 func (c *ModificaCalendarioAcademicoController) PostCalendarioHijo() {
 
 	var calendarioHijo map[string]interface{}
 	var calendarioHijoPost map[string]interface{}
-	var resCalendarioHijo map[string]interface{}
 	var CalendarioPadreId interface{}
+	var CalendarioPadre map[string]interface{}
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &calendarioHijo); err == nil {
 
-		errCalendarioHijo := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"/calendario", "POST", &resCalendarioHijo, calendarioHijo)
-		if errCalendarioHijo == nil && fmt.Sprintf("%v", resCalendarioHijo["System"]) != "map[]" && resCalendarioHijo["Id"] != nil {
-			if resCalendarioHijo["Status"] != 400 {
-				//Añade el calendario Hijo
-				CalendarioPadreId = resCalendarioHijo["CalendarioPadreId"] //.(map[string]interface{})[""]
-				resultado := map[string]interface{}{
-					"Id":                calendarioHijoPost["Id"],
-					"Nombre":            calendarioHijoPost["Nombre"],
-					"Descripcion":       calendarioHijoPost["Descripcion"],
-					"DependenciaId":     calendarioHijoPost["DependenciaId"],
-					"DocumentoId":       calendarioHijoPost["DocumentoId"],
-					"PeriodoId":         calendarioHijoPost["PeriodoId"],
-					"AplicacionId":      calendarioHijoPost["AplicacionId"],
-					"Nivel":             calendarioHijoPost["Nivel"],
-					"Activo":            true,
-					"FechaCreacion":     calendarioHijoPost["FechaCreacion"],
-					"FechaModificacion": calendarioHijoPost["FechaModificacion"],
-					"CalendarioPadreId": calendarioHijoPost["CalendarioPadreId"],
-				}
-				resultado["DocumentoId"] = resCalendarioHijo["DocumentoId"]
-				c.Data["json"] = resultado
+		errCalendarioHijo := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"calendario", "POST", &calendarioHijoPost, calendarioHijo)
+		CalendarioPadreId = calendarioHijoPost["CalendarioPadreId"].(map[string]interface{})["Id"]
 
-				//Inhabilita el calendario padre
-				/*var alerta models.Alert
-				alertas := append([]interface{}{"Response:"})
-				*/
-				fmt.Println(CalendarioPadreId)
+		if errCalendarioHijo == nil && fmt.Sprintf("%v", calendarioHijoPost["System"]) != "map[]" && calendarioHijoPost["Id"] != nil {
+			if calendarioHijoPost["Status"] != 400 {
+				c.Data["json"] = calendarioHijoPost
+				//Se consulta el calendario padre con el Id obtenido
+				IdPadre := fmt.Sprintf("%.f", CalendarioPadreId.(float64))
+				fmt.Println(IdPadre)
+				errCalendarioPadre := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Id:"+IdPadre, &CalendarioPadre)
+				fmt.Println(CalendarioPadre)
+				fmt.Println(errCalendarioPadre)
 			} else {
-				logs.Error(errCalendarioHijo)
-				c.Data["system"] = resCalendarioHijo
-				c.Abort("400")
+				logs.Error(err)
+				c.Data["system"] = err
+				c.Data["json"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
 			}
-		} else {
-			logs.Error(errCalendarioHijo)
-			c.Data["system"] = resCalendarioHijo
-			c.Abort("400")
-		}
 
-	} else {
-		logs.Error(err)
-		c.Data["system"] = err
-		c.Abort("400")
+		} else {
+			logs.Error(err)
+			c.Data["system"] = err
+			c.Data["json"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
+		}
 	}
-
-	/*
-		var CalendarioPadre map[string]interface{}
-		idCalendarioPadre := c.Ctx.Input.Param(":id")
-		var alerta models.Alert
-		alertas := append([]interface{}{"Response:"})
-
-		if err := json.Unmarshal(c.Ctx.Input.RequestBody, &CalendarioPadre); err == nil {
-			var resCalendarioPadre map[string]interface{}
-			errCalendarioPadre := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"/calendario/"+idCalendarioPadre, "PUT", &resCalendarioPadre, CalendarioPadre)
-			if resCalendarioPadre["Type"] == "error" || errCalendarioPadre != nil || resCalendarioPadre["Status"] == "404" || resCalendarioPadre["Message"] != nil {
-				alertas = append(alertas, resCalendarioPadre)
-				alerta.Type = "error"
-				alerta.Code = "400"
-			} else {
-				alertas = append(alertas, CalendarioPadre)
-			}
-
-		} else {
-			alerta.Type = "error"
-			alerta.Code = "400"
-			alertas = append(alertas, err.Error())
-		}
-		alerta.Body = alertas
-		c.Data["json"] = alerta
-		c.ServeJSON()
-	*/
+	c.ServeJSON()
 }

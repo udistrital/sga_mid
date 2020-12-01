@@ -424,8 +424,8 @@ func init() {
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ModificaCalendarioAcademicoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ModificaCalendarioAcademicoController"],
         beego.ControllerComments{
             Method: "PostCalendarioHijo",
-            Router: "/crear_calendario_hijo/:id",
-            AllowHTTPMethods: []string{"poat"},
+            Router: "/",
+            AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})

@@ -1311,6 +1311,34 @@
                 }
             }
         },
+        "/modificar_calendario/": {
+            "post": {
+                "tags": [
+                    "modificar_calendario"
+                ],
+                "description": "Proyecto obtener el Id de calendario padre, crear el nuevo calendario (hijo) e inactivar el calendario padre",
+                "operationId": "ModificaCalendarioAcademicoController.PostCalendarioHijo",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body crear calendario hijo content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": ":body is empty"
+                    }
+                }
+            }
+        },
         "/persona/consultar_complementarios/{tercero_id}": {
             "get": {
                 "tags": [
@@ -1980,6 +2008,10 @@
         {
             "name": "consulta_calendario_academico",
             "description": "ConsultaCalendarioAcademicoController operations for Consulta_calendario_academico\n"
+        },
+        {
+            "name": "modificar_calendario",
+            "description": "ModificaCalendarioAcademicoController operations for modificar_calendario\n"
         }
     ]
 }
