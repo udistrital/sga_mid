@@ -32,7 +32,8 @@ func (c *ModificaCalendarioAcademicoController) PostCalendarioHijo() {
 	var calendarioHijo map[string]interface{}
 	var calendarioHijoPost map[string]interface{}
 	var CalendarioPadreId interface{}
-	var CalendarioPadre map[string]interface{}
+	var CalendarioPadre []map[string]interface{}
+	var CalendarioPadrePut map[string]interface{}
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &calendarioHijo); err == nil {
 
@@ -41,13 +42,31 @@ func (c *ModificaCalendarioAcademicoController) PostCalendarioHijo() {
 
 		if errCalendarioHijo == nil && fmt.Sprintf("%v", calendarioHijoPost["System"]) != "map[]" && calendarioHijoPost["Id"] != nil {
 			if calendarioHijoPost["Status"] != 400 {
-				c.Data["json"] = calendarioHijoPost
-				//Se consulta el calendario padre con el Id obtenido
+
+				//Se trae el calendario padre con el Id obtenido por el calendario hijo
 				IdPadre := fmt.Sprintf("%.f", CalendarioPadreId.(float64))
-				fmt.Println(IdPadre)
 				errCalendarioPadre := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Id:"+IdPadre, &CalendarioPadre)
-				fmt.Println(CalendarioPadre)
-				fmt.Println(errCalendarioPadre)
+				if errCalendarioPadre == nil {
+					if CalendarioPadre[0]["Id"] != nil {
+
+						//Se cambia el estado del calendario Padre a inactivo
+						CalendarioPadre[0]["Activo"] = false
+						CalendarioPadreAux := CalendarioPadre[0]
+						errCalendarioPadre := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"calendario/"+IdPadre, "PUT", &CalendarioPadrePut, CalendarioPadreAux)
+						if errCalendarioPadre == nil && fmt.Sprintf("%v", CalendarioPadrePut["System"]) != "map[]" && CalendarioPadrePut["Id"] != nil {
+							if CalendarioPadrePut["Status"] != 400 {
+								c.Data["json"] = CalendarioPadrePut
+							} else {
+								logs.Error(err)
+								c.Data["system"] = err
+								c.Data["json"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
+							}
+						} else {
+							logs.Error(err)
+							c.Data["system"] = err
+						}
+					}
+				}
 			} else {
 				logs.Error(err)
 				c.Data["system"] = err

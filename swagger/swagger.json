@@ -634,6 +634,34 @@
                 }
             }
         },
+        "/crear_concepto/": {
+            "post": {
+                "tags": [
+                    "crear_concepto"
+                ],
+                "description": "Agregar un concepto",
+                "operationId": "ConceptoController.PostConcepto",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar Concepto content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "400": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
         "/descuento_academico/": {
             "get": {
                 "tags": [

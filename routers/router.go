@@ -113,6 +113,11 @@ func init() {
 				&controllers.CalendarioController{},
 			),
 		),
+		beego.NSNamespace("/crear_concepto",
+			beego.NSInclude(
+				&controllers.ConceptoController{},
+			),
+		),
 		beego.NSNamespace("/modificar_calendario",
 			beego.NSInclude(
 				&controllers.ModificaCalendarioAcademicoController{},
