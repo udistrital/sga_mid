@@ -58,7 +58,6 @@ func (c *ActividadCalendarioController) PostActividadCalendario() {
 		totalPublico = actividadCalendario["responsable"].([]interface{})
 
 		for _, publicoTemp := range totalPublico {
-			fmt.Println(publicoTemp)
 			CalendarioEventoTipoPersona := map[string]interface{}{
 				"Activo":             true,
 				"TipoPublicoId":      map[string]interface{}{"Id": publicoTemp.(map[string]interface{})["IdPublico"].(float64)},
