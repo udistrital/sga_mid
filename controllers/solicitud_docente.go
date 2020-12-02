@@ -22,7 +22,7 @@ func (c *SolicitudDocenteController) URLMapping() {
 	c.Mapping("GetOneSolicitudDocente", c.GetOneSolicitudDocente)
 	c.Mapping("GetSolicitudDocenteTercero", c.GetSolicitudDocenteTercero)
 	c.Mapping("DeleteSolicitudDocente", c.DeleteSolicitudDocente)
-	c.Mapping("PutEstadoSolicitudDocente", c.PutEstadoSolicitudDocente)
+	c.Mapping("PutSolicitudDocente", c.PutSolicitudDocente)
 }
 
 // PostSolicitudDocente ...
@@ -110,52 +110,102 @@ func calcularFecha(date string, EstadoTipoSolicitud interface{}) (result string)
 	return
 }
 
-// PutEstadoSolicitudDocente ...
-// @Title PutEstadoSolicitudDocente
-// @Description Modificar Estado de la solicitud docente
+// PutSolicitudDocente ...
+// @Title PutSolicitudDocente
+// @Description Modificar solicitud docente
 // @Param	id		path 	int	true		"el id de la solicitud"
 // @Param   body        body    {}  true        "body Modificar SolicitudDocente content"
 // @Success 200 {}
 // @Failure 400 the request contains incorrect syntax
-// @router /estado_solicitud_docente/:id [put]
-func (c *SolicitudDocenteController) PutEstadoSolicitudDocente() {
+// @router /:id [put]
+func (c *SolicitudDocenteController) PutSolicitudDocente() {
 	idStr := c.Ctx.Input.Param(":id")
-	fmt.Println("Id de solicitud es: " + idStr)
+	fmt.Println("Id es: " + idStr)
+
+	date := time_bogota.TiempoBogotaFormato()
+
 	//resultado experiencia
 	var resultado map[string]interface{}
-	var dataPut map[string]interface{}
-
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &dataPut); err == nil {
-		fmt.Println("data put", dataPut)
-		var acepta = dataPut["acepta"].(bool)
-		var AutorSolicitudDocente = dataPut["AutorSolicitudDocente"].(map[string]interface{})
-		if acepta {
-			(AutorSolicitudDocente["EstadoAutorProduccionId"].(map[string]interface{}))["Id"] = 2
-		} else {
-			(AutorSolicitudDocente["EstadoAutorProduccionId"].(map[string]interface{}))["Id"] = 4
+	//solicitud docente
+	var SolicitudDocente map[string]interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &SolicitudDocente); err == nil {
+		SolicitudDocentePut := make(map[string]interface{})
+		SolicitudDocentePut["Solicitud"] = map[string]interface{}{
+			"Referencia":            SolicitudDocente["Referencia"],
+			"FechaRadicacion":       date,
+			"EstadoTipoSolicitudId": SolicitudDocente["EstadoTipoSolicitudId"],
+			"FechaModificacion":     date,
 		}
-		var resultadoAutor map[string]interface{}
-		errAutor := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/autor_produccion_academica/"+idStr, "PUT", &resultadoAutor, AutorSolicitudDocente)
-		if errAutor == nil && fmt.Sprintf("%v", resultadoAutor["System"]) != "map[]" && resultadoAutor["Id"] != nil {
-			if resultadoAutor["Status"] != 400 {
-				resultado = AutorSolicitudDocente
+
+		var EstadoTipoSolicitudId interface{}
+		for _, evolucionEstadoTemp := range SolicitudDocente["EvolucionEstado"].([]interface{}) {
+			evolucionEstado := evolucionEstadoTemp.(map[string]interface{})
+			EstadoTipoSolicitudId = evolucionEstado["EstadoTipoSolicitudId"]
+		}
+
+		var solicitudesEvolucionEstado []map[string]interface{}
+		solicitudesEvolucionEstado = append(solicitudesEvolucionEstado, map[string]interface{}{
+			"TerceroId":                     SolicitudDocente["TerceroId"],
+			"SolicitudId":                   map[string]interface{}{"Id": 0},
+			"EstadoTipoSolicitudId":         SolicitudDocente["EstadoTipoSolicitudId"],
+			"EstadoTipoSolicitudIdAnterior": EstadoTipoSolicitudId,
+			"Activo":                        true,
+			"FechaLimite":                   date,
+			"FechaCreacion":                 date,
+			"FechaModificacion":             date,
+			// "FechaLimite":           calcularFecha(date, SolicitudDocente["EstadoTipoSolicitudId"]), // Crear funcion que calcule fecha limite
+		})
+
+		var observaciones []map[string]interface{}
+		for _, observacionTemp := range SolicitudDocente["Observaciones"].([]interface{}) {
+			observacion := observacionTemp.(map[string]interface{})
+			if observacion["Id"] == nil {
+				observaciones = append(observaciones, map[string]interface{}{
+					"TipoObservacionId": observacion["TipoObservacionId"],
+					"SolicitudId":       map[string]interface{}{"Id": 0},
+					"TerceroId":         observacion["TerceroId"],
+					"Titulo":            observacion["Titulo"],
+					"Valor":             observacion["Valor"],
+					"FechaCreacion":     date,
+					"FechaModificacion": date,
+					"Activo":            true,
+				})
+			} else {
+				observaciones = append(observaciones, map[string]interface{}{
+					"Id":                observacion["Id"],
+					"TipoObservacionId": observacion["TipoObservacionId"],
+					"SolicitudId":       observacion["SolicitudId"],
+					"TerceroId":         observacion["TerceroId"],
+					"Titulo":            observacion["Titulo"],
+					"Valor":             observacion["Valor"],
+					"Activo":            true,
+				})
+			}
+		}
+
+		SolicitudDocentePut["Solicitantes"] = nil
+		SolicitudDocentePut["EvolucionesEstado"] = solicitudesEvolucionEstado
+		SolicitudDocentePut["Observaciones"] = observaciones
+
+		var resultadoSolicitudDocente map[string]interface{}
+
+		errProduccion := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud/"+idStr, "PUT", &resultadoSolicitudDocente, SolicitudDocentePut)
+		if errProduccion == nil && fmt.Sprintf("%v", resultadoSolicitudDocente["System"]) != "map[]" {
+			if resultadoSolicitudDocente["Status"] != 400 {
+				resultado = SolicitudDocente
 				c.Data["json"] = resultado
 			} else {
-				logs.Error(errAutor)
-				//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
-				c.Data["system"] = resultadoAutor
+				logs.Error(errProduccion)
+				c.Data["system"] = resultadoSolicitudDocente
 				c.Abort("400")
 			}
 		} else {
-			logs.Error(errAutor)
-			//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-			c.Data["system"] = resultadoAutor
+			logs.Error(errProduccion)
+			c.Data["system"] = resultadoSolicitudDocente
 			c.Abort("400")
 		}
-
 	} else {
 		logs.Error(err)
-		//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
 		c.Data["system"] = err
 		c.Abort("400")
 	}
