@@ -81,8 +81,10 @@ func (c *ConceptoController) PostConcepto() {
 				if err := json.Unmarshal([]byte(ValorString), &ValorJson); err == nil {
 					Response := map[string]interface{}{
 						"Concepto": map[string]interface{}{
-							"Id":     IdConcepto.(float64),
-							"Nombre": ConceptoPost["Nombre"],
+							"Id":                IdConcepto.(float64),
+							"Nombre":            ConceptoPost["Nombre"],
+							"CodigoAbreviacion": ConceptoPost["CodigoAbreviacion"],
+							"Activo":            ConceptoPost["Activo"],
 						},
 						"Factor": map[string]interface{}{
 							"Id":    FactorPost["Id"],
