@@ -36,14 +36,22 @@ func init() {
 				&controllers.EventoController{},
 			),
 		),
+
 		beego.NSNamespace("/generar_codigo",
 			beego.NSInclude(
 				&controllers.GeneradorCodigoBarrasController{},
 			),
 		),
+
 		beego.NSNamespace("/produccion_academica",
 			beego.NSInclude(
 				&controllers.ProduccionAcademicaController{},
+			),
+		),
+
+		beego.NSNamespace("/solicitud_docente",
+			beego.NSInclude(
+				&controllers.SolicitudDocenteController{},
 			),
 		),
 
