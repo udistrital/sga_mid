@@ -61,12 +61,10 @@ func (c *ConceptoController) PostConcepto() {
 		Valor := "{\n    \"NumFactor\": " + ValorFactor + " \n}"
 
 		Factor := map[string]interface{}{
-			"ParametroId":       map[string]interface{}{"Id": IdConcepto.(float64)},
-			"PeriodoId":         map[string]interface{}{"Id": Vigencia.(map[string]interface{})["Id"].(float64)},
-			"Valor":             Valor,
-			"FechaCreacion":     Concepto.(map[string]interface{})["FechaCreacion"],
-			"FechaModificacion": Concepto.(map[string]interface{})["FechaCreacion"],
-			"Activo":            true,
+			"ParametroId": map[string]interface{}{"Id": IdConcepto.(float64)},
+			"PeriodoId":   map[string]interface{}{"Id": Vigencia.(map[string]interface{})["Id"].(float64)},
+			"Valor":       Valor,
+			"Activo":      true,
 		}
 
 		var AuxFactor map[string]interface{}
