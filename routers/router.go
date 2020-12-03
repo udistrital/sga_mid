@@ -53,6 +53,12 @@ func init() {
 			),
 		),
 
+		beego.NSNamespace("/drive",
+			beego.NSInclude(
+				&controllers.DriveController{},
+			),
+		),
+
 		beego.NSNamespace("/persona",
 			beego.NSInclude(
 				&controllers.PersonaController{},

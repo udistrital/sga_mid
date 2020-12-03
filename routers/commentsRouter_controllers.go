@@ -250,6 +250,15 @@ func init() {
             Filters: nil,
             Params: nil})
 
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DriveController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DriveController"],
+        beego.ControllerComments{
+            Method: "PostFileDrive",
+            Router: "/",
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:EventoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:EventoController"],
         beego.ControllerComments{
             Method: "PostEvento",
@@ -426,15 +435,6 @@ func init() {
             Method: "PostTransferencia",
             Router: "/post_transferencia",
             AllowHTTPMethods: []string{"post"},
-            MethodParams: param.Make(),
-            Filters: nil,
-            Params: nil})
-
-    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ModificaCalendarioAcademicoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ModificaCalendarioAcademicoController"],
-        beego.ControllerComments{
-            Method: "PostCalendarioHijo",
-            Router: "/crear_calendario_hijo/:id",
-            AllowHTTPMethods: []string{"poat"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
