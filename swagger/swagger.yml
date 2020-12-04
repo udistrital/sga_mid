@@ -1243,6 +1243,112 @@ paths:
             $ref: '#/definitions/models.ConsultaProyectoAcademico'
         "403":
           description: :id is empty
+  /solicitud_docente/:
+    get:
+      tags:
+      - solicitud_docente
+      description: consultar todas las solicitudes académicas
+      operationId: SolicitudDocenteController.GetAllSolicitudDocente
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+    post:
+      tags:
+      - solicitud_docente
+      description: Agregar Solicitud docente
+      operationId: SolicitudDocenteController.PostSolicitudDocente
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar SolicitudDocente content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
+  /solicitud_docente/{id}:
+    delete:
+      tags:
+      - solicitud_docente
+      description: eliminar Solicitud Academica por id
+      operationId: SolicitudDocenteController.DeleteSolicitudDocente
+      parameters:
+      - in: path
+        name: id
+        description: Id de la Produccion Academica
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{string} delete success!'
+        "404":
+          description: not found resource
+  /solicitud_docente/{tercero}:
+    get:
+      tags:
+      - solicitud_docente
+      description: consultar Produccion Academica por tercero
+      operationId: SolicitudDocenteController.GetSolicitudDocenteTercero
+      parameters:
+      - in: path
+        name: tercero
+        description: Tercero
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+  /solicitud_docente/estado_solicitud_docente/{id}:
+    put:
+      tags:
+      - solicitud_docente
+      description: Modificar Estado de la solicitud docente
+      operationId: SolicitudDocenteController.PutEstadoSolicitudDocente
+      parameters:
+      - in: path
+        name: id
+        description: el id de la solicitud
+        required: true
+        type: integer
+        format: int64
+      - in: body
+        name: body
+        description: body Modificar SolicitudDocente content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "400":
+          description: the request contains incorrect syntax
+  /solicitud_docente/get_one/{id}:
+    get:
+      tags:
+      - solicitud_docente
+      description: consultar Produccion Academica por id
+      operationId: SolicitudDocenteController.GetOneSolicitudDocente
+      parameters:
+      - in: path
+        name: id
+        description: Id
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
   /tercero/identificacion/:
     get:
       tags:
@@ -1299,6 +1405,9 @@ tags:
 - name: produccion_academica
   description: |
     ProduccionAcademicaController ...
+- name: solicitud_docente
+  description: |
+    SolicitudDocenteController ...
 - name: consulta_academica
   description: |
     ConsultaOfertaAcademicaController operations for Consulta_oferta_academica
