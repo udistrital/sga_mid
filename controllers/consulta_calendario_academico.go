@@ -250,10 +250,15 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 
 								actividad = nil
 								actividad = map[string]interface{}{
-									"Nombre":      proceso["Nombre"].(string),
-									"FechaInicio": proceso["FechaInicio"].(string),
-									"FechaFin":    proceso["FechaFin"].(string),
-									"Responsable": responsableString,
+									"actividadId":   proceso["Id"].(float64),
+									"Nombre":        proceso["Nombre"].(string),
+									"Descripcion":   proceso["Descripcion"].(string),
+									"FechaInicio":   proceso["FechaInicio"].(string),
+									"FechaFin":      proceso["FechaFin"].(string),
+									"Activo":        proceso["Activo"].(bool),
+									"TipoEventoId":  proceso["TipoEventoId"].(map[string]interface{}),
+									"EventoPadreId": proceso["EventoPadreId"],
+									"Responsable":   responsableString,
 								}
 
 								actividadResultado = append(actividadResultado, actividad)
