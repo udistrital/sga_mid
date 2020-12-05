@@ -32,13 +32,15 @@ func (c *ConceptoController) PostConcepto() {
 	var IdConcepto interface{}
 	var NumFactor interface{}
 	var Vigencia interface{}
+	var ValorJson map[string]interface{}
 
 	//Se guarda el json que se pasa por parametro
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &ConceptoFactor); err == nil {
 		Concepto := ConceptoFactor["Concepto"]
-		IdConcepto = Concepto.(map[string]interface{})["Id"]
 		errConcepto := request.SendJson("http://"+beego.AppConfig.String("ParametroService")+"parametro", "POST", &AuxConceptoPost, Concepto)
 		ConceptoPost = AuxConceptoPost["Data"].(map[string]interface{})
+		IdConcepto = ConceptoPost["Id"]
+
 		if errConcepto == nil && fmt.Sprintf("%v", ConceptoPost["System"]) != "map[]" && ConceptoPost["Id"] != nil {
 			if ConceptoPost["Status"] != 400 {
 				c.Data["json"] = ConceptoPost
@@ -59,12 +61,10 @@ func (c *ConceptoController) PostConcepto() {
 		Valor := "{\n    \"NumFactor\": " + ValorFactor + " \n}"
 
 		Factor := map[string]interface{}{
-			"ParametroId":       map[string]interface{}{"Id": IdConcepto.(float64)},
-			"PeriodoId":         map[string]interface{}{"Id": Vigencia.(map[string]interface{})["Id"].(float64)},
-			"Valor":             Valor,
-			"FechaCreacion":     Concepto.(map[string]interface{})["FechaCreacion"],
-			"FechaModificacion": Concepto.(map[string]interface{})["FechaCreacion"],
-			"Activo":            true,
+			"ParametroId": map[string]interface{}{"Id": IdConcepto.(float64)},
+			"PeriodoId":   map[string]interface{}{"Id": Vigencia.(map[string]interface{})["Id"].(float64)},
+			"Valor":       Valor,
+			"Activo":      true,
 		}
 
 		var AuxFactor map[string]interface{}
@@ -74,7 +74,23 @@ func (c *ConceptoController) PostConcepto() {
 		FactorPost = AuxFactor["Data"].(map[string]interface{})
 		if errFactor == nil && fmt.Sprintf("%v", FactorPost["System"]) != "map[]" && FactorPost["Id"] != nil {
 			if FactorPost["Status"] != 400 {
-				c.Data["json"] = FactorPost
+				//JSON que retorna al agregar el concepto y el factor
+				ValorString := FactorPost["Valor"].(string)
+				if err := json.Unmarshal([]byte(ValorString), &ValorJson); err == nil {
+					Response := map[string]interface{}{
+						"Concepto": map[string]interface{}{
+							"Id":                IdConcepto.(float64),
+							"Nombre":            ConceptoPost["Nombre"],
+							"CodigoAbreviacion": ConceptoPost["CodigoAbreviacion"],
+							"Activo":            ConceptoPost["Activo"],
+						},
+						"Factor": map[string]interface{}{
+							"Id":    FactorPost["Id"],
+							"Valor": ValorJson["NumFactor"],
+						},
+					}
+					c.Data["json"] = Response
+				}
 			} else {
 				var resultado2 map[string]interface{}
 				request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("ParametroService")+"parametro/%.f", ConceptoPost["Id"]), "DELETE", &resultado2, nil)
