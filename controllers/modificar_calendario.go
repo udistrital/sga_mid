@@ -6,6 +6,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/utils_oas/request"
+	"github.com/udistrital/utils_oas/time_bogota"
 
 	"encoding/json"
 )
@@ -29,15 +30,28 @@ func (c *ModificaCalendarioAcademicoController) URLMapping() {
 // @router / [post]
 func (c *ModificaCalendarioAcademicoController) PostCalendarioHijo() {
 
-	var calendarioHijo map[string]interface{}
+	var AuxCalendarioHijo map[string]interface{}
 	var calendarioHijoPost map[string]interface{}
 	var CalendarioPadreId interface{}
 	var CalendarioPadre []map[string]interface{}
 	var CalendarioPadrePut map[string]interface{}
 
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &calendarioHijo); err == nil {
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &AuxCalendarioHijo); err == nil {
 
-		errCalendarioHijo := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"calendario", "POST", &calendarioHijoPost, calendarioHijo)
+		CalendarioHijo := map[string]interface{}{
+			"Nombre":            AuxCalendarioHijo["Nombre"],
+			"DependenciaId":     AuxCalendarioHijo["DependenciaId"],
+			"DocumentoId":       AuxCalendarioHijo["DocumentoId"],
+			"PeriodoId":         AuxCalendarioHijo["PeriodoId"],
+			"AplicacionId":      0,
+			"Nivel":             AuxCalendarioHijo["Nivel"],
+			"Activo":            AuxCalendarioHijo["Activo"],
+			"FechaCreacion":     time_bogota.TiempoBogotaFormato(),
+			"FechaModificacion": time_bogota.TiempoBogotaFormato(),
+			"CalendarioPadreId": map[string]interface{}{"Id": AuxCalendarioHijo["CalendarioPadreId"].(map[string]interface{})["Id"].(float64)},
+		}
+		fmt.Println(AuxCalendarioHijo["CalendarioPadreId"].(map[string]interface{})["Id"])
+		errCalendarioHijo := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"calendario", "POST", &calendarioHijoPost, CalendarioHijo)
 		CalendarioPadreId = calendarioHijoPost["CalendarioPadreId"].(map[string]interface{})["Id"]
 
 		if errCalendarioHijo == nil && fmt.Sprintf("%v", calendarioHijoPost["System"]) != "map[]" && calendarioHijoPost["Id"] != nil {
@@ -55,7 +69,8 @@ func (c *ModificaCalendarioAcademicoController) PostCalendarioHijo() {
 						errCalendarioPadre := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"calendario/"+IdPadre, "PUT", &CalendarioPadrePut, CalendarioPadreAux)
 						if errCalendarioPadre == nil && fmt.Sprintf("%v", CalendarioPadrePut["System"]) != "map[]" && CalendarioPadrePut["Id"] != nil {
 							if CalendarioPadrePut["Status"] != 400 {
-								c.Data["json"] = CalendarioPadrePut
+								//c.Data["json"] = CalendarioPadrePut
+								c.Data["json"] = calendarioHijoPost
 							} else {
 								logs.Error(err)
 								c.Data["system"] = err
