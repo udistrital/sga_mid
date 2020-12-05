@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
 
 	"golang.org/x/oauth2/google"
 	"golang.org/x/oauth2/jwt"
@@ -34,63 +35,83 @@ func (c *DriveController) URLMapping() {
 // @Failure 400 the request contains incorrect syntax
 // @router / [post]
 func (c *DriveController) PostFileDrive() {
-	f, handle, err := c.GetFile("archivo")
+	if f, handle, errGetFile := c.GetFile("archivo"); errGetFile == nil {
+		defer f.Close()
 
-	if err != nil {
-		fmt.Println("Error 1")
-		fmt.Println(err)
-		return
-	}
+		client := ServiceAccount("client_secret.json")
+		resultadoDrive := make(map[string]interface{})
+		if srv, errClient := drive.New(client); errClient == nil {
+			folder := "1snEUvKYFg0Cq6rOhqHW6-KHWsexDs4nf"
+			folderName := "Estefania 02 12 2020"
+			folderId := ""
 
-	defer f.Close()
+			q := fmt.Sprintf("name=\"%s\" and mimeType=\"application/vnd.google-apps.folder\"", folderName)
 
-	client := ServiceAccount("client_secret.json")
+			if m, errList := srv.Files.List().Q(q).Do(); errList == nil {
+				fmt.Println("Files:")
+				if len(m.Files) == 0 {
+					//Step 3: Create directory
+					if dir, errFolder := createFolder(srv, folderName, folder); errFolder == nil {
+						folderId = dir.Id
+					} else {
+						panic(fmt.Sprintf("Could not create dir: %v\n", errFolder))
+						logs.Error(errFolder)
+						c.Data["system"] = resultadoDrive
+						c.Abort("400")
+					}
+				} else {
+					for _, i := range m.Files {
+						folderId = i.Id
+					}
+				}
 
-	srv, err := drive.New(client)
-	if err != nil {
-		log.Fatalf("Unable to retrieve drive Client %v", err)
-	}
+				//give your folder id here in which you want to upload or create new directory
+				// Step 4: create the file and upload
+				if file, errCreate := createFile(srv, handle.Filename, "application/octet-stream", f, folderId); errCreate == nil {
+					fmt.Printf("File '%s' successfully uploaded", file.Name)
 
-	folder := "1snEUvKYFg0Cq6rOhqHW6-KHWsexDs4nf"
-	folderName := "Estefania 02 12 2020"
-	folderId := ""
-
-	q := fmt.Sprintf("name=\"%s\" and mimeType=\"application/vnd.google-apps.folder\"", folderName)
-
-	m, err := srv.Files.List().Q(q).Do()
-	if err != nil {
-		log.Fatalf("Unable to retrieve files: %v", err)
-	}
-
-	fmt.Println("Files:")
-	if len(m.Files) == 0 {
-		//Step 3: Create directory
-		dir, err := createFolder(srv, folderName, folder)
-
-		if err != nil {
-			panic(fmt.Sprintf("Could not create dir: %v\n", err))
+					//Step 5: Get the web view link
+					if y, errGet := srv.Files.Get(file.Id).Fields("*").Do(); errGet == nil {
+						fmt.Printf("Link: '%v' ", y.WebViewLink)
+						resultadoDrive["File"] = map[string]interface{}{
+							"Link": y.WebViewLink,
+						}
+						fmt.Println(resultadoDrive)
+						c.Data["json"] = resultadoDrive
+					} else {
+						fmt.Printf("An error occurred: %v\n", errGet)
+						logs.Error(errGet)
+						c.Data["system"] = resultadoDrive
+						c.Abort("400")
+					}
+				} else {
+					panic(fmt.Sprintf("Could not create file: %v\n", errCreate))
+					logs.Error(errCreate)
+					c.Data["system"] = resultadoDrive
+					c.Abort("400")
+				}
+			} else {
+				log.Fatalf("Unable to retrieve files: %v", errList)
+				logs.Error(errList)
+				c.Data["system"] = resultadoDrive
+				c.Abort("400")
+			}
+		} else {
+			log.Fatalf("Unable to retrieve drive Client %v", errClient)
+			logs.Error(errClient)
+			c.Data["system"] = resultadoDrive
+			c.Abort("400")
 		}
-
-		folderId = dir.Id
-
 	} else {
-		for _, i := range m.Files {
-			folderId = i.Id
-		}
+		fmt.Println(errGetFile)
+		logs.Error(errGetFile)
+		c.Data["system"] = errGetFile
+		c.Abort("400")
 	}
-
-	//give your folder id here in which you want to upload or create new directory
-
-	// Step 4: create the file and upload
-	file, err := createFile(srv, handle.Filename, "application/octet-stream", f, folderId)
-
-	if err != nil {
-		panic(fmt.Sprintf("Could not create file: %v\n", err))
-	}
-	fmt.Printf("File '%s' successfully uploaded", file.Name)
+	c.ServeJSON()
 }
 
-//Use Service account
+//ServiceAccount ...
 func ServiceAccount(secretFile string) *http.Client {
 	b, err := ioutil.ReadFile(secretFile)
 	if err != nil {
