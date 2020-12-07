@@ -8,9 +8,11 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
+	"github.com/udistrital/utils_oas/request"
 
 	"golang.org/x/oauth2/google"
 	"golang.org/x/oauth2/jwt"
@@ -33,8 +35,11 @@ func (c *DriveController) URLMapping() {
 // @Param	archivo	formData  file	true	"body for Acta_recibido content"
 // @Success 201 {int}
 // @Failure 400 the request contains incorrect syntax
-// @router / [post]
+// @router /:produccion_id/:metadato_id [post]
 func (c *DriveController) PostFileDrive() {
+	idProduccion := c.Ctx.Input.Param(":produccion_id")
+	idMetadatoStr := c.Ctx.Input.Param(":metadato_id")
+
 	if f, handle, errGetFile := c.GetFile("archivo"); errGetFile == nil {
 		defer f.Close()
 
@@ -73,11 +78,21 @@ func (c *DriveController) PostFileDrive() {
 					//Step 5: Get the web view link
 					if y, errGet := srv.Files.Get(file.Id).Fields("*").Do(); errGet == nil {
 						fmt.Printf("Link: '%v' ", y.WebViewLink)
-						resultadoDrive["File"] = map[string]interface{}{
-							"Link": y.WebViewLink,
+
+						if resp, errPut := postMetadato(idProduccion, idMetadatoStr, y.WebViewLink); errPut == nil {
+							fmt.Println(resp)
+							resultadoDrive["File"] = map[string]interface{}{
+								"Link": y.WebViewLink,
+							}
+							fmt.Println(resultadoDrive)
+							c.Data["json"] = resultadoDrive
+						} else {
+							fmt.Printf("An error occurred: %v\n", errPut)
+							logs.Error(errPut)
+							c.Data["system"] = resultadoDrive
+							c.Abort("400")
 						}
-						fmt.Println(resultadoDrive)
-						c.Data["json"] = resultadoDrive
+
 					} else {
 						fmt.Printf("An error occurred: %v\n", errGet)
 						logs.Error(errGet)
@@ -163,6 +178,27 @@ func createFile(service *drive.Service, name string, mimeType string, content io
 		log.Println("Could not create file: " + err.Error())
 		return nil, err
 	}
-
 	return file, nil
+}
+
+func postMetadato(idProduccionStr string, idMetadatoStr string, link string) (v map[string]interface{}, err error) {
+	idProduccion, _ := strconv.Atoi(idProduccionStr)
+	idMetadato, _ := strconv.Atoi(idMetadatoStr)
+	fmt.Println("Agregando metadato a produccion: " + idProduccionStr)
+	fmt.Println("Tipo metadato: " + idMetadatoStr)
+
+	var resultadoMetadatoPost map[string]interface{}
+	metadatoPost := map[string]interface{}{
+		"Valor":                       link,
+		"MetadatoSubtipoProduccionId": map[string]interface{}{"Id": idMetadato},
+		"ProduccionAcademicaId":       map[string]interface{}{"Id": idProduccion},
+		"Activo":                      true,
+	}
+
+	errMetadatoPost := request.SendJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/metadato_produccion_academica", "POST", &resultadoMetadatoPost, metadatoPost)
+	if errMetadatoPost == nil && fmt.Sprintf("%v", resultadoMetadatoPost["System"]) != "map[]" && resultadoMetadatoPost["MetadatoProduccionAcademica"] != nil {
+		fmt.Println("Paso ")
+		return resultadoMetadatoPost, errMetadatoPost
+	}
+	return nil, errMetadatoPost
 }

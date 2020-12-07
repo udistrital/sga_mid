@@ -253,7 +253,7 @@ func init() {
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DriveController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DriveController"],
         beego.ControllerComments{
             Method: "PostFileDrive",
-            Router: "/",
+            Router: "/:produccion_id/:metadato_id",
             AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
