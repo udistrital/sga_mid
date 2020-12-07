@@ -182,6 +182,9 @@ func (c *SolicitudDocenteController) PutSolicitudDocente() {
 				})
 			}
 		}
+		if len(observaciones) == 0 {
+			observaciones = append(observaciones, map[string]interface{}{})
+		}
 
 		SolicitudDocentePut["Solicitantes"] = nil
 		SolicitudDocentePut["EvolucionesEstado"] = solicitudesEvolucionEstado
