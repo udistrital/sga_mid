@@ -793,7 +793,7 @@
                 }
             }
         },
-        "/drive/{produccion_id}/{metadato_id}": {
+        "/drive/{produccion_id}/{metadato_id}/{meta_produccion_id}": {
             "post": {
                 "tags": [
                     "drive"
