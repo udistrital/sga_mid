@@ -522,7 +522,7 @@ paths:
           description: '{}'
         "404":
           description: not found resource
-  /drive/{produccion_id}/{metadato_id}:
+  /drive/{produccion_id}/{metadato_id}/{meta_produccion_id}:
     post:
       tags:
       - drive
