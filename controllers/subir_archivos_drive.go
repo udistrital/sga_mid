@@ -35,10 +35,11 @@ func (c *DriveController) URLMapping() {
 // @Param	archivo	formData  file	true	"body for Acta_recibido content"
 // @Success 201 {int}
 // @Failure 400 the request contains incorrect syntax
-// @router /:produccion_id/:metadato_id [post]
+// @router /:produccion_id/:metadato_id/:meta_produccion_id [post]
 func (c *DriveController) PostFileDrive() {
 	idProduccion := c.Ctx.Input.Param(":produccion_id")
 	idMetadatoStr := c.Ctx.Input.Param(":metadato_id")
+	idMetaProduccionStr := c.Ctx.Input.Param(":meta_produccion_id")
 
 	if f, handle, errGetFile := c.GetFile("archivo"); errGetFile == nil {
 		defer f.Close()
@@ -79,18 +80,34 @@ func (c *DriveController) PostFileDrive() {
 					if y, errGet := srv.Files.Get(file.Id).Fields("*").Do(); errGet == nil {
 						fmt.Printf("Link: '%v' ", y.WebViewLink)
 
-						if resp, errPut := postMetadato(idProduccion, idMetadatoStr, y.WebViewLink); errPut == nil {
-							fmt.Println(resp)
-							resultadoDrive["File"] = map[string]interface{}{
-								"Link": y.WebViewLink,
+						if idMetaProduccionStr == "0" {
+							if resp, errPost := postMetadato(idProduccion, idMetadatoStr, y.WebViewLink); errPost == nil {
+								fmt.Println(resp)
+								resultadoDrive["File"] = map[string]interface{}{
+									"Link": y.WebViewLink,
+								}
+								fmt.Println(resultadoDrive)
+								c.Data["json"] = resultadoDrive
+							} else {
+								fmt.Printf("An error occurred: %v\n", errPost)
+								logs.Error(errPost)
+								c.Data["system"] = resultadoDrive
+								c.Abort("400")
 							}
-							fmt.Println(resultadoDrive)
-							c.Data["json"] = resultadoDrive
 						} else {
-							fmt.Printf("An error occurred: %v\n", errPut)
-							logs.Error(errPut)
-							c.Data["system"] = resultadoDrive
-							c.Abort("400")
+							if resp, errPut := putMetadato(idProduccion, idMetadatoStr, idMetaProduccionStr, y.WebViewLink); errPut == nil {
+								fmt.Println(resp)
+								resultadoDrive["File"] = map[string]interface{}{
+									"Link": y.WebViewLink,
+								}
+								fmt.Println(resultadoDrive)
+								c.Data["json"] = resultadoDrive
+							} else {
+								fmt.Printf("An error occurred: %v\n", errPut)
+								logs.Error(errPut)
+								c.Data["system"] = resultadoDrive
+								c.Abort("400")
+							}
 						}
 
 					} else {
@@ -197,8 +214,41 @@ func postMetadato(idProduccionStr string, idMetadatoStr string, link string) (v 
 
 	errMetadatoPost := request.SendJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/metadato_produccion_academica", "POST", &resultadoMetadatoPost, metadatoPost)
 	if errMetadatoPost == nil && fmt.Sprintf("%v", resultadoMetadatoPost["System"]) != "map[]" && resultadoMetadatoPost["MetadatoProduccionAcademica"] != nil {
-		fmt.Println("Paso ")
 		return resultadoMetadatoPost, errMetadatoPost
 	}
 	return nil, errMetadatoPost
+}
+
+func putMetadato(idProduccionStr string, idMetadatoStr string, idMetaProduccionStr string, link string) (v map[string]interface{}, err error) {
+	idProduccion, _ := strconv.Atoi(idProduccionStr)
+	idMetadato, _ := strconv.Atoi(idMetadatoStr)
+	fmt.Println("Modificando metadato a produccion: " + idProduccionStr)
+	fmt.Println("Tipo metadato: " + idMetadatoStr)
+	fmt.Println("Id metadato: " + idMetaProduccionStr)
+
+	var resultadoMetadatoGet map[string]interface{}
+	errMetadatoGet := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/metadato_produccion_academica/"+idMetaProduccionStr, &resultadoMetadatoGet)
+	if errMetadatoGet == nil && fmt.Sprintf("%v", resultadoMetadatoGet["System"]) != "map[]" {
+		if resultadoMetadatoGet["Status"] != 404 && resultadoMetadatoGet["Id"] != nil {
+			var resultadoMetadatoPut map[string]interface{}
+			metadatoPut := map[string]interface{}{
+				"Valor":                       link,
+				"MetadatoSubtipoProduccionId": map[string]interface{}{"Id": idMetadato},
+				"ProduccionAcademicaId":       map[string]interface{}{"Id": idProduccion},
+				"Activo":                      true,
+				"FechaCreacion":               resultadoMetadatoGet["FechaCreacion"],
+			}
+
+			errMetadatoPut := request.SendJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/metadato_produccion_academica/"+idMetaProduccionStr, "PUT", &resultadoMetadatoPut, metadatoPut)
+			fmt.Println("paso")
+			fmt.Println(resultadoMetadatoPut)
+			fmt.Println(errMetadatoPut)
+			if errMetadatoPut == nil {
+				return resultadoMetadatoPut, errMetadatoPut
+			}
+		}
+	} else {
+		return nil, errMetadatoGet
+	}
+	return nil, errMetadatoGet
 }
