@@ -3,6 +3,8 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
@@ -71,11 +73,10 @@ func (c *SolicitudDocenteController) PostSolicitudDocente() {
 			"TerceroId":             terceroID,
 			"SolicitudId":           map[string]interface{}{"Id": 0},
 			"EstadoTipoSolicitudId": SolicitudDocente["EstadoTipoSolicitudId"],
-			// "FechaLimite":           calcularFecha(date, SolicitudDocente["EstadoTipoSolicitudId"]), // Crear funcion que calcule fecha limite
-			"FechaLimite":       date,
-			"Activo":            true,
-			"FechaCreacion":     date,
-			"FechaModificacion": date,
+			"FechaLimite":           calcularFecha(SolicitudDocente["EstadoTipoSolicitudId"].(map[string]interface{})),
+			"Activo":                true,
+			"FechaCreacion":         date,
+			"FechaModificacion":     date,
 		})
 
 		SolicitudDocentePost["EvolucionesEstado"] = solicitudesEvolucionEstado
@@ -104,10 +105,21 @@ func (c *SolicitudDocenteController) PostSolicitudDocente() {
 	c.ServeJSON()
 }
 
-func calcularFecha(date string, EstadoTipoSolicitud interface{}) (result string) {
-	fmt.Println(EstadoTipoSolicitud)
-	result = "Hola a todos"
-	return
+func calcularFecha(EstadoTipoSolicitud map[string]interface{}) (result string) {
+	numDias, _ := strconv.Atoi(fmt.Sprintf("%v", EstadoTipoSolicitud["NumeroDias"]))
+	var tiempoBogota time.Time
+	tiempoBogota = time.Now()
+
+	tiempoBogota = tiempoBogota.AddDate(0, 0, numDias)
+
+	loc, err := time.LoadLocation("America/Bogota")
+	if err != nil {
+		fmt.Println(err)
+	}
+	tiempoBogota = tiempoBogota.In(loc)
+
+	var tiempoBogotaStr = tiempoBogota.Format(time.RFC3339Nano)
+	return tiempoBogotaStr
 }
 
 // PutSolicitudDocente ...
@@ -150,10 +162,9 @@ func (c *SolicitudDocenteController) PutSolicitudDocente() {
 			"EstadoTipoSolicitudId":         SolicitudDocente["EstadoTipoSolicitudId"],
 			"EstadoTipoSolicitudIdAnterior": EstadoTipoSolicitudId,
 			"Activo":                        true,
-			"FechaLimite":                   date,
+			"FechaLimite":                   calcularFecha(SolicitudDocente["EstadoTipoSolicitudId"].(map[string]interface{})),
 			"FechaCreacion":                 date,
 			"FechaModificacion":             date,
-			// "FechaLimite":           calcularFecha(date, SolicitudDocente["EstadoTipoSolicitudId"]), // Crear funcion que calcule fecha limite
 		})
 
 		var observaciones []map[string]interface{}
@@ -181,6 +192,9 @@ func (c *SolicitudDocenteController) PutSolicitudDocente() {
 					"Activo":            true,
 				})
 			}
+		}
+		if len(observaciones) == 0 {
+			observaciones = append(observaciones, map[string]interface{}{})
 		}
 
 		SolicitudDocentePut["Solicitantes"] = nil
