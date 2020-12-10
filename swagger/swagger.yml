@@ -567,23 +567,6 @@ paths:
           description: '{}'
         "404":
           description: not found resource
-  /drive/{produccion_id}/{metadato_id}/{meta_produccion_id}:
-    post:
-      tags:
-      - drive
-      description: Agregar archivo a drive
-      operationId: DriveController.PostFileDrive
-      parameters:
-      - in: formData
-        name: archivo
-        description: body for Acta_recibido content
-        required: true
-        type: file
-      responses:
-        "201":
-          description: '{int}'
-        "400":
-          description: the request contains incorrect syntax
   /evento/:
     post:
       tags:
@@ -1475,9 +1458,6 @@ tags:
 - name: consulta_academica
   description: |
     ConsultaOfertaAcademicaController operations for Consulta_oferta_academica
-- name: drive
-  description: |
-    DriveController ...
 - name: persona
   description: |
     PersonaController ...
