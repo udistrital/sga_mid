@@ -146,12 +146,7 @@ func (c *ConceptoController) PutCostoConcepto() {
 							Valor := "{\n    \"NumFactor\": " + FactorValor + ", \n \"Costo\": " + CostoValor + "\n}"
 							Factor["Valor"] = Valor
 							idFactor := fmt.Sprintf("%.f", Factor["Id"].(float64))
-							fmt.Println(idFactor)
-							fmt.Println("http://" + beego.AppConfig.String("ParametroService") + "parametro_periodo/" + idFactor)
-							fmt.Println(Factor)
 							errPut := request.SendJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo/"+idFactor, "PUT", &FactorPut, Factor)
-							fmt.Println(errPut)
-							fmt.Println(FactorPut)
 							if errPut == nil {
 								if FactorPut != nil {
 									c.Data["json"] = FactorPut
