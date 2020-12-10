@@ -739,6 +739,30 @@
                         "description": ":id is empty"
                     }
                 }
+            },
+            "delete": {
+                "tags": [
+                    "derechos_pecuniarios"
+                ],
+                "description": "Inactivar Concepto y Factor por id",
+                "operationId": "DerechosPecuniariosController.DeleteConcepto",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "Id del Concepto",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
             }
         },
         "/descuento_academico/": {

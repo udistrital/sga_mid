@@ -18,6 +18,7 @@ func (c *DerechosPecuniariosController) URLMapping() {
 	c.Mapping("PutConcepto", c.PutConcepto)
 	c.Mapping("PostClonarConceptos", c.PostClonarConceptos)
 	c.Mapping("GetDerechosPecuniariosPorVigencia", c.GetDerechosPecuniariosPorVigencia)
+	c.Mapping("DeleteConcepto", c.DeleteConcepto)
 }
 
 // PostConcepto ...
@@ -168,6 +169,55 @@ func (c *DerechosPecuniariosController) PutConcepto() {
 		c.Abort("400")
 	}
 	c.ServeJSON()
+}
+
+// DeleteConcepto ...
+// @Title DeleteConcepto
+// @Description Inactivar Concepto y Factor por id
+// @Param   id      path    string  true        "Id del Concepto"
+// @Success 200 {}
+// @Failure 403 :id is empty
+// @router /:id [delete]
+func (c *DerechosPecuniariosController) DeleteConcepto() {
+
+	var Parametro map[string]interface{}
+	var AuxFactorPut map[string]interface{}
+	var AuxConceptoPut map[string]interface{}
+
+	id := c.Ctx.Input.Param(":id")
+
+	if err := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId__Id:"+id, &Parametro); err == nil {
+		DataAux := Parametro["Data"].([]interface{})[0]
+		Data := DataAux.(map[string]interface{})
+		Concepto := Data["ParametroId"].(map[string]interface{})
+		Data["Activo"] = false
+		Concepto["Activo"] = false
+		errFactor := request.SendJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo/"+fmt.Sprintf("%.f", Data["Id"].(float64)), "PUT", &AuxFactorPut, Data)
+		if errFactor == nil {
+			errConcepto := request.SendJson("http://"+beego.AppConfig.String("ParametroService")+"parametro/"+id, "PUT", &AuxConceptoPut, Concepto)
+			if errConcepto == nil {
+				response := map[string]interface{}{
+					"Concepto": AuxConceptoPut,
+					"Factor":   AuxFactorPut,
+				}
+				c.Ctx.Output.SetStatus(200)
+				c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Query successful", "Data": response}
+			} else {
+				logs.Error(errConcepto)
+				c.Data["message"] = errConcepto.Error()
+				c.Abort("400")
+			}
+		} else {
+			logs.Error(errFactor)
+			c.Data["message"] = errFactor.Error()
+			c.Abort("400")
+		}
+	} else {
+		logs.Error(err)
+		c.Data["message"] = err.Error()
+		c.Abort("400")
+	}
+
 }
 
 // GetDerechosPecuniariosPorVigencia ...
