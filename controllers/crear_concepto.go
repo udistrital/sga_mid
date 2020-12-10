@@ -15,6 +15,7 @@ type ConceptoController struct {
 
 func (c *ConceptoController) URLMapping() {
 	c.Mapping("PostConcepto", c.PostConcepto)
+	c.Mapping("PutCostoConcepto", c.PutCostoConcepto)
 }
 
 // PostConcepto ...
@@ -101,6 +102,95 @@ func (c *ConceptoController) PostConcepto() {
 		} else {
 			logs.Error(errFactor)
 			c.Data["system"] = FactorPost
+		}
+	}
+	c.ServeJSON()
+}
+
+// PutCostoConcepto ...
+// @Title PutCostoConcepto
+// @Description Añadir el costo de un concepto existente
+// @Param	id		path 	string	true		"el id del evento a modificar"
+// @Param   body        body    {}  true        "body Inhabilitar Proyecto content"
+// @Success 200 {}
+// @Failure 403 :body is empty
+// @router /ActualizarValor/ [post]
+func (c *ConceptoController) PutCostoConcepto() {
+
+	var ConceptoCosto []map[string]interface{}
+	var Concepto map[string]interface{}
+	var Factor map[string]interface{}
+	var FactorPut map[string]interface{}
+
+	//Guarda el arreglo de objetos  de los conceptos que se traen del cliente
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &ConceptoCosto); err == nil {
+		//Recorre cada concepto para poder guardar el costo
+		for _, conceptoTemp := range ConceptoCosto {
+			var conceptoAux map[string]interface{}
+			codigo := fmt.Sprintf("%.f", conceptoTemp["Codigo"].(float64))
+			//Se trae todo el json del concepto por código de abreviación para poder hacer la función put
+			errConcepto := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro?query=CodigoAbreviacion:"+codigo+"&sortby=Id&order=desc&limit=1", &conceptoAux)
+			if errConcepto == nil {
+				if conceptoAux != nil {
+					//Guarda solo el ultimo concepto que aparezca en la bd
+					Concepto = conceptoAux["Data"].([]interface{})[0].(map[string]interface{})
+					idConcepto := fmt.Sprintf("%.f", Concepto["Id"].(float64))
+					var FactorAux map[string]interface{}
+					// Consulta el factor que esta relacionado con el concepto
+					errFactor := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId__Id:"+idConcepto+"&sortby=Id&order=desc&limit=1", &FactorAux)
+					if errFactor == nil {
+						if FactorAux != nil {
+							Factor = FactorAux["Data"].([]interface{})[0].(map[string]interface{})
+							FactorValor := fmt.Sprintf("%.f", conceptoTemp["Factor"].(float64))
+							CostoValor := fmt.Sprintf("%.f", conceptoTemp["Costo"].(float64))
+							Valor := "{\n    \"NumFactor\": " + FactorValor + ", \n \"Costo\": " + CostoValor + "\n}"
+							Factor["Valor"] = Valor
+							idFactor := fmt.Sprintf("%.f", Factor["Id"].(float64))
+							fmt.Println(idFactor)
+							fmt.Println("http://" + beego.AppConfig.String("ParametroService") + "parametro_periodo/" + idFactor)
+							fmt.Println(Factor)
+							errPut := request.SendJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo/"+idFactor, "PUT", &FactorPut, Factor)
+							fmt.Println(errPut)
+							fmt.Println(FactorPut)
+							if errPut == nil {
+								if FactorPut != nil {
+									c.Data["json"] = FactorPut
+								} else {
+									logs.Error(errPut)
+									c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errPut.Error(), "Type": "error"}
+									c.Data["system"] = FactorPut
+									c.Abort("400")
+								}
+							} else {
+								logs.Error(errPut)
+								c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errPut.Error(), "Type": "error"}
+								c.Data["system"] = FactorPut
+								c.Abort("400")
+							}
+						} else {
+							logs.Error(errFactor)
+							c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errFactor.Error(), "Type": "error"}
+							c.Data["system"] = FactorAux
+							c.Abort("400")
+						}
+					} else {
+						logs.Error(errFactor)
+						c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errFactor.Error(), "Type": "error"}
+						c.Data["system"] = FactorAux
+						c.Abort("400")
+					}
+				} else {
+					logs.Error(errConcepto)
+					c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errConcepto.Error(), "Type": "error"}
+					c.Data["system"] = conceptoAux
+					c.Abort("400")
+				}
+			} else {
+				logs.Error(errConcepto)
+				c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errConcepto.Error(), "Type": "error"}
+				c.Data["system"] = conceptoAux
+				c.Abort("400")
+			}
 		}
 	}
 	c.ServeJSON()

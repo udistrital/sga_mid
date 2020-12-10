@@ -662,6 +662,41 @@
                 }
             }
         },
+        "/crear_concepto/ActualizarValor/": {
+            "post": {
+                "tags": [
+                    "crear_concepto"
+                ],
+                "description": "Añadir el costo de un concepto existente",
+                "operationId": "ConceptoController.PutCostoConcepto",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "el id del evento a modificar",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Inhabilitar Proyecto content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": ":body is empty"
+                    }
+                }
+            }
+        },
         "/descuento_academico/": {
             "get": {
                 "tags": [
