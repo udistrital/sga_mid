@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
@@ -121,77 +120,52 @@ func (c *DerechosPecuniariosController) PutConcepto() {
 
 	var ConceptoFactor map[string]interface{}
 	var AuxConceptoPut map[string]interface{}
+	var AuxFactorPut map[string]interface{}
 	var ConceptoPut map[string]interface{}
-	var Vigencia interface{}
-	var ValorJson map[string]interface{}
+	var Parametro map[string]interface{}
+
 	idStr := c.Ctx.Input.Param(":id")
 
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &ConceptoFactor); err == nil {
-		Concepto := ConceptoFactor["Concepto"].(map[string]interface{})
-		errConcepto := request.SendJson("http://"+beego.AppConfig.String("ParametroService")+"parametro/"+idStr, "PUT", &AuxConceptoPut, Concepto)
+	if err := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId__Id:"+idStr, &Parametro); err == nil {
+		DataAux := Parametro["Data"].([]interface{})[0]
+		Data := DataAux.(map[string]interface{})
 
-		if errConcepto == nil && fmt.Sprintf("%v", ConceptoPut["System"]) != "map[]" && ConceptoPut["Id"] != nil {
-			ConceptoPut = AuxConceptoPut["Data"].(map[string]interface{})
-
-			if ConceptoPut["Status"] != 400 {
-				c.Data["json"] = ConceptoPut
-			} else {
-				logs.Error(errConcepto)
-				c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errConcepto.Error(), "Type": "error"}
-				c.Data["system"] = ConceptoPut
-			}
-		} else {
-			logs.Error(errConcepto)
-			c.Data["system"] = ConceptoPut
-		}
-
-		Vigencia = ConceptoFactor["Vigencia"]                          //Valor del id de la vigencia (periodo)
-		NumFactor := ConceptoFactor["Factor"].(map[string]interface{}) //Valor que trae el numero del factor y el salario minimo
-
-		ValorFactor := fmt.Sprintf("%v", NumFactor["Valor"].(map[string]interface{})["NumFactor"])
-		Valor := "{\n    \"NumFactor\": " + ValorFactor + " \n}"
-		ConceptoId, _ := strconv.Atoi(idStr)
-
-		Factor := map[string]interface{}{
-			"Id":          NumFactor["Id"],
-			"ParametroId": map[string]interface{}{"Id": ConceptoId},
-			"PeriodoId":   map[string]interface{}{"Id": Vigencia.(map[string]interface{})["Id"].(float64)},
-			"Valor":       Valor,
-			"Activo":      true,
-		}
-
-		var AuxFactor map[string]interface{}
-		var FactorPut map[string]interface{}
-		fmt.Println(Factor)
-		errFactor := request.SendJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo/"+fmt.Sprintf("%v", Factor["Id"]), "PUT", &AuxFactor, Factor)
-		if errFactor == nil && fmt.Sprintf("%v", FactorPut["System"]) != "map[]" && FactorPut["Id"] != nil {
-			FactorPut = AuxFactor["Data"].(map[string]interface{})
-			if FactorPut["Status"] != 400 {
-				ValorString := FactorPut["Valor"].(string)
-				if err := json.Unmarshal([]byte(ValorString), &ValorJson); err == nil {
-					Response := map[string]interface{}{
-						"Concepto": map[string]interface{}{
-							"Id":                idStr,
-							"Nombre":            ConceptoPut["Nombre"],
-							"CodigoAbreviacion": ConceptoPut["CodigoAbreviacion"],
-							"Activo":            ConceptoPut["Activo"],
-						},
-						"Factor": map[string]interface{}{
-							"Id":    FactorPut["Id"],
-							"Valor": ValorJson["NumFactor"],
-						},
-					}
-					c.Data["json"] = Response
-				}
-			} else {
+		ConceptoPut = Data["ParametroId"].(map[string]interface{})
+		if err := json.Unmarshal(c.Ctx.Input.RequestBody, &ConceptoFactor); err == nil {
+			Factor := ConceptoFactor["Factor"].(map[string]interface{})
+			FactorValor := fmt.Sprintf("%.f", Factor["Valor"].(map[string]interface{})["NumFactor"].(float64))
+			Data["Valor"] = "{ \"NumFactor\": " + FactorValor + " }"
+			errFactor := request.SendJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo/"+fmt.Sprintf("%.f", Data["Id"].(float64)), "PUT", &AuxFactorPut, Data)
+			if errFactor != nil {
 				logs.Error(errFactor)
-				c.Data["system"] = FactorPut
-				c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errFactor.Error(), "Type": "error"}
+				c.Data["message"] = errFactor.Error()
+				c.Abort("400")
+			}
+			Concepto := ConceptoFactor["Concepto"].(map[string]interface{})
+			ConceptoPut["Nombre"] = Concepto["Nombre"]
+			ConceptoPut["CodigoAbreviacion"] = Concepto["CodigoAbreviacion"]
+			errPut := request.SendJson("http://"+beego.AppConfig.String("ParametroService")+"parametro/"+idStr, "PUT", &AuxConceptoPut, ConceptoPut)
+			if errPut != nil {
+				logs.Error(errPut)
+				c.Data["message"] = errPut.Error()
+				c.Abort("400")
+			} else {
+				response := map[string]interface{}{
+					"Concepto": AuxConceptoPut,
+					"Factor":   AuxFactorPut,
+				}
+				c.Ctx.Output.SetStatus(200)
+				c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Query successful", "Data": response}
 			}
 		} else {
-			logs.Error(errFactor)
-			c.Data["system"] = FactorPut
+			logs.Error(err)
+			c.Data["message"] = err.Error()
+			c.Abort("400")
 		}
+	} else {
+		logs.Error(err)
+		c.Data["message"] = err.Error()
+		c.Abort("400")
 	}
 	c.ServeJSON()
 }
@@ -200,7 +174,7 @@ func (c *DerechosPecuniariosController) PutConcepto() {
 // @Title GetDerechosPecuniariosPorVigencia
 // @Description Consulta los derechos pecuniarias de la vigencia por id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object}
+// @Success 200 {}
 // @Failure 403 :id is empty
 // @router /:id [get]
 func (c *DerechosPecuniariosController) GetDerechosPecuniariosPorVigencia() {
