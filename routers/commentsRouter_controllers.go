@@ -88,7 +88,6 @@ func init() {
             Filters: nil,
             Params: nil})
 
-
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ConsultaCalendarioAcademicoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ConsultaCalendarioAcademicoController"],
         beego.ControllerComments{
             Method: "GetAll",
@@ -227,7 +226,7 @@ func init() {
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"],
         beego.ControllerComments{
             Method: "PostConcepto",
-            Router: "/",
+            Router: `/`,
             AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
@@ -236,7 +235,7 @@ func init() {
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"],
         beego.ControllerComments{
             Method: "DeleteConcepto",
-            Router: "/:id",
+            Router: `/:id`,
             AllowHTTPMethods: []string{"delete"},
             MethodParams: param.Make(),
             Filters: nil,
@@ -245,7 +244,7 @@ func init() {
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"],
         beego.ControllerComments{
             Method: "GetDerechosPecuniariosPorVigencia",
-            Router: "/:id",
+            Router: `/:id`,
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
@@ -253,8 +252,17 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"],
         beego.ControllerComments{
+            Method: "PutCostoConcepto",
+            Router: `/ActualizarValor/`,
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"],
+        beego.ControllerComments{
             Method: "PostClonarConceptos",
-            Router: "/clonar/",
+            Router: `/clonar/`,
             AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
@@ -263,7 +271,7 @@ func init() {
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"],
         beego.ControllerComments{
             Method: "PutConcepto",
-            Router: "/update/:id",
+            Router: `/update/:id`,
             AllowHTTPMethods: []string{"put"},
             MethodParams: param.Make(),
             Filters: nil,
@@ -308,7 +316,7 @@ func init() {
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DriveController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DriveController"],
         beego.ControllerComments{
             Method: "PostFileDrive",
-            Router: "/:produccion_id/:metadato_id/:meta_produccion_id",
+            Router: `/:produccion_id/:metadato_id/:meta_produccion_id`,
             AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,

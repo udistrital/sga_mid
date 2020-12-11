@@ -715,6 +715,41 @@
                 }
             }
         },
+        "/derechos_pecuniarios/ActualizarValor/": {
+            "post": {
+                "tags": [
+                    "derechos_pecuniarios"
+                ],
+                "description": "Añadir el costo de un concepto existente",
+                "operationId": "DerechosPecuniariosController.PutCostoConcepto",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "el id del evento a modificar",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Inhabilitar Proyecto content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": ":body is empty"
+                    }
+                }
+            }
+        },
         "/derechos_pecuniarios/clonar/": {
             "post": {
                 "tags": [
@@ -2325,10 +2360,6 @@
             "description": "ConsultaOfertaAcademicaController operations for Consulta_oferta_academica\n"
         },
         {
-            "name": "drive",
-            "description": "DriveController ...\n"
-        },
-        {
             "name": "persona",
             "description": "PersonaController ...\n"
         },
@@ -2359,6 +2390,10 @@
         {
             "name": "consulta_calendario_academico",
             "description": "ConsultaCalendarioAcademicoController operations for Consulta_calendario_academico\n"
+        },
+        {
+            "name": "drive",
+            "description": "DriveController ...\n"
         }
     ]
 }
