@@ -121,9 +121,9 @@ func init() {
 				&controllers.CalendarioController{},
 			),
 		),
-		beego.NSNamespace("/crear_concepto",
+		beego.NSNamespace("/derechos_pecuniarios",
 			beego.NSInclude(
-				&controllers.ConceptoController{},
+				&controllers.DerechosPecuniariosController{},
 			),
 		),
 	)
