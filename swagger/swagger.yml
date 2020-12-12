@@ -128,8 +128,30 @@ paths:
     post:
       tags:
       - clonar_calendario
-      description: Clona calendario, crea tipo_evento si lo tiene, crea calendario_evento si tiene, crea calendario_evento_tipo_publico si tiene, crea tipo_publico si lo tiene
+      description: Clona calendario, crea tipo_evento si lo tiene, crea calendario_evento
+        si tiene, crea calendario_evento_tipo_publico si tiene, crea tipo_publico
+        si lo tiene
       operationId: CalendarioController.PostCalendario
+      parameters:
+      - in: body
+        name: body
+        description: body id calendario content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
+  /clonar_calendario/calendario_padre:
+    post:
+      tags:
+      - clonar_calendario
+      description: Clona calendario padre, crea tipo_evento si lo tiene, crea calendario_evento
+        si tiene, crea calendario_evento_tipo_publico si tiene, crea tipo_publico
+        si lo tiene
+      operationId: CalendarioController.PostCalendarioPadre
       parameters:
       - in: body
         name: body
@@ -163,7 +185,8 @@ paths:
         type: string
       - in: query
         name: order
-        description: Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ...
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
         type: string
       - in: query
         name: limit
@@ -220,7 +243,8 @@ paths:
         type: string
       - in: query
         name: order
-        description: Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ...
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
         type: string
       - in: query
         name: limit
@@ -256,6 +280,25 @@ paths:
             $ref: '#/definitions/models.ConsultaCalendarioAcademico'
         "403":
           description: :id is empty
+  /consulta_calendario_academico/calendario_padre:
+    post:
+      tags:
+      - consulta_calendario_academico
+      description: Proyecto obtener el Id de calendario padre, crear el nuevo calendario
+        (hijo) e inactivar el calendario padre
+      operationId: ConsultaCalendarioAcademicoController.PostCalendarioHijo
+      parameters:
+      - in: body
+        name: body
+        description: body crear calendario hijo content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: :body is empty
   /consulta_calendario_academico/inhabilitar_calendario/{id}:
     put:
       tags:
@@ -293,9 +336,7 @@ paths:
         type: string
       responses:
         "200":
-          description: ""
-          schema:
-            $ref: '#/definitions/models.ConsultaCalendarioAcademico'
+          description: '{}'
         "403":
           description: :id is empty
   /consulta_proyecto_academico/:
@@ -319,7 +360,8 @@ paths:
         type: string
       - in: query
         name: order
-        description: Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ...
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
         type: string
       - in: query
         name: limit
@@ -401,7 +443,8 @@ paths:
     post:
       tags:
       - crear_actividad_calendario
-      description: Agregar actividad calendario, tipo_publico y tabla de rompimiento calendario_evento_tipo_publico
+      description: Agregar actividad calendario, tipo_publico y tabla de rompimiento
+        calendario_evento_tipo_publico
       operationId: ActividadCalendarioController.PostActividadCalendario
       parameters:
       - in: body
@@ -415,16 +458,108 @@ paths:
           description: '{}'
         "403":
           description: body is empty
-  /crear_concepto/:
+  /derechos_pecuniarios/:
     post:
       tags:
-      - crear_concepto
+      - derechos_pecuniarios
       description: Agregar un concepto
-      operationId: ConceptoController.PostConcepto
+      operationId: DerechosPecuniariosController.PostConcepto
       parameters:
       - in: body
         name: body
         description: body Agregar Concepto content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "400":
+          description: body is empty
+  /derechos_pecuniarios/{id}:
+    get:
+      tags:
+      - derechos_pecuniarios
+      description: Consulta los derechos pecuniarias de la vigencia por id
+      operationId: DerechosPecuniariosController.GetDerechosPecuniariosPorVigencia
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: :id is empty
+    delete:
+      tags:
+      - derechos_pecuniarios
+      description: Inactivar Concepto y Factor por id
+      operationId: DerechosPecuniariosController.DeleteConcepto
+      parameters:
+      - in: path
+        name: id
+        description: Id del Concepto
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: :id is empty
+  /derechos_pecuniarios/ActualizarValor/:
+    post:
+      tags:
+      - derechos_pecuniarios
+      description: Añadir el costo de un concepto existente
+      operationId: DerechosPecuniariosController.PutCostoConcepto
+      parameters:
+      - in: path
+        name: id
+        description: el id del evento a modificar
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body Inhabilitar Proyecto content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: :body is empty
+  /derechos_pecuniarios/clonar/:
+    post:
+      tags:
+      - derechos_pecuniarios
+      description: Clona los conceptos de la vigencia anterior en la vigencia actual
+      operationId: DerechosPecuniariosController.PostClonarConceptos
+      parameters:
+      - in: body
+        name: body
+        description: body Clonar Conceptos content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "400":
+          description: body is empty
+  /derechos_pecuniarios/update/{id}:
+    put:
+      tags:
+      - derechos_pecuniarios
+      description: Modificar un concepto
+      operationId: DerechosPecuniariosController.PutConcepto
+      parameters:
+      - in: body
+        name: body
+        description: body Modificar Concepto content
         required: true
         schema:
           $ref: '#/definitions/{}'
@@ -1189,7 +1324,8 @@ paths:
     post:
       tags:
       - proyecto_academico
-      description: Post a de un cordinador de un proyecto existente, cambia estado activo a false a los coordinadores anteriores y crea el nuevo
+      description: Post a de un cordinador de un proyecto existente, cambia estado
+        activo a false a los coordinadores anteriores y crea el nuevo
       operationId: CrearProyectoAcademicoController.PostCoordinadorById
       parameters:
       - in: path
@@ -1214,7 +1350,8 @@ paths:
     post:
       tags:
       - proyecto_academico
-      description: Post a de un registro de un proyecto existente, cambia estado activo a false a los registro anteriores y crea el nuevo
+      description: Post a de un registro de un proyecto existente, cambia estado activo
+        a false a los registro anteriores y crea el nuevo
       operationId: CrearProyectoAcademicoController.PostRegistroAltaCalidadById
       parameters:
       - in: path
@@ -1239,7 +1376,8 @@ paths:
     post:
       tags:
       - proyecto_academico
-      description: Post a de un registro de un proyecto existente, cambia estado activo a false a los registro anteriores y crea el nuevo
+      description: Post a de un registro de un proyecto existente, cambia estado activo
+        a false a los registro anteriores y crea el nuevo
       operationId: CrearProyectoAcademicoController.PostRegistroCalificadoById
       parameters:
       - in: path
@@ -1427,9 +1565,6 @@ tags:
 - name: consulta_academica
   description: |
     ConsultaOfertaAcademicaController operations for Consulta_oferta_academica
-- name: drive
-  description: |
-    DriveController ...
 - name: persona
   description: |
     PersonaController ...
@@ -1454,3 +1589,6 @@ tags:
 - name: consulta_calendario_academico
   description: |
     ConsultaCalendarioAcademicoController operations for Consulta_calendario_academico
+- name: drive
+  description: |
+    DriveController ...
