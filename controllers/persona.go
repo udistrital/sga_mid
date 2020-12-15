@@ -501,6 +501,7 @@ func (c *PersonaController) ConsultarPersona() {
 					resultado = persona[0]
 					resultado["NumeroIdentificacion"] = identificacion[0]["Numero"]
 					resultado["TipoIdentificacion"] = identificacion[0]["TipoDocumentoId"]
+					resultado["FechaExpedicion"] = identificacion[0]["FechaExpedicion"]
 					resultado["SoporteDocumento"] = identificacion[0]["DocumentoSoporte"]
 
 					errEstado := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/?query=terceroId.Id:"+
