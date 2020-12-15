@@ -149,9 +149,7 @@ func (c *CalendarioController) PostCalendarioPadre() {
 
 		idCalendario := fmt.Sprintf("%.f", dataPost["Id"].(float64))
 		idCalendarioPadre := fmt.Sprintf("%.f", dataPost["IdPadre"].(map[string]interface{})["Id"])
-
 		errCalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario/"+idCalendario, &calendario)
-
 		if errCalendario == nil {
 			if calendario != nil {
 				if dataPost["Nivel"].(float64) == calendario["Nivel"].(float64) {
