@@ -24,6 +24,7 @@ func (c *SolicitudDocenteController) URLMapping() {
 	c.Mapping("GetOneSolicitudDocente", c.GetOneSolicitudDocente)
 	c.Mapping("GetSolicitudDocenteTercero", c.GetSolicitudDocenteTercero)
 	c.Mapping("DeleteSolicitudDocente", c.DeleteSolicitudDocente)
+	c.Mapping("GetEstadoSolicitudDocente", c.GetEstadoSolicitudDocente)
 	c.Mapping("PutSolicitudDocente", c.PutSolicitudDocente)
 }
 
@@ -443,6 +444,101 @@ func (c *SolicitudDocenteController) GetSolicitudDocenteTercero() {
 	}
 	c.ServeJSON()
 }
+// GetEstadoSolicitudDocente ...
+// @Title GetEstadoSolicitudDocente
+// @Description consultar Produccion Academica por id de Estado de Solicitud
+// @Param   id      path    int  true        "Id"
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router /get_estado/:id [get]
+func (c *SolicitudDocenteController) GetEstadoSolicitudDocente() {
+	//Id de la producción
+	idEstado := c.Ctx.Input.Param(":id")
+	fmt.Println("Consultando solicitud de id: " + idEstado)
+	//resultado experiencia
+	var solicitudes []map[string]interface{}
+	var v []interface{}
+	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/solicitud/?limit=0&query=EstadoTipoSolicitudId:"+idEstado, &solicitudes)
+	if errSolicitud == nil && fmt.Sprintf("%v", solicitudes[0]["System"]) != "map[]" {
+		if solicitudes[0]["Status"] != 404 && solicitudes[0]["Id"] != nil {
+			for _, solicitudTemp := range solicitudes {
+				idSolicitud := fmt.Sprintf("%v",solicitudTemp["Id"])
+				var solicitantes []map[string]interface{}
+				errSolicitante := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/solicitante/?query=SolicitudId:"+idSolicitud, &solicitantes)
+				if errSolicitante == nil && fmt.Sprintf("%v", solicitantes[0]["System"]) != "map[]" {
+					if solicitantes[0]["Status"] != 404 && solicitantes[0]["Id"] != nil {
+
+						var evolucionEstado []map[string]interface{}
+						errEvolucion := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/solicitud_evolucion_estado/?limit=0&query=SolicitudId:"+idSolicitud, &evolucionEstado)
+						if errEvolucion == nil && fmt.Sprintf("%v", evolucionEstado[0]["System"]) != "map[]" {
+							if evolucionEstado[0]["Status"] != 404 && evolucionEstado[0]["Id"] != nil {
+
+								var observaciones []map[string]interface{}
+								errObservacion := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/observacion/?limit=0&query=SolicitudId:"+idSolicitud, &observaciones)
+								if errObservacion == nil && fmt.Sprintf("%v", observaciones[0]["System"]) != "map[]" {
+									if observaciones[0]["Status"] != 404 {
+
+
+										v = append(v, map[string]interface{}{
+											"Id":                    solicitudes[0]["Id"],
+											"EstadoTipoSolicitudId": solicitudes[0]["EstadoTipoSolicitudId"],
+											"Referencia":            solicitudes[0]["Referencia"],
+											"Resultado":             solicitudes[0]["Resultado"],
+											"FechaRadicacion":       solicitudes[0]["FechaRadicacion"],
+											"Observaciones":         &observaciones,
+											"Solicitantes":          &solicitantes,
+											"EvolucionEstado":       &evolucionEstado,
+										})
+										c.Data["json"] = v
+									}
+								} else {
+									if observaciones[0]["Message"] == "Not found resource" {
+										c.Data["json"] = nil
+									} else {
+										logs.Error(observaciones)
+										c.Data["system"] = errObservacion
+										c.Abort("404")
+									}
+								}
+							}
+						} else {
+							if evolucionEstado[0]["Message"] == "Not found resource" {
+								c.Data["json"] = nil
+							} else {
+								logs.Error(evolucionEstado)
+								c.Data["system"] = errEvolucion
+								c.Abort("404")
+							}
+						}
+					}
+				} else {
+					if solicitantes[0]["Message"] == "Not found resource" {
+						c.Data["json"] = nil
+					} else {
+						logs.Error(solicitantes)
+						c.Data["system"] = errSolicitante
+						c.Abort("404")
+					}
+
+				}
+
+			}
+		} else {
+			if solicitudes[0]["Message"] == "Not found resource" {
+				c.Data["json"] = nil
+			} else {
+				logs.Error(solicitudes)
+				c.Data["system"] = errSolicitud
+				c.Abort("404")
+			}
+		}
+	} else {
+		logs.Error(solicitudes)
+		c.Data["system"] = errSolicitud
+		c.Abort("404")
+	}
+	c.ServeJSON()
+}
 
 // DeleteSolicitudDocente ...
 // @Title DeleteSolicitudDocente
@@ -476,3 +572,4 @@ func (c *SolicitudDocenteController) DeleteSolicitudDocente() {
 	}
 	c.ServeJSON()
 }
+
