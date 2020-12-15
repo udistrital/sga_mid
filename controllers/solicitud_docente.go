@@ -21,10 +21,10 @@ type SolicitudDocenteController struct {
 func (c *SolicitudDocenteController) URLMapping() {
 	c.Mapping("PostSolicitudDocente", c.PostSolicitudDocente)
 	c.Mapping("GetAllSolicitudDocente", c.GetAllSolicitudDocente)
+	c.Mapping("GetEstadoSolicitudDocente", c.GetEstadoSolicitudDocente)
 	c.Mapping("GetOneSolicitudDocente", c.GetOneSolicitudDocente)
 	c.Mapping("GetSolicitudDocenteTercero", c.GetSolicitudDocenteTercero)
 	c.Mapping("DeleteSolicitudDocente", c.DeleteSolicitudDocente)
-	c.Mapping("GetEstadoSolicitudDocente", c.GetEstadoSolicitudDocente)
 	c.Mapping("PutSolicitudDocente", c.PutSolicitudDocente)
 }
 
