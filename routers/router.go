@@ -121,9 +121,14 @@ func init() {
 				&controllers.CalendarioController{},
 			),
 		),
-		beego.NSNamespace("/crear_concepto",
+		beego.NSNamespace("/derechos_pecuniarios",
 			beego.NSInclude(
-				&controllers.ConceptoController{},
+				&controllers.DerechosPecuniariosController{},
+			),
+		),
+		beego.NSNamespace("/drive",
+			beego.NSInclude(
+				&controllers.DriveController{},
 			),
 		),
 	)

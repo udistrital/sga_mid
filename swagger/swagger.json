@@ -500,10 +500,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/models.ConsultaCalendarioAcademico"
-                        }
+                        "description": "{}"
                     },
                     "403": {
                         "description": ":id is empty"
@@ -690,13 +687,13 @@
                 }
             }
         },
-        "/crear_concepto/": {
+        "/derechos_pecuniarios/": {
             "post": {
                 "tags": [
-                    "crear_concepto"
+                    "derechos_pecuniarios"
                 ],
                 "description": "Agregar un concepto",
-                "operationId": "ConceptoController.PostConcepto",
+                "operationId": "DerechosPecuniariosController.PostConcepto",
                 "parameters": [
                     {
                         "in": "body",
@@ -714,6 +711,147 @@
                     },
                     "400": {
                         "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/derechos_pecuniarios/ActualizarValor/": {
+            "post": {
+                "tags": [
+                    "derechos_pecuniarios"
+                ],
+                "description": "Añadir el costo de un concepto existente",
+                "operationId": "DerechosPecuniariosController.PutCostoConcepto",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "el id del evento a modificar",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Inhabilitar Proyecto content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": ":body is empty"
+                    }
+                }
+            }
+        },
+        "/derechos_pecuniarios/clonar/": {
+            "post": {
+                "tags": [
+                    "derechos_pecuniarios"
+                ],
+                "description": "Clona los conceptos de la vigencia anterior en la vigencia actual",
+                "operationId": "DerechosPecuniariosController.PostClonarConceptos",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Clonar Conceptos content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "400": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/derechos_pecuniarios/update/{id}": {
+            "put": {
+                "tags": [
+                    "derechos_pecuniarios"
+                ],
+                "description": "Modificar un concepto",
+                "operationId": "DerechosPecuniariosController.PutConcepto",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Modificar Concepto content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "400": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/derechos_pecuniarios/{id}": {
+            "get": {
+                "tags": [
+                    "derechos_pecuniarios"
+                ],
+                "description": "Consulta los derechos pecuniarias de la vigencia por id",
+                "operationId": "DerechosPecuniariosController.GetDerechosPecuniariosPorVigencia",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "The key for staticblock",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "derechos_pecuniarios"
+                ],
+                "description": "Inactivar Concepto y Factor por id",
+                "operationId": "DerechosPecuniariosController.DeleteConcepto",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "Id del Concepto",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": ":id is empty"
                     }
                 }
             }
@@ -2226,6 +2364,10 @@
         {
             "name": "consulta_calendario_academico",
             "description": "ConsultaCalendarioAcademicoController operations for Consulta_calendario_academico\n"
+        },
+        {
+            "name": "drive",
+            "description": "DriveController ...\n"
         }
     ]
 }
