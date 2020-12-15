@@ -85,7 +85,7 @@ func (c *SolicitudDocenteController) PostSolicitudDocente() {
 		errSolicitud := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud", "POST", &resultadoSolicitudDocente, SolicitudDocentePost)
 		if errSolicitud == nil && fmt.Sprintf("%v", resultadoSolicitudDocente["System"]) != "map[]" && resultadoSolicitudDocente["Solicitud"] != nil {
 			if resultadoSolicitudDocente["Status"] != 400 {
-				resultado = SolicitudDocente
+				resultado = resultadoSolicitudDocente
 				c.Data["json"] = resultado
 			} else {
 				logs.Error(errSolicitud)

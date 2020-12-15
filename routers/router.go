@@ -131,6 +131,11 @@ func init() {
 				&controllers.DriveController{},
 			),
 		),
+		beego.NSNamespace("/solicitud_produccion",
+			beego.NSInclude(
+				&controllers.SolicitudProduccionController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
