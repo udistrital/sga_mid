@@ -9,6 +9,7 @@ import (
 	"github.com/agnivade/levenshtein"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
+	"github.com/udistrital/sga_mid/models"
 	"github.com/udistrital/utils_oas/request"
 )
 
@@ -79,18 +80,16 @@ func (c *SolicitudProduccionController) PostAlertSolicitudProduccion() {
 				coincidences--
 				numAnnualProductions--
 
-				fmt.Println(coincidences)
-				fmt.Println(numAnnualProductions)
-				fmt.Println(acumulatePoints)
-				fmt.Println(isAceptDuration)
-
-				resultado["Alertas"] = map[string]interface{}{
-					"Coincidencias":        coincidences,
-					"NumAnualProducciones": numAnnualProductions,
-					"PuntosAcumulados":     acumulatePoints,
-					"DuracionAceptada":     isAceptDuration,
+				generateAlerts(SolicitudProduccion, coincidences, numAnnualProductions, acumulatePoints, isAceptDuration, idTipoProduccion)
+				idStr := fmt.Sprintf("%v", SolicitudProduccion["Id"])
+				if resultadoPutSolicitudDocente, err := models.PutSolicitudDocente(SolicitudProduccion, idStr); err == nil {
+					resultado = resultadoPutSolicitudDocente
+					c.Data["json"] = resultado
+				} else {
+					logs.Error(err)
+					c.Data["system"] = resultado
+					c.Abort("400")
 				}
-				c.Data["json"] = resultado
 			} else {
 				if producciones[0]["Message"] == "Not found resource" {
 					c.Data["json"] = nil
@@ -203,12 +202,56 @@ func checkGradePoints(ProduccionAcademicaRegister map[string]interface{}, idTipo
 					}
 				}
 				return points
-			} else {
-				return 0
 			}
 		} else {
 			return 0
 		}
 	}
 	return 0
+}
+
+func generateAlerts(SolicitudDocente map[string]interface{}, coincidences int, numAnnualProductions int, acumulatePoints int, isAceptDuration bool, idTipoProduccion int) {
+	coincidencesSrt := strconv.Itoa(coincidences)
+	var observaciones []interface{}
+	var tipoObservacionData map[string]interface{}
+	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tipo_observacion/?query=Id:2", &tipoObservacionData)
+	if errSolicitud == nil && fmt.Sprintf("%v", tipoObservacionData["System"]) != "map[]" {
+		if tipoObservacionData["Status"] != 404 && tipoObservacionData["Data"] != nil {
+			var tipoObservacion interface{}
+			tipoObservacion = tipoObservacionData["Data"].([]interface{})[0]
+			if coincidences > 0 {
+				observaciones = append(observaciones, map[string]interface{}{
+					"Titulo":            "alerta.titulo",
+					"Valor":             "alerta.alerta_numero_coincidencias" + coincidencesSrt,
+					"TipoObservacionId": &tipoObservacion,
+					"TerceroId":         0,
+				})
+			}
+			if numAnnualProductions > 0 {
+				switch idTipoProduccion {
+				case 13, 14, 16, 17, 19:
+					if numAnnualProductions > 5 {
+						observaciones = append(observaciones, map[string]interface{}{
+							"Titulo":            "alerta.titulo",
+							"Valor":             "alerta.alerta_numero_produccion_anual_5",
+							"TipoObservacionId": &tipoObservacion,
+							"TerceroId":         0,
+						})
+					}
+				case 15, 20:
+					if numAnnualProductions > 3 {
+						observaciones = append(observaciones, map[string]interface{}{
+							"Titulo":            "alerta.titulo",
+							"Valor":             "alerta.alerta_numero_produccion_anual_3",
+							"TipoObservacionId": &tipoObservacion,
+							"TerceroId":         0,
+						})
+					}
+				default:
+					fmt.Println("No entro a ninguno de los caso")
+				}
+			}
+			SolicitudDocente["Observaciones"] = observaciones
+		}
+	}
 }
