@@ -10,6 +10,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
+	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 )
 
@@ -51,6 +52,7 @@ func (c *SolicitudProduccionController) PostAlertSolicitudProduccion() {
 		if errProduccion == nil && fmt.Sprintf("%v", producciones[0]["System"]) != "map[]" {
 			if producciones[0]["Status"] != 404 && producciones[0]["Id"] != nil {
 				var coincidences int
+				var isbnCoincidences int
 				var numAnnualProductions int
 				var acumulatePoints int
 				var isAceptDuration bool
@@ -68,6 +70,11 @@ func (c *SolicitudProduccionController) PostAlertSolicitudProduccion() {
 					if idTipoProduccion == 2 {
 						acumulatePoints += checkGradePoints(produccion, idTipoProduccion, idTercero)
 					}
+					if idTipoProduccion == 6 || idTipoProduccion == 7 || idTipoProduccion == 8 {
+						if checkISBN(SolicitudProduccion["ProduccionAcademica"].(map[string]interface{}), produccion) {
+							isbnCoincidences++
+						}
+					}
 					if idTipoProduccion >= 13 && idTipoProduccion != 18 {
 						if checkAnnualProductionNumber(ProduccionAcademica["ProduccionAcademica"].(map[string]interface{}), produccion, idTipoProduccion) {
 							numAnnualProductions++
@@ -79,8 +86,8 @@ func (c *SolicitudProduccionController) PostAlertSolicitudProduccion() {
 				}
 				coincidences--
 				numAnnualProductions--
-
-				generateAlerts(SolicitudProduccion, coincidences, numAnnualProductions, acumulatePoints, isAceptDuration, idTipoProduccion)
+				isbnCoincidences--
+				generateAlerts(SolicitudProduccion, coincidences, numAnnualProductions, acumulatePoints, isbnCoincidences, isAceptDuration, idTipoProduccion)
 				idStr := fmt.Sprintf("%v", SolicitudProduccion["Id"])
 				if resultadoPutSolicitudDocente, err := models.PutSolicitudDocente(SolicitudProduccion, idStr); err == nil {
 					resultado = resultadoPutSolicitudDocente
@@ -166,6 +173,40 @@ func checkAnnualProductionNumber(ProduccionAcademicaNew map[string]interface{}, 
 	return false
 }
 
+func checkISBN(ProduccionAcademicaNew map[string]interface{}, ProduccionAcademicaRegister map[string]interface{}) (result bool) {
+	idTipoProduccionRegisterSrt := fmt.Sprintf("%v", ProduccionAcademicaRegister["SubtipoProduccionId"].(map[string]interface{})["TipoProduccionId"].(map[string]interface{})["Id"])
+	idTipoProduccionRegister, _ := strconv.Atoi(idTipoProduccionRegisterSrt)
+	var ISBNnew string
+	var ISBNregister string
+
+	if idTipoProduccionRegister == 6 || idTipoProduccionRegister == 7 || idTipoProduccionRegister == 8 {
+		formatdata.JsonPrint(ProduccionAcademicaNew)
+		formatdata.JsonPrint(ProduccionAcademicaRegister)
+		fmt.Println("---------------------------------------------------------------------")
+		fmt.Println("Paso Libro")
+		for _, metadatoTemp := range ProduccionAcademicaNew["Metadatos"].([]interface{}) {
+			metadato := metadatoTemp.(map[string]interface{})
+			tipoMetadatoID, _ := strconv.Atoi(fmt.Sprintf("%v", metadato["MetadatoSubtipoProduccionId"].(map[string]interface{})["Id"]))
+			if tipoMetadatoID == 72 || tipoMetadatoID == 83 || tipoMetadatoID == 92 || tipoMetadatoID == 101 || tipoMetadatoID == 114 || tipoMetadatoID == 126 || tipoMetadatoID == 138 {
+				ISBNnew = fmt.Sprintf("%v", metadato["Valor"])
+			}
+		}
+		for _, metadatoTemp := range ProduccionAcademicaRegister["Metadatos"].([]interface{}) {
+			metadato := metadatoTemp.(map[string]interface{})
+			tipoMetadatoID, _ := strconv.Atoi(fmt.Sprintf("%v", metadato["MetadatoSubtipoProduccionId"].(map[string]interface{})["Id"]))
+			if tipoMetadatoID == 72 || tipoMetadatoID == 83 || tipoMetadatoID == 92 || tipoMetadatoID == 101 || tipoMetadatoID == 114 || tipoMetadatoID == 126 || tipoMetadatoID == 138 {
+				ISBNregister = fmt.Sprintf("%v", metadato["Valor"])
+			}
+		}
+		fmt.Println(ISBNnew)
+		fmt.Println(ISBNregister)
+		if ISBNnew == ISBNregister {
+			return true
+		}
+	}
+	return false
+}
+
 func checkDurationPostDoctorado(ProduccionAcademicaNew map[string]interface{}) (result bool) {
 	for _, metadatoTemp := range ProduccionAcademicaNew["Metadatos"].([]interface{}) {
 		metadato := metadatoTemp.(map[string]interface{})
@@ -210,7 +251,7 @@ func checkGradePoints(ProduccionAcademicaRegister map[string]interface{}, idTipo
 	return 0
 }
 
-func generateAlerts(SolicitudDocente map[string]interface{}, coincidences int, numAnnualProductions int, acumulatePoints int, isAceptDuration bool, idTipoProduccion int) {
+func generateAlerts(SolicitudDocente map[string]interface{}, coincidences int, numAnnualProductions int, acumulatePoints int, isbnCoincidences int, isAceptDuration bool, idTipoProduccion int) {
 	coincidencesSrt := strconv.Itoa(coincidences)
 	var observaciones []interface{}
 	var tipoObservacionData map[string]interface{}
@@ -223,6 +264,14 @@ func generateAlerts(SolicitudDocente map[string]interface{}, coincidences int, n
 				observaciones = append(observaciones, map[string]interface{}{
 					"Titulo":            "alerta.titulo",
 					"Valor":             "alerta.alerta_numero_coincidencias" + coincidencesSrt,
+					"TipoObservacionId": &tipoObservacion,
+					"TerceroId":         0,
+				})
+			}
+			if isbnCoincidences > 0 {
+				observaciones = append(observaciones, map[string]interface{}{
+					"Titulo":            "alerta.titulo",
+					"Valor":             "alerta.alerta_isbn",
 					"TipoObservacionId": &tipoObservacion,
 					"TerceroId":         0,
 				})
