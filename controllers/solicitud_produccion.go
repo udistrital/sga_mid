@@ -22,6 +22,7 @@ type SolicitudProduccionController struct {
 // URLMapping ...
 func (c *SolicitudProduccionController) URLMapping() {
 	c.Mapping("PostAlertSolicitudProduccion", c.PostAlertSolicitudProduccion)
+	c.Mapping("PutResultadoSolicitud", c.PutResultadoSolicitud)
 }
 
 // PostAlertSolicitudProduccion ...
@@ -49,6 +50,7 @@ func (c *SolicitudProduccionController) PostAlertSolicitudProduccion() {
 		ProduccionAcademica = SolicitudProduccion["ProduccionAcademica"].(map[string]interface{})
 		var producciones []map[string]interface{}
 		errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idTercero, &producciones)
+		//errProduccion2 := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/puntaje_subtipo_produccion/?query=SubTipoProduccionId:"+idTercero, &producciones)
 		if errProduccion == nil && fmt.Sprintf("%v", producciones[0]["System"]) != "map[]" {
 			if producciones[0]["Status"] != 404 && producciones[0]["Id"] != nil {
 				var coincidences int
@@ -116,6 +118,122 @@ func (c *SolicitudProduccionController) PostAlertSolicitudProduccion() {
 		c.Data["system"] = err
 		c.Abort("400")
 	}
+	c.ServeJSON()
+}
+
+
+// PutResultadoSolicitud ...
+// @Title PutResultadoSolicitud
+// @Description Modificar resultaado solicitud docente
+// @Param	id		path 	int	true		"el id de la produccion"
+// @Param   body        body    {}  true        "body Modificar resultado en produccionAcaemica content"
+// @Success 200 {}
+// @Failure 400 the request contains incorrect syntax
+// @router /:id [put]
+func (c *SolicitudProduccionController) PutResultadoSolicitud() {
+	idStr := c.Ctx.Input.Param(":id")
+	//idSubtipoProduccion := c.Ctx.Input.Param(":ProduccionAcademica:SubTipoProduccionAcademicaId:Id")
+	fmt.Println("Id es: " + idStr)
+
+	//resultado := make(map[string]interface{})
+	var SolicitudProduccion map[string]interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &SolicitudProduccion); err == nil {
+		formatdata.JsonPrint(SolicitudProduccion)
+	}
+
+
+
+	//var solicitudes []map[string]interface{}
+	//errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/solicitud/"+idStr, &solicitudes)
+	//if errSolicitud == nil && fmt.Sprintf("%v", solicitudes[0]["System"]) != "map[]" {
+	//	if solicitudes[0]["Status"] != 404 && solicitudes[0]["Id"] != nil {
+	//		for _, solicitud := range solicitudes {
+	//			type Reference struct{ Id int }
+	//			var reference Reference
+	//			json.Unmarshal([]byte(fmt.Sprintf("%v", solicitud["Referencia"])), &reference)
+	//			fmt.Println(reference)
+	//		}
+	//	}
+	//}
+
+
+
+		//resultado experiencia
+
+	//	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &SolicitudProduccion); err == nil {
+	//
+	//	var ProduccionAcademica map[string]interface{}
+	//	ProduccionAcademica = SolicitudProduccion["ProduccionAcademica"].(map[string]interface{})
+	//	var producciones []map[string]interface{}
+	//	errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idStr, &producciones)
+	//	//errProduccion2 := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/puntaje_subtipo_produccion/?query=SubTipoProduccionId:"+idTercero, &producciones)
+	//	if errProduccion == nil && fmt.Sprintf("%v", producciones[0]["System"]) != "map[]" {
+	//		//if producciones[0]["Status"] != 404 && producciones[0]["Id"] != nil {
+	//		//	var coincidences int
+	//		//	var isbnCoincidences int
+	//		//	var numAnnualProductions int
+	//		//	var acumulatePoints int
+	//		//	var isAceptDuration bool
+	//		//	isAceptDuration = true
+	//		//	for _, produccion := range producciones {
+	//		//		if idTipoProduccion == 1 {
+	//		//			checkTitle(ProduccionAcademica["ProduccionAcademica"].(map[string]interface{}), produccion)
+	//		//		}
+	//		//		if idTipoProduccion != 1 {
+	//		//			distance := checkTitle(ProduccionAcademica["ProduccionAcademica"].(map[string]interface{}), produccion)
+	//		//			if distance < 6 {
+	//		//				coincidences++
+	//		//			}
+	//		//		}
+	//		//		if idTipoProduccion == 2 {
+	//		//			acumulatePoints += checkGradePoints(produccion, idTipoProduccion, idTercero)
+	//		//		}
+	//		//		if idTipoProduccion == 6 || idTipoProduccion == 7 || idTipoProduccion == 8 {
+	//		//			if checkISBN(SolicitudProduccion["ProduccionAcademica"].(map[string]interface{}), produccion) {
+	//		//				isbnCoincidences++
+	//		//			}
+	//		//		}
+	//		//		if idTipoProduccion >= 13 && idTipoProduccion != 18 {
+	//		//			if checkAnnualProductionNumber(ProduccionAcademica["ProduccionAcademica"].(map[string]interface{}), produccion, idTipoProduccion) {
+	//		//				numAnnualProductions++
+	//		//			}
+	//		//		}
+	//		//	}
+	//		//	if idTipoProduccion == 18 {
+	//		//		isAceptDuration = checkDurationPostDoctorado(SolicitudProduccion["ProduccionAcademica"].(map[string]interface{}))
+	//		//	}
+	//		//	coincidences--
+	//		//	numAnnualProductions--
+	//		//	isbnCoincidences--
+	//		//	generateAlerts(SolicitudProduccion, coincidences, numAnnualProductions, acumulatePoints, isbnCoincidences, isAceptDuration, idTipoProduccion)
+	//		//	idStr := fmt.Sprintf("%v", SolicitudProduccion["Id"])
+	//			if resultadoPutSolicitudDocente, err := models.PutSolicitudDocente(SolicitudProduccion, idStr); err == nil {
+	//				resultado = resultadoPutSolicitudDocente
+	//				c.Data["json"] = resultado
+	//			} else {
+	//				logs.Error(err)
+	//				c.Data["system"] = resultado
+	//				c.Abort("400")
+	//			}
+	//		} else {
+	//			if producciones[0]["Message"] == "Not found resource" {
+	//				c.Data["json"] = nil
+	//			} else {
+	//				logs.Error(producciones)
+	//				c.Data["system"] = errProduccion
+	//				c.Abort("404")
+	//			}
+	//		}
+	//	} else {
+	//		logs.Error(producciones)
+	//		c.Data["system"] = errProduccion
+	//		c.Abort("404")
+	//	}
+	//} else {
+	//	logs.Error(err)
+	//	c.Data["system"] = err
+	//	c.Abort("400")
+	//}
 	c.ServeJSON()
 }
 
@@ -250,6 +368,7 @@ func checkGradePoints(ProduccionAcademicaRegister map[string]interface{}, idTipo
 	}
 	return 0
 }
+
 
 func generateAlerts(SolicitudDocente map[string]interface{}, coincidences int, numAnnualProductions int, acumulatePoints int, isbnCoincidences int, isAceptDuration bool, idTipoProduccion int) {
 	coincidencesSrt := strconv.Itoa(coincidences)
