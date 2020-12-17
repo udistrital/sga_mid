@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/udistrital/sga_mid/models"
+
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/utils_oas/request"
@@ -21,6 +23,7 @@ type SolicitudDocenteController struct {
 func (c *SolicitudDocenteController) URLMapping() {
 	c.Mapping("PostSolicitudDocente", c.PostSolicitudDocente)
 	c.Mapping("GetAllSolicitudDocente", c.GetAllSolicitudDocente)
+	c.Mapping("GetEstadoSolicitudDocente", c.GetEstadoSolicitudDocente)
 	c.Mapping("GetOneSolicitudDocente", c.GetOneSolicitudDocente)
 	c.Mapping("GetSolicitudDocenteTercero", c.GetSolicitudDocenteTercero)
 	c.Mapping("DeleteSolicitudDocente", c.DeleteSolicitudDocente)
@@ -85,7 +88,7 @@ func (c *SolicitudDocenteController) PostSolicitudDocente() {
 		errSolicitud := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud", "POST", &resultadoSolicitudDocente, SolicitudDocentePost)
 		if errSolicitud == nil && fmt.Sprintf("%v", resultadoSolicitudDocente["System"]) != "map[]" && resultadoSolicitudDocente["Solicitud"] != nil {
 			if resultadoSolicitudDocente["Status"] != 400 {
-				resultado = SolicitudDocente
+				resultado = resultadoSolicitudDocente
 				c.Data["json"] = resultado
 			} else {
 				logs.Error(errSolicitud)
@@ -133,89 +136,16 @@ func calcularFecha(EstadoTipoSolicitud map[string]interface{}) (result string) {
 func (c *SolicitudDocenteController) PutSolicitudDocente() {
 	idStr := c.Ctx.Input.Param(":id")
 	fmt.Println("Id es: " + idStr)
-
-	date := time_bogota.TiempoBogotaFormato()
-
-	//resultado experiencia
-	var resultado map[string]interface{}
+	var resultadoPutSolicitudDocente map[string]interface{}
 	//solicitud docente
 	var SolicitudDocente map[string]interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &SolicitudDocente); err == nil {
-		SolicitudDocentePut := make(map[string]interface{})
-		SolicitudDocentePut["Solicitud"] = map[string]interface{}{
-			"Referencia":            SolicitudDocente["Referencia"],
-			"FechaRadicacion":       date,
-			"EstadoTipoSolicitudId": SolicitudDocente["EstadoTipoSolicitudId"],
-			"FechaModificacion":     date,
-		}
-
-		var EstadoTipoSolicitudId interface{}
-		for _, evolucionEstadoTemp := range SolicitudDocente["EvolucionEstado"].([]interface{}) {
-			evolucionEstado := evolucionEstadoTemp.(map[string]interface{})
-			EstadoTipoSolicitudId = evolucionEstado["EstadoTipoSolicitudId"]
-		}
-
-		var solicitudesEvolucionEstado []map[string]interface{}
-		solicitudesEvolucionEstado = append(solicitudesEvolucionEstado, map[string]interface{}{
-			"TerceroId":                     SolicitudDocente["TerceroId"],
-			"SolicitudId":                   map[string]interface{}{"Id": 0},
-			"EstadoTipoSolicitudId":         SolicitudDocente["EstadoTipoSolicitudId"],
-			"EstadoTipoSolicitudIdAnterior": EstadoTipoSolicitudId,
-			"Activo":                        true,
-			"FechaLimite":                   calcularFecha(SolicitudDocente["EstadoTipoSolicitudId"].(map[string]interface{})),
-			"FechaCreacion":                 date,
-			"FechaModificacion":             date,
-		})
-
-		var observaciones []map[string]interface{}
-		for _, observacionTemp := range SolicitudDocente["Observaciones"].([]interface{}) {
-			observacion := observacionTemp.(map[string]interface{})
-			if observacion["Id"] == nil {
-				observaciones = append(observaciones, map[string]interface{}{
-					"TipoObservacionId": observacion["TipoObservacionId"],
-					"SolicitudId":       map[string]interface{}{"Id": 0},
-					"TerceroId":         observacion["TerceroId"],
-					"Titulo":            observacion["Titulo"],
-					"Valor":             observacion["Valor"],
-					"FechaCreacion":     date,
-					"FechaModificacion": date,
-					"Activo":            true,
-				})
-			} else {
-				observaciones = append(observaciones, map[string]interface{}{
-					"Id":                observacion["Id"],
-					"TipoObservacionId": observacion["TipoObservacionId"],
-					"SolicitudId":       observacion["SolicitudId"],
-					"TerceroId":         observacion["TerceroId"],
-					"Titulo":            observacion["Titulo"],
-					"Valor":             observacion["Valor"],
-					"Activo":            true,
-				})
-			}
-		}
-		if len(observaciones) == 0 {
-			observaciones = append(observaciones, map[string]interface{}{})
-		}
-
-		SolicitudDocentePut["Solicitantes"] = nil
-		SolicitudDocentePut["EvolucionesEstado"] = solicitudesEvolucionEstado
-		SolicitudDocentePut["Observaciones"] = observaciones
-
-		var resultadoSolicitudDocente map[string]interface{}
-
-		errProduccion := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud/"+idStr, "PUT", &resultadoSolicitudDocente, SolicitudDocentePut)
-		if errProduccion == nil && fmt.Sprintf("%v", resultadoSolicitudDocente["System"]) != "map[]" {
-			if resultadoSolicitudDocente["Status"] != 400 {
-				resultado = SolicitudDocente
-				c.Data["json"] = resultado
-			} else {
-				logs.Error(errProduccion)
-				c.Data["system"] = resultadoSolicitudDocente
-				c.Abort("400")
-			}
+		if resultado, err := models.PutSolicitudDocente(SolicitudDocente, idStr); err == nil {
+			resultadoPutSolicitudDocente = resultado
+			c.Data["json"] = resultado
 		} else {
-			logs.Error(errProduccion)
-			c.Data["system"] = resultadoSolicitudDocente
+			logs.Error(err)
+			c.Data["system"] = resultadoPutSolicitudDocente
 			c.Abort("400")
 		}
 	} else {
@@ -443,6 +373,103 @@ func (c *SolicitudDocenteController) GetSolicitudDocenteTercero() {
 	}
 	c.ServeJSON()
 }
+// GetEstadoSolicitudDocente ...
+// @Title GetEstadoSolicitudDocente
+// @Description consultar Produccion Academica por id de Estado de Solicitud
+// @Param   id      path    int  true        "Id"
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router /get_estado/:id [get]
+func (c *SolicitudDocenteController) GetEstadoSolicitudDocente() {
+	//Id de la producción
+	idEstado := c.Ctx.Input.Param(":id")
+	fmt.Println("Consultando solicitud de id: " + idEstado)
+	//resultado experiencia
+	var solicitudes []map[string]interface{}
+	var v []interface{}
+	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/solicitud/?limit=0&query=EstadoTipoSolicitudId:"+idEstado, &solicitudes)
+	if errSolicitud == nil && fmt.Sprintf("%v", solicitudes[0]["System"]) != "map[]" {
+		if solicitudes[0]["Status"] != 404 && solicitudes[0]["Id"] != nil {
+			for i, solicitudTemp := range solicitudes {
+				idSolicitud := fmt.Sprintf("%v",solicitudTemp["Id"])
+				fmt.Println(idSolicitud)
+				var solicitantes []map[string]interface{}
+				errSolicitante := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/solicitante/?query=SolicitudId:"+idSolicitud, &solicitantes)
+				if errSolicitante == nil && fmt.Sprintf("%v", solicitantes[0]["System"]) != "map[]" {
+					if solicitantes[0]["Status"] != 404 && solicitantes[0]["Id"] != nil {
+
+						var evolucionEstado []map[string]interface{}
+						errEvolucion := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/solicitud_evolucion_estado/?limit=0&query=SolicitudId:"+idSolicitud, &evolucionEstado)
+						if errEvolucion == nil && fmt.Sprintf("%v", evolucionEstado[0]["System"]) != "map[]" {
+							if evolucionEstado[0]["Status"] != 404 && evolucionEstado[0]["Id"] != nil {
+
+								var observaciones []map[string]interface{}
+								errObservacion := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/observacion/?limit=0&query=SolicitudId:"+idSolicitud, &observaciones)
+								if errObservacion == nil && fmt.Sprintf("%v", observaciones[0]["System"]) != "map[]" {
+									if observaciones[0]["Status"] != 404 {
+
+
+										v = append(v, map[string]interface{}{
+											"Id":                    solicitudes[i]["Id"],
+											"EstadoTipoSolicitudId": solicitudes[i]["EstadoTipoSolicitudId"],
+											"Referencia":            solicitudes[i]["Referencia"],
+											"Resultado":             solicitudes[i]["Resultado"],
+											"FechaRadicacion":       solicitudes[i]["FechaRadicacion"],
+											"Observaciones":         &observaciones,
+											"Solicitantes":          &solicitantes,
+											"EvolucionEstado":       &evolucionEstado,
+										})
+										c.Data["json"] = v
+										fmt.Println(v)
+									}
+								} else {
+									if observaciones[0]["Message"] == "Not found resource" {
+										c.Data["json"] = nil
+									} else {
+										logs.Error(observaciones)
+										c.Data["system"] = errObservacion
+										c.Abort("404")
+									}
+								}
+							}
+						} else {
+							if evolucionEstado[0]["Message"] == "Not found resource" {
+								c.Data["json"] = nil
+							} else {
+								logs.Error(evolucionEstado)
+								c.Data["system"] = errEvolucion
+								c.Abort("404")
+							}
+						}
+					}
+				} else {
+					if solicitantes[0]["Message"] == "Not found resource" {
+						c.Data["json"] = nil
+					} else {
+						logs.Error(solicitantes)
+						c.Data["system"] = errSolicitante
+						c.Abort("404")
+					}
+
+				}
+
+			}
+		} else {
+			if solicitudes[0]["Message"] == "Not found resource" {
+				c.Data["json"] = nil
+			} else {
+				logs.Error(solicitudes)
+				c.Data["system"] = errSolicitud
+				c.Abort("404")
+			}
+		}
+	} else {
+		logs.Error(solicitudes)
+		c.Data["system"] = errSolicitud
+		c.Abort("404")
+	}
+	c.ServeJSON()
+}
 
 // DeleteSolicitudDocente ...
 // @Title DeleteSolicitudDocente
@@ -476,3 +503,4 @@ func (c *SolicitudDocenteController) DeleteSolicitudDocente() {
 	}
 	c.ServeJSON()
 }
+

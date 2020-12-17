@@ -2211,6 +2211,33 @@
                 }
             }
         },
+        "/solicitud_docente/get_estado/{id}": {
+            "get": {
+                "tags": [
+                    "solicitud_docente"
+                ],
+                "description": "consultar Produccion Academica por id de Estado de Solicitud",
+                "operationId": "SolicitudDocenteController.GetEstadoSolicitudDocente",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "Id",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
         "/solicitud_docente/get_one/{id}": {
             "get": {
                 "tags": [
@@ -2322,6 +2349,34 @@
                     },
                     "404": {
                         "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/solicitud_produccion/{tercero}/{tipo_produccion}": {
+            "post": {
+                "tags": [
+                    "solicitud_produccion"
+                ],
+                "description": "Agregar Alerta en Solicitud docente en casos necesarios",
+                "operationId": "SolicitudProduccionController.PostAlertSolicitudProduccion",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar SolicitudProduccion content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
                     }
                 }
             }
@@ -2448,6 +2503,10 @@
         {
             "name": "drive",
             "description": "DriveController ...\n"
+        },
+        {
+            "name": "solicitud_produccion",
+            "description": "SolicitudProduccionController ...\n"
         }
     ]
 }
