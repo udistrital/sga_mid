@@ -482,6 +482,35 @@
                 }
             }
         },
+        "/consulta_calendario_proyecto/nivel/{id}": {
+            "get": {
+                "tags": [
+                    "consulta_calendario_proyecto"
+                ],
+                "description": "get ConsultaCalendarioAcademico \u0026 id y Project By Id",
+                "operationId": "ConsultaCalendarioProyectoController.GetCalendarProject",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "string",
+                        "description": "The key for staticblock",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.ConsultaCalendarioAcademico"
+                        }
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
+            }
+        },
         "/consulta_calendario_proyecto/{id}": {
             "get": {
                 "tags": [
@@ -500,7 +529,10 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "{}"
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.ConsultaCalendarioAcademico"
+                        }
                     },
                     "403": {
                         "description": ":id is empty"
@@ -983,32 +1015,6 @@
                     },
                     "404": {
                         "description": "not found resource"
-                    }
-                }
-            }
-        },
-        "/drive/{produccion_id}/{metadato_id}/{meta_produccion_id}": {
-            "post": {
-                "tags": [
-                    "drive"
-                ],
-                "description": "Agregar archivo a drive",
-                "operationId": "DriveController.PostFileDrive",
-                "parameters": [
-                    {
-                        "in": "formData",
-                        "name": "archivo",
-                        "description": "body for Acta_recibido content",
-                        "required": true,
-                        "type": "file"
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "{int}"
-                    },
-                    "400": {
-                        "description": "the request contains incorrect syntax"
                     }
                 }
             }
@@ -2390,10 +2396,6 @@
         {
             "name": "consulta_calendario_academico",
             "description": "ConsultaCalendarioAcademicoController operations for Consulta_calendario_academico\n"
-        },
-        {
-            "name": "drive",
-            "description": "DriveController ...\n"
         }
     ]
 }
