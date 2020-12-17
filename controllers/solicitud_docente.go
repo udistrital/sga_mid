@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/udistrital/sga_mid/models"
+
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/utils_oas/request"
@@ -85,7 +87,7 @@ func (c *SolicitudDocenteController) PostSolicitudDocente() {
 		errSolicitud := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud", "POST", &resultadoSolicitudDocente, SolicitudDocentePost)
 		if errSolicitud == nil && fmt.Sprintf("%v", resultadoSolicitudDocente["System"]) != "map[]" && resultadoSolicitudDocente["Solicitud"] != nil {
 			if resultadoSolicitudDocente["Status"] != 400 {
-				resultado = SolicitudDocente
+				resultado = resultadoSolicitudDocente
 				c.Data["json"] = resultado
 			} else {
 				logs.Error(errSolicitud)
@@ -133,89 +135,16 @@ func calcularFecha(EstadoTipoSolicitud map[string]interface{}) (result string) {
 func (c *SolicitudDocenteController) PutSolicitudDocente() {
 	idStr := c.Ctx.Input.Param(":id")
 	fmt.Println("Id es: " + idStr)
-
-	date := time_bogota.TiempoBogotaFormato()
-
-	//resultado experiencia
-	var resultado map[string]interface{}
+	var resultadoPutSolicitudDocente map[string]interface{}
 	//solicitud docente
 	var SolicitudDocente map[string]interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &SolicitudDocente); err == nil {
-		SolicitudDocentePut := make(map[string]interface{})
-		SolicitudDocentePut["Solicitud"] = map[string]interface{}{
-			"Referencia":            SolicitudDocente["Referencia"],
-			"FechaRadicacion":       date,
-			"EstadoTipoSolicitudId": SolicitudDocente["EstadoTipoSolicitudId"],
-			"FechaModificacion":     date,
-		}
-
-		var EstadoTipoSolicitudId interface{}
-		for _, evolucionEstadoTemp := range SolicitudDocente["EvolucionEstado"].([]interface{}) {
-			evolucionEstado := evolucionEstadoTemp.(map[string]interface{})
-			EstadoTipoSolicitudId = evolucionEstado["EstadoTipoSolicitudId"]
-		}
-
-		var solicitudesEvolucionEstado []map[string]interface{}
-		solicitudesEvolucionEstado = append(solicitudesEvolucionEstado, map[string]interface{}{
-			"TerceroId":                     SolicitudDocente["TerceroId"],
-			"SolicitudId":                   map[string]interface{}{"Id": 0},
-			"EstadoTipoSolicitudId":         SolicitudDocente["EstadoTipoSolicitudId"],
-			"EstadoTipoSolicitudIdAnterior": EstadoTipoSolicitudId,
-			"Activo":                        true,
-			"FechaLimite":                   calcularFecha(SolicitudDocente["EstadoTipoSolicitudId"].(map[string]interface{})),
-			"FechaCreacion":                 date,
-			"FechaModificacion":             date,
-		})
-
-		var observaciones []map[string]interface{}
-		for _, observacionTemp := range SolicitudDocente["Observaciones"].([]interface{}) {
-			observacion := observacionTemp.(map[string]interface{})
-			if observacion["Id"] == nil {
-				observaciones = append(observaciones, map[string]interface{}{
-					"TipoObservacionId": observacion["TipoObservacionId"],
-					"SolicitudId":       map[string]interface{}{"Id": 0},
-					"TerceroId":         observacion["TerceroId"],
-					"Titulo":            observacion["Titulo"],
-					"Valor":             observacion["Valor"],
-					"FechaCreacion":     date,
-					"FechaModificacion": date,
-					"Activo":            true,
-				})
-			} else {
-				observaciones = append(observaciones, map[string]interface{}{
-					"Id":                observacion["Id"],
-					"TipoObservacionId": observacion["TipoObservacionId"],
-					"SolicitudId":       observacion["SolicitudId"],
-					"TerceroId":         observacion["TerceroId"],
-					"Titulo":            observacion["Titulo"],
-					"Valor":             observacion["Valor"],
-					"Activo":            true,
-				})
-			}
-		}
-		if len(observaciones) == 0 {
-			observaciones = append(observaciones, map[string]interface{}{})
-		}
-
-		SolicitudDocentePut["Solicitantes"] = nil
-		SolicitudDocentePut["EvolucionesEstado"] = solicitudesEvolucionEstado
-		SolicitudDocentePut["Observaciones"] = observaciones
-
-		var resultadoSolicitudDocente map[string]interface{}
-
-		errProduccion := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud/"+idStr, "PUT", &resultadoSolicitudDocente, SolicitudDocentePut)
-		if errProduccion == nil && fmt.Sprintf("%v", resultadoSolicitudDocente["System"]) != "map[]" {
-			if resultadoSolicitudDocente["Status"] != 400 {
-				resultado = SolicitudDocente
-				c.Data["json"] = resultado
-			} else {
-				logs.Error(errProduccion)
-				c.Data["system"] = resultadoSolicitudDocente
-				c.Abort("400")
-			}
+		if resultado, err := models.PutSolicitudDocente(SolicitudDocente, idStr); err == nil {
+			resultadoPutSolicitudDocente = resultado
+			c.Data["json"] = resultado
 		} else {
-			logs.Error(errProduccion)
-			c.Data["system"] = resultadoSolicitudDocente
+			logs.Error(err)
+			c.Data["system"] = resultadoPutSolicitudDocente
 			c.Abort("400")
 		}
 	} else {
