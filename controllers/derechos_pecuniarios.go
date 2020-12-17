@@ -338,8 +338,7 @@ func FiltrarDerechosPecuniarios(vigenciaId string) []interface{} {
 // @router /ActualizarValor/ [post]
 func (c *DerechosPecuniariosController) PutCostoConcepto() {
 
-	var ConceptoCostoAux map[string]interface{}
-	var ConceptoCosto []interface{}
+	var ConceptoCostoAux []map[string]interface{}
 	var Concepto map[string]interface{}
 	var Factor map[string]interface{}
 	var FactorPut map[string]interface{}
@@ -347,18 +346,15 @@ func (c *DerechosPecuniariosController) PutCostoConcepto() {
 	//Guarda el arreglo de objetos  de los conceptos que se traen del cliente
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &ConceptoCostoAux); err == nil {
 		//Recorre cada concepto para poder guardar el costo
-		ConceptoCosto = ConceptoCostoAux["Concepto"].([]interface{})
-		for _, conceptoTemp := range ConceptoCosto {
+		for _, conceptoTemp := range ConceptoCostoAux {
 			var conceptoAux map[string]interface{}
-			codigo := fmt.Sprintf("%.f", conceptoTemp.(map[string]interface{})["Codigo"].(float64))
+			codigo := fmt.Sprintf("%.f", conceptoTemp["Codigo"].(float64))
 			//Se trae todo el json del concepto por código de abreviación para poder hacer la función put
 			errConcepto := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro?query=CodigoAbreviacion:"+codigo+"&sortby=Id&order=desc&limit=1", &conceptoAux)
 			if errConcepto == nil {
 				if conceptoAux != nil {
 					//Guarda solo el ultimo concepto que aparezca en la bd
-					fmt.Println(conceptoAux)
 					Concepto = conceptoAux["Data"].([]interface{})[0].(map[string]interface{})
-					fmt.Println(Concepto)
 					idConcepto := fmt.Sprintf("%.f", Concepto["Id"].(float64))
 					var FactorAux map[string]interface{}
 					// Consulta el factor que esta relacionado con el concepto
@@ -366,8 +362,8 @@ func (c *DerechosPecuniariosController) PutCostoConcepto() {
 					if errFactor == nil {
 						if FactorAux != nil {
 							Factor = FactorAux["Data"].([]interface{})[0].(map[string]interface{})
-							FactorValor := fmt.Sprintf("%.f", conceptoTemp.(map[string]interface{})["Factor"].(float64))
-							CostoValor := fmt.Sprintf("%.f", conceptoTemp.(map[string]interface{})["Costo"].(float64))
+							FactorValor := fmt.Sprintf("%.f", conceptoTemp["Factor"].(float64))
+							CostoValor := fmt.Sprintf("%.f", conceptoTemp["Costo"].(float64))
 							Valor := "{\n    \"NumFactor\": " + FactorValor + ", \n \"Costo\": " + CostoValor + "\n}"
 							Factor["Valor"] = Valor
 							idFactor := fmt.Sprintf("%.f", Factor["Id"].(float64))
