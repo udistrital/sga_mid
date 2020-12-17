@@ -128,6 +128,18 @@ func init() {
         beego.ControllerComments{
             Method: "GetCalendarByProjectId",
             Router: "/:id",
+<<<<<<< HEAD
+=======
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ConsultaCalendarioProyectoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ConsultaCalendarioProyectoController"],
+        beego.ControllerComments{
+            Method: "GetCalendarProject",
+            Router: "/nivel/:id",
+>>>>>>> origin/develop
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,

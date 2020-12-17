@@ -136,6 +136,11 @@ func init() {
 				&controllers.SolicitudProduccionController{},
 			),
 		),
+		beego.NSNamespace("/generar_recibo",
+			beego.NSInclude(
+				&controllers.GenerarReciboController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
