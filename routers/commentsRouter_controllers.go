@@ -700,11 +700,11 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
-	beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:SolicitudDocenteController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:SolicitudDocenteController"],
+	beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:SolicitudProduccionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:SolicitudProduccionController"],
 		beego.ControllerComments{
-			Method:           "GetOneSolicitudDocente",
-			Router:           "/get_one/:id",
-			AllowHTTPMethods: []string{"get"},
+			Method:           "PostAlertSolicitudProduccion",
+			Router:           "/:tercero/:tipo_produccion",
+			AllowHTTPMethods: []string{"post"},
 			MethodParams:     param.Make(),
 			Filters:          nil,
 			Params:           nil})

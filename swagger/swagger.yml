@@ -1544,6 +1544,24 @@ paths:
           description: '{}'
         "404":
           description: not found resource
+  /solicitud_produccion/{tercero}/{tipo_produccion}:
+    post:
+      tags:
+      - solicitud_produccion
+      description: Agregar Alerta en Solicitud docente en casos necesarios
+      operationId: SolicitudProduccionController.PostAlertSolicitudProduccion
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar SolicitudProduccion content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
   /tercero/identificacion/:
     get:
       tags:
@@ -1633,3 +1651,6 @@ tags:
 - name: drive
   description: |
     DriveController ...
+- name: solicitud_produccion
+  description: |
+    SolicitudProduccionController ...
