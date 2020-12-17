@@ -330,8 +330,6 @@ paths:
       responses:
         "200":
           description: ""
-          schema:
-            $ref: '#/definitions/models.ConsultaCalendarioAcademico'
         "403":
           description: :id is empty
   /consulta_calendario_proyecto/nivel/{id}:
@@ -349,8 +347,6 @@ paths:
       responses:
         "200":
           description: ""
-          schema:
-            $ref: '#/definitions/models.ConsultaCalendarioAcademico'
         "403":
           description: :id is empty
   /consulta_proyecto_academico/:

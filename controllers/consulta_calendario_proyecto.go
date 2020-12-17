@@ -25,7 +25,7 @@ func (c *ConsultaCalendarioProyectoController) URLMapping() {
 // @Title GetCalendarByProjectId
 // @Description get ConsultaCalendarioAcademico by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.ConsultaCalendarioAcademico
+// @Success 200
 // @Failure 403 :id is empty
 // @router /:id [get]
 func (c *ConsultaCalendarioProyectoController) GetCalendarByProjectId() {
@@ -74,7 +74,7 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarByProjectId() {
 // @Title GetCalendarProject
 // @Description get ConsultaCalendarioAcademico & id y Project By Id
 // @Param	string		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.ConsultaCalendarioAcademico
+// @Success 200
 // @Failure 403 :id is empty
 // @router /nivel/:id [get]
 func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
