@@ -461,8 +461,9 @@ func (c *SolicitudDocenteController) GetEstadoSolicitudDocente() {
 	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/solicitud/?limit=0&query=EstadoTipoSolicitudId:"+idEstado, &solicitudes)
 	if errSolicitud == nil && fmt.Sprintf("%v", solicitudes[0]["System"]) != "map[]" {
 		if solicitudes[0]["Status"] != 404 && solicitudes[0]["Id"] != nil {
-			for _, solicitudTemp := range solicitudes {
+			for i, solicitudTemp := range solicitudes {
 				idSolicitud := fmt.Sprintf("%v",solicitudTemp["Id"])
+				fmt.Println(idSolicitud)
 				var solicitantes []map[string]interface{}
 				errSolicitante := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/solicitante/?query=SolicitudId:"+idSolicitud, &solicitantes)
 				if errSolicitante == nil && fmt.Sprintf("%v", solicitantes[0]["System"]) != "map[]" {
@@ -480,16 +481,17 @@ func (c *SolicitudDocenteController) GetEstadoSolicitudDocente() {
 
 
 										v = append(v, map[string]interface{}{
-											"Id":                    solicitudes[0]["Id"],
-											"EstadoTipoSolicitudId": solicitudes[0]["EstadoTipoSolicitudId"],
-											"Referencia":            solicitudes[0]["Referencia"],
-											"Resultado":             solicitudes[0]["Resultado"],
-											"FechaRadicacion":       solicitudes[0]["FechaRadicacion"],
+											"Id":                    solicitudes[i]["Id"],
+											"EstadoTipoSolicitudId": solicitudes[i]["EstadoTipoSolicitudId"],
+											"Referencia":            solicitudes[i]["Referencia"],
+											"Resultado":             solicitudes[i]["Resultado"],
+											"FechaRadicacion":       solicitudes[i]["FechaRadicacion"],
 											"Observaciones":         &observaciones,
 											"Solicitantes":          &solicitantes,
 											"EvolucionEstado":       &evolucionEstado,
 										})
 										c.Data["json"] = v
+										fmt.Println(v)
 									}
 								} else {
 									if observaciones[0]["Message"] == "Not found resource" {
