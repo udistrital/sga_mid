@@ -329,7 +329,24 @@ paths:
         type: string
       responses:
         "200":
-          description: '{}'
+          description: ""
+        "403":
+          description: :id is empty
+  /consulta_calendario_proyecto/nivel/{id}:
+    get:
+      tags:
+      - consulta_calendario_proyecto
+      description: get ConsultaCalendarioAcademico & id y Project By Id
+      operationId: ConsultaCalendarioProyectoController.GetCalendarProject
+      parameters:
+      - in: path
+        name: string
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
         "403":
           description: :id is empty
   /consulta_proyecto_academico/:
@@ -846,6 +863,24 @@ paths:
         "200":
           description: '{}'
         "403":
+          description: body is empty
+  /generar_recibo/:
+    post:
+      tags:
+      - generar_recibo
+      description: Genera un recibo de pago
+      operationId: GenerarReciboController.PostGenerarRecibo
+      parameters:
+      - in: body
+        name: body
+        description: body Datos del recibo content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "400":
           description: body is empty
   /inscripciones/consultar_proyectos_eventos/{evento_padre_id}:
     get:

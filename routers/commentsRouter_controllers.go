@@ -133,6 +133,15 @@ func init() {
             Filters: nil,
             Params: nil})
 
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ConsultaCalendarioProyectoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ConsultaCalendarioProyectoController"],
+        beego.ControllerComments{
+            Method: "GetCalendarProject",
+            Router: "/nivel/:id",
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ConsultaOfertaAcademicaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ConsultaOfertaAcademicaController"],
         beego.ControllerComments{
             Method: "GetAll",
@@ -313,6 +322,7 @@ func init() {
             Filters: nil,
             Params: nil})
 
+
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DriveController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DriveController"],
         beego.ControllerComments{
             Method: "PostFileDrive",
@@ -321,6 +331,7 @@ func init() {
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
+
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:EventoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:EventoController"],
         beego.ControllerComments{
