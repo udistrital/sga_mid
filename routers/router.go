@@ -131,6 +131,11 @@ func init() {
 				&controllers.DriveController{},
 			),
 		),
+		beego.NSNamespace("/generar_recibo",
+			beego.NSInclude(
+				&controllers.GenerarReciboController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
