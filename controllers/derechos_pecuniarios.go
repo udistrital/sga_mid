@@ -230,14 +230,20 @@ func (c *DerechosPecuniariosController) DeleteConcepto() {
 // @router /:id [get]
 func (c *DerechosPecuniariosController) GetDerechosPecuniariosPorVigencia() {
 	var conceptos []interface{}
+	var err error
 	idStr := c.Ctx.Input.Param(":id")
-	conceptos = FiltrarDerechosPecuniarios(idStr)
-	if conceptos != nil {
-		c.Ctx.Output.SetStatus(200)
-		c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Query successful", "Data": conceptos}
+	conceptos, err = FiltrarDerechosPecuniarios(idStr)
+	if err == nil {
+		if conceptos != nil {
+			c.Ctx.Output.SetStatus(200)
+			c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Query successful", "Data": conceptos}
+		} else {
+			c.Ctx.Output.SetStatus(200)
+			c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "No data found", "Data": []map[string]interface{}{}}
+		}
 	} else {
-		c.Ctx.Output.SetStatus(200)
-		c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "No data found", "Data": []map[string]interface{}{}}
+		logs.Error(err)
+		c.Data["json"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
 	}
 	c.ServeJSON()
 }
@@ -255,49 +261,54 @@ func (c *DerechosPecuniariosController) PostClonarConceptos() {
 	var NuevoConceptoPost map[string]interface{}
 	var NuevoFactorPost map[string]interface{}
 	var response []map[string]interface{}
+	var errorConceptos error
 
 	if errorVigencias := json.Unmarshal(c.Ctx.Input.RequestBody, &vigencias); errorVigencias == nil {
 		vigenciaAnterior := vigencias["VigenciaAnterior"].(float64)
 		vigenciaActual := vigencias["VigenciaActual"].(float64)
-		conceptos = FiltrarDerechosPecuniarios(fmt.Sprintf("%.f", vigenciaAnterior))
-		for _, concepto := range conceptos {
-			OldConcepto := concepto.(map[string]interface{})["ParametroId"].(map[string]interface{})
-			TipoParametroId := OldConcepto["TipoParametroId"].(map[string]interface{})["Id"].(float64)
-			NuevoConcepto := map[string]interface{}{
-				"Nombre":            OldConcepto["Nombre"],
-				"Descripcion":       OldConcepto["Descripcion"],
-				"CodigoAbreviacion": OldConcepto["CodigoAbreviacion"],
-				"NumeroOrden":       OldConcepto["NumeroOrden"],
-				"Activo":            OldConcepto["Activo"],
-				"TipoParametroId":   map[string]interface{}{"Id": TipoParametroId},
-			}
-			errNuevoConcepto := request.SendJson("http://"+beego.AppConfig.String("ParametroService")+"parametro", "POST", &NuevoConceptoPost, NuevoConcepto)
-			if errNuevoConcepto == nil {
-				OldFactor := concepto.(map[string]interface{})
-				NuevoFactor := map[string]interface{}{
-					"Valor":       OldFactor["Valor"],
-					"Activo":      OldFactor["Activo"],
-					"ParametroId": map[string]interface{}{"Id": NuevoConceptoPost["Data"].(map[string]interface{})["Id"]},
-					"PeriodoId":   map[string]interface{}{"Id": vigenciaActual},
+		conceptos, errorConceptos = FiltrarDerechosPecuniarios(fmt.Sprintf("%.f", vigenciaAnterior))
+		if errorConceptos == nil {
+			for _, concepto := range conceptos {
+				OldConcepto := concepto.(map[string]interface{})["ParametroId"].(map[string]interface{})
+				TipoParametroId := OldConcepto["TipoParametroId"].(map[string]interface{})["Id"].(float64)
+				NuevoConcepto := map[string]interface{}{
+					"Nombre":            OldConcepto["Nombre"],
+					"Descripcion":       OldConcepto["Descripcion"],
+					"CodigoAbreviacion": OldConcepto["CodigoAbreviacion"],
+					"NumeroOrden":       OldConcepto["NumeroOrden"],
+					"Activo":            OldConcepto["Activo"],
+					"TipoParametroId":   map[string]interface{}{"Id": TipoParametroId},
 				}
-				fmt.Println(NuevoConceptoPost)
-				errNuevoFactor := request.SendJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo", "POST", &NuevoFactorPost, NuevoFactor)
-				if errNuevoFactor == nil {
-					response = append(response, NuevoFactorPost)
+				errNuevoConcepto := request.SendJson("http://"+beego.AppConfig.String("ParametroService")+"parametro", "POST", &NuevoConceptoPost, NuevoConcepto)
+				if errNuevoConcepto == nil {
+					OldFactor := concepto.(map[string]interface{})
+					NuevoFactor := map[string]interface{}{
+						"Valor":       OldFactor["Valor"],
+						"Activo":      OldFactor["Activo"],
+						"ParametroId": map[string]interface{}{"Id": NuevoConceptoPost["Data"].(map[string]interface{})["Id"]},
+						"PeriodoId":   map[string]interface{}{"Id": vigenciaActual},
+					}
+					fmt.Println(NuevoConceptoPost)
+					errNuevoFactor := request.SendJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo", "POST", &NuevoFactorPost, NuevoFactor)
+					if errNuevoFactor == nil {
+						response = append(response, NuevoFactorPost)
+					} else {
+						var resDelete map[string]interface{}
+						logs.Error(errNuevoFactor)
+						request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("ParametroService")+"parametro/%.f", NuevoConceptoPost["Id"]), "DELETE", &resDelete, nil)
+						c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errNuevoFactor.Error(), "Type": "error"}
+					}
 				} else {
-					var resDelete map[string]interface{}
-					logs.Error(errNuevoFactor)
-					request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("ParametroService")+"parametro/%.f", NuevoConceptoPost["Id"]), "DELETE", &resDelete, nil)
-					c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errNuevoFactor.Error(), "Type": "error"}
+					logs.Error(errNuevoConcepto)
+					c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errNuevoConcepto.Error(), "Type": "error"}
 				}
-			} else {
-				logs.Error(errNuevoConcepto)
-				c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errNuevoConcepto.Error(), "Type": "error"}
 			}
+
+			c.Data["json"] = response
+		} else {
+			logs.Error(errorConceptos)
+			c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errorConceptos.Error(), "Type": "error"}
 		}
-
-		c.Data["json"] = response
-
 	} else {
 		c.Data["system"] = errorVigencias
 	}
@@ -308,7 +319,7 @@ func (c *DerechosPecuniariosController) PostClonarConceptos() {
 // FiltrarDerechosPecuniarios ...
 // @Title FiltrarDerechosPecuniarios
 // @Description Consulta los parametros y filtra los conceptos de derechos pecuniarios a partir del Id de la vigencia
-func FiltrarDerechosPecuniarios(vigenciaId string) []interface{} {
+func FiltrarDerechosPecuniarios(vigenciaId string) ([]interface{}, error) {
 	var parametros map[string]interface{}
 	var conceptos []interface{}
 
@@ -325,7 +336,7 @@ func FiltrarDerechosPecuniarios(vigenciaId string) []interface{} {
 			conceptos = conceptosFiltrados
 		}
 	}
-	return conceptos
+	return conceptos, errorConceptos
 }
 
 // PutCostoConcepto ...
