@@ -146,12 +146,51 @@ func (c *SolicitudProduccionController) PutResultadoSolicitud() {
 
 		idSubtipoStr := fmt.Sprintf("%v", idSubtipo)
 
+		Metadatos := produccionAcademica["Metadatos"].([]interface{})
+		//type Metadato struct{
+		//	MetadatoSubtipoProduccionId map[string]interface{}
+		//
+		//}
+		//var metadato Metadato
+
+		fmt.Println("Id es1: " + idStr)
+		//formatdata.JsonPrint(Metadatos)
+
+		var puntaje int
+
+		fmt.Println("Id es4: " + idStr)
+		for _, metaDatotemp := range Metadatos{
+			metaDato := metaDatotemp.(map[string]interface{})
+			//fmt.Println(meta)
+			metaDatoSubtipo := metaDato["MetadatoSubtipoProduccionId"].(map[string]interface{})
+			tipoMetadatoId := metaDatoSubtipo["TipoMetadatoId"].(map[string]interface{})
+			idTipoMetadato := tipoMetadatoId["Id"]
+			idTipoMetadatoStr := fmt.Sprintf("%v",idTipoMetadato)
+			idSubtipoInt,_ := strconv.Atoi(idTipoMetadatoStr)
+			if(idSubtipoInt==21){
+				numTipoMetadatoStr := fmt.Sprintf("%v",metaDato["Valor"])
+				puntaje,_ = strconv.Atoi(numTipoMetadatoStr)
+				
+
+			}
+
+		}
+		fmt.Println(puntaje)
+
+		//
+		//tipoMetadatoId := metaDatoSubtipo["TipoMetadatoId"].(map[string]interface{})
+		//
+		//idTipoMetadato := tipoMetadatoId["Id"]
+
+		//fmt.Println(idTipoMetadato)
+
+
 		//idSubtipoInt ,_ := strconv.Atoi(idSubtipoStr)
 		var puntajes []map[string]interface{}
 		errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/puntaje_subtipo_produccion/?query=SubTipoProduccionId:"+idSubtipoStr, &puntajes)
 		if errProduccion == nil && fmt.Sprintf("%v", puntajes[0]["System"]) != "map[]" {
 			if puntajes[0]["Status"] != 404 && puntajes[0]["Id"] != nil {
-				formatdata.JsonPrint(puntajes)
+				//formatdata.JsonPrint(puntajes)
 				for _, puntaje := range puntajes {
 					type Caracteristica struct {
 						Puntaje   string
