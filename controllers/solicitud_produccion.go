@@ -121,7 +121,6 @@ func (c *SolicitudProduccionController) PostAlertSolicitudProduccion() {
 	c.ServeJSON()
 }
 
-
 // PutResultadoSolicitud ...
 // @Title PutResultadoSolicitud
 // @Description Modificar resultaado solicitud docente
@@ -138,10 +137,43 @@ func (c *SolicitudProduccionController) PutResultadoSolicitud() {
 	//resultado := make(map[string]interface{})
 	var SolicitudProduccion map[string]interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &SolicitudProduccion); err == nil {
-		formatdata.JsonPrint(SolicitudProduccion)
+		//formatdata.JsonPrint(SolicitudProduccion["ProduccionAcademica"].(map[string]interface{}))
+		produccionAcademica := SolicitudProduccion["ProduccionAcademica"].(map[string]interface{})
+
+		subTipoProduccionId := produccionAcademica["SubtipoProduccionId"].(map[string]interface{})
+
+		idSubtipo := subTipoProduccionId["Id"]
+
+		idSubtipoStr := fmt.Sprintf("%v", idSubtipo)
+
+		//idSubtipoInt ,_ := strconv.Atoi(idSubtipoStr)
+		var puntajes []map[string]interface{}
+		errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/puntaje_subtipo_produccion/?query=SubTipoProduccionId:"+idSubtipoStr, &puntajes)
+		if errProduccion == nil && fmt.Sprintf("%v", puntajes[0]["System"]) != "map[]" {
+			if puntajes[0]["Status"] != 404 && puntajes[0]["Id"] != nil {
+				formatdata.JsonPrint(puntajes)
+				for _, puntaje := range puntajes {
+					type Caracteristica struct {
+						Puntaje   string
+						Categoria string
+					}
+					var caracteristica Caracteristica
+					json.Unmarshal([]byte(fmt.Sprintf("%v", puntaje["Caracteristicas"])), &caracteristica)
+
+					//type Categorias struct { Categoria string}
+					//var categoria Categorias
+					//json.Unmarshal([]byte(fmt.Sprintf("%v", puntaje["Caracteristicas"])), &categoria)
+					formatdata.JsonPrint(caracteristica)
+					//formatdata.JsonPrint(categoria)
+
+				}
+
+			}
+
+		}
+
 	}
-
-
+	fmt.Println("hola")
 
 	//var solicitudes []map[string]interface{}
 	//errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/solicitud/"+idStr, &solicitudes)
@@ -156,9 +188,7 @@ func (c *SolicitudProduccionController) PutResultadoSolicitud() {
 	//	}
 	//}
 
-
-
-		//resultado experiencia
+	//resultado experiencia
 
 	//	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &SolicitudProduccion); err == nil {
 	//
@@ -368,7 +398,6 @@ func checkGradePoints(ProduccionAcademicaRegister map[string]interface{}, idTipo
 	}
 	return 0
 }
-
 
 func generateAlerts(SolicitudDocente map[string]interface{}, coincidences int, numAnnualProductions int, acumulatePoints int, isbnCoincidences int, isAceptDuration bool, idTipoProduccion int) {
 	coincidencesSrt := strconv.Itoa(coincidences)
