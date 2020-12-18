@@ -178,12 +178,9 @@ func checkISBN(ProduccionAcademicaNew map[string]interface{}, ProduccionAcademic
 	idTipoProduccionRegister, _ := strconv.Atoi(idTipoProduccionRegisterSrt)
 	var ISBNnew string
 	var ISBNregister string
-
 	if idTipoProduccionRegister == 6 || idTipoProduccionRegister == 7 || idTipoProduccionRegister == 8 {
 		formatdata.JsonPrint(ProduccionAcademicaNew)
 		formatdata.JsonPrint(ProduccionAcademicaRegister)
-		fmt.Println("---------------------------------------------------------------------")
-		fmt.Println("Paso Libro")
 		for _, metadatoTemp := range ProduccionAcademicaNew["Metadatos"].([]interface{}) {
 			metadato := metadatoTemp.(map[string]interface{})
 			tipoMetadatoID, _ := strconv.Atoi(fmt.Sprintf("%v", metadato["MetadatoSubtipoProduccionId"].(map[string]interface{})["Id"]))
@@ -198,8 +195,6 @@ func checkISBN(ProduccionAcademicaNew map[string]interface{}, ProduccionAcademic
 				ISBNregister = fmt.Sprintf("%v", metadato["Valor"])
 			}
 		}
-		fmt.Println(ISBNnew)
-		fmt.Println(ISBNregister)
 		if ISBNnew == ISBNregister {
 			return true
 		}
