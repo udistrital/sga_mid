@@ -373,6 +373,7 @@ func (c *SolicitudDocenteController) GetSolicitudDocenteTercero() {
 	}
 	c.ServeJSON()
 }
+
 // GetEstadoSolicitudDocente ...
 // @Title GetEstadoSolicitudDocente
 // @Description consultar Produccion Academica por id de Estado de Solicitud
@@ -391,8 +392,7 @@ func (c *SolicitudDocenteController) GetEstadoSolicitudDocente() {
 	if errSolicitud == nil && fmt.Sprintf("%v", solicitudes[0]["System"]) != "map[]" {
 		if solicitudes[0]["Status"] != 404 && solicitudes[0]["Id"] != nil {
 			for i, solicitudTemp := range solicitudes {
-				idSolicitud := fmt.Sprintf("%v",solicitudTemp["Id"])
-				fmt.Println(idSolicitud)
+				idSolicitud := fmt.Sprintf("%v", solicitudTemp["Id"])
 				var solicitantes []map[string]interface{}
 				errSolicitante := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/solicitante/?query=SolicitudId:"+idSolicitud, &solicitantes)
 				if errSolicitante == nil && fmt.Sprintf("%v", solicitantes[0]["System"]) != "map[]" {
@@ -408,7 +408,6 @@ func (c *SolicitudDocenteController) GetEstadoSolicitudDocente() {
 								if errObservacion == nil && fmt.Sprintf("%v", observaciones[0]["System"]) != "map[]" {
 									if observaciones[0]["Status"] != 404 {
 
-
 										v = append(v, map[string]interface{}{
 											"Id":                    solicitudes[i]["Id"],
 											"EstadoTipoSolicitudId": solicitudes[i]["EstadoTipoSolicitudId"],
@@ -420,7 +419,6 @@ func (c *SolicitudDocenteController) GetEstadoSolicitudDocente() {
 											"EvolucionEstado":       &evolucionEstado,
 										})
 										c.Data["json"] = v
-										fmt.Println(v)
 									}
 								} else {
 									if observaciones[0]["Message"] == "Not found resource" {
@@ -503,4 +501,3 @@ func (c *SolicitudDocenteController) DeleteSolicitudDocente() {
 	}
 	c.ServeJSON()
 }
-
