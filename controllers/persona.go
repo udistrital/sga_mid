@@ -8,7 +8,6 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
-	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 )
 
@@ -184,6 +183,7 @@ func (c *PersonaController) GuardarPersona() {
 // @Failure 400 the request contains incorrect syntax
 // @router /guardar_complementarios [post]
 func (c *PersonaController) GuardarDatosComplementarios() {
+
 	//resultado solicitud de descuento
 	var resultado map[string]interface{}
 	//solicitud de descuento
@@ -198,6 +198,7 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 
 			tercerooriginal = terceroget
 			fmt.Println("Trae tercero para realizar el put del lugar")
+			fmt.Println(tercerooriginal)
 		} else {
 
 			alertas = append(alertas, errtercero.Error())
@@ -220,15 +221,12 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 			"InfoComplementariaId": InfoComplementariaId,
 			"Activo":               true,
 		}
-		// formatdata.JsonPrint(grupoEtnico)
-		// c.Data["json"] = grupoEtnico
 
 		errGrupoEtnicoPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &grupoEtnicoPost, grupoEtnico)
 		if errGrupoEtnicoPost == nil && fmt.Sprintf("%v", grupoEtnicoPost) != "map[]" && grupoEtnicoPost["Id"] != nil {
 			if grupoEtnicoPost["Status"] != 400 {
-
 				var grupoSanguineoPost map[string]interface{}
-				// 		fmt.Println("Grupo etnico: " + fmt.Sprintf("%v", grupoEtnicoPost))
+
 				InfoComplementariaId2 := map[string]interface{}{
 					"Id": tercero["GrupoSanguineo"],
 				}
@@ -236,9 +234,7 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 					"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
 					"InfoComplementariaId": InfoComplementariaId2,
 					"Activo":               true,
-					// "Persona":        map[string]interface{}{"Id": persona["Persona"].(float64)},
 				}
-				// formatdata.JsonPrint(grupoSanguineo)
 
 				errGrupoSanguineoPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &grupoSanguineoPost, grupoSanguineo)
 				if errGrupoSanguineoPost == nil && fmt.Sprintf("%v", grupoSanguineoPost) != "map[]" && grupoSanguineoPost["Id"] != nil {
@@ -262,146 +258,45 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 								c.Data["json"] = FactorRhPost
 
 								var LugarPost map[string]interface{}
-								terceroget["LugarOrigen"] = tercero["Lugar"].(map[string]interface{})["Id"].(float64)
+								terceroget["LugarOrigen"] = tercero["Lugar"].(map[string]interface{})["Lugar"].(map[string]interface{})["Id"].(float64)
 
 								errLugarPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+fmt.Sprintf("%.f", tercero["Tercero"].(float64)), "PUT", &LugarPost, terceroget)
 								if errLugarPost == nil && fmt.Sprintf("%v", LugarPost) != "map[]" && LugarPost["Id"] != nil {
 									if LugarPost["Status"] != 400 {
-										// c.Data["json"] = LugarPost
-										fmt.Println(("ksdfksdfkksdfgkdfgkldfgkldfkl"))
-										var EPSPost map[string]interface{}
 
-										EPS := map[string]interface{}{
-											"TerceroId":              map[string]interface{}{"Id": tercero["Tercero"].(float64)},
-											"TerceroEntidadId":       map[string]interface{}{"Id": tercero["EPS"].(map[string]interface{})["Id"].(float64)},
-											"FechaInicioVinculacion": tercero["FechaVinculacion"],
-											"Activo":                 true,
-										}
+										discapacidades := tercero["TipoDiscapacidad"].([]interface{})
+										// 		fmt.Println("Nueva ubicacion:" + fmt.Sprintf("%v", ubicacionPost))
 
-										errEPSPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/seguridad_social_tercero", "POST", &EPSPost, EPS)
-										if errEPSPost == nil && fmt.Sprintf("%v", EPSPost) != "map[]" && EPSPost["Id"] != nil {
-											if EPSPost["Status"] != 400 {
-												var NumHermanosPost map[string]interface{}
-												fmt.Println(("eps"))
-												InfoComplementariaId4 := map[string]interface{}{
-													"Id": 50, // id info_complementaria para numero de hermanos
-												}
-												NumHerm := map[string]interface{}{
-													"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
-													"InfoComplementariaId": InfoComplementariaId4,
-													"Dato":                 fmt.Sprintf("%v", tercero["NumeroHermanos"]),
-													"Activo":               true,
-												}
-												formatdata.JsonPrint(NumHerm)
-												errNUMHERMPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &NumHermanosPost, NumHerm)
-												if errNUMHERMPost == nil && fmt.Sprintf("%v", NumHermanosPost) != "map[]" && NumHermanosPost["Id"] != nil {
-													if NumHermanosPost["Status"] != 400 {
-														fmt.Println(("hermano"))
-														var PuntajeSisbenPost map[string]interface{}
-
-														InfoComplementariaId5 := map[string]interface{}{
-															"Id": 42, // id info_complementaria para puntaje sisben
-														}
-														PunSis := map[string]interface{}{
-															"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
-															"InfoComplementariaId": InfoComplementariaId5,
-															"Dato":                 fmt.Sprintf("%v", tercero["PuntajeSisbe"]),
-															"Activo":               true,
-														}
-
-														errPuntSisPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &PuntajeSisbenPost, PunSis)
-														if errPuntSisPost == nil && fmt.Sprintf("%v", PuntajeSisbenPost) != "map[]" && PuntajeSisbenPost["Id"] != nil {
-															if PuntajeSisbenPost["Status"] != 400 {
-																fmt.Println(("puntos"))
-																discapacidades := tercero["TipoDiscapacidad"].([]interface{})
-																// 		fmt.Println("Nueva ubicacion:" + fmt.Sprintf("%v", ubicacionPost))
-
-																for i := 0; i < len(discapacidades); i++ {
-																	var discapacidadPost map[string]interface{}
-																	discapacidad := discapacidades[i].(map[string]interface{})
-																	nuevadiscapacidad := map[string]interface{}{
-																		"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
-																		"InfoComplementariaId": map[string]interface{}{"Id": discapacidad["Id"].(float64)},
-																		"Activo":               true,
-																	}
-																	fmt.Println(("for"))
-																	errDiscapacidadPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &discapacidadPost, nuevadiscapacidad)
-																	if errDiscapacidadPost == nil && fmt.Sprintf("%v", discapacidadPost) != "map[]" && discapacidadPost["Id"] != nil {
-																		if discapacidadPost["Status"] != 400 {
-																			fmt.Println(("discapidad"))
-																			// 		fmt.Println("El nueva discapacidad es: " + fmt.Sprintf("%v", discapacidadPost))
-																		} else {
-																			logs.Error(errDiscapacidadPost)
-																			//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
-																			c.Data["system"] = discapacidadPost
-																			c.Abort("400")
-																		}
-																	} else {
-																		logs.Error(errDiscapacidadPost)
-																		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-																		c.Data["system"] = discapacidadPost
-																		c.Abort("400")
-																	}
-																}
-
-																resultado = tercero
-																c.Data["json"] = resultado
-
-															} else {
-																var resultado2 map[string]interface{}
-																request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", grupoSanguineoPost["Id"]), "DELETE", &resultado2, nil)
-																request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", grupoEtnicoPost["Id"]), "DELETE", &resultado2, nil)
-																request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", FactorRhPost["Id"]), "DELETE", &resultado2, nil)
-																request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%v", terceroget["Id"]), "PUT", &resultado2, tercerooriginal)
-																request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/seguridad_social_tercero/"+fmt.Sprintf("%v", EPSPost["Id"]), "DELETE", &resultado2, nil)
-																request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", NumHermanosPost["Id"]), "DELETE", &resultado2, nil)
-																logs.Error(errPuntSisPost)
-																//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
-																c.Data["system"] = PuntajeSisbenPost
-																c.Abort("400")
-															}
-														} else {
-															logs.Error(errPuntSisPost)
-															//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-															c.Data["system"] = PuntajeSisbenPost
-															c.Abort("400")
-														}
-													} else {
-														var resultado2 map[string]interface{}
-														request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", grupoSanguineoPost["Id"]), "DELETE", &resultado2, nil)
-														request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", grupoEtnicoPost["Id"]), "DELETE", &resultado2, nil)
-														request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", FactorRhPost["Id"]), "DELETE", &resultado2, nil)
-														request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%v", terceroget["Id"]), "PUT", &resultado2, tercerooriginal)
-														request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/seguridad_social_tercero/"+fmt.Sprintf("%v", EPSPost["Id"]), "DELETE", &resultado2, nil)
-														logs.Error(errNUMHERMPost)
-														//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
-														c.Data["system"] = NumHermanosPost
-														c.Abort("400")
-													}
+										for i := 0; i < len(discapacidades); i++ {
+											var discapacidadPost map[string]interface{}
+											discapacidad := discapacidades[i].(map[string]interface{})
+											nuevadiscapacidad := map[string]interface{}{
+												"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
+												"InfoComplementariaId": map[string]interface{}{"Id": discapacidad["Id"].(float64)},
+												"Activo":               true,
+											}
+											fmt.Println(("for"))
+											errDiscapacidadPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &discapacidadPost, nuevadiscapacidad)
+											if errDiscapacidadPost == nil && fmt.Sprintf("%v", discapacidadPost) != "map[]" && discapacidadPost["Id"] != nil {
+												if discapacidadPost["Status"] != 400 {
+													fmt.Println(("discapidad"))
+													// 		fmt.Println("El nueva discapacidad es: " + fmt.Sprintf("%v", discapacidadPost))
 												} else {
-													logs.Error(errNUMHERMPost)
-													//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-													c.Data["system"] = NumHermanosPost
+													logs.Error(errDiscapacidadPost)
+													//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
+													c.Data["system"] = discapacidadPost
 													c.Abort("400")
 												}
-
 											} else {
-												var resultado2 map[string]interface{}
-												request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", grupoSanguineoPost["Id"]), "DELETE", &resultado2, nil)
-												request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", grupoEtnicoPost["Id"]), "DELETE", &resultado2, nil)
-												request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", FactorRhPost["Id"]), "DELETE", &resultado2, nil)
-												request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%v", terceroget["Id"]), "PUT", &resultado2, tercerooriginal)
-												logs.Error(errEPSPost)
-												//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
-												c.Data["system"] = EPSPost
+												logs.Error(errDiscapacidadPost)
+												//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+												c.Data["system"] = discapacidadPost
 												c.Abort("400")
 											}
-										} else {
-											logs.Error(errEPSPost)
-											//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-											c.Data["system"] = EPSPost
-											c.Abort("400")
 										}
+
+										resultado = tercero
+										c.Data["json"] = resultado
 
 									} else {
 										var resultado2 map[string]interface{}
