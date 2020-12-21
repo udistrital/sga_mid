@@ -78,7 +78,7 @@ func (c *ConsultaCalendarioAcademicoController) GetAll() {
 // @Title GetOnePorId
 // @Description get ConsultaCalendarioAcademico by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.ConsultaCalendarioAcademico
+// @Success 200 {}
 // @Failure 403 :id is empty
 // @router /:id [get]
 func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
@@ -163,6 +163,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 							"Enlace":     documentos["Enlace"],
 							"Resolucion": metadato.Resolucion,
 							"Anno":       metadato.Anno,
+							"Nombre":     documentos["Nombre"],
 						}
 					} else {
 
@@ -288,10 +289,13 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 						c.Data["json"] = alerta
 					}
 				}
-
+				calendarioAux := calendarios[0]["TipoEventoId"].(map[string]interface{})["CalendarioID"].(map[string]interface{})
 				resultado = map[string]interface{}{
 					"Id":              idStr,
-					"Nombre":          calendarios[0]["TipoEventoId"].(map[string]interface{})["CalendarioID"].(map[string]interface{})["Nombre"].(string),
+					"Nombre":          calendarioAux["Nombre"].(string),
+					"PeriodoId":       calendarioAux["PeriodoId"].(float64),
+					"Activo":          calendarioAux["Activo"].(bool),
+					"Nivel":           calendarioAux["Nivel"].(float64),
 					"ListaCalendario": versionCalendarioResultado,
 					"resolucion":      resolucion,
 					"proceso":         procesoResultado,

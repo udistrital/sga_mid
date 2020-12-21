@@ -359,7 +359,7 @@ func (c *DerechosPecuniariosController) PutCostoConcepto() {
 		//Recorre cada concepto para poder guardar el costo
 		for _, conceptoTemp := range ConceptoCostoAux {
 			var conceptoAux map[string]interface{}
-			codigo := fmt.Sprintf("%.f", conceptoTemp["Codigo"].(float64))
+			codigo := conceptoTemp["Codigo"].(string)
 			//Se trae todo el json del concepto por código de abreviación para poder hacer la función put
 			errConcepto := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro?query=CodigoAbreviacion:"+codigo+"&sortby=Id&order=desc&limit=1", &conceptoAux)
 			if errConcepto == nil {
