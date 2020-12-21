@@ -471,10 +471,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/models.ConsultaCalendarioAcademico"
-                        }
+                        "description": "{}"
                     },
                     "403": {
                         "description": ":id is empty"
