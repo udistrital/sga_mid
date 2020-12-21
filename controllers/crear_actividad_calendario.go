@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
@@ -15,6 +16,7 @@ type ActividadCalendarioController struct {
 
 func (c *ActividadCalendarioController) URLMapping() {
 	c.Mapping("PostActividadCalendario", c.PostActividadCalendario)
+	c.Mapping("UpdateActividadResponsables", c.UpdateActividadResponsables)
 }
 
 // PostActividadCalendario ...
@@ -83,6 +85,68 @@ func (c *ActividadCalendarioController) PostActividadCalendario() {
 				c.Abort("400")
 			}
 		}
+	}
+	c.ServeJSON()
+}
+
+// UpdateActividadResponsables ...
+// @Title UpdateActividadResponsables
+// @Description Actualiza tabla de rompimiento calendario_evento_tipo_publico segun los responsables de una Actividad
+// @Param	body		body 	{}	true		"body Actualizar responsables de una Actividad content"
+// @Success 200 {}
+// @Failure 403 body is empty
+// @router /update/:id [put]
+func (c *ActividadCalendarioController) UpdateActividadResponsables() {
+	var datos []map[string]interface{}
+	var guardados []map[string]interface{}
+	var actualizados []map[string]interface{}
+	var auxUpdate map[string]interface{}
+	var errBorrado error
+
+	idStr := c.Ctx.Input.Param(":id")
+	actividadId, _ := strconv.Atoi(idStr)
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &datos); err == nil {
+		errConsulta := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento_tipo_publico?query=CalendarioEventoId__Id:"+idStr, &guardados)
+		if errConsulta == nil {
+			if len(guardados) > 0 {
+				errBorrado = request.SendJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento_tipo_publico?query=CalendarioEventoId__Id:"+idStr, "DELETE", &auxUpdate, nil)
+			}
+			if errBorrado == nil {
+				for _, tipoPublico := range datos {
+					nuevoPublico := map[string]interface{}{
+						"Activo":             true,
+						"TipoPublicoId":      map[string]interface{}{"Id": tipoPublico["IdPublico"]},
+						"CalendarioEventoId": map[string]interface{}{"Id": actividadId},
+					}
+					errPost := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento_tipo_publico", "POST", &auxUpdate, nuevoPublico)
+					if errPost == nil {
+						actualizados = append(actualizados, auxUpdate)
+					} else {
+						logs.Error(errPost)
+						c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errPost.Error(), "Type": "error"}
+						c.Data["system"] = errPost
+						c.Abort("400")
+					}
+				}
+				c.Data["json"] = actualizados
+			} else {
+				logs.Error(errBorrado)
+				c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errBorrado.Error(), "Type": "error"}
+				c.Data["system"] = errBorrado
+				c.Abort("400")
+			}
+		} else {
+			logs.Error(errConsulta)
+			c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errConsulta.Error(), "Type": "error"}
+			c.Data["system"] = errConsulta
+			c.Abort("400")
+		}
+	} else {
+		logs.Error(err)
+		c.Data["json"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("400")
 	}
 	c.ServeJSON()
 }
