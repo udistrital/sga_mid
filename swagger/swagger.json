@@ -710,6 +710,34 @@
                 }
             }
         },
+        "/crear_actividad_calendario/update/{id}": {
+            "put": {
+                "tags": [
+                    "crear_actividad_calendario"
+                ],
+                "description": "Actualiza tabla de rompimiento calendario_evento_tipo_publico segun los responsables de una Actividad",
+                "operationId": "ActividadCalendarioController.UpdateActividadResponsables",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Actualizar responsables de una Actividad content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
         "/derechos_pecuniarios/": {
             "post": {
                 "tags": [
