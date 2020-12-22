@@ -409,20 +409,15 @@ func (c *PersonaController) ActualizarDatosComplementarios() {
 
 	//comprobar que el JSON de entrada sea correcto
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &persona); err == nil {
-		//formatdata.JsonPrint(persona)
+
 		errPersona := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/?query=Id:"+fmt.Sprintf("%.f", persona["Ente"].(float64)), &resultado)
 		if errPersona == nil && resultado != nil {
-			//formatdata.JsonPrint(resultado)
 			GrupoEtnico["InfoComplementariaId"] = persona["GrupoEtnico"]
 			GrupoEtnico["TerceroId"] = resultado[0]
-			idEtnia := GrupoEtnico["InfoComplementariaId"].(map[string]interface{})["GrupoInfoComplementariaId"].(map[string]interface{})["Id"]
+			//idEtnia := GrupoEtnico["InfoComplementariaId"].(map[string]interface{})["GrupoInfoComplementariaId"].(map[string]interface{})["Id"]
 			idPersona := GrupoEtnico["TerceroId"].(map[string]interface{})["Id"]
-			//formatdata.JsonPrint(GrupoEtnico)
-			//fmt.Println(GrupoEtnico["InfoComplementariaId"].(map[string]interface{})["Id"])
-			request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+fmt.Sprintf("%.f", idPersona)+",InfoComplementariaId__GrupoInfoComplementariaId__Id:"+fmt.Sprintf("%.f", idEtnia)+"&sortby=Id&order=desc&limit=1", &idpersona_grupo_etnico)
-			//fmt.Println("http://" + beego.AppConfig.String("TercerosService") + "info_complementaria_tercero?query=TerceroId__Id:" + fmt.Sprintf("%.f", idPersona) + ",InfoComplementariaId__GrupoInfoComplementariaId__Id:" + fmt.Sprintf("%.f", idEtnia))
-			errGrupoEtnico := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+fmt.Sprintf("%.f", idpersona_grupo_etnico[0]["Id"].(float64)), "PUT", &resultado2, GrupoEtnico)
 
+			errGrupoEtnico := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+fmt.Sprintf("%.f", idpersona_grupo_etnico[0]["Id"].(float64)), "PUT", &resultado2, GrupoEtnico)
 			if errGrupoEtnico != nil || resultado2["Id"] == 0 || resultado2["Type"] == "error" {
 				if errGrupoEtnico != nil {
 					errores = append(errores, []interface{}{"error grupo etnico: ", errGrupoEtnico.Error()})
@@ -436,66 +431,43 @@ func (c *PersonaController) ActualizarDatosComplementarios() {
 			if (persona["GrupoSanguineo"] != nil || persona["GrupoSanguineo"] != 0) && (persona["Rh"] != nil || persona["Rh"] != 0) {
 				//GET para obtener toda la informacion del rh
 				request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria?query=Id:"+fmt.Sprintf("%.f", persona["Rh"]), &GrupoSanguineoAux)
-				//formatdata.JsonPrint(GrupoSanguineoAux)
 				GrupoRh["InfoComplementariaId"] = GrupoSanguineoAux[0]
 				GrupoRh["TerceroId"] = resultado[0]
 				idRh := GrupoRh["InfoComplementariaId"].(map[string]interface{})["GrupoInfoComplementariaId"].(map[string]interface{})["Id"]
 				request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+fmt.Sprintf("%.f", idPersona)+",InfoComplementariaId__GrupoInfoComplementariaId__Id:"+fmt.Sprintf("%.f", idRh)+"&sortby=Id&order=desc&limit=1", &idpersona_rh)
-				//formatdata.JsonPrint(idpersona_rh)
-				//formatdata.JsonPrint(GrupoRh)
-				//GrupoRh[""]
-				//formatdata.JsonPrint(GrupoSanguineoAux)
 				//PUT RH
 				errGrupoRh := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+fmt.Sprintf("%.f", idpersona_rh[0]["Id"].(float64)), "PUT", &resultado3, GrupoSanguineoAux)
-				//fmt.Println(GrupoSanguineo)
 				if errGrupoRh == nil {
 					errores = append(errores, []interface{}{"OK grupo_sanquineo_persona"})
 				} else {
 					errores = append(errores, []interface{}{"err grupo_sanquineo_persona", errGrupoRh.Error()})
 				}
 				//GET grupo sanguineo
-				//fmt.Println("pto control")
 				request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria?query=Id:"+fmt.Sprintf("%.f", persona["GrupoSanguineo"]), &GrupoSAux)
-				//formatdata.JsonPrint(GrupoSAux)
 				GrupoSanguineo["TerceroId"] = resultado[0]
 				GrupoSanguineo["InfoComplementariaId"] = GrupoSAux[0]
-				//fmt.Println("http://" + beego.AppConfig.String("TercerosService") + "info_complementaria_tercero?query=TerceroId__Id:" + fmt.Sprintf("%.f", idPersona) + ",InfoComplementariaId__Id:" + fmt.Sprintf("%.f", persona["GrupoSanguineo"]) + "&sortby=Id&order=desc&limit=1")
 				idGrupoSan := GrupoSanguineo["InfoComplementariaId"].(map[string]interface{})["GrupoInfoComplementariaId"].(map[string]interface{})["Id"]
 				request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+fmt.Sprintf("%.f", idPersona)+",InfoComplementariaId__GrupoInfoComplementariaId__Id:"+fmt.Sprintf("%.f", idGrupoSan)+"&sortby=Id&order=desc&limit=1", &idpersona_grupo_sanguineo)
+
 				errGrupoSanguineo := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+fmt.Sprintf("%.f", idpersona_grupo_sanguineo[0]["Id"]), "PUT", &resultado4, GrupoSanguineo)
 				if errGrupoSanguineo == nil {
 					errores = append(errores, []interface{}{"OK grupo_sanquineo_persona"})
 				} else {
 					errores = append(errores, []interface{}{"err grupo_sanquineo_persona", errGrupoSanguineo.Error()})
 				}
-				//formatdata.JsonPrint(resultado4)
-				//fmt.Println(errGrupoSanguineo)
 			} else {
 
 				errores = append(errores, []interface{}{"el grupo sanguineo es incorrecto:", persona["GrupoSanguineo"], persona["Rh"]})
 			}
 
 			discapacidad := persona["TipoDiscapacidad"].([]interface{})
-			//formatdata.JsonPrint(discapacidad)
-			//request.GetJson("http://"+beego.AppConfig.String("PersonaService")+"/persona_tipo_discapacidad/?query=persona:"+fmt.Sprintf("%.f", resultado[0]["Id"].(float64)), &idpersona_grupo_sanguineo)
-			//fmt.Println("las discapacidades actuales son", idpersona_grupo_sanguineo)
-
 			for i := 0; i < len(discapacidad); i++ {
-				//fmt.Println("el id de la discapacidad ", i, " es ", idpersona_grupo_sanguineo[i]["Id"])
 				Discapacidad["TerceroId"] = resultado[0]
 				Discapacidad["InfoComplementariaId"] = discapacidad[i]
-				//formatdata.JsonPrint(Discapacidad)
 				idDiscapacidad := Discapacidad["InfoComplementariaId"].(map[string]interface{})["GrupoInfoComplementariaId"].(map[string]interface{})["Id"]
 				request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+fmt.Sprintf("%.f", idPersona)+",InfoComplementariaId__GrupoInfoComplementariaId__Id:"+fmt.Sprintf("%.f", idDiscapacidad), &DiscapacidadAux)
-				//fmt.Println(erra)
-				//fmt.Println("http://" + beego.AppConfig.String("TercerosService") + "info_complementaria_tercero?query=TerceroId__Id:" + fmt.Sprintf("%.f", idPersona) + ",InfoComplementariaId__GrupoInfoComplementariaId__Id:" + fmt.Sprintf("%.f", idDiscapacidad))
-				//fmt.Println("iteracion " + fmt.Sprintf("%.f", i))
-				//formatdata.JsonPrint(DiscapacidadAux[i])
-				errDiscapacidad := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+fmt.Sprintf("%.f", DiscapacidadAux[i]["Id"]), "PUT", &resultado5, Discapacidad)
 
-				//formatdata.JsonPrint(resultado5)
-				//fmt.Println("el error de la discapacidad ", i, " es ", errDiscapacidad)
-				//fmt.Println("el resultado de la dicapacidad es", i, " es ", resultado2)
+				errDiscapacidad := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+fmt.Sprintf("%.f", DiscapacidadAux[i]["Id"]), "PUT", &resultado5, Discapacidad)
 				if errDiscapacidad != nil || resultado2["Type"] == "error" {
 
 					errores = append(errores, []interface{}{"La discapacidad con Id ", discapacidad[i].(map[string]interface{})["Id"], " obtuvo ", resultado5["Type"], " ", resultado5["Body"]})
@@ -508,17 +480,10 @@ func (c *PersonaController) ActualizarDatosComplementarios() {
 				}
 			}
 
-			//request.GetJson("http://"+beego.AppConfig.String("EnteService")+"/ubicacion_ente/?query=Ente:"+fmt.Sprintf("%.f", persona["Ente"].(float64))+"&fields=Id", &id_ubicacion_ente)
-			//fmt.Println("el id de la ubicacion ente: ", id_ubicacion_ente)
 			var ubicacion map[string]interface{}
 			ubicacion = resultado[0]
 			formatdata.JsonPrint(ubicacion)
 			ubicacion["LugarOrigen"] = persona["Lugar"].(map[string]interface{})["Id"]
-			/*ubicacion["Ente"] = map[string]interface{}{"Id": persona["Ente"]}
-			lugar := persona["Lugar"].(map[string]interface{})
-			ubicacion["Lugar"] = lugar["Id"]
-			ubicacion["TipoRelacionUbicacionEnte"] = map[string]interface{}{"Id": persona["TipoRelacionUbicacionEnte"]}
-			ubicacion["Activo"] = true*/
 			if errUbicacionEnte := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+fmt.Sprintf("%.f", ubicacion["Id"]), "PUT", &resultado6, ubicacion); errUbicacionEnte == nil {
 				if resultado6["Type"] == "error" {
 					errores = append(errores, resultado2["Body"])
@@ -962,43 +927,40 @@ func (c *PersonaController) ConsultarDatosComplementarios() {
 	var persona []map[string]interface{}
 
 	errPersona := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/?query=Id:"+idStr, &persona)
+
 	if errPersona == nil && fmt.Sprintf("%v", persona[0]) != "map[]" {
 		if persona[0]["Status"] != 404 {
 
 			var grupoEtnico []map[string]interface{}
 			resultado = map[string]interface{}{"Ente": persona[0]["Ente"], "Persona": persona[0]["Id"]}
 
-			errGrupoEtnico := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/?query=terceroId.Id:"+
-				fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:3", &grupoEtnico)
+			errGrupoEtnico := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/?query=terceroId.Id:"+fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:3&sortby=Id&order=desc&limit=1", &grupoEtnico)
+
 			if errGrupoEtnico == nil && fmt.Sprintf("%v", grupoEtnico[0]) != "map[]" {
 				if grupoEtnico[0]["Status"] != 404 {
 
 					var grupoSanguineo []map[string]interface{}
 					resultado["GrupoEtnico"] = grupoEtnico[0]["InfoComplementariaId"]
 
-					errGrupoSanguineo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/?query=terceroId.Id:"+
-						fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:7", &grupoSanguineo)
+					errGrupoSanguineo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/?query=terceroId.Id:"+fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:7&sortby=Id&order=desc&limit=1", &grupoSanguineo)
+
 					if errGrupoSanguineo == nil && fmt.Sprintf("%v", grupoSanguineo[0]) != "map[]" {
 						if grupoSanguineo[0]["Status"] != 404 {
 
 							resultado["GrupoSanguineo"] = grupoSanguineo[0]["InfoComplementariaId"]
-
 							var fatorRHGet []map[string]interface{}
-							errFactorRh := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/?query=terceroId.Id:"+
-								fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:8", &fatorRHGet)
+							errFactorRh := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/?query=terceroId.Id:"+fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:8&sortby=Id&order=desc&limit=1", &fatorRHGet)
 							if errFactorRh == nil && fmt.Sprintf("%v", fatorRHGet[0]) != "map[]" {
 								if fatorRHGet[0]["Status"] != 404 {
 
 									resultado["Rh"] = fatorRHGet[0]["InfoComplementariaId"]
 
 									var discapacidades []map[string]interface{}
-									errDiscapacidad := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/?query=terceroId.Id:"+
-										fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:1", &discapacidades)
+									errDiscapacidad := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/?query=terceroId.Id:"+fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:1", &discapacidades)
 									if errDiscapacidad == nil && fmt.Sprintf("%v", discapacidades[0]) != "map[]" {
 										if discapacidades[0]["Status"] != 404 {
 
 											var tipoDiscapacidad []map[string]interface{}
-
 											for i := 0; i < len(discapacidades); i++ {
 												if len(discapacidades) > 0 {
 													discapacidad := discapacidades[i]["InfoComplementariaId"].(map[string]interface{})
