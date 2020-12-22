@@ -1314,6 +1314,33 @@
                 }
             }
         },
+        "/formacion_academica/info_universidad/": {
+            "get": {
+                "tags": [
+                    "formacion_academica"
+                ],
+                "description": "Obtener la información de la universidad por el nit",
+                "operationId": "FormacionController.GetInfoUniversidad",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "Id",
+                        "description": "nit de la universidad",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
         "/generar_codigo/": {
             "post": {
                 "tags": [
