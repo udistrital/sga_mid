@@ -7,7 +7,6 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
-	"github.com/udistrital/utils_oas/formatdata"
 )
 
 // PaqueteSolicitudController ...
@@ -39,7 +38,6 @@ func (c *PaqueteSolicitudController) PostPaqueteSolicitud() {
 	fmt.Println("Post Solicitud")
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &PaqueteSolicitud); err == nil {
-		formatdata.JsonPrint(PaqueteSolicitud)
 		if resultado, err := models.PostPaqueteSolicitud(PaqueteSolicitud); err == nil {
 			resultadoPostPaqueteSolicitud = resultado
 			c.Data["json"] = resultado

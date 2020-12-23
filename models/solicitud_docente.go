@@ -46,7 +46,7 @@ func PostSolicitudDocente(SolicitudDocente map[string]interface{}) (result map[s
 		"TerceroId":             terceroID,
 		"SolicitudId":           map[string]interface{}{"Id": 0},
 		"EstadoTipoSolicitudId": SolicitudDocente["EstadoTipoSolicitudId"],
-		"FechaLimite":           calcularFecha(SolicitudDocente["EstadoTipoSolicitudId"].(map[string]interface{})),
+		"FechaLimite":           CalcularFecha(SolicitudDocente["EstadoTipoSolicitudId"].(map[string]interface{})),
 		"Activo":                true,
 		"FechaCreacion":         date,
 		"FechaModificacion":     date,
@@ -94,7 +94,7 @@ func PutSolicitudDocente(SolicitudDocente map[string]interface{}, idStr string) 
 		"EstadoTipoSolicitudId":         SolicitudDocente["EstadoTipoSolicitudId"],
 		"EstadoTipoSolicitudIdAnterior": EstadoTipoSolicitudID,
 		"Activo":                        true,
-		"FechaLimite":                   calcularFecha(SolicitudDocente["EstadoTipoSolicitudId"].(map[string]interface{})),
+		"FechaLimite":                   CalcularFecha(SolicitudDocente["EstadoTipoSolicitudId"].(map[string]interface{})),
 		"FechaCreacion":                 date,
 		"FechaModificacion":             date,
 	})
@@ -345,7 +345,8 @@ func GetEstadoSolicitudDocente(idEstado string) (result []interface{}, outputErr
 	return v, nil
 }
 
-func calcularFecha(EstadoTipoSolicitud map[string]interface{}) (result string) {
+// CalcularFecha is ...
+func CalcularFecha(EstadoTipoSolicitud map[string]interface{}) (result string) {
 	numDias, _ := strconv.Atoi(fmt.Sprintf("%v", EstadoTipoSolicitud["NumeroDias"]))
 	var tiempoBogota time.Time
 	tiempoBogota = time.Now()
