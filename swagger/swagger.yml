@@ -890,6 +890,23 @@ paths:
           description: '{}'
         "400":
           description: the request contains incorrect syntax
+  /formacion_academica/info_universidad_nombre:
+    get:
+      tags:
+      - formacion_academica
+      description: Obtener la información de la universidad por el nombre
+      operationId: FormacionController.GetInfoUniversidadByNombre
+      parameters:
+      - in: query
+        name: nombre
+        description: nombre universidad
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{}'
+        "400":
+          description: the request contains incorrect syntax
   /generar_codigo/:
     post:
       tags:

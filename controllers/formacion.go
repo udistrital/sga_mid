@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/astaxie/beego"
@@ -24,6 +25,7 @@ func (c *FormacionController) URLMapping() {
 	c.Mapping("GetFormacionAcademicaByTercero", c.GetFormacionAcademicaByTercero)
 	// c.Mapping("DeleteFormacionAcademica", c.DeleteFormacionAcademica)
 	c.Mapping("GetInfoUniversidad", c.GetInfoUniversidad)
+	c.Mapping("GetInfoUniversidadByNombre", c.GetInfoUniversidadByNombre)
 }
 
 // PostFormacionAcademica ...
@@ -213,7 +215,10 @@ func (c *FormacionController) GetInfoUniversidad() {
 			if errUniversidad == nil && fmt.Sprintf("%v", universidadTercero["System"]) != "map[]" && universidadTercero["Id"] != nil {
 				if universidadTercero["Status"] != 400 {
 					//formatdata.JsonPrint(universidadTercero)
-					respuesta["NombreCompleto"] = universidadTercero["NombreCompleto"]
+					respuesta["NombreCompleto"] = map[string]interface{}{
+						"Id":     idUniversidad,
+						"Nombre": universidadTercero["NombreCompleto"],
+					}
 					var lugar map[string]interface{}
 					//GET para traer los datos de la ubicación
 					errLugar := request.GetJson("http://"+beego.AppConfig.String("UbicacionesService")+"/relacion_lugares/jerarquia_lugar/"+fmt.Sprintf("%v", universidadTercero["LugarOrigen"]), &lugar)
@@ -343,6 +348,55 @@ func (c *FormacionController) GetInfoUniversidad() {
 		c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errNit.Error(), "Type": "error"}
 		c.Data["system"] = universidad
 		c.Abort("400")
+	}
+	c.ServeJSON()
+}
+
+// GetInfoUniversidadByNombre ...
+// @Title GetInfoUniversidadByNombre
+// @Description Obtener la información de la universidad por el nombre
+// @Param	nombre	query 	string	true		"nombre universidad"
+// @Success 200 {}
+// @Failure 400 the request contains incorrect syntax
+// @router /info_universidad_nombre [get]
+func (c *FormacionController) GetInfoUniversidadByNombre() {
+
+	idStr := c.GetString("nombre")
+	var universidades []map[string]interface{}
+	//fmt.Println("El id es: " + idStr)
+	NombresAux := strings.Split(idStr, " ")
+
+	//fmt.Println(len(NombresAux))
+	if len(NombresAux) == 1 {
+		err := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/?query=NombreCompleto__contains:"+idStr, &universidades)
+		if err == nil {
+			if universidades != nil {
+				c.Data["json"] = universidades
+			} else {
+				logs.Error(universidades)
+				c.Data["system"] = err
+				c.Abort("404")
+			}
+		} else {
+			logs.Error(universidades)
+			c.Data["system"] = err
+			c.Abort("404")
+		}
+	} else if len(NombresAux) > 1 {
+		err := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/?query=NombreCompleto__contains:"+NombresAux[0]+",NombreCompleto__contains:"+NombresAux[1], &universidades)
+		if err == nil {
+			if universidades != nil {
+				c.Data["json"] = universidades
+			} else {
+				logs.Error(universidades)
+				c.Data["system"] = err
+				c.Abort("404")
+			}
+		} else {
+			logs.Error(universidades)
+			c.Data["system"] = err
+			c.Abort("404")
+		}
 	}
 	c.ServeJSON()
 }
