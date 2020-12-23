@@ -230,7 +230,6 @@ func (c *ProduccionAcademicaController) PutProduccionAcademica() {
 func (c *ProduccionAcademicaController) GetOneProduccionAcademica() {
 	//Id de la producción
 	idProduccion := c.Ctx.Input.Param(":id")
-	fmt.Println("Consultando produccion de id: " + idProduccion)
 	//resultado experiencia
 	var producciones []map[string]interface{}
 
