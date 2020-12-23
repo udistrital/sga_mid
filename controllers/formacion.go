@@ -368,7 +368,7 @@ func (c *FormacionController) GetInfoUniversidadByNombre() {
 
 	//fmt.Println(len(NombresAux))
 	if len(NombresAux) == 1 {
-		err := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/?query=NombreCompleto__contains:"+idStr, &universidades)
+		err := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/?query=NombreCompleto__contains:"+idStr+"&limit=0", &universidades)
 		if err == nil {
 			if universidades != nil {
 				c.Data["json"] = universidades
@@ -383,7 +383,7 @@ func (c *FormacionController) GetInfoUniversidadByNombre() {
 			c.Abort("404")
 		}
 	} else if len(NombresAux) > 1 {
-		err := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/?query=NombreCompleto__contains:"+NombresAux[0]+",NombreCompleto__contains:"+NombresAux[1], &universidades)
+		err := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/?query=NombreCompleto__contains:"+NombresAux[0]+",NombreCompleto__contains:"+NombresAux[1]+"&limit=0", &universidades)
 		if err == nil {
 			if universidades != nil {
 				c.Data["json"] = universidades
