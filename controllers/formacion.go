@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
@@ -36,152 +35,239 @@ func (c *FormacionController) URLMapping() {
 // @Failure 400 the request contains incorrect syntax
 // @router / [post]
 func (c *FormacionController) PostFormacionAcademica() {
-	//resultado experiencia
-	var resultado map[string]interface{}
-	//experiencia
-	var formacion map[string]interface{}
-	var formacionPost map[string]interface{}
-	var dataPost map[string]interface{}
+	var FormacionAcademica map[string]interface{}
+	var respuesta map[string]interface{}
+	respuesta = make(map[string]interface{})
 
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &dataPost); err == nil {
-		// post de la información de la universidad
-		date := time.Now()
-		info_complementaria := dataPost["InfoComplementariaTercero"].([]interface{})[0].(map[string]interface{})
-
-		info_complementaria["FechaCreacion"] = date
-		info_complementaria["FechaModificacion"] = date
-
-		var resultadoInfoComeplementaria map[string]interface{}
-		errInfoComplementaria := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero", "POST", &resultadoInfoComeplementaria, info_complementaria)
-		if resultadoInfoComeplementaria["Type"] == "error" || errInfoComplementaria != nil || resultadoInfoComeplementaria["Status"] == "404" || resultadoInfoComeplementaria["Message"] != nil {
-			logs.Error(errInfoComplementaria)
-			//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
-			c.Data["system"] = resultadoInfoComeplementaria
-			c.Abort("400")
-		} else {
-			fmt.Println("Info complementaria universidad registrada", resultadoInfoComeplementaria["Id"])
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &FormacionAcademica); err == nil {
+		// POST Programa académico (Info complementaria *95*)
+		var ProgramaAcademicoPost map[string]interface{}
+		NombrePrograma := fmt.Sprintf("%v", FormacionAcademica["ProgramaAcademicoId"])
+		ProgramaAcademico := map[string]interface{}{
+			"TerceroId":            map[string]interface{}{"Id": FormacionAcademica["TerceroId"].(float64)},
+			"InfoComplementariaId": map[string]interface{}{"Id": 95},
+			"Dato":                 "{\n    \"value\": " + NombrePrograma + " \n}",
+			"Activo":               true,
 		}
+		errPrograma := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/", "POST", &ProgramaAcademicoPost, ProgramaAcademico)
+		if errPrograma == nil && fmt.Sprintf("%v", ProgramaAcademicoPost["System"]) != "map[]" && ProgramaAcademicoPost["Id"] != nil {
+			if ProgramaAcademicoPost["Status"] != 400 {
+				respuesta["ProgramaAcademico"] = ProgramaAcademicoPost
 
-		// post de la formación academica
-		formacion = dataPost["FormacionAcademica"].(map[string]interface{})
-
-		formacionacademica := map[string]interface{}{
-			"Persona":           formacion["Persona"],
-			"Titulacion":        formacion["Titulacion"].(map[string]interface{})["Id"],
-			"FechaInicio":       formacion["FechaInicio"],
-			"FechaFinalizacion": formacion["FechaFinalizacion"],
-		}
-
-		errFormacion := request.SendJson("http://"+beego.AppConfig.String("FormacionAcademicaService")+"/formacion_academica", "POST", &formacionPost, formacionacademica)
-		if errFormacion == nil && fmt.Sprintf("%v", formacionPost["System"]) != "map[]" && formacionPost["Id"] != nil {
-			if formacionPost["Status"] != 400 {
-				//soporte
-				var soporte map[string]interface{}
-
-				soporteformacion := map[string]interface{}{
-					"Documento":          formacion["Documento"],
-					"Descripcion":        "''",
-					"FormacionAcademica": formacionPost,
+				// POST Fecha de inicio (Info complementaria *96*)
+				var FechaInicioPost map[string]interface{}
+				FechaI := fmt.Sprintf("%q", FormacionAcademica["FechaInicio"])
+				FechaInicio := map[string]interface{}{
+					"TerceroId":            map[string]interface{}{"Id": FormacionAcademica["TerceroId"].(float64)},
+					"InfoComplementariaId": map[string]interface{}{"Id": 96},
+					"Dato":                 "{\n    \"value\": " + FechaI + " \n}",
+					"Activo":               true,
 				}
+				errFechaInicio := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/", "POST", &FechaInicioPost, FechaInicio)
 
-				errSoporte := request.SendJson("http://"+beego.AppConfig.String("FormacionAcademicaService")+"/soporte_formacion_academica", "POST", &soporte, soporteformacion)
-				if errSoporte == nil && fmt.Sprintf("%v", soporte["System"]) != "map[]" && soporte["Id"] != nil {
-					if soporte["Status"] != 400 {
-						//dato adicional 1
-						var dato1 map[string]interface{}
-						resultado = formacionPost
-						resultado["Documento"] = soporte["Documento"]
+				if errFechaInicio == nil && fmt.Sprintf("%v", FechaInicioPost["System"]) != "map[]" && FechaInicioPost["Id"] != nil {
+					if FechaInicioPost["Status"] != 400 {
+						respuesta["FechaInicio"] = FechaInicioPost
 
-						formaciondatoadicional := map[string]interface{}{
-							"Activo":             true,
-							"FormacionAcademica": formacionPost,
-							"TipoDatoAdicional":  1,
-							"Valor":              formacion["TituloTrabajoGrado"],
+						// POST Fecha fin (Info complementaria *97*)
+						var FechaFinPost map[string]interface{}
+						FechaF := fmt.Sprintf("%q", FormacionAcademica["FechaFinalizacion"])
+						FechaFin := map[string]interface{}{
+							"TerceroId":            map[string]interface{}{"Id": FormacionAcademica["TerceroId"].(float64)},
+							"InfoComplementariaId": map[string]interface{}{"Id": 97},
+							"Dato":                 "{\n    \"value\": " + FechaF + " \n}",
+							"Activo":               true,
 						}
+						errFechaFin := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/", "POST", &FechaFinPost, FechaFin)
+						if errFechaFin == nil && fmt.Sprintf("%v", FechaFinPost["System"]) != "map[]" && FechaFinPost["Id"] != nil {
+							if FechaFinPost["Status"] != 400 {
+								respuesta["FechaFinalizacion"] = FechaFinPost
 
-						errDato1 := request.SendJson("http://"+beego.AppConfig.String("FormacionAcademicaService")+"/dato_adicional_formacion_academica", "POST", &dato1, formaciondatoadicional)
-						if errDato1 == nil && fmt.Sprintf("%v", dato1["System"]) != "map[]" && dato1["Id"] != nil {
-							if dato1["Status"] != 400 {
-								//dato adicional 2
-								var dato2 map[string]interface{}
-								resultado["TituloTrabajoGrado"] = dato1["Valor"]
-								formaciondatoadicional2 := map[string]interface{}{
-									"Activo":             true,
-									"FormacionAcademica": formacionPost,
-									"TipoDatoAdicional":  2,
-									"Valor":              formacion["DescripcionTrabajoGrado"],
+								// POST Titulo del trabajo de grado (Info complementaria *98*)
+								var TituloPost map[string]interface{}
+								TituloTG := fmt.Sprintf("%q", FormacionAcademica["TituloTrabajoGrado"])
+								Titulo := map[string]interface{}{
+									"TerceroId":            map[string]interface{}{"Id": FormacionAcademica["TerceroId"].(float64)},
+									"InfoComplementariaId": map[string]interface{}{"Id": 98},
+									"Dato":                 "{\n    \"value\": " + TituloTG + " \n}",
+									"Activo":               true,
 								}
-								errDato2 := request.SendJson("http://"+beego.AppConfig.String("FormacionAcademicaService")+"/dato_adicional_formacion_academica", "POST", &dato2, formaciondatoadicional2)
-								if errDato2 == nil && fmt.Sprintf("%v", dato2["System"]) != "map[]" && dato2["Id"] != nil {
-									if dato2["Status"] != 400 {
+								errTitulo := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/", "POST", &TituloPost, Titulo)
+								if errTitulo == nil && fmt.Sprintf("%v", TituloPost["System"]) != "map[]" && TituloPost["Id"] != nil {
+									if TituloPost["Status"] != 400 {
+										respuesta["TituloTrabajoGrado"] = TituloPost
 
-										resultado["DescripcionTrabajoGrado"] = dato2["Valor"]
-										c.Data["json"] = resultado
+										// POST Descripcion trabajo de grado (Info complementaria *99*)
+										var DescripcionPost map[string]interface{}
+										DescripcionTG := fmt.Sprintf("%q", FormacionAcademica["DescripcionTrabajoGrado"])
+										Descripcion := map[string]interface{}{
+											"TerceroId":            map[string]interface{}{"Id": FormacionAcademica["TerceroId"].(float64)},
+											"InfoComplementariaId": map[string]interface{}{"Id": 99},
+											"Dato":                 "{\n    \"value\": " + DescripcionTG + " \n}",
+											"Activo":               true,
+										}
+										errDescripcion := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/", "POST", &DescripcionPost, Descripcion)
+										if errDescripcion == nil && fmt.Sprintf("%v", DescripcionPost["System"]) != "map[]" && DescripcionPost["Id"] != nil {
+											if DescripcionPost["Status"] != 400 {
+												respuesta["DescripcionTrabajoGrado"] = DescripcionPost
 
+												// POST Id documento (Info complementaria *100*)
+												var DocumentoPost map[string]interface{}
+												DocumentoId := fmt.Sprintf("%v", FormacionAcademica["DocumentoId"].(map[string]interface{})["IdDocumento"])
+												Documento := map[string]interface{}{
+													"TerceroId":            map[string]interface{}{"Id": FormacionAcademica["TerceroId"].(float64)},
+													"InfoComplementariaId": map[string]interface{}{"Id": 100},
+													"Dato":                 "{\n    \"value\": " + DocumentoId + " \n}",
+													"Activo":               true,
+												}
+												errDocumento := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/", "POST", &DocumentoPost, Documento)
+												if errDocumento == nil && fmt.Sprintf("%v", DocumentoPost["System"]) != "map[]" && DocumentoPost["Id"] != nil {
+													if DocumentoPost["Status"] != 400 {
+														respuesta["Documento"] = DocumentoPost
+														formatdata.JsonPrint(respuesta)
+
+														// POST Nit universidad (Info complementaria *101*)
+														var NitPost map[string]interface{}
+														NitU := fmt.Sprintf("%q", FormacionAcademica["NitUniversidad"])
+														Nit := map[string]interface{}{
+															"TerceroId":            map[string]interface{}{"Id": FormacionAcademica["TerceroId"].(float64)},
+															"InfoComplementariaId": map[string]interface{}{"Id": 101},
+															"Dato":                 "{\n    \"value\": " + NitU + " \n}",
+															"Activo":               true,
+														}
+														errNit := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/", "POST", &NitPost, Nit)
+														if errNit == nil && fmt.Sprintf("%v", NitPost["System"]) != "map[]" && NitPost["Id"] != nil {
+															if NitPost["Status"] != 400 {
+																respuesta["NitUniversidad"] = NitPost
+																c.Data["json"] = respuesta
+															} else {
+																var resultado2 map[string]interface{}
+																request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", ProgramaAcademicoPost["Id"]), "DELETE", &resultado2, nil)
+																request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", FechaInicioPost["Id"]), "DELETE", &resultado2, nil)
+																request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", FechaFinPost["Id"]), "DELETE", &resultado2, nil)
+																request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", TituloPost["Id"]), "DELETE", &resultado2, nil)
+																request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", DescripcionPost["Id"]), "DELETE", &resultado2, nil)
+																request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", DocumentoPost["Id"]), "DELETE", &resultado2, nil)
+																logs.Error(errNit)
+																c.Data["system"] = NitPost
+																c.Abort("400")
+															}
+														} else {
+															var resultado2 map[string]interface{}
+															request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", ProgramaAcademicoPost["Id"]), "DELETE", &resultado2, nil)
+															request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", FechaInicioPost["Id"]), "DELETE", &resultado2, nil)
+															request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", FechaFinPost["Id"]), "DELETE", &resultado2, nil)
+															request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", TituloPost["Id"]), "DELETE", &resultado2, nil)
+															request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", DescripcionPost["Id"]), "DELETE", &resultado2, nil)
+															request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", DocumentoPost["Id"]), "DELETE", &resultado2, nil)
+															logs.Error(errNit)
+															c.Data["system"] = NitPost
+															c.Abort("400")
+														}
+													} else {
+														var resultado2 map[string]interface{}
+														request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", ProgramaAcademicoPost["Id"]), "DELETE", &resultado2, nil)
+														request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", FechaInicioPost["Id"]), "DELETE", &resultado2, nil)
+														request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", FechaFinPost["Id"]), "DELETE", &resultado2, nil)
+														request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", TituloPost["Id"]), "DELETE", &resultado2, nil)
+														request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", DescripcionPost["Id"]), "DELETE", &resultado2, nil)
+														logs.Error(errDocumento)
+														c.Data["system"] = DocumentoPost
+														c.Abort("400")
+													}
+												} else {
+													var resultado2 map[string]interface{}
+													request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", ProgramaAcademicoPost["Id"]), "DELETE", &resultado2, nil)
+													request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", FechaInicioPost["Id"]), "DELETE", &resultado2, nil)
+													request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", FechaFinPost["Id"]), "DELETE", &resultado2, nil)
+													request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", TituloPost["Id"]), "DELETE", &resultado2, nil)
+													request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", DescripcionPost["Id"]), "DELETE", &resultado2, nil)
+													logs.Error(errDocumento)
+													c.Data["system"] = DocumentoPost
+													c.Abort("400")
+												}
+											} else {
+												var resultado2 map[string]interface{}
+												request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", ProgramaAcademicoPost["Id"]), "DELETE", &resultado2, nil)
+												request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", FechaInicioPost["Id"]), "DELETE", &resultado2, nil)
+												request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", FechaFinPost["Id"]), "DELETE", &resultado2, nil)
+												request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", TituloPost["Id"]), "DELETE", &resultado2, nil)
+												logs.Error(errDescripcion)
+												c.Data["system"] = DescripcionPost
+												c.Abort("400")
+											}
+										} else {
+											var resultado2 map[string]interface{}
+											request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", ProgramaAcademicoPost["Id"]), "DELETE", &resultado2, nil)
+											request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", FechaInicioPost["Id"]), "DELETE", &resultado2, nil)
+											request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", FechaFinPost["Id"]), "DELETE", &resultado2, nil)
+											request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", TituloPost["Id"]), "DELETE", &resultado2, nil)
+											logs.Error(errDescripcion)
+											c.Data["system"] = DescripcionPost
+											c.Abort("400")
+										}
 									} else {
-										//resultado
-										var resultado4 map[string]interface{}
-										request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("FormacionAcademicaService")+"/dato_adicional_formacion_academica/%.f", dato1["Id"]), "DELETE", &resultado4, nil)
-										request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("FormacionAcademicaService")+"/soporte_formacion_academica/%.f", soporte["Id"]), "DELETE", &resultado4, nil)
-										request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("FormacionAcademicaService")+"/formacion_academica/%.f", formacionPost["Id"]), "DELETE", &resultado4, nil)
-										logs.Error(errDato2)
-										//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
-										c.Data["system"] = dato2
+										var resultado2 map[string]interface{}
+										request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", ProgramaAcademicoPost["Id"]), "DELETE", &resultado2, nil)
+										request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", FechaInicioPost["Id"]), "DELETE", &resultado2, nil)
+										request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", FechaFinPost["Id"]), "DELETE", &resultado2, nil)
+										logs.Error(errTitulo)
+										c.Data["system"] = TituloPost
 										c.Abort("400")
 									}
 								} else {
-									logs.Error(errDato2)
-									//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-									c.Data["system"] = dato2
+									var resultado2 map[string]interface{}
+									request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", ProgramaAcademicoPost["Id"]), "DELETE", &resultado2, nil)
+									request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", FechaInicioPost["Id"]), "DELETE", &resultado2, nil)
+									request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", FechaFinPost["Id"]), "DELETE", &resultado2, nil)
+									logs.Error(errTitulo)
+									c.Data["system"] = TituloPost
 									c.Abort("400")
 								}
 							} else {
-								//resultado
-								var resultado3 map[string]interface{}
-								request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("FormacionAcademicaService")+"/soporte_formacion_academica/%.f", soporte["Id"]), "DELETE", &resultado3, nil)
-								request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("FormacionAcademicaService")+"/formacion_academica/%.f", formacionPost["Id"]), "DELETE", &resultado3, nil)
-								logs.Error(errDato1)
-								//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
-								c.Data["system"] = dato1
+								var resultado2 map[string]interface{}
+								request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", ProgramaAcademicoPost["Id"]), "DELETE", &resultado2, nil)
+								request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", FechaInicioPost["Id"]), "DELETE", &resultado2, nil)
+								logs.Error(errFechaFin)
+								c.Data["system"] = FechaFinPost
 								c.Abort("400")
 							}
 						} else {
-							logs.Error(errDato1)
-							//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-							c.Data["system"] = dato1
+							var resultado2 map[string]interface{}
+							request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", ProgramaAcademicoPost["Id"]), "DELETE", &resultado2, nil)
+							request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", FechaInicioPost["Id"]), "DELETE", &resultado2, nil)
+							logs.Error(errFechaFin)
+							c.Data["system"] = FechaFinPost
 							c.Abort("400")
 						}
 					} else {
-						//resultado solicitud de descuento
 						var resultado2 map[string]interface{}
-						request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("FormacionAcademicaService")+"/formacion_academica/%.f", formacionPost["Id"]), "DELETE", &resultado2, nil)
-						logs.Error(errSoporte)
-						//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
-						c.Data["system"] = soporte
+						request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", ProgramaAcademicoPost["Id"]), "DELETE", &resultado2, nil)
+						logs.Error(errFechaInicio)
+						c.Data["system"] = FechaInicioPost
 						c.Abort("400")
 					}
 				} else {
-					logs.Error(errSoporte)
-					//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-					c.Data["system"] = soporte
+					var resultado2 map[string]interface{}
+					request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%v", ProgramaAcademicoPost["Id"]), "DELETE", &resultado2, nil)
+					logs.Error(errFechaInicio)
+					c.Data["system"] = FechaInicioPost
 					c.Abort("400")
 				}
 			} else {
-				logs.Error(errFormacion)
-				//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
-				c.Data["system"] = formacionPost
+				logs.Error(errPrograma)
+				c.Data["system"] = ProgramaAcademicoPost
 				c.Abort("400")
 			}
 		} else {
-			logs.Error(errFormacion)
-			//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-			c.Data["system"] = formacionPost
+			logs.Error(errPrograma)
+			c.Data["system"] = ProgramaAcademicoPost
 			c.Abort("400")
 		}
+
 	} else {
 		logs.Error(err)
-		//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
-		c.Data["system"] = err
+		c.Data["system"] = FormacionAcademica
 		c.Abort("400")
 	}
 	c.ServeJSON()
