@@ -1638,6 +1638,98 @@
                 }
             }
         },
+        "/paquete_solicitud/": {
+            "post": {
+                "tags": [
+                    "paquete_solicitud"
+                ],
+                "description": "Agregar Solicitud docente",
+                "operationId": "PaqueteSolicitudController.PostPaqueteSolicitud",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar PaqueteSolicitud content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
+        "/paquete_solicitud/{id}": {
+            "put": {
+                "tags": [
+                    "paquete_solicitud"
+                ],
+                "description": "Modificar solicitud docente",
+                "operationId": "PaqueteSolicitudController.PutPaqueteSolicitud",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "el id de la solicitud",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Modificar PaqueteSolicitud content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
+        "/persona/actualizar_complementarios": {
+            "put": {
+                "tags": [
+                    "persona"
+                ],
+                "description": "ActualizarDatosComplementarios",
+                "operationId": "PersonaController.ActualizarDatosComplementarios",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Actualizar los datos complementarios content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
         "/persona/consultar_complementarios/{tercero_id}": {
             "get": {
                 "tags": [
@@ -2528,6 +2620,10 @@
         {
             "name": "drive",
             "description": "DriveController ...\n"
+        },
+        {
+            "name": "paquete_solicitud",
+            "description": "PaqueteSolicitudController ...\n"
         },
         {
             "name": "solicitud_produccion",
