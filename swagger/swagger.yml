@@ -1089,6 +1089,17 @@ paths:
           description: '{int}'
         "400":
           description: the request contains incorrect syntax
+  /paquete_solicitud/{id_paquete}:
+    get:
+      tags:
+      - paquete_solicitud
+      description: consultar todas las solicitudes académicas
+      operationId: PaqueteSolicitudController.GetAllSolicitudPaquete
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
   /paquete_solicitud/{id}:
     put:
       tags:

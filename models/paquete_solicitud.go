@@ -81,3 +81,20 @@ func PutPaqueteSolicitud(PaqueteSolicitud map[string]interface{}, idStr string) 
 	fmt.Println(date)
 	return resultado, nil
 }
+
+// GetAllSolicitudPaquete is ...
+func GetAllSolicitudPaquete(idPaquete string) (result []interface{}, outputError interface{}) {
+	var paqueteSolicitudes map[string]interface{}
+	var resultado []interface{}
+	errPaquete := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/paquete_solicitud/?query=PaqueteId:"+idPaquete, &paqueteSolicitudes)
+	if errPaquete == nil && fmt.Sprintf("%v", paqueteSolicitudes["System"]) != "map[]" {
+		if paqueteSolicitudes["Status"] != 404 && paqueteSolicitudes["Data"] != nil {
+			resultado = paqueteSolicitudes["Data"].([]interface{})
+			return resultado, nil
+		}
+	} else {
+		logs.Error(paqueteSolicitudes)
+		return nil, errPaquete
+	}
+	return resultado, nil
+}
