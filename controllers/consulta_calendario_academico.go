@@ -45,14 +45,14 @@ func (c *ConsultaCalendarioAcademicoController) GetAll() {
 	if errCalendario == nil && fmt.Sprintf("%v", calendarios[0]["Nombre"]) != "map[]" {
 		for _, calendario := range calendarios {
 			periodoId := fmt.Sprintf("%.f", calendario["PeriodoId"].(float64))
-			errPeriodo := request.GetJson("http://"+beego.AppConfig.String("CoreService")+"periodo/"+periodoId, &periodo)
+			errPeriodo := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"periodo/"+periodoId, &periodo)
 			if errPeriodo == nil {
 				resultado := map[string]interface{}{
 					"Id":      calendario["Id"].(float64),
 					"Nombre":  calendario["Nombre"].(string),
 					"Nivel":   calendario["Nivel"].(float64),
 					"Activo":  calendario["Activo"].(bool),
-					"Periodo": periodo["Nombre"].(string),
+					"Periodo": periodo["Data"].(map[string]interface{})["Nombre"].(string),
 				}
 				resultados = append(resultados, resultado)
 			} else {
@@ -78,7 +78,7 @@ func (c *ConsultaCalendarioAcademicoController) GetAll() {
 // @Title GetOnePorId
 // @Description get ConsultaCalendarioAcademico by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.ConsultaCalendarioAcademico
+// @Success 200 {}
 // @Failure 403 :id is empty
 // @router /:id [get]
 func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
@@ -98,6 +98,8 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 	var procesoResultado []map[string]interface{}
 	var actividad map[string]interface{}
 	var procesoAdd map[string]interface{}
+	var responsableTipoP map[string]interface{}
+	var responsableList []map[string]interface{}
 	idStr := c.Ctx.Input.Param(":id")
 
 	if resultado["Type"] != "error" {
@@ -163,6 +165,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 							"Enlace":     documentos["Enlace"],
 							"Resolucion": metadato.Resolucion,
 							"Anno":       metadato.Anno,
+							"Nombre":     documentos["Nombre"],
 						}
 					} else {
 
@@ -218,7 +221,8 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 							for _, proceso := range procesos {
 
 								// consultar responsables
-								var responsableString = ""
+								// var responsableString = ""
+								responsableTipoP = nil
 								for _, responsable := range procesos {
 
 									calendarioResponsableID := fmt.Sprintf("%.f", responsable["Id"].(float64))
@@ -227,12 +231,18 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 
 									if errresponsable == nil {
 										if responsables != nil {
+											responsableList = nil
 											for _, listRresponsable := range responsables {
 												var responsablesID map[string]interface{}
 												responsablesID = listRresponsable["TipoPublicoId"].(map[string]interface{})
-												responsableID := fmt.Sprintf(responsablesID["Nombre"].(string))
+												// responsableID := fmt.Sprintf(responsablesID["Nombre"].(string))
+												// responsableString = responsableID + ", " + responsableString
 
-												responsableString = responsableID + ", " + responsableString
+												responsableTipoP = map[string]interface{}{
+													"responsableID": responsablesID["Id"].(float64),
+													"Nombre":        fmt.Sprintf(responsablesID["Nombre"].(string)),
+												}
+												responsableList = append(responsableList, responsableTipoP)
 											}
 										} else {
 											// c.Data["json"] = responsables
@@ -246,9 +256,9 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 									}
 								}
 
-								if responsableString != "" {
-									responsableString = responsableString[:len(responsableString)-2]
-								}
+								// if responsableString != "" {
+								// 	responsableString = responsableString[:len(responsableString)-2]
+								// }
 
 								actividad = nil
 								actividad = map[string]interface{}{
@@ -260,7 +270,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 									"Activo":        proceso["Activo"].(bool),
 									"TipoEventoId":  proceso["TipoEventoId"].(map[string]interface{}),
 									"EventoPadreId": proceso["EventoPadreId"],
-									"Responsable":   responsableString,
+									"Responsable":   responsableList,
 								}
 
 								actividadResultado = append(actividadResultado, actividad)
@@ -288,10 +298,13 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 						c.Data["json"] = alerta
 					}
 				}
-
+				calendarioAux := calendarios[0]["TipoEventoId"].(map[string]interface{})["CalendarioID"].(map[string]interface{})
 				resultado = map[string]interface{}{
 					"Id":              idStr,
-					"Nombre":          calendarios[0]["TipoEventoId"].(map[string]interface{})["CalendarioID"].(map[string]interface{})["Nombre"].(string),
+					"Nombre":          calendarioAux["Nombre"].(string),
+					"PeriodoId":       calendarioAux["PeriodoId"].(float64),
+					"Activo":          calendarioAux["Activo"].(bool),
+					"Nivel":           calendarioAux["Nivel"].(float64),
 					"ListaCalendario": versionCalendarioResultado,
 					"resolucion":      resolucion,
 					"proceso":         procesoResultado,
