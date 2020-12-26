@@ -50,7 +50,6 @@ func (c *SolicitudProduccionController) PostAlertSolicitudProduccion() {
 		ProduccionAcademica = SolicitudProduccion["ProduccionAcademica"].(map[string]interface{})
 		var producciones []map[string]interface{}
 		errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idTercero, &producciones)
-		//errProduccion2 := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/puntaje_subtipo_produccion/?query=SubTipoProduccionId:"+idTercero, &producciones)
 		if errProduccion == nil && fmt.Sprintf("%v", producciones[0]["System"]) != "map[]" {
 			if producciones[0]["Status"] != 404 && producciones[0]["Id"] != nil {
 				var coincidences int
@@ -131,178 +130,101 @@ func (c *SolicitudProduccionController) PostAlertSolicitudProduccion() {
 // @router /:id [put]
 func (c *SolicitudProduccionController) PutResultadoSolicitud() {
 	idStr := c.Ctx.Input.Param(":id")
-	//idSubtipoProduccion := c.Ctx.Input.Param(":ProduccionAcademica:SubTipoProduccionAcademicaId:Id")
 	fmt.Println("Id es: " + idStr)
-
-	//resultado := make(map[string]interface{})
 	var SolicitudProduccion map[string]interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &SolicitudProduccion); err == nil {
-		//formatdata.JsonPrint(SolicitudProduccion["ProduccionAcademica"].(map[string]interface{}))
 		produccionAcademica := SolicitudProduccion["ProduccionAcademica"].(map[string]interface{})
-
 		subTipoProduccionId := produccionAcademica["SubtipoProduccionId"].(map[string]interface{})
-
 		idSubtipo := subTipoProduccionId["Id"]
-
 		idSubtipoStr := fmt.Sprintf("%v", idSubtipo)
-
 		Metadatos := produccionAcademica["Metadatos"].([]interface{})
-		//type Metadato struct{
-		//	MetadatoSubtipoProduccionId map[string]interface{}
-		//
-		//}
-		//var metadato Metadato
-
-		fmt.Println("Id es1: " + idStr)
-		//formatdata.JsonPrint(Metadatos)
-
-		var puntaje int
-
-		fmt.Println("Id es4: " + idStr)
-		for _, metaDatotemp := range Metadatos{
+		var autores float64
+		autores = 0
+		var valor int
+		valor = 1
+		for _, metaDatotemp := range Metadatos {
 			metaDato := metaDatotemp.(map[string]interface{})
-			//fmt.Println(meta)
 			metaDatoSubtipo := metaDato["MetadatoSubtipoProduccionId"].(map[string]interface{})
 			tipoMetadatoId := metaDatoSubtipo["TipoMetadatoId"].(map[string]interface{})
 			idTipoMetadato := tipoMetadatoId["Id"]
-			idTipoMetadatoStr := fmt.Sprintf("%v",idTipoMetadato)
-			idSubtipoInt,_ := strconv.Atoi(idTipoMetadatoStr)
-			if(idSubtipoInt==21){
-				numTipoMetadatoStr := fmt.Sprintf("%v",metaDato["Valor"])
-				puntaje,_ = strconv.Atoi(numTipoMetadatoStr)
-				
+			idTipoMetadatoStr := fmt.Sprintf("%v", idTipoMetadato)
+			idSubtipoInt, _ := strconv.Atoi(idTipoMetadatoStr)
+			if idSubtipoInt == 38 {
+				numTipoMetadatoStr := fmt.Sprintf("%v", metaDato["Valor"])
+				valor, _ = strconv.Atoi(numTipoMetadatoStr)
+			} else if idSubtipoInt == 40 {
+				numTipoMetadatoStr := fmt.Sprintf("%v", metaDato["Valor"])
+				valor, _ = strconv.Atoi(numTipoMetadatoStr)
 
+			} else if idSubtipoInt == 43 {
+				numTipoMetadatoStr := fmt.Sprintf("%v", metaDato["Valor"])
+				valor, _ = strconv.Atoi(numTipoMetadatoStr)
+			} else if idSubtipoInt == 40 {
+				numTipoMetadatoStr := fmt.Sprintf("%v", metaDato["Valor"])
+				valor, _ = strconv.Atoi(numTipoMetadatoStr)
 			}
-
+			if idSubtipoInt == 21 {
+				numTipoMetadatoStr := fmt.Sprintf("%v", metaDato["Valor"])
+				autores, _ = strconv.ParseFloat(numTipoMetadatoStr,64	)
+			}
 		}
-		fmt.Println(puntaje)
-
-		//
-		//tipoMetadatoId := metaDatoSubtipo["TipoMetadatoId"].(map[string]interface{})
-		//
-		//idTipoMetadato := tipoMetadatoId["Id"]
-
-		//fmt.Println(idTipoMetadato)
-
-
-		//idSubtipoInt ,_ := strconv.Atoi(idSubtipoStr)
+		var resultado float64
 		var puntajes []map[string]interface{}
 		errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/puntaje_subtipo_produccion/?query=SubTipoProduccionId:"+idSubtipoStr, &puntajes)
 		if errProduccion == nil && fmt.Sprintf("%v", puntajes[0]["System"]) != "map[]" {
 			if puntajes[0]["Status"] != 404 && puntajes[0]["Id"] != nil {
-				//formatdata.JsonPrint(puntajes)
-				for _, puntaje := range puntajes {
-					type Caracteristica struct {
-						Puntaje   string
-						Categoria string
-					}
-					var caracteristica Caracteristica
-					json.Unmarshal([]byte(fmt.Sprintf("%v", puntaje["Caracteristicas"])), &caracteristica)
 
-					//type Categorias struct { Categoria string}
-					//var categoria Categorias
-					//json.Unmarshal([]byte(fmt.Sprintf("%v", puntaje["Caracteristicas"])), &categoria)
-					formatdata.JsonPrint(caracteristica)
-					//formatdata.JsonPrint(categoria)
+				Puntajes := puntajes[valor-1]
 
+				type Caracteristica struct {
+					Puntaje string
 				}
+				var caracteristica Caracteristica
+				json.Unmarshal([]byte(fmt.Sprintf("%v", Puntajes["Caracteristicas"])), &caracteristica)
+				puntajeStr := caracteristica.Puntaje
+				puntajeInt, _ := strconv.ParseFloat(puntajeStr,64)
+				//var resultadojson map[string]interface{}
+				if autores <= 3 && autores > 0 {
+					resultado = puntajeInt
+					resultadoStr := strconv.FormatFloat(resultado,'f',-1, 64)
+					SolicitudProduccion["Resultado"] = `{"Puntaje":` + resultadoStr + `}`
 
+					//formatdata.JsonPrint(SolicitudProduccion)
+				} else if autores > 3 && autores <= 5 {
+					resultado = (puntajeInt / 2)
+					resultadoStr := strconv.FormatFloat(resultado,'f',-1, 64)
+					SolicitudProduccion["Resultado"] = `{"Puntaje":` + resultadoStr + `}`
+				} else if autores > 5 {
+					resultado = (puntajeInt / autores)
+					resultadoStr := strconv.FormatFloat(resultado,'f',-1, 64)
+					SolicitudProduccion["Resultado"] = `{"Puntaje":` + resultadoStr + `}`
+				} else {
+					resultado = puntajeInt
+					resultadoStr := strconv.FormatFloat(resultado,'f', -1,64)
+					SolicitudProduccion["Resultado"] = `{"Puntaje":` + resultadoStr + `}`
+				}
+				c.Data["json"] = SolicitudProduccion
+
+			} else {
+				if puntajes[0]["Message"] == "Not found resource" {
+					c.Data["json"] = nil
+				} else {
+					logs.Error(puntajes)
+					c.Data["system"] = errProduccion
+					c.Abort("404")
+				}
 			}
-
+		} else {
+			logs.Error(puntajes)
+			c.Data["system"] = errProduccion
+			c.Abort("404")
 		}
 
+	} else {
+		logs.Error(err)
+		c.Data["system"] = err
+		c.Abort("400")
 	}
-	fmt.Println("hola")
-
-	//var solicitudes []map[string]interface{}
-	//errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/solicitud/"+idStr, &solicitudes)
-	//if errSolicitud == nil && fmt.Sprintf("%v", solicitudes[0]["System"]) != "map[]" {
-	//	if solicitudes[0]["Status"] != 404 && solicitudes[0]["Id"] != nil {
-	//		for _, solicitud := range solicitudes {
-	//			type Reference struct{ Id int }
-	//			var reference Reference
-	//			json.Unmarshal([]byte(fmt.Sprintf("%v", solicitud["Referencia"])), &reference)
-	//			fmt.Println(reference)
-	//		}
-	//	}
-	//}
-
-	//resultado experiencia
-
-	//	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &SolicitudProduccion); err == nil {
-	//
-	//	var ProduccionAcademica map[string]interface{}
-	//	ProduccionAcademica = SolicitudProduccion["ProduccionAcademica"].(map[string]interface{})
-	//	var producciones []map[string]interface{}
-	//	errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idStr, &producciones)
-	//	//errProduccion2 := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/puntaje_subtipo_produccion/?query=SubTipoProduccionId:"+idTercero, &producciones)
-	//	if errProduccion == nil && fmt.Sprintf("%v", producciones[0]["System"]) != "map[]" {
-	//		//if producciones[0]["Status"] != 404 && producciones[0]["Id"] != nil {
-	//		//	var coincidences int
-	//		//	var isbnCoincidences int
-	//		//	var numAnnualProductions int
-	//		//	var acumulatePoints int
-	//		//	var isAceptDuration bool
-	//		//	isAceptDuration = true
-	//		//	for _, produccion := range producciones {
-	//		//		if idTipoProduccion == 1 {
-	//		//			checkTitle(ProduccionAcademica["ProduccionAcademica"].(map[string]interface{}), produccion)
-	//		//		}
-	//		//		if idTipoProduccion != 1 {
-	//		//			distance := checkTitle(ProduccionAcademica["ProduccionAcademica"].(map[string]interface{}), produccion)
-	//		//			if distance < 6 {
-	//		//				coincidences++
-	//		//			}
-	//		//		}
-	//		//		if idTipoProduccion == 2 {
-	//		//			acumulatePoints += checkGradePoints(produccion, idTipoProduccion, idTercero)
-	//		//		}
-	//		//		if idTipoProduccion == 6 || idTipoProduccion == 7 || idTipoProduccion == 8 {
-	//		//			if checkISBN(SolicitudProduccion["ProduccionAcademica"].(map[string]interface{}), produccion) {
-	//		//				isbnCoincidences++
-	//		//			}
-	//		//		}
-	//		//		if idTipoProduccion >= 13 && idTipoProduccion != 18 {
-	//		//			if checkAnnualProductionNumber(ProduccionAcademica["ProduccionAcademica"].(map[string]interface{}), produccion, idTipoProduccion) {
-	//		//				numAnnualProductions++
-	//		//			}
-	//		//		}
-	//		//	}
-	//		//	if idTipoProduccion == 18 {
-	//		//		isAceptDuration = checkDurationPostDoctorado(SolicitudProduccion["ProduccionAcademica"].(map[string]interface{}))
-	//		//	}
-	//		//	coincidences--
-	//		//	numAnnualProductions--
-	//		//	isbnCoincidences--
-	//		//	generateAlerts(SolicitudProduccion, coincidences, numAnnualProductions, acumulatePoints, isbnCoincidences, isAceptDuration, idTipoProduccion)
-	//		//	idStr := fmt.Sprintf("%v", SolicitudProduccion["Id"])
-	//			if resultadoPutSolicitudDocente, err := models.PutSolicitudDocente(SolicitudProduccion, idStr); err == nil {
-	//				resultado = resultadoPutSolicitudDocente
-	//				c.Data["json"] = resultado
-	//			} else {
-	//				logs.Error(err)
-	//				c.Data["system"] = resultado
-	//				c.Abort("400")
-	//			}
-	//		} else {
-	//			if producciones[0]["Message"] == "Not found resource" {
-	//				c.Data["json"] = nil
-	//			} else {
-	//				logs.Error(producciones)
-	//				c.Data["system"] = errProduccion
-	//				c.Abort("404")
-	//			}
-	//		}
-	//	} else {
-	//		logs.Error(producciones)
-	//		c.Data["system"] = errProduccion
-	//		c.Abort("404")
-	//	}
-	//} else {
-	//	logs.Error(err)
-	//	c.Data["system"] = err
-	//	c.Abort("400")
-	//}
 	c.ServeJSON()
 }
 
