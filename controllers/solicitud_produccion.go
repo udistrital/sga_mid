@@ -122,7 +122,7 @@ func (c *SolicitudProduccionController) PutResultadoSolicitud() {
 			} else if idSubtipoInt == 43 {
 				numTipoMetadatoStr := fmt.Sprintf("%v", metaDato["Valor"])
 				valor, _ = strconv.Atoi(numTipoMetadatoStr)
-			} else if idSubtipoInt == 40 {
+			} else if idSubtipoInt == 44 {
 				numTipoMetadatoStr := fmt.Sprintf("%v", metaDato["Valor"])
 				valor, _ = strconv.Atoi(numTipoMetadatoStr)
 			}
