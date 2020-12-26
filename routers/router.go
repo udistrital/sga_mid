@@ -126,11 +126,6 @@ func init() {
 				&controllers.DerechosPecuniariosController{},
 			),
 		),
-		beego.NSNamespace("/drive",
-			beego.NSInclude(
-				&controllers.DriveController{},
-			),
-		),
 		beego.NSNamespace("/paquete_solicitud",
 			beego.NSInclude(
 				&controllers.PaqueteSolicitudController{},
