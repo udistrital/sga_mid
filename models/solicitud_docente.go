@@ -75,6 +75,7 @@ func PutSolicitudDocente(SolicitudDocente map[string]interface{}, idStr string) 
 	var resultado map[string]interface{}
 	SolicitudDocentePut := make(map[string]interface{})
 	SolicitudDocentePut["Solicitud"] = map[string]interface{}{
+		"Resultado":             SolicitudDocente["Resultado"],
 		"Referencia":            SolicitudDocente["Referencia"],
 		"FechaRadicacion":       date,
 		"EstadoTipoSolicitudId": SolicitudDocente["EstadoTipoSolicitudId"],

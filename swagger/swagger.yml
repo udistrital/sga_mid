@@ -1620,6 +1620,30 @@ paths:
           description: '{}'
         "404":
           description: not found resource
+  /solicitud_produccion/{id}:
+    put:
+      tags:
+      - solicitud_produccion
+      description: Modificar resultaado solicitud docente
+      operationId: SolicitudProduccionController.PutResultadoSolicitud
+      parameters:
+      - in: path
+        name: id
+        description: el id de la produccion
+        required: true
+        type: integer
+        format: int64
+      - in: body
+        name: body
+        description: body Modificar resultado en produccionAcaemica content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "400":
+          description: the request contains incorrect syntax
   /solicitud_produccion/{tercero}/{tipo_produccion}:
     post:
       tags:

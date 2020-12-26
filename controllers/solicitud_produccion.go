@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
@@ -127,7 +128,7 @@ func (c *SolicitudProduccionController) PutResultadoSolicitud() {
 			}
 			if idSubtipoInt == 21 {
 				numTipoMetadatoStr := fmt.Sprintf("%v", metaDato["Valor"])
-				autores, _ = strconv.ParseFloat(numTipoMetadatoStr,64	)
+				autores, _ = strconv.ParseFloat(numTipoMetadatoStr, 64)
 			}
 		}
 		var resultado float64
@@ -144,27 +145,23 @@ func (c *SolicitudProduccionController) PutResultadoSolicitud() {
 				var caracteristica Caracteristica
 				json.Unmarshal([]byte(fmt.Sprintf("%v", Puntajes["Caracteristicas"])), &caracteristica)
 				puntajeStr := caracteristica.Puntaje
-				puntajeInt, _ := strconv.ParseFloat(puntajeStr,64)
-				//var resultadojson map[string]interface{}
+				puntajeStrF := strings.ReplaceAll(puntajeStr, ",", ".")
+				puntajeInt, _ := strconv.ParseFloat(puntajeStrF, 64)
+
 				if autores <= 3 && autores > 0 {
 					resultado = puntajeInt
-					resultadoStr := strconv.FormatFloat(resultado,'f',-1, 64)
+					resultadoStr := strconv.FormatFloat(resultado, 'f', -1, 64)
 					SolicitudProduccion["Resultado"] = `{"Puntaje":` + resultadoStr + `}`
-
-					//formatdata.JsonPrint(SolicitudProduccion)
 				} else if autores > 3 && autores <= 5 {
 					resultado = (puntajeInt / 2)
-					resultadoStr := strconv.FormatFloat(resultado,'f',-1, 64)
+					resultadoStr := strconv.FormatFloat(resultado, 'f', -1, 64)
 					SolicitudProduccion["Resultado"] = `{"Puntaje":` + resultadoStr + `}`
 				} else if autores > 5 {
 					resultado = (puntajeInt / autores)
-					resultadoStr := strconv.FormatFloat(resultado,'f',-1, 64)
-					SolicitudProduccion["Resultado"] = `{"Puntaje":` + resultadoStr + `}`
-				} else {
-					resultado = puntajeInt
-					resultadoStr := strconv.FormatFloat(resultado,'f', -1,64)
+					resultadoStr := strconv.FormatFloat(resultado, 'f', -1, 64)
 					SolicitudProduccion["Resultado"] = `{"Puntaje":` + resultadoStr + `}`
 				}
+
 				c.Data["json"] = SolicitudProduccion
 
 			} else {
