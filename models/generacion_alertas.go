@@ -141,11 +141,7 @@ func checkRageGrade(ProduccionAcademicaNew map[string]interface{}, ProduccionAca
 	if idTipoProduccionRegister == idTipoProduccion {
 		idTipoProduccionNewSrt := fmt.Sprintf("%v", ProduccionAcademicaNew["SubtipoProduccionId"].(map[string]interface{})["Id"])
 		idTipoProduccionRegisterSrt := fmt.Sprintf("%v", ProduccionAcademicaRegister["SubtipoProduccionId"].(map[string]interface{})["Id"])
-		fmt.Println("------------------------------------------------------------")
-		fmt.Println(idTipoProduccionNewSrt)
-		fmt.Println(idTipoProduccionRegisterSrt)
 		if idTipoProduccionRegisterSrt > idTipoProduccionNewSrt {
-			fmt.Println("paso")
 			return false
 		}
 	}
