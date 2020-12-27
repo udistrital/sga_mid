@@ -115,10 +115,6 @@ func (c *SolicitudProduccionController) PutResultadoSolicitud() {
 			if idSubtipoInt == 38 {
 				numTipoMetadatoStr := fmt.Sprintf("%v", metaDato["Valor"])
 				valor, _ = strconv.Atoi(numTipoMetadatoStr)
-			} else if idSubtipoInt == 40 {
-				numTipoMetadatoStr := fmt.Sprintf("%v", metaDato["Valor"])
-				valor, _ = strconv.Atoi(numTipoMetadatoStr)
-
 			} else if idSubtipoInt == 43 {
 				numTipoMetadatoStr := fmt.Sprintf("%v", metaDato["Valor"])
 				valor, _ = strconv.Atoi(numTipoMetadatoStr)
@@ -158,6 +154,10 @@ func (c *SolicitudProduccionController) PutResultadoSolicitud() {
 					SolicitudProduccion["Resultado"] = `{"Puntaje":` + resultadoStr + `}`
 				} else if autores > 5 {
 					resultado = (puntajeInt / autores)
+					resultadoStr := strconv.FormatFloat(resultado, 'f', -1, 64)
+					SolicitudProduccion["Resultado"] = `{"Puntaje":` + resultadoStr + `}`
+				} else {
+					resultado = puntajeInt
 					resultadoStr := strconv.FormatFloat(resultado, 'f', -1, 64)
 					SolicitudProduccion["Resultado"] = `{"Puntaje":` + resultadoStr + `}`
 				}
