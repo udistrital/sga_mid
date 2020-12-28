@@ -113,7 +113,7 @@ func (c *FormacionController) PostFormacionAcademica() {
 
 												// POST Id documento (Info complementaria *100*)
 												var DocumentoPost map[string]interface{}
-												DocumentoId := fmt.Sprintf("%v", FormacionAcademica["DocumentoId"].(map[string]interface{})["IdDocumento"])
+												DocumentoId := fmt.Sprintf("%v", FormacionAcademica["DocumentoId"])
 												Documento := map[string]interface{}{
 													"TerceroId":            map[string]interface{}{"Id": FormacionAcademica["TerceroId"].(float64)},
 													"InfoComplementariaId": map[string]interface{}{"Id": 100},

@@ -691,23 +691,6 @@ paths:
           description: '{}'
         "404":
           description: not found resource
-  /drive/{produccion_id}/{metadato_id}/{meta_produccion_id}:
-    post:
-      tags:
-      - drive
-      description: Agregar archivo a drive
-      operationId: DriveController.PostFileDrive
-      parameters:
-      - in: formData
-        name: archivo
-        description: body for Acta_recibido content
-        required: true
-        type: file
-      responses:
-        "201":
-          description: '{int}'
-        "400":
-          description: the request contains incorrect syntax
   /evento/:
     post:
       tags:
@@ -1116,6 +1099,48 @@ paths:
           description: '{}'
         "403":
           description: body is empty
+  /paquete_solicitud/:
+    post:
+      tags:
+      - paquete_solicitud
+      description: Agregar Solicitud docente
+      operationId: PaqueteSolicitudController.PostPaqueteSolicitud
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar PaqueteSolicitud content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
+  /paquete_solicitud/{id}:
+    put:
+      tags:
+      - paquete_solicitud
+      description: Modificar solicitud docente
+      operationId: PaqueteSolicitudController.PutPaqueteSolicitud
+      parameters:
+      - in: path
+        name: id
+        description: el id de la solicitud
+        required: true
+        type: integer
+        format: int64
+      - in: body
+        name: body
+        description: body Modificar PaqueteSolicitud content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "400":
+          description: the request contains incorrect syntax
   /persona/actualizar_complementarios:
     put:
       tags:
@@ -1730,9 +1755,9 @@ tags:
 - name: consulta_calendario_academico
   description: |
     ConsultaCalendarioAcademicoController operations for Consulta_calendario_academico
-- name: drive
+- name: paquete_solicitud
   description: |
-    DriveController ...
+    PaqueteSolicitudController ...
 - name: solicitud_produccion
   description: |
     SolicitudProduccionController ...
