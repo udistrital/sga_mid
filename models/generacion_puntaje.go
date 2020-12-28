@@ -103,24 +103,28 @@ func findGradePoints(SolicitudProduccion map[string]interface{}, idSubtipoInt in
 	fmt.Println(numEspecializacion)
 	if idSubtipoInt == 4 {
 		if numEspecializacion >= 2 {
-			valorNum = 0
+			//editar este valor a -1 para ajustar cuentas
+			valorNum = 2
 		} else if numEspecializacion == 1 {
 			valorNum = 2
 		} else if numEspecializacion == 0 {
 			valorNum = 1
 		}
 	} else if idSubtipoInt == 5 {
-		if numMaestria == 0 && numEspecializacion == 0 {
+		if numMaestria == 0 && numEspecializacion <= 1 {
 			valorNum = 1
-		} else if numMaestria == 0 && numEspecializacion == 2 {
+		} else if numMaestria == 0 && numEspecializacion >= 2 {
+			//editar if numEspecializacion >=2 a ==2
 			valorNum = 2
-		} else if numMaestria == 1 && numEspecializacion == 0 {
+		} else if numMaestria >= 1 && numEspecializacion == 0 {
+			// editar if numMaestria >=1 a ==1
 			valorNum = 3
 		} else {
-			valorNum = 0
+			//cambiar a 0 el valornum
+			valorNum = 3
 		}
 	} else if idSubtipoInt == 6 {
-		if numMaestria == 1 {
+		if numMaestria >= 1 {
 			valorNum = 1
 		} else if numMaestria == 0 {
 			valorNum = 2
