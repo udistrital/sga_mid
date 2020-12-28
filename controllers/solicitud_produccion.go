@@ -8,7 +8,6 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
-	"github.com/udistrital/utils_oas/request"
 )
 
 // SolicitudProduccionController ...
@@ -41,38 +40,20 @@ func (c *SolicitudProduccionController) PostAlertSolicitudProduccion() {
 	fmt.Println("Id Tercero: ", idTipoProduccionSrt)
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &SolicitudProduccion); err == nil {
-		var producciones []map[string]interface{}
-		errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idTercero, &producciones)
-		if errProduccion == nil && fmt.Sprintf("%v", producciones[0]["System"]) != "map[]" {
-			if producciones[0]["Status"] != 404 && producciones[0]["Id"] != nil {
-				if SolicitudProduccionPut, errAlert := models.CheckCriteriaData(SolicitudProduccion, producciones, idTipoProduccion, idTercero); errAlert == nil {
-					idStr := fmt.Sprintf("%v", SolicitudProduccionPut["Id"])
-					if resultadoPutSolicitudDocente, errPut := models.PutSolicitudDocente(SolicitudProduccionPut, idStr); errPut == nil {
-						resultado = resultadoPutSolicitudDocente
-						c.Data["json"] = resultado
-					} else {
-						logs.Error(errPut)
-						c.Data["system"] = resultado
-						c.Abort("400")
-					}
-				} else {
-					logs.Error(errAlert)
-					c.Data["system"] = resultado
-					c.Abort("400")
-				}
+		if SolicitudProduccionPut, errAlert := models.CheckCriteriaData(SolicitudProduccion, idTipoProduccion, idTercero); errAlert == nil {
+			idStr := fmt.Sprintf("%v", SolicitudProduccionPut["Id"])
+			if resultadoPutSolicitudDocente, errPut := models.PutSolicitudDocente(SolicitudProduccionPut, idStr); errPut == nil {
+				resultado = resultadoPutSolicitudDocente
+				c.Data["json"] = resultado
 			} else {
-				if producciones[0]["Message"] == "Not found resource" {
-					c.Data["json"] = nil
-				} else {
-					logs.Error(producciones)
-					c.Data["system"] = errProduccion
-					c.Abort("404")
-				}
+				logs.Error(errPut)
+				c.Data["system"] = resultado
+				c.Abort("400")
 			}
 		} else {
-			logs.Error(producciones)
-			c.Data["system"] = errProduccion
-			c.Abort("404")
+			logs.Error(errAlert)
+			c.Data["system"] = resultado
+			c.Abort("400")
 		}
 	} else {
 		logs.Error(err)
