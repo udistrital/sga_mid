@@ -302,8 +302,8 @@ func (c *FormacionController) GetInfoUniversidad() {
 				if universidadTercero["Status"] != 400 {
 					//formatdata.JsonPrint(universidadTercero)
 					respuesta["NombreCompleto"] = map[string]interface{}{
-						"Id":     idUniversidad,
-						"Nombre": universidadTercero["NombreCompleto"],
+						"Id":             idUniversidad,
+						"NombreCompleto": universidadTercero["NombreCompleto"],
 					}
 					var lugar map[string]interface{}
 					//GET para traer los datos de la ubicación
