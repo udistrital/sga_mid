@@ -20,9 +20,8 @@ func PostPaqueteSolicitud(PaqueteSolicitud map[string]interface{}) (result map[s
 		"FechaComite":  PaqueteSolicitud["FechaComite"],
 		"Activo":       true,
 	}
-
 	var solicitudesPaquete []map[string]interface{}
-	for _, solicitudTemp := range PaqueteSolicitud["Solicitudes"].([]interface{}) {
+	for _, solicitudTemp := range PaqueteSolicitud["SolicitudesList"].([]interface{}) {
 		solicitud := solicitudTemp.(map[string]interface{})
 		solicitud["EstadoTipoSolicitudId"] = PaqueteSolicitud["EstadoTipoSolicitudId"]
 
