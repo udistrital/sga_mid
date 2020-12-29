@@ -1,6 +1,6 @@
 package models
 
 type Metadatos struct {
-	Resolucion string
+	Resolucion int
 	Anno       string
 }
