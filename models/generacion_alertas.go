@@ -8,76 +8,87 @@ import (
 
 	"github.com/agnivade/levenshtein"
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/utils_oas/request"
 )
 
 //CheckCriteriaData is...
-func CheckCriteriaData(SolicitudProduccion map[string]interface{}, producciones []map[string]interface{}, idTipoProduccion int, idTercero string) (result map[string]interface{}, outputError interface{}) {
-	var ProduccionAcademica map[string]interface{}
-	ProduccionAcademica = SolicitudProduccion["ProduccionAcademica"].(map[string]interface{})
-	var coincidences int
-	var isbnCoincidences int
-	var numRegisterCoincidences int
-	var issnVolNumCoincidences int
-	var eventCoincidences int
-	var numAnnualProductions int
-	var accumulatedPoints int
-	var isDurationAccepted bool
-	var rangeAccepted int
-	isDurationAccepted = true
-	for _, produccion := range producciones {
-		distance := checkTitle(ProduccionAcademica["ProduccionAcademica"].(map[string]interface{}), produccion)
-		if distance < 6 {
-			coincidences++
-		}
+func CheckCriteriaData(SolicitudProduccion map[string]interface{}, idTipoProduccion int, idTercero string) (result map[string]interface{}, outputError interface{}) {
+	var producciones []map[string]interface{}
+	errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idTercero, &producciones)
+	if errProduccion == nil && fmt.Sprintf("%v", producciones[0]["System"]) != "map[]" {
+		if producciones[0]["Status"] != 404 && producciones[0]["Id"] != nil {
+			var ProduccionAcademica map[string]interface{}
+			ProduccionAcademica = SolicitudProduccion["ProduccionAcademica"].(map[string]interface{})
+			var coincidences int
+			var isbnCoincidences int
+			var numRegisterCoincidences int
+			var issnVolNumCoincidences int
+			var eventCoincidences int
+			var numAnnualProductions int
+			var accumulatedPoints int
+			var isDurationAccepted bool
+			var rangeAccepted int
+			isDurationAccepted = true
+			for _, produccion := range producciones {
+				distance := checkTitle(ProduccionAcademica["ProduccionAcademica"].(map[string]interface{}), produccion)
+				if distance < 6 {
+					coincidences++
+				}
 
-		if idTipoProduccion == 1 {
-			checkTitle(ProduccionAcademica["ProduccionAcademica"].(map[string]interface{}), produccion)
-		}
-		if idTipoProduccion == 2 {
-			accumulatedPoints += checkGradePoints(produccion, idTipoProduccion, idTercero)
-		}
-		if idTipoProduccion == 2 {
-			if checkRageGrade(ProduccionAcademica["ProduccionAcademica"].(map[string]interface{}), produccion, idTipoProduccion) {
-				rangeAccepted++
+				if idTipoProduccion == 1 {
+					checkTitle(ProduccionAcademica["ProduccionAcademica"].(map[string]interface{}), produccion)
+				}
+				if idTipoProduccion == 2 {
+					accumulatedPoints += checkGradePoints(produccion, idTipoProduccion, idTercero)
+				}
+				if idTipoProduccion == 2 {
+					if checkRageGrade(ProduccionAcademica["ProduccionAcademica"].(map[string]interface{}), produccion, idTipoProduccion) {
+						rangeAccepted++
+					}
+				}
+				if idTipoProduccion == 3 || idTipoProduccion == 4 || idTipoProduccion == 5 {
+					if checkISSNVolNumber(SolicitudProduccion["ProduccionAcademica"].(map[string]interface{}), produccion) {
+						issnVolNumCoincidences++
+					}
+				}
+				if idTipoProduccion == 6 || idTipoProduccion == 7 || idTipoProduccion == 8 {
+					if checkISBN(SolicitudProduccion["ProduccionAcademica"].(map[string]interface{}), produccion) {
+						isbnCoincidences++
+					}
+				}
+				if idTipoProduccion == 11 || idTipoProduccion == 12 {
+					if checkRegisterNumber(SolicitudProduccion["ProduccionAcademica"].(map[string]interface{}), produccion, idTipoProduccion) {
+						numRegisterCoincidences++
+					}
+				}
+				if idTipoProduccion == 13 || idTipoProduccion == 14 {
+					if checkEventName(SolicitudProduccion["ProduccionAcademica"].(map[string]interface{}), produccion, idTipoProduccion) {
+						eventCoincidences++
+					}
+				}
+				if idTipoProduccion >= 13 && idTipoProduccion != 18 {
+					if checkAnnualProductionNumber(ProduccionAcademica["ProduccionAcademica"].(map[string]interface{}), produccion, idTipoProduccion) {
+						numAnnualProductions++
+					}
+				}
 			}
-		}
-		if idTipoProduccion == 3 || idTipoProduccion == 4 || idTipoProduccion == 5 {
-			if checkISSNVolNumber(SolicitudProduccion["ProduccionAcademica"].(map[string]interface{}), produccion) {
-				issnVolNumCoincidences++
+			if idTipoProduccion == 18 {
+				isDurationAccepted = checkDurationPostDoctorado(SolicitudProduccion["ProduccionAcademica"].(map[string]interface{}))
 			}
+			coincidences--
+			numAnnualProductions--
+			isbnCoincidences--
+			numRegisterCoincidences--
+			issnVolNumCoincidences--
+			eventCoincidences--
+			generateAlerts(SolicitudProduccion, coincidences, numAnnualProductions, accumulatedPoints, isbnCoincidences, numRegisterCoincidences, issnVolNumCoincidences, eventCoincidences, isDurationAccepted, rangeAccepted, idTipoProduccion)
+			return SolicitudProduccion, nil
 		}
-		if idTipoProduccion == 6 || idTipoProduccion == 7 || idTipoProduccion == 8 {
-			if checkISBN(SolicitudProduccion["ProduccionAcademica"].(map[string]interface{}), produccion) {
-				isbnCoincidences++
-			}
-		}
-		if idTipoProduccion == 11 || idTipoProduccion == 12 {
-			if checkRegisterNumber(SolicitudProduccion["ProduccionAcademica"].(map[string]interface{}), produccion, idTipoProduccion) {
-				numRegisterCoincidences++
-			}
-		}
-		if idTipoProduccion == 13 || idTipoProduccion == 14 {
-			if checkEventName(SolicitudProduccion["ProduccionAcademica"].(map[string]interface{}), produccion, idTipoProduccion) {
-				eventCoincidences++
-			}
-		}
-		if idTipoProduccion >= 13 && idTipoProduccion != 18 {
-			if checkAnnualProductionNumber(ProduccionAcademica["ProduccionAcademica"].(map[string]interface{}), produccion, idTipoProduccion) {
-				numAnnualProductions++
-			}
-		}
+	} else {
+		logs.Error(producciones)
+		return nil, errProduccion
 	}
-	if idTipoProduccion == 18 {
-		isDurationAccepted = checkDurationPostDoctorado(SolicitudProduccion["ProduccionAcademica"].(map[string]interface{}))
-	}
-	coincidences--
-	numAnnualProductions--
-	isbnCoincidences--
-	numRegisterCoincidences--
-	issnVolNumCoincidences--
-	eventCoincidences--
-	generateAlerts(SolicitudProduccion, coincidences, numAnnualProductions, accumulatedPoints, isbnCoincidences, numRegisterCoincidences, issnVolNumCoincidences, eventCoincidences, isDurationAccepted, rangeAccepted, idTipoProduccion)
 	return SolicitudProduccion, nil
 }
 
@@ -141,11 +152,7 @@ func checkRageGrade(ProduccionAcademicaNew map[string]interface{}, ProduccionAca
 	if idTipoProduccionRegister == idTipoProduccion {
 		idTipoProduccionNewSrt := fmt.Sprintf("%v", ProduccionAcademicaNew["SubtipoProduccionId"].(map[string]interface{})["Id"])
 		idTipoProduccionRegisterSrt := fmt.Sprintf("%v", ProduccionAcademicaRegister["SubtipoProduccionId"].(map[string]interface{})["Id"])
-		fmt.Println("------------------------------------------------------------")
-		fmt.Println(idTipoProduccionNewSrt)
-		fmt.Println(idTipoProduccionRegisterSrt)
 		if idTipoProduccionRegisterSrt > idTipoProduccionNewSrt {
-			fmt.Println("paso")
 			return false
 		}
 	}

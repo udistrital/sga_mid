@@ -20,9 +20,8 @@ func PostPaqueteSolicitud(PaqueteSolicitud map[string]interface{}) (result map[s
 		"FechaComite":  PaqueteSolicitud["FechaComite"],
 		"Activo":       true,
 	}
-
 	var solicitudesPaquete []map[string]interface{}
-	for _, solicitudTemp := range PaqueteSolicitud["Solicitudes"].([]interface{}) {
+	for _, solicitudTemp := range PaqueteSolicitud["SolicitudesList"].([]interface{}) {
 		solicitud := solicitudTemp.(map[string]interface{})
 		solicitud["EstadoTipoSolicitudId"] = PaqueteSolicitud["EstadoTipoSolicitudId"]
 
@@ -79,5 +78,22 @@ func PutPaqueteSolicitud(PaqueteSolicitud map[string]interface{}, idStr string) 
 	//resultado experiencia
 	var resultado map[string]interface{}
 	fmt.Println(date)
+	return resultado, nil
+}
+
+// GetAllSolicitudPaquete is ...
+func GetAllSolicitudPaquete(idPaquete string) (result []interface{}, outputError interface{}) {
+	var paqueteSolicitudes map[string]interface{}
+	var resultado []interface{}
+	errPaquete := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/paquete_solicitud/?limit=0&query=PaqueteId:"+idPaquete, &paqueteSolicitudes)
+	if errPaquete == nil && fmt.Sprintf("%v", paqueteSolicitudes["System"]) != "map[]" {
+		if paqueteSolicitudes["Status"] != 404 && paqueteSolicitudes["Data"] != nil {
+			resultado = paqueteSolicitudes["Data"].([]interface{})
+			return resultado, nil
+		}
+	} else {
+		logs.Error(paqueteSolicitudes)
+		return nil, errPaquete
+	}
 	return resultado, nil
 }
