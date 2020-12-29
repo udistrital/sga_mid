@@ -117,13 +117,20 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 
 					// obtener informacion calendario padre si existe
 					if padreID != "" {
-						var calendariosPadre []map[string]interface{}
-						errcalendarioPadre := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento?query=TipoEventoId__Id.CalendarioID__Id:"+padreID, &calendariosPadre)
-						if calendariosPadre[0] != nil {
+
+						// versionCalendario = map[string]interface{}{
+						// 	"Id":     padreID,
+						// 	"Nombre": calendarios[0]["TipoEventoId"].(map[string]interface{})["CalendarioID"].(map[string]interface{})["CalendarioPadreId"].(map[string]interface{})["Nombre"],
+						// }
+						// versionCalendarioResultado = append(versionCalendarioResultado, versionCalendario)
+
+						var calendariosPadre map[string]interface{}
+						errcalendarioPadre := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario/"+padreID, &calendariosPadre)
+						if calendariosPadre != nil {
 							if errcalendarioPadre == nil {
 								versionCalendario = map[string]interface{}{
 									"Id":     padreID,
-									"Nombre": calendariosPadre[0]["TipoEventoId"].(map[string]interface{})["CalendarioID"].(map[string]interface{})["Nombre"],
+									"Nombre": calendariosPadre["Nombre"],
 								}
 								versionCalendarioResultado = append(versionCalendarioResultado, versionCalendario)
 							} else {
@@ -134,10 +141,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 								c.Data["json"] = alerta
 
 							}
-						} else {
-							c.Data["json"] = calendarios
 						}
-
 					} else {
 						versionCalendario = map[string]interface{}{
 							"Id":     "",
@@ -344,6 +348,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 									"Enlace":     documentos["Enlace"],
 									"Resolucion": metadato.Resolucion,
 									"Anno":       metadato.Anno,
+									"Nombre":     documentos["Nombre"],
 								}
 							} else {
 								c.Data["json"] = documentos
@@ -359,6 +364,9 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 						resultado = map[string]interface{}{
 							"Id":              idStr,
 							"Nombre":          calendario["Nombre"].(string),
+							"PeriodoId":       calendario["PeriodoId"].(float64),
+							"Activo":          calendario["Activo"].(bool),
+							"Nivel":           calendario["Nivel"].(float64),
 							"ListaCalendario": versionCalendarioResultado,
 							"resolucion":      resolucion,
 							"proceso":         procesoResultado,

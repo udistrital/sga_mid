@@ -97,26 +97,31 @@ func (c *ActividadCalendarioController) PostActividadCalendario() {
 // @Failure 403 body is empty
 // @router /update/:id [put]
 func (c *ActividadCalendarioController) UpdateActividadResponsables() {
-	var datos []map[string]interface{}
+	var recibido map[string]interface{}
 	var guardados []map[string]interface{}
 	var actualizados []map[string]interface{}
+	var auxDelete string
 	var auxUpdate map[string]interface{}
 	var errBorrado error
 
 	idStr := c.Ctx.Input.Param(":id")
 	actividadId, _ := strconv.Atoi(idStr)
-
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &datos); err == nil {
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &recibido); err == nil {
+		datos := recibido["resp"].([]interface{})
 		errConsulta := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento_tipo_publico?query=CalendarioEventoId__Id:"+idStr, &guardados)
 		if errConsulta == nil {
 			if len(guardados) > 0 {
-				errBorrado = request.SendJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento_tipo_publico?query=CalendarioEventoId__Id:"+idStr, "DELETE", &auxUpdate, nil)
+				for _, registro := range guardados {
+					idRegistro := fmt.Sprintf("%.f", registro["Id"].(float64))
+					errBorrado = request.SendJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento_tipo_publico/"+idRegistro, "DELETE", &auxDelete, nil)
+					fmt.Println(errBorrado)
+				}
 			}
 			if errBorrado == nil {
 				for _, tipoPublico := range datos {
 					nuevoPublico := map[string]interface{}{
 						"Activo":             true,
-						"TipoPublicoId":      map[string]interface{}{"Id": tipoPublico["IdPublico"]},
+						"TipoPublicoId":      map[string]interface{}{"Id": tipoPublico.(map[string]interface{})["IdPublico"]},
 						"CalendarioEventoId": map[string]interface{}{"Id": actividadId},
 					}
 					errPost := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento_tipo_publico", "POST", &auxUpdate, nuevoPublico)
