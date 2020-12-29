@@ -45,14 +45,14 @@ func (c *ConsultaCalendarioAcademicoController) GetAll() {
 	if errCalendario == nil && fmt.Sprintf("%v", calendarios[0]["Nombre"]) != "map[]" {
 		for _, calendario := range calendarios {
 			periodoId := fmt.Sprintf("%.f", calendario["PeriodoId"].(float64))
-			errPeriodo := request.GetJson("http://"+beego.AppConfig.String("CoreService")+"periodo/"+periodoId, &periodo)
+			errPeriodo := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"periodo/"+periodoId, &periodo)
 			if errPeriodo == nil {
 				resultado := map[string]interface{}{
 					"Id":      calendario["Id"].(float64),
 					"Nombre":  calendario["Nombre"].(string),
 					"Nivel":   calendario["Nivel"].(float64),
 					"Activo":  calendario["Activo"].(bool),
-					"Periodo": periodo["Nombre"].(string),
+					"Periodo": periodo["Data"].(map[string]interface{})["Nombre"].(string),
 				}
 				resultados = append(resultados, resultado)
 			} else {
