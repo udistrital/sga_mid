@@ -81,3 +81,31 @@ func (c *SolicitudProduccionController) PostAlertSolicitudProduccion() {
 	}
 	c.ServeJSON()
 }
+
+// PutResultadoSolicitud ...
+// @Title PutResultadoSolicitud
+// @Description Modificar resultaado solicitud docente
+// @Param	id		path 	int	true		"el id de la produccion"
+// @Param   body        body    {}  true        "body Modificar resultado en produccionAcaemica content"
+// @Success 200 {}
+// @Failure 400 the request contains incorrect syntax
+// @router /:id [put]
+func (c *SolicitudProduccionController) PutResultadoSolicitud() {
+	idStr := c.Ctx.Input.Param(":id")
+	fmt.Println("Id es: " + idStr)
+	var SolicitudProduccion map[string]interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &SolicitudProduccion); err == nil {
+		if SolicitudProduccionResult, errPuntaje := models.GenerateResult(SolicitudProduccion); errPuntaje == nil {
+			c.Data["json"] = SolicitudProduccionResult
+		} else {
+			logs.Error(SolicitudProduccionResult)
+			c.Data["system"] = errPuntaje
+			c.Abort("400")
+		}
+	} else {
+		logs.Error(err)
+		c.Data["system"] = err
+		c.Abort("400")
+	}
+	c.ServeJSON()
+}
