@@ -18,7 +18,7 @@ type PaqueteSolicitudController struct {
 func (c *PaqueteSolicitudController) URLMapping() {
 	c.Mapping("PostPaqueteSolicitud", c.PostPaqueteSolicitud)
 	c.Mapping("PutPaqueteSolicitud", c.PutPaqueteSolicitud)
-	// c.Mapping("GetAllPaqueteSolicitud", c.GetAllPaqueteSolicitud)
+	c.Mapping("GetAllSolicitudPaquete", c.GetAllSolicitudPaquete)
 	// c.Mapping("GetOnePaqueteSolicitud", c.GetOnePaqueteSolicitud)
 	// c.Mapping("GetPaqueteSolicitudTercero", c.GetPaqueteSolicitudTercero)
 	// c.Mapping("DeletePaqueteSolicitud", c.DeletePaqueteSolicitud)
@@ -80,6 +80,40 @@ func (c *PaqueteSolicitudController) PutPaqueteSolicitud() {
 	} else {
 		logs.Error(err)
 		c.Data["system"] = err
+		c.Abort("400")
+	}
+	c.ServeJSON()
+}
+
+// GetAllSolicitudPaquete ...
+// @Title GetAllSolicitudPaquete
+// @Description consultar todas las solicitudes académicas
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router /:id_paquete [get]
+func (c *PaqueteSolicitudController) GetAllSolicitudPaquete() {
+	//Id del paquete
+	idPaquete := c.Ctx.Input.Param(":id_paquete")
+	fmt.Println("Consultando solicitudes de paquete: " + idPaquete)
+	//resultado resultado final
+	var resultadoGetSolicitud []map[string]interface{}
+	if paqueteSolicitudList, err := models.GetAllSolicitudPaquete(idPaquete); err == nil {
+		for _, solicitudPaqueteTemp := range paqueteSolicitudList {
+			solicitudPaquete := solicitudPaqueteTemp.(map[string]interface{})
+			solicitudID := fmt.Sprintf("%v", solicitudPaquete["SolicitudId"].(map[string]interface{})["Id"])
+			if solicitudTemp, errSolicitud := models.GetOneSolicitudDocente(solicitudID); errSolicitud == nil {
+				solicitud := solicitudTemp[0].(map[string]interface{})
+				resultadoGetSolicitud = append(resultadoGetSolicitud, solicitud)
+			} else {
+				logs.Error(err)
+				c.Data["system"] = resultadoGetSolicitud
+				c.Abort("400")
+			}
+		}
+		c.Data["json"] = resultadoGetSolicitud
+	} else {
+		logs.Error(err)
+		c.Data["system"] = resultadoGetSolicitud
 		c.Abort("400")
 	}
 	c.ServeJSON()

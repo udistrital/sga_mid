@@ -160,8 +160,8 @@ paths:
         schema:
           $ref: '#/definitions/{}'
       responses:
-        "201":
-          description: '{int}'
+        "200":
+          description: '{}'
         "400":
           description: the request contains incorrect syntax
   /consulta_academica/:
@@ -855,6 +855,41 @@ paths:
           description: '{}'
         "404":
           description: not found resource
+  /formacion_academica/info_universidad/:
+    get:
+      tags:
+      - formacion_academica
+      description: Obtener la información de la universidad por el nit
+      operationId: FormacionController.GetInfoUniversidad
+      parameters:
+      - in: query
+        name: Id
+        description: nit de la universidad
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "400":
+          description: the request contains incorrect syntax
+  /formacion_academica/info_universidad_nombre:
+    get:
+      tags:
+      - formacion_academica
+      description: Obtener la información de la universidad por el nombre
+      operationId: FormacionController.GetInfoUniversidadByNombre
+      parameters:
+      - in: query
+        name: nombre
+        description: nombre universidad
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{}'
+        "400":
+          description: the request contains incorrect syntax
   /generar_codigo/:
     post:
       tags:
@@ -1082,6 +1117,17 @@ paths:
           description: '{int}'
         "400":
           description: the request contains incorrect syntax
+  /paquete_solicitud/{id_paquete}:
+    get:
+      tags:
+      - paquete_solicitud
+      description: consultar todas las solicitudes académicas
+      operationId: PaqueteSolicitudController.GetAllSolicitudPaquete
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
   /paquete_solicitud/{id}:
     put:
       tags:
@@ -1616,6 +1662,30 @@ paths:
           description: '{}'
         "404":
           description: not found resource
+  /solicitud_produccion/{id}:
+    put:
+      tags:
+      - solicitud_produccion
+      description: Modificar resultaado solicitud docente
+      operationId: SolicitudProduccionController.PutResultadoSolicitud
+      parameters:
+      - in: path
+        name: id
+        description: el id de la produccion
+        required: true
+        type: integer
+        format: int64
+      - in: body
+        name: body
+        description: body Modificar resultado en produccionAcaemica content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "400":
+          description: the request contains incorrect syntax
   /solicitud_produccion/{tercero}/{tipo_produccion}:
     post:
       tags:

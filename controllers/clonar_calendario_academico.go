@@ -7,7 +7,6 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
-	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 )
 
@@ -133,7 +132,7 @@ func (c *CalendarioController) PostCalendario() {
 // @Title PostCalendarioPadre
 // @Description Clona calendario padre, crea tipo_evento si lo tiene, crea calendario_evento si tiene, crea calendario_evento_tipo_publico si tiene, crea tipo_publico si lo tiene
 // @Param	body		body 	{}	true		"body id calendario content"
-// @Success 201 {int}
+// @Success 200 {}
 // @Failure 400 the request contains incorrect syntax
 // @router /calendario_padre [post]
 func (c *CalendarioController) PostCalendarioPadre() {
@@ -147,7 +146,6 @@ func (c *CalendarioController) PostCalendarioPadre() {
 
 	var dataPost map[string]interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &dataPost); err == nil {
-		formatdata.JsonPrint(dataPost)
 		idCalendario := fmt.Sprintf("%.f", dataPost["Id"].(float64))
 		idCalendarioPadre := fmt.Sprintf("%.f", dataPost["IdPadre"].(map[string]interface{})["Id"])
 		errCalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario/"+idCalendario, &calendario)
