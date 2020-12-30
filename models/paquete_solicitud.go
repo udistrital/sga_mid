@@ -5,6 +5,7 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
+	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 )
 
@@ -176,6 +177,7 @@ func PutPaqueteSolicitud(PaqueteSolicitud map[string]interface{}, idStr string) 
 	errSolicitudPut := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_paquete/"+idStr, "PUT", &resultadoPaqueteSolicitud, PaqueteSolicitudPut)
 	if errSolicitudPut == nil && fmt.Sprintf("%v", resultadoPaqueteSolicitud["System"]) != "map[]" {
 		if resultadoPaqueteSolicitud["Status"] != 400 {
+
 			resultado = PaqueteSolicitud
 			return resultado, nil
 		}

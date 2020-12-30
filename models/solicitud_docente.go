@@ -7,6 +7,7 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
+	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 	"github.com/udistrital/utils_oas/time_bogota"
 )
@@ -65,6 +66,7 @@ func PostSolicitudDocente(SolicitudDocente map[string]interface{}) (result map[s
 
 	SolicitudDocentePost["EvolucionesEstado"] = solicitudesEvolucionEstado
 	SolicitudDocentePost["Observaciones"] = nil
+	formatdata.JsonPrint(SolicitudDocentePost)
 	var resultadoSolicitudDocente map[string]interface{}
 	errSolicitud := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud", "POST", &resultadoSolicitudDocente, SolicitudDocentePost)
 	if errSolicitud == nil && fmt.Sprintf("%v", resultadoSolicitudDocente["System"]) != "map[]" && resultadoSolicitudDocente["Solicitud"] != nil {
