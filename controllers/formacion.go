@@ -813,19 +813,13 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 							if errTercero == nil && fmt.Sprintf("%v", Tercero[0]) != "map[]" && Tercero[0]["Id"] != nil {
 								if Tercero[0]["Status"] != 404 {
 									formatdata.JsonPrint(Tercero)
-									resultadoAux["NombreCompleto"] = map[string]interface{}{
-										"Id":             IdTerceroAux,
-										"NombreCompleto": Tercero[0]["NombreCompleto"],
-									}
+									resultadoAux["NombreCompleto"] = Tercero[0]["NombreCompleto"]
 									var lugar map[string]interface{}
 									//GET para traer los datos de la ubicación
 									errLugar := request.GetJson("http://"+beego.AppConfig.String("UbicacionesService")+"/relacion_lugares/jerarquia_lugar/"+fmt.Sprintf("%v", Tercero[0]["LugarOrigen"]), &lugar)
 									if errLugar == nil && fmt.Sprintf("%v", lugar) != "map[]" {
 										if lugar["Status"] != 404 {
-											resultadoAux["Ubicacion"] = map[string]interface{}{
-												"Id":     lugar["PAIS"].(map[string]interface{})["Id"],
-												"Nombre": lugar["PAIS"].(map[string]interface{})["Nombre"],
-											}
+											resultadoAux["Ubicacion"] = lugar["PAIS"].(map[string]interface{})["Nombre"]
 										} else {
 
 										}
@@ -860,10 +854,7 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 								errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Id:"+fmt.Sprintf("%v", NumProyecto["value"])+"&limit=0", &Proyecto)
 								if errProyecto == nil && fmt.Sprintf("%v", Proyecto[0]) != "map[]" && Proyecto[0]["Id"] != nil {
 									if Proyecto[0]["Status"] != 404 {
-										resultadoAux["ProgramaAcademico"] = map[string]interface{}{
-											"Id":     NumProyecto["value"],
-											"Nombre": Proyecto[0]["Nombre"],
-										}
+										resultadoAux["ProgramaAcademico"] = Proyecto[0]["Nombre"]
 									} else {
 
 									}
@@ -917,7 +908,6 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 					} else {
 
 					}
-
 					resultado = append(resultado, resultadoAux)
 				}
 
