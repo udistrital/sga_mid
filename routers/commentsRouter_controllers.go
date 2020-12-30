@@ -559,7 +559,7 @@ func init() {
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PaqueteSolicitudController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PaqueteSolicitudController"],
         beego.ControllerComments{
             Method: "GetAllSolicitudPaquete",
-            Router: "/:id_paquete",
+            Router: `/:id_paquete`,
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
@@ -775,7 +775,7 @@ func init() {
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:SolicitudProduccionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:SolicitudProduccionController"],
         beego.ControllerComments{
             Method: "PutResultadoSolicitud",
-            Router: "/:id",
+            Router: `/:id`,
             AllowHTTPMethods: []string{"put"},
             MethodParams: param.Make(),
             Filters: nil,

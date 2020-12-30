@@ -236,8 +236,8 @@
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "{int}"
+                    "200": {
+                        "description": "{}"
                     },
                     "400": {
                         "description": "the request contains incorrect syntax"
