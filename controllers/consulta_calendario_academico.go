@@ -34,43 +34,65 @@ func (c *ConsultaCalendarioAcademicoController) URLMapping() {
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
 // @Success 200 {object} models.ConsultaCalendarioAcademico
-// @Failure 403
+// @Failure 404
 // @router / [get]
 func (c *ConsultaCalendarioAcademicoController) GetAll() {
 	var resultados []map[string]interface{}
 	var calendarios []map[string]interface{}
 	var periodo map[string]interface{}
+	var alerta models.Alert
+	var errorGetAll bool
+	alertas := append([]interface{}{"Response:"})
 
 	errCalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?limit=0", &calendarios)
-	if errCalendario == nil && fmt.Sprintf("%v", calendarios[0]["Nombre"]) != "map[]" {
-		for _, calendario := range calendarios {
-			periodoId := fmt.Sprintf("%.f", calendario["PeriodoId"].(float64))
-			errPeriodo := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"periodo/"+periodoId, &periodo)
-			if errPeriodo == nil {
-				resultado := map[string]interface{}{
-					"Id":      calendario["Id"].(float64),
-					"Nombre":  calendario["Nombre"].(string),
-					"Nivel":   calendario["Nivel"].(float64),
-					"Activo":  calendario["Activo"].(bool),
-					"Periodo": periodo["Data"].(map[string]interface{})["Nombre"].(string),
+	if errCalendario == nil {
+		if len(calendarios[0]) > 0 && fmt.Sprintf("%v", calendarios[0]["Nombre"]) != "map[]" {
+			for _, calendario := range calendarios {
+				periodoID := fmt.Sprintf("%.f", calendario["PeriodoId"].(float64))
+				errPeriodo := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"periodo/"+periodoID, &periodo)
+				if errPeriodo == nil {
+					resultado := map[string]interface{}{
+						"Id":      calendario["Id"].(float64),
+						"Nombre":  calendario["Nombre"].(string),
+						"Nivel":   calendario["Nivel"].(float64),
+						"Activo":  calendario["Activo"].(bool),
+						"Periodo": periodo["Data"].(map[string]interface{})["Nombre"].(string),
+					}
+					resultados = append(resultados, resultado)
+				} else {
+					errorGetAll = true
+					alertas = append(alertas, errPeriodo.Error())
+					alerta.Code = "400"
+					alerta.Type = "error"
+					alerta.Body = alertas
+					c.Data["json"] = map[string]interface{}{"Response": alerta}
 				}
-				resultados = append(resultados, resultado)
-			} else {
-				logs.Error(errPeriodo)
-				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-				c.Data["system"] = errPeriodo
-				c.Abort("404")
 			}
+		} else {
+			errorGetAll = true
+			alertas = append(alertas, "No data found")
+			alerta.Code = "404"
+			alerta.Type = "error"
+			alerta.Body = alertas
+			c.Data["json"] = map[string]interface{}{"Response": alerta}
 		}
-
 	} else {
-		logs.Error(errCalendario)
-		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-		c.Data["system"] = errCalendario
-		c.Abort("404")
+		errorGetAll = true
+		alertas = append(alertas, errCalendario.Error())
+		alerta.Code = "400"
+		alerta.Type = "error"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
 	}
 
-	c.Data["json"] = resultados
+	if !errorGetAll {
+		alertas = append(alertas, resultados)
+		alerta.Code = "200"
+		alerta.Type = "OK"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
 	c.ServeJSON()
 }
 

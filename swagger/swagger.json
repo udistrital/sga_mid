@@ -236,8 +236,8 @@
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "{int}"
+                    "200": {
+                        "description": "{}"
                     },
                     "400": {
                         "description": "the request contains incorrect syntax"
@@ -384,7 +384,7 @@
                             "$ref": "#/definitions/models.ConsultaCalendarioAcademico"
                         }
                     },
-                    "403": {
+                    "404": {
                         "description": ""
                     }
                 }
@@ -774,13 +774,6 @@
                 "description": "Añadir el costo de un concepto existente",
                 "operationId": "DerechosPecuniariosController.PutCostoConcepto",
                 "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "description": "el id del evento a modificar",
-                        "required": true,
-                        "type": "string"
-                    },
                     {
                         "in": "body",
                         "name": "body",
