@@ -158,7 +158,7 @@ func PutPaqueteSolicitud(PaqueteSolicitud map[string]interface{}, idStr string) 
 				if len(observaciones) == 0 {
 					observaciones = append(observaciones, map[string]interface{}{})
 				}
-
+				paqueteSolicitud["SolicitudId"] = solicitud
 				solicitudesPaquete = append(solicitudesPaquete, map[string]interface{}{
 					"PaqueteSolicitud":  paqueteSolicitud,
 					"EvolucionesEstado": solicitudesEvolucionEstado,
@@ -179,6 +179,8 @@ func PutPaqueteSolicitud(PaqueteSolicitud map[string]interface{}, idStr string) 
 	errSolicitudPut := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_paquete/"+idStr, "PUT", &resultadoPaqueteSolicitud, PaqueteSolicitudPut)
 	if errSolicitudPut == nil && fmt.Sprintf("%v", resultadoPaqueteSolicitud["System"]) != "map[]" {
 		if resultadoPaqueteSolicitud["Status"] != 400 {
+			fmt.Println("------------------------------------------------------------------------")
+			formatdata.JsonPrint(resultadoPaqueteSolicitud)
 			resultado = PaqueteSolicitud
 			return resultado, nil
 		}
