@@ -56,7 +56,7 @@ func (c *SolicitudEvaluacionController) PutSolicitudEvaluacion() {
 				c.Data["system"] = resultadoPutSolicitud
 				c.Abort("400")
 			}
-		}
+		} 
 	} else {
 		logs.Error(errGet)
 		c.Data["system"] = resultadoPutSolicitud
