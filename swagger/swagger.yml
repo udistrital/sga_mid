@@ -253,7 +253,7 @@ paths:
           description: ""
           schema:
             $ref: '#/definitions/models.ConsultaCalendarioAcademico'
-        "403":
+        "404":
           description: ""
   /consulta_calendario_academico/{id}:
     get:
@@ -540,11 +540,6 @@ paths:
       description: Añadir el costo de un concepto existente
       operationId: DerechosPecuniariosController.PutCostoConcepto
       parameters:
-      - in: path
-        name: id
-        description: el id del evento a modificar
-        required: true
-        type: string
       - in: body
         name: body
         description: body Inhabilitar Proyecto content
