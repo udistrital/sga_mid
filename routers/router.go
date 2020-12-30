@@ -131,6 +131,11 @@ func init() {
 				&controllers.PaqueteSolicitudController{},
 			),
 		),
+		beego.NSNamespace("/solicitud_evaluacion",
+			beego.NSInclude(
+				&controllers.SolicitudEvaluacionController{},
+			),
+		),
 		beego.NSNamespace("/solicitud_produccion",
 			beego.NSInclude(
 				&controllers.SolicitudProduccionController{},

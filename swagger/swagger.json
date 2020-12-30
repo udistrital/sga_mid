@@ -2514,6 +2514,23 @@
                 }
             }
         },
+        "/solicitud_evaluacion/{id}": {
+            "get": {
+                "tags": [
+                    "solicitud_evaluacion"
+                ],
+                "description": "actualiza de forma publica el estado de una solicitud tipo evaluacion",
+                "operationId": "SolicitudEvaluacionController.PutSolicitudEvaluacion",
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
         "/solicitud_produccion/{id}": {
             "put": {
                 "tags": [
@@ -2700,6 +2717,10 @@
         {
             "name": "paquete_solicitud",
             "description": "PaqueteSolicitudController ...\n"
+        },
+        {
+            "name": "solicitud_evaluacion",
+            "description": "SolicitudEvaluacionController ...\n"
         },
         {
             "name": "solicitud_produccion",
