@@ -384,7 +384,7 @@
                             "$ref": "#/definitions/models.ConsultaCalendarioAcademico"
                         }
                     },
-                    "403": {
+                    "404": {
                         "description": ""
                     }
                 }
