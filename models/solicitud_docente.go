@@ -7,6 +7,7 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
+	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 	"github.com/udistrital/utils_oas/time_bogota"
 )
@@ -24,6 +25,7 @@ func PostSolicitudDocente(SolicitudDocente map[string]interface{}) (result map[s
 		"Activo":                true,
 		"FechaCreacion":         date,
 		"FechaModificacion":     date,
+		"SolicitudPadreId":      SolicitudDocente["SolicitudPadreId"],
 	}
 
 	var terceroID interface{}
@@ -39,7 +41,17 @@ func PostSolicitudDocente(SolicitudDocente map[string]interface{}) (result map[s
 			"FechaModificacion": date,
 		})
 	}
+	if len(solicitantes) == 0 {
+		solicitantes = append(solicitantes, map[string]interface{}{})
+	}
 	SolicitudDocentePost["Solicitantes"] = solicitantes
+
+	if terceroID == nil {
+		terceroID = SolicitudDocente["TerceroId"]
+	}
+
+	fmt.Println("TerceroID: ")
+	fmt.Println(terceroID)
 
 	var solicitudesEvolucionEstado []map[string]interface{}
 	solicitudesEvolucionEstado = append(solicitudesEvolucionEstado, map[string]interface{}{
@@ -54,6 +66,7 @@ func PostSolicitudDocente(SolicitudDocente map[string]interface{}) (result map[s
 
 	SolicitudDocentePost["EvolucionesEstado"] = solicitudesEvolucionEstado
 	SolicitudDocentePost["Observaciones"] = nil
+	formatdata.JsonPrint(SolicitudDocentePost)
 	var resultadoSolicitudDocente map[string]interface{}
 	errSolicitud := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud", "POST", &resultadoSolicitudDocente, SolicitudDocentePost)
 	if errSolicitud == nil && fmt.Sprintf("%v", resultadoSolicitudDocente["System"]) != "map[]" && resultadoSolicitudDocente["Solicitud"] != nil {
