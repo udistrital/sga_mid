@@ -1199,6 +1199,33 @@
                 }
             }
         },
+        "/experiencia_laboral/informacion_empresa/": {
+            "get": {
+                "tags": [
+                    "experiencia_laboral"
+                ],
+                "description": "Obtener la información de la empresa por el nit",
+                "operationId": "ExperienciaLaboralController.GetInformacionEmpresa",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "Id",
+                        "description": "nit de la empresa",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
         "/experiencia_laboral/{id}": {
             "get": {
                 "tags": [
