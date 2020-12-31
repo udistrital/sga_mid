@@ -7,6 +7,7 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
+	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 	"github.com/udistrital/utils_oas/time_bogota"
 )
@@ -24,6 +25,7 @@ func PostSolicitudDocente(SolicitudDocente map[string]interface{}) (result map[s
 		"Activo":                true,
 		"FechaCreacion":         date,
 		"FechaModificacion":     date,
+		"SolicitudPadreId":      SolicitudDocente["SolicitudPadreId"],
 	}
 
 	var terceroID interface{}
@@ -39,7 +41,17 @@ func PostSolicitudDocente(SolicitudDocente map[string]interface{}) (result map[s
 			"FechaModificacion": date,
 		})
 	}
+	if len(solicitantes) == 0 {
+		solicitantes = append(solicitantes, map[string]interface{}{})
+	}
 	SolicitudDocentePost["Solicitantes"] = solicitantes
+
+	if terceroID == nil {
+		terceroID = SolicitudDocente["TerceroId"]
+	}
+
+	fmt.Println("TerceroID: ")
+	fmt.Println(terceroID)
 
 	var solicitudesEvolucionEstado []map[string]interface{}
 	solicitudesEvolucionEstado = append(solicitudesEvolucionEstado, map[string]interface{}{
@@ -54,6 +66,7 @@ func PostSolicitudDocente(SolicitudDocente map[string]interface{}) (result map[s
 
 	SolicitudDocentePost["EvolucionesEstado"] = solicitudesEvolucionEstado
 	SolicitudDocentePost["Observaciones"] = nil
+	formatdata.JsonPrint(SolicitudDocentePost)
 	var resultadoSolicitudDocente map[string]interface{}
 	errSolicitud := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud", "POST", &resultadoSolicitudDocente, SolicitudDocentePost)
 	if errSolicitud == nil && fmt.Sprintf("%v", resultadoSolicitudDocente["System"]) != "map[]" && resultadoSolicitudDocente["Solicitud"] != nil {
@@ -103,7 +116,7 @@ func PutSolicitudDocente(SolicitudDocente map[string]interface{}, idStr string) 
 	var observaciones []map[string]interface{}
 	for _, observacionTemp := range SolicitudDocente["Observaciones"].([]interface{}) {
 		observacion := observacionTemp.(map[string]interface{})
-		if observacion["Id"] == nil {
+		if observacion["Id"] == nil && observacion["Titulo"] != nil {
 			observaciones = append(observaciones, map[string]interface{}{
 				"TipoObservacionId": observacion["TipoObservacionId"],
 				"SolicitudId":       map[string]interface{}{"Id": 0},
@@ -114,7 +127,7 @@ func PutSolicitudDocente(SolicitudDocente map[string]interface{}, idStr string) 
 				"FechaModificacion": date,
 				"Activo":            true,
 			})
-		} else {
+		} else if observacion["Id"] != nil {
 			observaciones = append(observaciones, map[string]interface{}{
 				"Id":                observacion["Id"],
 				"TipoObservacionId": observacion["TipoObservacionId"],
@@ -135,7 +148,6 @@ func PutSolicitudDocente(SolicitudDocente map[string]interface{}, idStr string) 
 	SolicitudDocentePut["Observaciones"] = observaciones
 
 	var resultadoSolicitudDocente map[string]interface{}
-
 	errSolicitudPut := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud/"+idStr, "PUT", &resultadoSolicitudDocente, SolicitudDocentePut)
 	if errSolicitudPut == nil && fmt.Sprintf("%v", resultadoSolicitudDocente["System"]) != "map[]" {
 		if resultadoSolicitudDocente["Status"] != 400 {
@@ -229,6 +241,7 @@ func GetSolicitudDocenteTercero(idTercero string) (result []map[string]interface
 
 // GetOneSolicitudDocente is ...
 func GetOneSolicitudDocente(idSolicitud string) (result []interface{}, outputError interface{}) {
+	fmt.Println(idSolicitud)
 	var solicitudes []map[string]interface{}
 	var v []interface{}
 	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/solicitud/?query=Id:"+idSolicitud, &solicitudes)
@@ -238,7 +251,7 @@ func GetOneSolicitudDocente(idSolicitud string) (result []interface{}, outputErr
 			var solicitantes []map[string]interface{}
 			errSolicitante := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/solicitante/?query=SolicitudId:"+idSolicitud, &solicitantes)
 			if errSolicitante == nil && fmt.Sprintf("%v", solicitantes[0]["System"]) != "map[]" {
-				if solicitantes[0]["Status"] != 404 && solicitantes[0]["Id"] != nil {
+				if solicitantes[0]["Status"] != 404 {
 
 					var evolucionEstado []map[string]interface{}
 					errEvolucion := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/solicitud_evolucion_estado/?limit=0&query=SolicitudId:"+idSolicitud, &evolucionEstado)
@@ -256,9 +269,9 @@ func GetOneSolicitudDocente(idSolicitud string) (result []interface{}, outputErr
 										"Referencia":            solicitudes[0]["Referencia"],
 										"Resultado":             solicitudes[0]["Resultado"],
 										"FechaRadicacion":       solicitudes[0]["FechaRadicacion"],
-										"Observaciones":         &observaciones,
-										"Solicitantes":          &solicitantes,
-										"EvolucionEstado":       &evolucionEstado,
+										"Observaciones":         observaciones,
+										"Solicitantes":          solicitantes,
+										"EvolucionEstado":       evolucionEstado,
 									})
 									return v, nil
 								}

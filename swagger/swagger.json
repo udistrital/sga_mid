@@ -236,8 +236,8 @@
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "{int}"
+                    "200": {
+                        "description": "{}"
                     },
                     "400": {
                         "description": "the request contains incorrect syntax"
@@ -384,7 +384,7 @@
                             "$ref": "#/definitions/models.ConsultaCalendarioAcademico"
                         }
                     },
-                    "403": {
+                    "404": {
                         "description": ""
                     }
                 }
@@ -774,13 +774,6 @@
                 "description": "Añadir el costo de un concepto existente",
                 "operationId": "DerechosPecuniariosController.PutCostoConcepto",
                 "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "description": "el id del evento a modificar",
-                        "required": true,
-                        "type": "string"
-                    },
                     {
                         "in": "body",
                         "name": "body",
@@ -1202,6 +1195,33 @@
                     },
                     "404": {
                         "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/experiencia_laboral/informacion_empresa/": {
+            "get": {
+                "tags": [
+                    "experiencia_laboral"
+                ],
+                "description": "Obtener la información de la empresa por el nit",
+                "operationId": "ExperienciaLaboralController.GetInformacionEmpresa",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "Id",
+                        "description": "nit de la empresa",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
                     }
                 }
             }
@@ -2555,6 +2575,23 @@
                 }
             }
         },
+        "/solicitud_evaluacion/{id}": {
+            "get": {
+                "tags": [
+                    "solicitud_evaluacion"
+                ],
+                "description": "actualiza de forma publica el estado de una solicitud tipo evaluacion",
+                "operationId": "SolicitudEvaluacionController.PutSolicitudEvaluacion",
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
         "/solicitud_produccion/{id}": {
             "put": {
                 "tags": [
@@ -2741,6 +2778,10 @@
         {
             "name": "paquete_solicitud",
             "description": "PaqueteSolicitudController ...\n"
+        },
+        {
+            "name": "solicitud_evaluacion",
+            "description": "SolicitudEvaluacionController ...\n"
         },
         {
             "name": "solicitud_produccion",
