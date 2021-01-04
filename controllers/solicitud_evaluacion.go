@@ -35,17 +35,26 @@ func (c *SolicitudEvaluacionController) PutSolicitudEvaluacion() {
 	fmt.Println("Actualizando estado de solicitud: " + idSolicitud)
 	//resultado resultado final
 	var resultadoPutSolicitud map[string]interface{}
+	resultadoRechazo := make(map[string]interface{})
 
 	var solicitudEvaluacion map[string]interface{}
 	if solicitudEvaluacionList, errGet := models.GetOneSolicitudDocente(idSolicitud); errGet == nil {
 		solicitudEvaluacion = solicitudEvaluacionList[0].(map[string]interface{})
 		if fmt.Sprintf("%v", solicitudEvaluacion["EstadoTipoSolicitudId"].(map[string]interface{})["EstadoId"].(map[string]interface{})["Id"]) == "11" {
-			c.Data["json"] = "La invitación ya ha sido rechazada anteriormente, por favor cierre la pestaña o ventana"
+			mensaje := "La invitación ya ha sido rechazada anteriormente, por favor cierre la pestaña o ventana"
+			resultadoRechazo["Resultado"] = map[string]interface{}{
+				"Mensaje": mensaje,
+			}
+			c.Data["json"] = resultadoRechazo
 		} else {
 			if solicitudReject, errPrepared := models.PreparedRejectState(solicitudEvaluacion); errPrepared == nil {
 				if resultado, errPut := models.PutSolicitudDocente(solicitudReject, idSolicitud); errPut == nil {
 					resultadoPutSolicitud = resultado
-					c.Data["json"] = "La invitación ha sido rechazada, por favor cierre la pestaña o ventana"
+					mensaje := "La invitación ha sido rechazada, por favor cierre la pestaña o ventana"
+					resultadoRechazo["Resultado"] = map[string]interface{}{
+						"Mensaje": mensaje,
+					}
+					c.Data["json"] = resultadoRechazo
 				} else {
 					logs.Error(errPut)
 					c.Data["system"] = resultadoPutSolicitud
@@ -56,7 +65,7 @@ func (c *SolicitudEvaluacionController) PutSolicitudEvaluacion() {
 				c.Data["system"] = resultadoPutSolicitud
 				c.Abort("400")
 			}
-		} 
+		}
 	} else {
 		logs.Error(errGet)
 		c.Data["system"] = resultadoPutSolicitud
