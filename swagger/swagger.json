@@ -1199,6 +1199,33 @@
                 }
             }
         },
+        "/experiencia_laboral/informacion_empresa/": {
+            "get": {
+                "tags": [
+                    "experiencia_laboral"
+                ],
+                "description": "Obtener la información de la empresa por el nit",
+                "operationId": "ExperienciaLaboralController.GetInformacionEmpresa",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "Id",
+                        "description": "nit de la empresa",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
         "/experiencia_laboral/{id}": {
             "get": {
                 "tags": [
@@ -1227,6 +1254,31 @@
             }
         },
         "/formacion_academica/": {
+            "get": {
+                "tags": [
+                    "formacion_academica"
+                ],
+                "description": "consultar la Formacion Academica por id del tercero",
+                "operationId": "FormacionController.GetFormacionAcademicaByTercero",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "Id",
+                        "description": "Id del tercero",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            },
             "post": {
                 "tags": [
                     "formacion_academica"
@@ -1254,18 +1306,34 @@
                 }
             }
         },
-        "/formacion_academica/by_tercero/{id_tercero}": {
+        "/formacion_academica/info_complementaria/": {
             "get": {
                 "tags": [
                     "formacion_academica"
                 ],
-                "description": "consultar Fromacion Academica por id del tercero",
-                "operationId": "FormacionController.GetFormacionAcademicaByTercero",
+                "description": "consultar Formacion Academica por id",
+                "operationId": "FormacionController.GetFormacionAcademica",
                 "parameters": [
                     {
-                        "in": "path",
-                        "name": "Tercero",
+                        "in": "query",
+                        "name": "IdTercero",
                         "description": "Id del tercero",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "query",
+                        "name": "IdProyecto",
+                        "description": "Id del proyecto academico",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "query",
+                        "name": "Nit",
+                        "description": "Nit de la universidad",
                         "required": true,
                         "type": "integer",
                         "format": "int64"
@@ -2507,6 +2575,23 @@
                 }
             }
         },
+        "/solicitud_evaluacion/{id}": {
+            "get": {
+                "tags": [
+                    "solicitud_evaluacion"
+                ],
+                "description": "actualiza de forma publica el estado de una solicitud tipo evaluacion",
+                "operationId": "SolicitudEvaluacionController.PutSolicitudEvaluacion",
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
         "/solicitud_produccion/{id}": {
             "put": {
                 "tags": [
@@ -2693,6 +2778,10 @@
         {
             "name": "paquete_solicitud",
             "description": "PaqueteSolicitudController ...\n"
+        },
+        {
+            "name": "solicitud_evaluacion",
+            "description": "SolicitudEvaluacionController ...\n"
         },
         {
             "name": "solicitud_produccion",
