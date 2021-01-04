@@ -7,6 +7,7 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
+	"github.com/udistrital/sga_mid/models"
 	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 )
@@ -20,7 +21,7 @@ type FormacionController struct {
 func (c *FormacionController) URLMapping() {
 	c.Mapping("PostFormacionAcademica", c.PostFormacionAcademica)
 	// c.Mapping("PutFormacionAcademica", c.PutFormacionAcademica)
-	// c.Mapping("GetFormacionAcademica", c.GetFormacionAcademica)
+	c.Mapping("GetFormacionAcademica", c.GetFormacionAcademica)
 	c.Mapping("GetFormacionAcademicaByTercero", c.GetFormacionAcademicaByTercero)
 	// c.Mapping("DeleteFormacionAcademica", c.DeleteFormacionAcademica)
 	c.Mapping("GetInfoUniversidad", c.GetInfoUniversidad)
@@ -631,308 +632,567 @@ func (c *FormacionController) PutFormacionAcademica() {
 		c.Abort("400")
 	}
 	c.ServeJSON()
-}
+}*/
 
 // GetFormacionAcademica ...
 // @Title GetFormacionAcademica
-// @Description consultar Fromacion Academica por id
-// @Param	id		path 	int	true		"Id de la experiencia"
+// @Description consultar Formacion Academica por id
+// @Param	IdTercero	query 	int	true		"Id del tercero"
+// @Param	IdProyecto	query	int	true		"Id del proyecto academico"
+// @Param	Nit			query	int true		"Nit de la universidad"
 // @Success 200 {}
 // @Failure 404 not found resource
-// @router /:id [get]
+// @router /info_complementaria/ [get]
 func (c *FormacionController) GetFormacionAcademica() {
-	//Id de la persona
-	idStr := c.Ctx.Input.Param(":id")
-	fmt.Println("El id es: " + idStr)
-	//resultado resultado final
+	IdTercero := c.GetString("IdTercero")
+	IdProyecto := c.GetString("IdProyecto")
+	IdNit := c.GetString("Nit")
+	var Nit []map[string]interface{}
 	var resultado map[string]interface{}
-	//resultado formacion
-	var formacion map[string]interface{}
+	resultado = make(map[string]interface{})
+	var alerta models.Alert
+	var errorGetAll bool
+	alertas := append([]interface{}{"Response:"})
 
-	errFormacion := request.GetJson("http://"+beego.AppConfig.String("FormacionAcademicaService")+"/formacion_academica/"+idStr, &formacion)
-	if errFormacion == nil && fmt.Sprintf("%v", formacion["System"]) != "map[]" {
-		if formacion["Status"] != 404 {
-			//resultado programa
-			var programa []map[string]interface{}
+	//GET para obtener el nit de la universidad de la tabla info_complementaria_tercero
+	errNit := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+IdTercero+",InfoComplementariaId__Id:101&limit=0&sortby=Id&order=asc", &Nit)
 
-			errPrograma := request.GetJson("http://"+beego.AppConfig.String("ProgramaAcademicoService")+"/programa_academico/?query=Id:"+
-				fmt.Sprintf("%v", formacion["Titulacion"]), &programa)
-			if errPrograma == nil && fmt.Sprintf("%v", programa[0]["System"]) != "map[]" {
-				if programa[0]["Status"] != 404 {
-					//resultado institucion
-					var institucion []map[string]interface{}
-					formacion["Titulacion"] = programa[0]
-
-					errInstitucion := request.GetJson("http://"+beego.AppConfig.String("OrganizacionService")+"/organizacion/?query=Id:"+
-						fmt.Sprintf("%v", programa[0]["Institucion"]), &institucion)
-					if errInstitucion == nil && fmt.Sprintf("%v", institucion[0]["System"]) != "map[]" {
-						if institucion[0]["Status"] != 404 {
-							//resultado dato adicional
-							var dato []map[string]interface{}
-							var soporte []map[string]interface{}
-							formacion["Institucion"] = institucion[0]
-
-							errDato := request.GetJson("http://"+beego.AppConfig.String("FormacionAcademicaService")+"/dato_adicional_formacion_academica/?query=FormacionAcademica:"+idStr, &dato)
-							if errDato == nil && fmt.Sprintf("%v", dato[0]["System"]) != "map[]" {
-								if dato[0]["Status"] != 404 {
-
-									for i := 0; i < len(dato); i++ {
-										if dato[i]["TipoDatoAdicional"].(float64) == 1 {
-											formacion["TituloTrabajoGrado"] = dato[i]["Valor"]
-										}
-										if dato[i]["TipoDatoAdicional"].(float64) == 2 {
-											formacion["DescripcionTrabajoGrado"] = dato[i]["Valor"]
-										}
-									}
-
-									errSoporte := request.GetJson("http://"+beego.AppConfig.String("FormacionAcademicaService")+"/soporte_formacion_academica/?query=FormacionAcademica:"+
-										idStr+"&fields=Documento", &soporte)
-									if errSoporte == nil && fmt.Sprintf("%v", soporte[0]["System"]) != "map[]" {
-										if soporte[0]["Status"] != 404 {
-											formacion["Documento"] = soporte[0]["Documento"]
-										} else {
-											if soporte[0]["Message"] == "Not found resource" {
-												c.Data["json"] = nil
+	for i := 0; i < len(Nit); i++ {
+		if errNit == nil && fmt.Sprintf("%v", Nit[i]) != "map[]" && Nit[i]["Id"] != nil {
+			if Nit[i]["Status"] != 404 {
+				var NumNit map[string]interface{}
+				ValorString := Nit[i]["Dato"].(string)
+				if err := json.Unmarshal([]byte(ValorString), &NumNit); err == nil {
+					NitAux := NumNit["value"]
+					fmt.Println(NitAux)
+					if NitAux == IdNit {
+						fmt.Println("Emtra")
+						// GET para filtrar por proyecto curricular
+						var ProyectoAux []map[string]interface{}
+						errProyecto := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+IdTercero+",InfoComplementariaId__Id:95&limit=0&sortby=Id&order=asc", &ProyectoAux)
+						if errProyecto == nil && fmt.Sprintf("%v", ProyectoAux[i]) != "map[]" && ProyectoAux[i]["Id"] != nil {
+							if ProyectoAux[i]["Status"] != 404 {
+								var NumProyecto map[string]interface{}
+								ValorString := ProyectoAux[i]["Dato"].(string)
+								if err := json.Unmarshal([]byte(ValorString), &NumProyecto); err == nil {
+									ProyAux := fmt.Sprintf("%v", NumProyecto["value"])
+									if ProyAux == IdProyecto {
+										fmt.Println("Filtrado")
+										//GET proyecto academico
+										var Proyecto []map[string]interface{}
+										errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Id:"+fmt.Sprintf("%v", NumProyecto["value"])+"&limit=0", &Proyecto)
+										if errProyecto == nil && fmt.Sprintf("%v", Proyecto[0]) != "map[]" && Proyecto[0]["Id"] != nil {
+											if Proyecto[0]["Status"] != 404 {
+												resultado["Nit"] = NitAux
+												resultado["ProgramaAcademico"] = map[string]interface{}{
+													"Id":     NumProyecto["value"],
+													"Nombre": Proyecto[0]["Nombre"],
+												}
 											} else {
-												logs.Error(soporte)
-												//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-												c.Data["system"] = errSoporte
-												c.Abort("404")
+												errorGetAll = true
+												alertas = append(alertas, errProyecto.Error())
+												alerta.Code = "400"
+												alerta.Type = "error"
+												alerta.Body = alertas
+												c.Data["json"] = map[string]interface{}{"Response": alerta}
 											}
+										} else {
+											errorGetAll = true
+											alertas = append(alertas, "No data found")
+											alerta.Code = "404"
+											alerta.Type = "error"
+											alerta.Body = alertas
+											c.Data["json"] = map[string]interface{}{"Response": alerta}
 										}
-									} else {
-										logs.Error(soporte)
-										//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-										c.Data["system"] = errSoporte
-										c.Abort("404")
-									}
 
-									resultado = formacion
-									c.Data["json"] = resultado
-								} else {
-									if dato[0]["Message"] == "Not found resource" {
-										c.Data["json"] = nil
+										//GET Fecha inicio
+										var FechaInicio []map[string]interface{}
+										errFechaInicio := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+IdTercero+",InfoComplementariaId__Id:96&limit=0&sortby=Id&order=asc", &FechaInicio)
+										if errFechaInicio == nil && fmt.Sprintf("%v", FechaInicio[i]) != "map[]" && FechaInicio[i]["Id"] != nil {
+											if FechaInicio[i]["Status"] != 404 {
+												var DatoFecha map[string]interface{}
+												ValorString := FechaInicio[i]["Dato"].(string)
+												if err := json.Unmarshal([]byte(ValorString), &DatoFecha); err == nil {
+													resultado["FechaInicio"] = DatoFecha["value"]
+												} else {
+													errorGetAll = true
+													alertas = append(alertas, err.Error())
+													alerta.Code = "400"
+													alerta.Type = "error"
+													alerta.Body = alertas
+													c.Data["json"] = map[string]interface{}{"Response": alerta}
+												}
+											} else {
+												errorGetAll = true
+												alertas = append(alertas, errFechaInicio.Error())
+												alerta.Code = "400"
+												alerta.Type = "error"
+												alerta.Body = alertas
+												c.Data["json"] = map[string]interface{}{"Response": alerta}
+											}
+										} else {
+											errorGetAll = true
+											alertas = append(alertas, "No data found")
+											alerta.Code = "404"
+											alerta.Type = "error"
+											alerta.Body = alertas
+											c.Data["json"] = map[string]interface{}{"Response": alerta}
+										}
+
+										// GET fecha fin
+										var FechaFin []map[string]interface{}
+										errFechaFin := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+IdTercero+",InfoComplementariaId__Id:97&limit=0&sortby=Id&order=asc", &FechaFin)
+										if errFechaFin == nil && fmt.Sprintf("%v", FechaFin[i]) != "map[]" && FechaFin[i]["Id"] != nil {
+											if FechaFin[i]["Status"] != 404 {
+												var DatoFecha map[string]interface{}
+												ValorString := FechaFin[i]["Dato"].(string)
+												if err := json.Unmarshal([]byte(ValorString), &DatoFecha); err == nil {
+													resultado["FechaFinalizacion"] = DatoFecha["value"]
+												} else {
+													errorGetAll = true
+													alertas = append(alertas, err.Error())
+													alerta.Code = "400"
+													alerta.Type = "error"
+													alerta.Body = alertas
+													c.Data["json"] = map[string]interface{}{"Response": alerta}
+												}
+											} else {
+												errorGetAll = true
+												alertas = append(alertas, errFechaFin.Error())
+												alerta.Code = "400"
+												alerta.Type = "error"
+												alerta.Body = alertas
+												c.Data["json"] = map[string]interface{}{"Response": alerta}
+											}
+										} else {
+											errorGetAll = true
+											alertas = append(alertas, "No data found")
+											alerta.Code = "404"
+											alerta.Type = "error"
+											alerta.Body = alertas
+											c.Data["json"] = map[string]interface{}{"Response": alerta}
+										}
+
+										// GET titulo del trabajo
+										var Titulo []map[string]interface{}
+										errTitulo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+IdTercero+",InfoComplementariaId__Id:98&limit=0&sortby=Id&order=asc", &Titulo)
+										if errTitulo == nil && fmt.Sprintf("%v", Titulo[i]) != "map[]" && Titulo[i]["Id"] != nil {
+											if Titulo[i]["Status"] != 404 {
+												var DatoTitulo map[string]interface{}
+												ValorString := Titulo[i]["Dato"].(string)
+												if err := json.Unmarshal([]byte(ValorString), &DatoTitulo); err == nil {
+													resultado["TituloTrabajoGrado"] = DatoTitulo["value"]
+												} else {
+													errorGetAll = true
+													alertas = append(alertas, err.Error())
+													alerta.Code = "400"
+													alerta.Type = "error"
+													alerta.Body = alertas
+													c.Data["json"] = map[string]interface{}{"Response": alerta}
+												}
+											} else {
+												errorGetAll = true
+												alertas = append(alertas, errTitulo.Error())
+												alerta.Code = "400"
+												alerta.Type = "error"
+												alerta.Body = alertas
+												c.Data["json"] = map[string]interface{}{"Response": alerta}
+											}
+										} else {
+											errorGetAll = true
+											alertas = append(alertas, "No data found")
+											alerta.Code = "404"
+											alerta.Type = "error"
+											alerta.Body = alertas
+											c.Data["json"] = map[string]interface{}{"Response": alerta}
+										}
+
+										// GET descripcion del trabajo
+										var Descripcion []map[string]interface{}
+										errDescripcion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+IdTercero+",InfoComplementariaId__Id:99&limit=0&sortby=Id&order=asc", &Descripcion)
+										if errDescripcion == nil && fmt.Sprintf("%v", Descripcion[i]) != "map[]" && Descripcion[i]["Id"] != nil {
+											if Descripcion[i]["Status"] != 404 {
+												var DatoDescripcion map[string]interface{}
+												ValorString := Descripcion[i]["Dato"].(string)
+												if err := json.Unmarshal([]byte(ValorString), &DatoDescripcion); err == nil {
+													resultado["DescripcionTrabajoGrado"] = DatoDescripcion["value"]
+												} else {
+													errorGetAll = true
+													alertas = append(alertas, err.Error())
+													alerta.Code = "400"
+													alerta.Type = "error"
+													alerta.Body = alertas
+													c.Data["json"] = map[string]interface{}{"Response": alerta}
+												}
+											} else {
+												errorGetAll = true
+												alertas = append(alertas, errDescripcion.Error())
+												alerta.Code = "400"
+												alerta.Type = "error"
+												alerta.Body = alertas
+												c.Data["json"] = map[string]interface{}{"Response": alerta}
+											}
+										} else {
+											errorGetAll = true
+											alertas = append(alertas, "No data found")
+											alerta.Code = "404"
+											alerta.Type = "error"
+											alerta.Body = alertas
+											c.Data["json"] = map[string]interface{}{"Response": alerta}
+										}
+
+										// GET para el documento ID
+										var Documento []map[string]interface{}
+										errDocumento := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+IdTercero+",InfoComplementariaId__Id:100&limit=0&sortby=Id&order=asc", &Documento)
+										if errDocumento == nil && fmt.Sprintf("%v", Documento[i]) != "map[]" && Documento[i]["Id"] != nil {
+											if Documento[i]["Status"] != 404 {
+												var DatoDocumento map[string]interface{}
+												ValorString := Documento[i]["Dato"].(string)
+												if err := json.Unmarshal([]byte(ValorString), &DatoDocumento); err == nil {
+													resultado["Documento"] = DatoDocumento["value"]
+												} else {
+													errorGetAll = true
+													alertas = append(alertas, err.Error())
+													alerta.Code = "400"
+													alerta.Type = "error"
+													alerta.Body = alertas
+													c.Data["json"] = map[string]interface{}{"Response": alerta}
+												}
+											} else {
+												errorGetAll = true
+												alertas = append(alertas, errDocumento.Error())
+												alerta.Code = "400"
+												alerta.Type = "error"
+												alerta.Body = alertas
+												c.Data["json"] = map[string]interface{}{"Response": alerta}
+											}
+										} else {
+											errorGetAll = true
+											alertas = append(alertas, "No data found")
+											alerta.Code = "404"
+											alerta.Type = "error"
+											alerta.Body = alertas
+											c.Data["json"] = map[string]interface{}{"Response": alerta}
+										}
+										c.Data["json"] = resultado
+										break
 									} else {
-										logs.Error(dato)
-										//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-										c.Data["system"] = errDato
-										c.Abort("404")
+										errorGetAll = true
+										alertas = append(alertas, "No data found")
+										alerta.Code = "404"
+										alerta.Type = "error"
+										alerta.Body = alertas
+										c.Data["json"] = map[string]interface{}{"Response": alerta}
 									}
+								} else {
+									errorGetAll = true
+									alertas = append(alertas, err.Error())
+									alerta.Code = "400"
+									alerta.Type = "error"
+									alerta.Body = alertas
+									c.Data["json"] = map[string]interface{}{"Response": alerta}
 								}
 							} else {
-								logs.Error(dato)
-								//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-								c.Data["system"] = errDato
-								c.Abort("404")
+								errorGetAll = true
+								alertas = append(alertas, errProyecto.Error())
+								alerta.Code = "400"
+								alerta.Type = "error"
+								alerta.Body = alertas
+								c.Data["json"] = map[string]interface{}{"Response": alerta}
 							}
 						} else {
-							if institucion[0]["Message"] == "Not found resource" {
-								c.Data["json"] = nil
-							} else {
-								logs.Error(institucion)
-								//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-								c.Data["system"] = errInstitucion
-								c.Abort("404")
-							}
+							errorGetAll = true
+							alertas = append(alertas, "No data found")
+							alerta.Code = "404"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
 						}
 					} else {
-						logs.Error(institucion)
-						//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-						c.Data["system"] = errInstitucion
-						c.Abort("404")
+						errorGetAll = true
+						alertas = append(alertas, err.Error())
+						alerta.Code = "400"
+						alerta.Type = "error"
+						alerta.Body = alertas
+						c.Data["json"] = map[string]interface{}{"Response": alerta}
 					}
 				} else {
-					if programa[0]["Message"] == "Not found resource" {
-						c.Data["json"] = nil
-					} else {
-						logs.Error(programa)
-						//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-						c.Data["system"] = errPrograma
-						c.Abort("404")
-					}
+					errorGetAll = true
+					alertas = append(alertas, errNit.Error())
+					alerta.Code = "400"
+					alerta.Type = "error"
+					alerta.Body = alertas
+					c.Data["json"] = map[string]interface{}{"Response": alerta}
 				}
 			} else {
-				logs.Error(programa)
-				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-				c.Data["system"] = errPrograma
-				c.Abort("404")
+				errorGetAll = true
+				alertas = append(alertas, errNit.Error())
+				alerta.Code = "400"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Response": alerta}
 			}
 		} else {
-			if formacion["Message"] == "Not found resource" {
-				c.Data["json"] = nil
-			} else {
-				logs.Error(formacion)
-				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-				c.Data["system"] = errFormacion
-				c.Abort("404")
-			}
+			errorGetAll = true
+			alertas = append(alertas, "No data found")
+			alerta.Code = "404"
+			alerta.Type = "error"
+			alerta.Body = alertas
+			c.Data["json"] = map[string]interface{}{"Response": alerta}
 		}
-	} else {
-		logs.Error(formacion)
-		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-		c.Data["system"] = errFormacion
-		c.Abort("404")
 	}
+	fmt.Println(errorGetAll)
 	c.ServeJSON()
 }
-*/
 
 // GetFormacionAcademicaByTercero ...
 // @Title GetFormacionAcademicaByTercero
-// @Description consultar Fromacion Academica por id del tercero
-// @Param	Tercero		path 	int	true		"Id del tercero"
+// @Description consultar la Formacion Academica por id del tercero
+// @Param	Id		query 	int	true		"Id del tercero"
 // @Success 200 {}
 // @Failure 404 not found resource
-// @router /by_tercero/:id_tercero [get]
+// @router / [get]
 func (c *FormacionController) GetFormacionAcademicaByTercero() {
-	//Captura de parámetros
-	// idEnte := c.GetString("Ente")
-	// fmt.Println("Id de ente: " + idEnte)
-	// Id de la persona
-	idTercero := c.Ctx.Input.Param(":id_tercero")
-	fmt.Println("Consultando fomración academica de tercero:" + idTercero)
-	//resultado resultado final
+	TerceroId := c.GetString("Id")
 	var resultado []map[string]interface{}
-	//resultado formacion
-	var formacion []map[string]interface{}
+	resultado = make([]map[string]interface{}, 0)
+	var Nit []map[string]interface{}
+	var alerta models.Alert
+	var errorGetAll bool
+	alertas := append([]interface{}{"Response:"})
 
-	errFormacion := request.GetJson("http://"+beego.AppConfig.String("FormacionAcademicaService")+"/formacion_academica/?query=Persona:"+idTercero, &formacion)
-	if errFormacion == nil && fmt.Sprintf("%v", formacion[0]["System"]) != "map[]" {
-		if formacion[0]["Status"] != 404 && formacion[0]["Id"] != nil {
+	//GET para obtener el nit de la universidad
+	errNit := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+TerceroId+",InfoComplementariaId__Id:101&limit=0&sortby=Id&order=asc", &Nit)
 
-			for u := 0; u < len(formacion); u++ {
-				//resultado programa
-				var programa []map[string]interface{}
-				// errPrograma := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/programa_academico_institucion/?query=Id:"+
-				errPrograma := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_institucion/?query=Id:"+
-					fmt.Sprintf("%v", formacion[u]["Titulacion"]), &programa)
-				if errPrograma == nil && fmt.Sprintf("%v", programa[0]["System"]) != "map[]" {
-					if programa[0]["Status"] != 404 && programa[0]["Id"] != nil {
-						//resultado institucion
-						var institucion []map[string]interface{}
-						formacion[u]["Titulacion"] = programa[0]
+	for i := 0; i < len(Nit); i++ {
+		resultadoAux := make(map[string]interface{})
+		if errNit == nil && fmt.Sprintf("%v", Nit[i]) != "map[]" && Nit[i]["Id"] != nil {
+			if Nit[i]["Status"] != 404 {
+				var NumNit map[string]interface{}
+				ValorString := Nit[i]["Dato"].(string)
+				if err := json.Unmarshal([]byte(ValorString), &NumNit); err == nil {
+					resultadoAux["Nit"] = NumNit["value"]
 
-						// errInstitucion := request.GetJson("http://"+beego.AppConfig.String("OrganizacionService")+"/organizacion/?query=Id:"+
-						// fmt.Sprintf("%v", programa[0]["Institucion"]), &institucion)
-						errInstitucion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero?limit=1&query=InfoComplementariaId__Id:1,TerceroId__Id:"+
-							idTercero, &institucion)
-						if errInstitucion == nil && fmt.Sprintf("%v", institucion[0]["System"]) != "map[]" {
-							if institucion[0]["Status"] != 404 {
-								//resultado dato adicional
-								var dato []map[string]interface{}
-								var soporte []map[string]interface{}
-								// unmarshall dato
-								var institucionJson map[string]interface{}
-								if err := json.Unmarshal([]byte(institucion[0]["Dato"].(string)), &institucionJson); err != nil {
-									formacion[u]["Institucion"] = nil
-								} else {
-									formacion[u]["Institucion"] = institucionJson
-								}
+					//GET para obtener el ID que relaciona las tablas tipo_documento y tercero
+					var IdTercero []map[string]interface{}
+					errIdTercero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=TipoDocumentoId__Id:7,Numero:"+fmt.Sprintf("%v", resultadoAux["Nit"])+"&limit=0", &IdTercero)
+					if errIdTercero == nil && fmt.Sprintf("%v", IdTercero[0]) != "map[]" && IdTercero[0]["Id"] != nil {
+						if IdTercero[0]["Status"] != 404 {
+							IdTerceroAux := IdTercero[0]["TerceroId"].(map[string]interface{})["Id"]
 
-								errDato := request.GetJson("http://"+beego.AppConfig.String("FormacionAcademicaService")+"/dato_adicional_formacion_academica/?query=FormacionAcademica:"+
-									fmt.Sprintf("%v", formacion[u]["Id"]), &dato)
-								if errDato == nil && fmt.Sprintf("%v", dato[0]["System"]) != "map[]" {
-									if dato[0]["Status"] != 404 {
+							// GET para traer el nombre de la universidad y el país
+							var Tercero []map[string]interface{}
+							errTercero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero?query=Id:"+fmt.Sprintf("%v", IdTerceroAux), &Tercero)
+							if errTercero == nil && fmt.Sprintf("%v", Tercero[0]) != "map[]" && Tercero[0]["Id"] != nil {
+								if Tercero[0]["Status"] != 404 {
+									formatdata.JsonPrint(Tercero)
+									resultadoAux["NombreCompleto"] = Tercero[0]["NombreCompleto"]
+									var lugar map[string]interface{}
 
-										for i := 0; i < len(dato); i++ {
-											if dato[i]["TipoDatoAdicional"].(float64) == 1 {
-												formacion[u]["TituloTrabajoGrado"] = dato[i]["Valor"]
-											}
-											if dato[i]["TipoDatoAdicional"].(float64) == 2 {
-												formacion[u]["DescripcionTrabajoGrado"] = dato[i]["Valor"]
-											}
-										}
-
-										errSoporte := request.GetJson("http://"+beego.AppConfig.String("FormacionAcademicaService")+"/soporte_formacion_academica/?query=FormacionAcademica:"+
-											fmt.Sprintf("%v", formacion[u]["Id"])+"&fields=Documento", &soporte)
-										if errSoporte == nil && fmt.Sprintf("%v", soporte[0]["System"]) != "map[]" {
-											if soporte[0]["Status"] != 404 {
-												formacion[u]["Documento"] = soporte[0]["Documento"]
-											} else {
-												if soporte[0]["Message"] == "Not found resource" {
-													c.Data["json"] = nil
-												} else {
-													logs.Error(soporte)
-													//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-													c.Data["system"] = errSoporte
-													c.Abort("404")
-												}
-											}
+									//GET para traer los datos de la ubicación
+									errLugar := request.GetJson("http://"+beego.AppConfig.String("UbicacionesService")+"/relacion_lugares/jerarquia_lugar/"+fmt.Sprintf("%v", Tercero[0]["LugarOrigen"]), &lugar)
+									if errLugar == nil && fmt.Sprintf("%v", lugar) != "map[]" {
+										if lugar["Status"] != 404 {
+											resultadoAux["Ubicacion"] = lugar["PAIS"].(map[string]interface{})["Nombre"]
 										} else {
-											logs.Error(soporte)
-											//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-											c.Data["system"] = errSoporte
-											c.Abort("404")
+											errorGetAll = true
+											alertas = append(alertas, errLugar.Error())
+											alerta.Code = "400"
+											alerta.Type = "error"
+											alerta.Body = alertas
+											c.Data["json"] = map[string]interface{}{"Response": alerta}
 										}
-
-										resultado = formacion
-										c.Data["json"] = resultado
 									} else {
-										if dato[0]["Message"] == "Not found resource" {
-											c.Data["json"] = nil
-										} else {
-											logs.Error(dato)
-											//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-											c.Data["system"] = errDato
-											c.Abort("404")
-										}
+										errorGetAll = true
+										alertas = append(alertas, "No data found")
+										alerta.Code = "404"
+										alerta.Type = "error"
+										alerta.Body = alertas
+										c.Data["json"] = map[string]interface{}{"Response": alerta}
 									}
 								} else {
-									logs.Error(dato)
-									//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-									c.Data["system"] = errDato
-									c.Abort("404")
+									errorGetAll = true
+									alertas = append(alertas, errTercero.Error())
+									alerta.Code = "400"
+									alerta.Type = "error"
+									alerta.Body = alertas
+									c.Data["json"] = map[string]interface{}{"Response": alerta}
 								}
 							} else {
-								if institucion[0]["Message"] == "Not found resource" {
-									c.Data["json"] = nil
-								} else {
-									logs.Error(institucion)
-									//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-									c.Data["system"] = errInstitucion
-									c.Abort("404")
-								}
+								errorGetAll = true
+								alertas = append(alertas, "No data found")
+								alerta.Code = "404"
+								alerta.Type = "error"
+								alerta.Body = alertas
+								c.Data["json"] = map[string]interface{}{"Response": alerta}
 							}
 						} else {
-							logs.Error(institucion)
-							//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-							c.Data["system"] = errInstitucion
-							c.Abort("404")
+							errorGetAll = true
+							alertas = append(alertas, errIdTercero.Error())
+							alerta.Code = "400"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
 						}
 					} else {
-						if programa[0]["Message"] == "Not found resource" {
-							c.Data["json"] = nil
-						} else {
-							logs.Error(programa)
-							//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-							c.Data["system"] = errPrograma
-							c.Abort("404")
-						}
+						errorGetAll = true
+						alertas = append(alertas, "No data found")
+						alerta.Code = "404"
+						alerta.Type = "error"
+						alerta.Body = alertas
+						c.Data["json"] = map[string]interface{}{"Response": alerta}
 					}
-				} else {
-					logs.Error(programa)
-					//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-					c.Data["system"] = errPrograma
-					c.Abort("404")
+
+					// GET Id proyecto curricular
+					var IdProyecto []map[string]interface{}
+					errIdProyecto := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+TerceroId+",InfoComplementariaId__Id:95&limit=0&sortby=Id&order=asc", &IdProyecto)
+					if errIdProyecto == nil && fmt.Sprintf("%v", IdProyecto[i]) != "map[]" && IdProyecto[i]["Id"] != nil {
+						if IdProyecto[i]["Status"] != 404 {
+							var NumProyecto map[string]interface{}
+							ValorString := IdProyecto[i]["Dato"].(string)
+							if err := json.Unmarshal([]byte(ValorString), &NumProyecto); err == nil {
+
+								//GET para consultar el proyecto curricular
+								var Proyecto []map[string]interface{}
+								errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Id:"+fmt.Sprintf("%v", NumProyecto["value"])+"&limit=0", &Proyecto)
+								if errProyecto == nil && fmt.Sprintf("%v", Proyecto[0]) != "map[]" && Proyecto[0]["Id"] != nil {
+									if Proyecto[0]["Status"] != 404 {
+										resultadoAux["ProgramaAcademico"] = map[string]interface{}{
+											"Id":     NumProyecto["value"],
+											"Nombre": Proyecto[0]["Nombre"],
+										}
+
+									} else {
+										errorGetAll = true
+										alertas = append(alertas, errProyecto.Error())
+										alerta.Code = "400"
+										alerta.Type = "error"
+										alerta.Body = alertas
+										c.Data["json"] = map[string]interface{}{"Response": alerta}
+									}
+								} else {
+									errorGetAll = true
+									alertas = append(alertas, "No data found")
+									alerta.Code = "404"
+									alerta.Type = "error"
+									alerta.Body = alertas
+									c.Data["json"] = map[string]interface{}{"Response": alerta}
+								}
+							} else {
+								errorGetAll = true
+								alertas = append(alertas, err.Error())
+								alerta.Code = "400"
+								alerta.Type = "error"
+								alerta.Body = alertas
+								c.Data["json"] = map[string]interface{}{"Response": alerta}
+							}
+						} else {
+							errorGetAll = true
+							alertas = append(alertas, errIdProyecto.Error())
+							alerta.Code = "400"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
+						}
+					} else {
+						errorGetAll = true
+						alertas = append(alertas, "No data found")
+						alerta.Code = "404"
+						alerta.Type = "error"
+						alerta.Body = alertas
+						c.Data["json"] = map[string]interface{}{"Response": alerta}
+					}
+
+					//GET Fecha inicio
+					var FechaInicio []map[string]interface{}
+					errFechaInicio := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+TerceroId+",InfoComplementariaId__Id:96&limit=0&sortby=Id&order=asc", &FechaInicio)
+					if errFechaInicio == nil && fmt.Sprintf("%v", FechaInicio[i]) != "map[]" && FechaInicio[i]["Id"] != nil {
+						if FechaInicio[i]["Status"] != 404 {
+							var DatoFecha map[string]interface{}
+							ValorString := FechaInicio[i]["Dato"].(string)
+							if err := json.Unmarshal([]byte(ValorString), &DatoFecha); err == nil {
+								resultadoAux["FechaInicio"] = DatoFecha["value"]
+							} else {
+								errorGetAll = true
+								alertas = append(alertas, err.Error())
+								alerta.Code = "400"
+								alerta.Type = "error"
+								alerta.Body = alertas
+								c.Data["json"] = map[string]interface{}{"Response": alerta}
+							}
+						} else {
+							errorGetAll = true
+							alertas = append(alertas, errFechaInicio.Error())
+							alerta.Code = "400"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
+						}
+					} else {
+						errorGetAll = true
+						alertas = append(alertas, "No data found")
+						alerta.Code = "404"
+						alerta.Type = "error"
+						alerta.Body = alertas
+						c.Data["json"] = map[string]interface{}{"Response": alerta}
+					}
+
+					//GET Fecha Fin
+					var FechaFin []map[string]interface{}
+					errFechaFin := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+TerceroId+",InfoComplementariaId__Id:97&limit=0&sortby=Id&order=asc", &FechaFin)
+					if errFechaFin == nil && fmt.Sprintf("%v", FechaFin[i]) != "map[]" && FechaFin[i]["Id"] != nil {
+						if FechaFin[i]["Status"] != 404 {
+							var DatoFecha map[string]interface{}
+							ValorString := FechaFin[i]["Dato"].(string)
+							if err := json.Unmarshal([]byte(ValorString), &DatoFecha); err == nil {
+								resultadoAux["FechaFinalizacion"] = DatoFecha["value"]
+							} else {
+								errorGetAll = true
+								alertas = append(alertas, err.Error())
+								alerta.Code = "400"
+								alerta.Type = "error"
+								alerta.Body = alertas
+								c.Data["json"] = map[string]interface{}{"Response": alerta}
+							}
+						} else {
+							errorGetAll = true
+							alertas = append(alertas, errFechaFin.Error())
+							alerta.Code = "400"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
+						}
+					} else {
+						errorGetAll = true
+						alertas = append(alertas, "No data found")
+						alerta.Code = "404"
+						alerta.Type = "error"
+						alerta.Body = alertas
+						c.Data["json"] = map[string]interface{}{"Response": alerta}
+					}
+					resultado = append(resultado, resultadoAux)
+					c.Data["json"] = resultado
 				}
 
+			} else {
+				errorGetAll = true
+				alertas = append(alertas, errNit.Error())
+				alerta.Code = "400"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Response": alerta}
 			}
 		} else {
-			if formacion[0]["Message"] == "Not found resource" {
-				c.Data["json"] = nil
-			} else {
-				logs.Error(formacion)
-				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-				c.Data["system"] = errFormacion
-				c.Abort("404")
-			}
+			errorGetAll = true
+			alertas = append(alertas, "No data found")
+			alerta.Code = "404"
+			alerta.Type = "error"
+			alerta.Body = alertas
+			c.Data["json"] = map[string]interface{}{"Response": alerta}
 		}
-	} else {
-		logs.Error(formacion)
-		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-		c.Data["system"] = errFormacion
-		c.Abort("404")
 	}
+
+	fmt.Println(errorGetAll)
 	c.ServeJSON()
 }
 
