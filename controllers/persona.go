@@ -10,6 +10,7 @@ import (
 	"github.com/udistrital/sga_mid/models"
 	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
+	"github.com/udistrital/utils_oas/time_bogota"
 )
 
 // PersonaController ...
@@ -55,7 +56,7 @@ func (c *PersonaController) GuardarPersona() {
 			"SegundoNombre":       tercero["SegundoNombre"],
 			"PrimerApellido":      tercero["PrimerApellido"],
 			"SegundoApellido":     tercero["SegundoApellido"],
-			"FechaNacimiento":     tercero["FechaNacimiento"],
+			"FechaNacimiento":     time_bogota.TiempoCorreccionFormato(tercero["FechaNacimiento"].(string)),
 			"Activo":              true,
 			"TipoContribuyenteId": TipoContribuyenteId, // Persona natural actualmente tiene ese id en el api
 			"UsuarioWSO2":         tercero["Usuario"],
@@ -78,7 +79,7 @@ func (c *PersonaController) GuardarPersona() {
 					"TipoDocumentoId": TipoDocumentoId,
 					"TerceroId":       TerceroId,
 					"Activo":          true,
-					"FechaExpedicion": tercero["FechaExpedicion"],
+					"FechaExpedicion": time_bogota.TiempoCorreccionFormato(tercero["FechaExpedicion"].(string)),
 				}
 				errIdentificacion := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion", "POST", &identificacion, identificaciontercero)
 				if errIdentificacion == nil && fmt.Sprintf("%v", identificacion) != "map[]" && identificacion["Id"] != nil {
