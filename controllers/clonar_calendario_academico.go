@@ -151,32 +151,26 @@ func (c *CalendarioController) PostCalendarioPadre() {
 
 	var dataPost map[string]interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &dataPost); err == nil {
-		fmt.Println("punto de control 1")
 		idCalendario := fmt.Sprintf("%.f", dataPost["Id"].(float64))
 		idCalendarioPadre := fmt.Sprintf("%.f", dataPost["IdPadre"].(map[string]interface{})["Id"])
 		errCalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario/"+idCalendario, &calendario)
 		if errCalendario == nil {
 			if calendario != nil {
-				fmt.Println("punto de control 2")
 				if dataPost["Nivel"].(float64) == calendario["Nivel"].(float64) {
 					errCalendarioParam = request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Id:"+idCalendarioPadre, &calendarioParam)
 				} else {
 					errCalendarioParam = request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Id:"+idCalendarioPadre, &calendarioParam)
 				}
-				//c.Data["json"] = idCalendario
+
 				if errCalendarioParam == nil {
 					if calendarioParam != nil && calendarioParam[0]["Id"] != nil {
-						fmt.Println("punto de control 3")
 						idCalendarioParam := fmt.Sprintf("%.f", calendarioParam[0]["Id"].(float64))
 
 						// persistir tipo_evento si el calendario que se esta clonando los tiene
 						errTipoEvento := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"tipo_evento?query=CalendarioID__Id:"+idCalendarioParam, &tipoEvento)
-						fmt.Println(tipoEvento)
 						if errTipoEvento == nil {
 							if tipoEvento != nil && tipoEvento[0]["Id"] != nil {
-								fmt.Println("punto de control 4")
 								for _, tEvento := range tipoEvento {
-
 									idOld := fmt.Sprintf("%.f", tEvento["Id"].(float64))
 									tEvento["Id"] = 0
 									tEvento["CalendarioID"] = calendario
@@ -184,14 +178,12 @@ func (c *CalendarioController) PostCalendarioPadre() {
 									errTipoEventoPost := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"/tipo_evento", "POST", &resultadoPost, tEvento)
 									if errTipoEventoPost == nil && fmt.Sprintf("%v", resultadoPost["System"]) != "map[]" && resultadoPost["Id"] != nil {
 										if resultadoPost["Status"] != 400 {
-											fmt.Println("punto de control 5")
 											tEvento["Id"] = resultadoPost["Id"]
 
 											// presistir calendario_evento si el tipo_evento que se esta clonando esta asociado en el campo tipo_evento_id del calendario_evento
 											errCalendarioEvento := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento?query=TipoEventoId__Id:"+idOld, &calendarioEvento)
 											if errCalendarioEvento == nil {
 												if calendarioEvento != nil && calendarioEvento[0]["Id"] != nil {
-													fmt.Println("punto de control 6")
 													for _, cEvento := range calendarioEvento {
 														cEvento["Id"] = 0
 														cEvento["TipoEventoId"] = tEvento
