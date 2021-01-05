@@ -1149,7 +1149,7 @@
                 "tags": [
                     "experiencia_laboral"
                 ],
-                "description": "Agregar Experiencia Laboral",
+                "description": "Agregar Formacion Academica ud",
                 "operationId": "ExperienciaLaboralController.PostExperienciaLaboral",
                 "parameters": [
                     {
