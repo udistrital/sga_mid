@@ -7,6 +7,7 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
+	"github.com/udistrital/sga_mid/models"
 	"github.com/udistrital/utils_oas/request"
 )
 
@@ -173,7 +174,11 @@ func (c *CalendarioController) PostCalendarioPadre() {
 	var tipoEvento []map[string]interface{}
 	var calendarioEvento []map[string]interface{}
 	var resultadoPost map[string]interface{}
+	var resultado map[string]interface{}
 	var errCalendarioParam = errors.New("")
+	var alerta models.Alert
+	var errorGetAll bool
+	alertas := append([]interface{}{"Response:"})
 
 	var dataPost map[string]interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &dataPost); err == nil {
@@ -187,10 +192,9 @@ func (c *CalendarioController) PostCalendarioPadre() {
 				} else {
 					errCalendarioParam = request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Id:"+idCalendarioPadre, &calendarioParam)
 				}
-				c.Data["json"] = idCalendario
+
 				if errCalendarioParam == nil {
 					if calendarioParam != nil && calendarioParam[0]["Id"] != nil {
-
 						idCalendarioParam := fmt.Sprintf("%.f", calendarioParam[0]["Id"].(float64))
 
 						// persistir tipo_evento si el calendario que se esta clonando los tiene
@@ -198,7 +202,6 @@ func (c *CalendarioController) PostCalendarioPadre() {
 						if errTipoEvento == nil {
 							if tipoEvento != nil && tipoEvento[0]["Id"] != nil {
 								for _, tEvento := range tipoEvento {
-
 									idOld := fmt.Sprintf("%.f", tEvento["Id"].(float64))
 									tEvento["Id"] = 0
 									tEvento["CalendarioID"] = calendario
@@ -213,7 +216,6 @@ func (c *CalendarioController) PostCalendarioPadre() {
 											if errCalendarioEvento == nil {
 												if calendarioEvento != nil && calendarioEvento[0]["Id"] != nil {
 													for _, cEvento := range calendarioEvento {
-
 														cEvento["Id"] = 0
 														cEvento["TipoEventoId"] = tEvento
 														cEvento["FechaInicio"] = "2000-01-01T00:00:00-05:00"
@@ -223,38 +225,123 @@ func (c *CalendarioController) PostCalendarioPadre() {
 														if errCalendarioEventoPost == nil && fmt.Sprintf("%v", resultadoPost["System"]) != "map[]" && resultadoPost["Id"] != nil {
 															if resultadoPost["Status"] != 400 {
 																fmt.Println("calendario_evento nuevo: ", resultadoPost["Id"])
+															} else {
+																errorGetAll = true
+																alertas = append(alertas, errCalendarioEventoPost.Error())
+																alerta.Code = "400"
+																alerta.Type = "error"
+																alerta.Body = alertas
+																c.Data["json"] = map[string]interface{}{"Response": alerta}
 															}
+														} else {
+															errorGetAll = true
+															alertas = append(alertas, "No data found")
+															alerta.Code = "404"
+															alerta.Type = "error"
+															alerta.Body = alertas
+															c.Data["json"] = map[string]interface{}{"Response": alerta}
 														}
-
 													}
-
+												} else {
+													errorGetAll = true
+													alertas = append(alertas, errCalendarioEvento.Error())
+													alerta.Code = "400"
+													alerta.Type = "error"
+													alerta.Body = alertas
+													c.Data["json"] = map[string]interface{}{"Response": alerta}
 												}
+											} else {
+												errorGetAll = true
+												alertas = append(alertas, "No data found")
+												alerta.Code = "404"
+												alerta.Type = "error"
+												alerta.Body = alertas
+												c.Data["json"] = map[string]interface{}{"Response": alerta}
 											}
+										} else {
+											errorGetAll = true
+											alertas = append(alertas, errTipoEventoPost.Error())
+											alerta.Code = "400"
+											alerta.Type = "error"
+											alerta.Body = alertas
+											c.Data["json"] = map[string]interface{}{"Response": alerta}
 										}
+									} else {
+										errorGetAll = true
+										alertas = append(alertas, "No data found")
+										alerta.Code = "404"
+										alerta.Type = "error"
+										alerta.Body = alertas
+										c.Data["json"] = map[string]interface{}{"Response": alerta}
 									}
 
 								}
-
+								resultado = map[string]interface{}{
+									"Id": idCalendario,
+								}
 							} else {
-								c.Data["json"] = tipoEvento[0]
+								errorGetAll = true
+								alertas = append(alertas, "No data found")
+								alerta.Code = "404"
+								alerta.Type = "error"
+								alerta.Body = alertas
+								c.Data["json"] = map[string]interface{}{"Response": alerta}
 							}
+						} else {
+							errorGetAll = true
+							alertas = append(alertas, errTipoEvento.Error())
+							alerta.Code = "400"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
 						}
 					} else {
-						c.Data["json"] = calendarioParam[0]
+						errorGetAll = true
+						alertas = append(alertas, "No data found")
+						alerta.Code = "404"
+						alerta.Type = "error"
+						alerta.Body = alertas
+						c.Data["json"] = map[string]interface{}{"Response": alerta}
 					}
 				} else {
-					logs.Error(errCalendarioParam)
-					c.Data["system"] = errCalendarioParam
-					c.Abort("400")
+					errorGetAll = true
+					alertas = append(alertas, errCalendarioParam.Error())
+					alerta.Code = "400"
+					alerta.Type = "error"
+					alerta.Body = alertas
+					c.Data["json"] = map[string]interface{}{"Response": alerta}
 				}
 			} else {
-				c.Data["json"] = calendarioParam[0]
+				errorGetAll = true
+				alertas = append(alertas, "No data found")
+				alerta.Code = "404"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Response": alerta}
 			}
 		} else {
-			logs.Error(errCalendarioParam)
-			c.Data["system"] = errCalendarioParam
-			c.Abort("400")
+			errorGetAll = true
+			alertas = append(alertas, errCalendario.Error())
+			alerta.Code = "400"
+			alerta.Type = "error"
+			alerta.Body = alertas
+			c.Data["json"] = map[string]interface{}{"Response": alerta}
 		}
+	} else {
+		errorGetAll = true
+		alertas = append(alertas, err.Error())
+		alerta.Code = "400"
+		alerta.Type = "error"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
+	if !errorGetAll {
+		alertas = append(alertas, resultado)
+		alerta.Code = "200"
+		alerta.Type = "OK"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
 	}
 	c.ServeJSON()
 }
