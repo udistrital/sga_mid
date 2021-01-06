@@ -504,6 +504,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:InscripcionesController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:InscripcionesController"],
         beego.ControllerComments{
+            Method: "ActualizarInfoContacto",
+            Router: `/info_contacto`,
+            AllowHTTPMethods: []string{"put"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:InscripcionesController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:InscripcionesController"],
+        beego.ControllerComments{
             Method: "PostInfoIcfesColegio",
             Router: `/post_info_icfes_colegio`,
             AllowHTTPMethods: []string{"post"},
