@@ -1558,6 +1558,34 @@
                 }
             }
         },
+        "/inscripciones/info_contacto": {
+            "put": {
+                "tags": [
+                    "inscripciones"
+                ],
+                "description": "Actualiza los datos de contacto del tercero",
+                "operationId": "InscripcionesController.ActualizarInfoContacto",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Actualizar la info de contacto del tercero content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
         "/inscripciones/post_info_icfes_colegio": {
             "post": {
                 "tags": [
