@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/astaxie/beego"
-	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
 	"github.com/udistrital/utils_oas/request"
 )
@@ -38,6 +37,9 @@ func (c *CalendarioController) PostCalendario() {
 	var resultadoPost map[string]interface{}
 	var resultadoPostResponsable map[string]interface{}
 	var errCalendarioParam = errors.New("")
+	var alerta models.Alert
+	var errorGetAll bool
+	alertas := append([]interface{}{"Data:"})
 
 	var dataPost map[string]interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &dataPost); err == nil {
@@ -117,44 +119,113 @@ func (c *CalendarioController) PostCalendario() {
 																					}
 
 																				}
+																			} else {
+																				errorGetAll = true
+																				alertas = append(alertas, errTipoPublico.Error())
+																				alerta.Code = "400"
+																				alerta.Type = "error"
+																				alerta.Body = alertas
+																				c.Data["json"] = map[string]interface{}{"Data": alerta}
 																			}
 																		}
 																	}
+																} else {
+																	errorGetAll = true
+																	alertas = append(alertas, errCalendarioEventoTipoPublico.Error())
+																	alerta.Code = "400"
+																	alerta.Type = "error"
+																	alerta.Body = alertas
+																	c.Data["json"] = map[string]interface{}{"Data": alerta}
 																}
 
 															}
+														} else {
+															errorGetAll = true
+															alertas = append(alertas, errCalendarioEventoPost.Error())
+															alerta.Code = "400"
+															alerta.Type = "error"
+															alerta.Body = alertas
+															c.Data["json"] = map[string]interface{}{"Data": alerta}
 														}
 
 													}
-
 												}
+											} else {
+												errorGetAll = true
+												alertas = append(alertas, errCalendarioEvento.Error())
+												alerta.Code = "400"
+												alerta.Type = "error"
+												alerta.Body = alertas
+												c.Data["json"] = map[string]interface{}{"Data": alerta}
 											}
 										}
+									} else {
+										errorGetAll = true
+										alertas = append(alertas, errTipoEventoPost.Error())
+										alerta.Code = "400"
+										alerta.Type = "error"
+										alerta.Body = alertas
+										c.Data["json"] = map[string]interface{}{"Data": alerta}
 									}
 
 								}
 
 							} else {
-								c.Data["json"] = tipoEvento[0]
+								errorGetAll = true
+								alertas = append(alertas, tipoEvento[0])
+								alerta.Code = "200"
+								alerta.Type = "OK"
+								alerta.Body = alertas
+								c.Data["json"] = map[string]interface{}{"Data": alerta}
 							}
+						} else {
+							errorGetAll = true
+							alertas = append(alertas, errTipoEvento.Error())
+							alerta.Code = "400"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Data": alerta}
 						}
 					} else {
-						c.Data["json"] = calendarioParam[0]
+						errorGetAll = true
+						alertas = append(alertas, calendarioParam[0])
+						alerta.Code = "200"
+						alerta.Type = "OK"
+						alerta.Body = alertas
+						c.Data["json"] = map[string]interface{}{"Data": alerta}
 					}
 				} else {
-					logs.Error(errCalendarioParam)
-					c.Data["system"] = errCalendarioParam
-					c.Abort("400")
+					errorGetAll = true
+					alertas = append(alertas, errCalendarioParam.Error())
+					alerta.Code = "400"
+					alerta.Type = "error"
+					alerta.Body = alertas
+					c.Data["json"] = map[string]interface{}{"Data": alerta}
 				}
 			} else {
-				c.Data["json"] = calendarioParam[0]
+				errorGetAll = true
+				alertas = append(alertas, "No data found")
+				alerta.Code = "404"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Data": alerta}
 			}
 		} else {
-			logs.Error(errCalendarioParam)
-			c.Data["system"] = errCalendarioParam
-			c.Abort("400")
+			errorGetAll = true
+			alertas = append(alertas, errCalendarioParam.Error())
+			alerta.Code = "400"
+			alerta.Type = "error"
+			alerta.Body = alertas
+			c.Data["json"] = map[string]interface{}{"Data": alerta}
 		}
 
+	}
+	if !errorGetAll {
+		alertas = append(alertas, calendario)
+		alerta.Code = "200"
+		alerta.Type = "OK"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Data": alerta}
 	}
 	c.ServeJSON()
 
