@@ -93,6 +93,7 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 	var calendariosFilter []map[string]interface{}
 	var proyectosFilter []map[string]interface{}
 	var proyectosArr map[string]interface{}
+	var salidaFilter []map[string]interface{}
 	alertas := append([]interface{}{"Response:"})
 	idStr, _ := strconv.Atoi(c.Ctx.Input.Param(":id"))
 	var nivel = ""
@@ -200,7 +201,16 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 			}
 
 			if proyectoRetorno != nil {
-				c.Data["json"] = proyectoRetorno
+				m1 := make(map[int]bool)
+				// eliminar duplicados
+				for curIndex := 0; curIndex < len((*&proyectoRetorno)); curIndex++ {
+					curValue := proyectoRetorno[curIndex]["ProyectoId"].(int)
+					if has := m1[curValue]; !has {
+						m1[curValue] = true
+						salidaFilter = append(salidaFilter, proyectoRetorno[curIndex])
+					}
+				}
+				c.Data["json"] = salidaFilter
 			} else {
 				c.Data["json"] = "{}"
 			}
