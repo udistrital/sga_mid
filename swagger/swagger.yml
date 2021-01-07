@@ -1374,6 +1374,24 @@ paths:
           description: '{int}'
         "400":
           description: the request contains incorrect syntax
+  /persona/info_familiar:
+    put:
+      tags:
+      - persona
+      description: Actualiza la informacion familiar del tercero
+      operationId: PersonaController.ActualizarInfoFamiliar
+      parameters:
+      - in: body
+        name: body
+        description: body for Actualizar la info familiar del tercero content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
   /produccion_academica/:
     get:
       tags:
