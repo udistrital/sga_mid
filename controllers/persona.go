@@ -21,6 +21,7 @@ type PersonaController struct {
 func (c *PersonaController) URLMapping() {
 	c.Mapping("GuardarPersona", c.GuardarPersona)
 	c.Mapping("GuardarDatosComplementarios", c.GuardarDatosComplementarios)
+	c.Mapping("GuardarDatosComplementariosParAcademico", c.GuardarDatosComplementariosParAcademico)
 	c.Mapping("ConsultarPersona", c.ConsultarPersona)
 	c.Mapping("GuardarDatosContacto", c.GuardarDatosContacto)
 	c.Mapping("ConsultarDatosComplementarios", c.ConsultarDatosComplementarios)
@@ -356,6 +357,85 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 			logs.Error(errGrupoEtnicoPost)
 			//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 			c.Data["system"] = grupoEtnicoPost
+			c.Abort("400")
+		}
+	} else {
+		logs.Error(err)
+		//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
+		c.Data["system"] = err
+		c.Abort("400")
+	}
+	c.ServeJSON()
+}
+
+// GuardarDatosComplementariosParAcademico ...
+// @Title GuardarDatosComplementariosParAcademico
+// @Description Guardar Datos Complementarios Persona ParAcademico
+// @Param	body		body 	{}	true		"body for Guardar Datos Complementarios Persona content"
+// @Success 201 {int}
+// @Failure 400 the request contains incorrect syntax
+// @router /guardar_complementarios_par [post]
+func (c *PersonaController) GuardarDatosComplementariosParAcademico() {
+
+	//resultado solicitud de descuento
+	var resultado map[string]interface{}
+	//solicitud de descuento
+	var tercero map[string]interface{}
+	var terceroget map[string]interface{}
+	var tercerooriginal map[string]interface{}
+	var alerta models.Alert
+	alertas := append([]interface{}{"Response:"})
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &tercero); err == nil {
+		errtercero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+fmt.Sprintf("%.f", tercero["Tercero"].(float64)), &terceroget)
+		if errtercero == nil && terceroget["Status"] != 400 {
+
+			tercerooriginal = terceroget
+			fmt.Println("Trae tercero para realizar el put del lugar")
+			fmt.Println(tercerooriginal)
+		} else {
+
+			alertas = append(alertas, errtercero.Error())
+			alerta.Code = "400"
+			alerta.Type = "error"
+			alerta.Body = alertas
+			c.Data["json"] = alerta
+		}
+		var InformacionParAcademicoPost map[string]interface{}
+
+		InfoComplementariaId := map[string]interface{}{
+			"Id": tercero["InformacionParAcademico"].(map[string]interface{})["Id"],
+		}
+		TerceroID := map[string]interface{}{
+			"Id": tercero["Tercero"].(float64),
+		}
+
+		informacionParAcademico := map[string]interface{}{
+			"TerceroId":            TerceroID,
+			"InfoComplementariaId": InfoComplementariaId,
+			"Activo":               true,
+		}
+
+		errGrupoEtnicoPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &InformacionParAcademicoPost, informacionParAcademico)
+		if errGrupoEtnicoPost == nil && fmt.Sprintf("%v", InformacionParAcademicoPost) != "map[]" && InformacionParAcademicoPost["Id"] != nil {
+			if InformacionParAcademicoPost["Status"] != 400 {
+
+
+
+
+				resultado = tercero
+				c.Data["json"] = resultado
+
+
+			} else {
+				logs.Error(errGrupoEtnicoPost)
+				//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
+				c.Data["system"] = InformacionParAcademicoPost
+				c.Abort("400")
+			}
+		} else {
+			logs.Error(errGrupoEtnicoPost)
+			//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+			c.Data["system"] = InformacionParAcademicoPost
 			c.Abort("400")
 		}
 	} else {
