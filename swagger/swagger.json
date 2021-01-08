@@ -1172,18 +1172,18 @@
                 }
             }
         },
-        "/experiencia_laboral/by_tercero/{id_tercero}": {
+        "/experiencia_laboral/by_tercero/": {
             "get": {
                 "tags": [
                     "experiencia_laboral"
                 ],
-                "description": "consultar Experiencia Laboral por id del tercero",
+                "description": "Obtener la información de la empresa por el nit",
                 "operationId": "ExperienciaLaboralController.GetExperienciaLaboralByTercero",
                 "parameters": [
                     {
                         "in": "query",
-                        "name": "Tercero",
-                        "description": "Id del tercero",
+                        "name": "Id",
+                        "description": "nit de la empresa",
                         "required": true,
                         "type": "integer",
                         "format": "int64"
@@ -1193,8 +1193,8 @@
                     "200": {
                         "description": "{}"
                     },
-                    "404": {
-                        "description": "not found resource"
+                    "400": {
+                        "description": "the request contains incorrect syntax"
                     }
                 }
             }
@@ -1542,6 +1542,34 @@
                         "in": "body",
                         "name": "body",
                         "description": "body Agregar InfoComplementariaUniversidad content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/inscripciones/info_contacto": {
+            "put": {
+                "tags": [
+                    "inscripciones"
+                ],
+                "description": "Actualiza los datos de contacto del tercero",
+                "operationId": "InscripcionesController.ActualizarInfoContacto",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Actualizar la info de contacto del tercero content",
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/{}"
@@ -2050,6 +2078,34 @@
                     },
                     "400": {
                         "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
+        "/persona/info_familiar": {
+            "put": {
+                "tags": [
+                    "persona"
+                ],
+                "description": "Actualiza la informacion familiar del tercero",
+                "operationId": "PersonaController.ActualizarInfoFamiliar",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Actualizar la info familiar del tercero content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
                     }
                 }
             }

@@ -28,6 +28,7 @@ func (c *InscripcionesController) URLMapping() {
 	c.Mapping("GetInfoComplementariaTercero", c.GetInfoComplementariaTercero)
 	c.Mapping("PostInfoIcfesColegioNuevo", c.PostInfoIcfesColegioNuevo)
 	c.Mapping("ConsultarProyectosEventos", c.ConsultarProyectosEventos)
+	c.Mapping("ActualizarInfoContacto", c.ActualizarInfoContacto)
 }
 
 // PostInformacionFamiliar ...
@@ -858,5 +859,240 @@ func (c *InscripcionesController) GetInfoComplementariaTercero() {
 	}
 
 	c.Data["json"] = resultado
+	c.ServeJSON()
+}
+
+// ActualizarInfoContacto ...
+// @Title ActualizarInfoContacto
+// @Description Actualiza los datos de contacto del tercero
+// @Param	body	body 	{}	true		"body for Actualizar la info de contacto del tercero content"
+// @Success 200 {}
+// @Failure 403 body is empty
+// @router /info_contacto [put]
+func (c *InscripcionesController) ActualizarInfoContacto() {
+	var InfoContacto map[string]interface{}
+	var resultado map[string]interface{}
+	resultado = make(map[string]interface{})
+	var persona []map[string]interface{}
+	var EstratoAux []map[string]interface{}
+	var EstratoPut map[string]interface{}
+	var CodigoPostal []map[string]interface{}
+	var CodigoPostalPut map[string]interface{}
+	var Telefono []map[string]interface{}
+	var TelefonoPut map[string]interface{}
+	var Direccion []map[string]interface{}
+	var DireccionPut map[string]interface{}
+	var alerta models.Alert
+	var errorGetAll bool
+	alertas := append([]interface{}{"Data:"})
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &InfoContacto); err == nil {
+		//Se verifica si existe el tercero
+		resultadoAux := InfoContacto["InfoComplementariaTercero"].([]interface{})
+		errPersona := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/?query=Id:"+fmt.Sprintf("%.f", InfoContacto["Ente"]), &persona)
+		if errPersona == nil && persona != nil {
+			for i := 0; i < len(resultadoAux); i++ {
+				if i == 0 {
+					// Estrato (info complementaria 41)
+					errEstrato := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+fmt.Sprintf("%.f", InfoContacto["Ente"])+",InfoComplementariaId__Id:41&sortby=Id&order=desc&limit=0", &EstratoAux)
+					if errEstrato == nil {
+						if EstratoAux != nil && EstratoAux[0]["Id"] != nil {
+							EstratoAux[0]["Dato"] = resultadoAux[i].(map[string]interface{})["Dato"]
+							errEstratoPut := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+fmt.Sprintf("%.f", EstratoAux[0]["Id"]), "PUT", &EstratoPut, EstratoAux[0])
+							if errEstratoPut == nil {
+								if EstratoPut != nil && EstratoPut["Id"] != nil {
+									resultado["Estrato"] = EstratoPut
+								} else {
+									errorGetAll = true
+									alertas = append(alertas, "No data found")
+									alerta.Code = "404"
+									alerta.Type = "error"
+									alerta.Body = alertas
+									c.Data["json"] = map[string]interface{}{"Response": alerta}
+								}
+							} else {
+								errorGetAll = true
+								alertas = append(alertas, errEstratoPut.Error())
+								alerta.Code = "400"
+								alerta.Type = "error"
+								alerta.Body = alertas
+								c.Data["json"] = map[string]interface{}{"Response": alerta}
+							}
+						} else {
+							errorGetAll = true
+							alertas = append(alertas, "No data found")
+							alerta.Code = "404"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
+						}
+					} else {
+						errorGetAll = true
+						alertas = append(alertas, errEstrato.Error())
+						alerta.Code = "400"
+						alerta.Type = "error"
+						alerta.Body = alertas
+						c.Data["json"] = map[string]interface{}{"Response": alerta}
+					}
+				}
+				if i == 1 {
+					// Codigo Postal (info complementaria 55)
+					errCodigoPostal := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+fmt.Sprintf("%.f", InfoContacto["Ente"])+",InfoComplementariaId__Id:55&sortby=Id&order=desc&limit=0", &CodigoPostal)
+					if errCodigoPostal == nil {
+						if CodigoPostal != nil && CodigoPostal[0]["Id"] != nil {
+							CodigoPostal[0]["Dato"] = resultadoAux[i].(map[string]interface{})["Dato"]
+							errCodigoPostalPut := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+fmt.Sprintf("%.f", CodigoPostal[0]["Id"]), "PUT", &CodigoPostalPut, CodigoPostal[0])
+							if errCodigoPostalPut == nil {
+								if CodigoPostalPut != nil && CodigoPostalPut["Id"] != nil {
+									resultado["CodigoPostal"] = CodigoPostalPut
+								} else {
+									errorGetAll = true
+									alertas = append(alertas, "No data found")
+									alerta.Code = "404"
+									alerta.Type = "error"
+									alerta.Body = alertas
+									c.Data["json"] = map[string]interface{}{"Response": alerta}
+								}
+							} else {
+								errorGetAll = true
+								alertas = append(alertas, errCodigoPostalPut.Error())
+								alerta.Code = "400"
+								alerta.Type = "error"
+								alerta.Body = alertas
+								c.Data["json"] = map[string]interface{}{"Response": alerta}
+							}
+						} else {
+							errorGetAll = true
+							alertas = append(alertas, "No data found")
+							alerta.Code = "404"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
+						}
+					} else {
+						errorGetAll = true
+						alertas = append(alertas, errCodigoPostal.Error())
+						alerta.Code = "400"
+						alerta.Type = "error"
+						alerta.Body = alertas
+						c.Data["json"] = map[string]interface{}{"Response": alerta}
+					}
+				}
+				if i == 2 {
+					// Telefono (info complementaria 51)
+					errTelefono := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+fmt.Sprintf("%.f", InfoContacto["Ente"])+",InfoComplementariaId__Id:51&sortby=Id&order=desc&limit=0", &Telefono)
+					if errTelefono == nil {
+						if Telefono != nil && Telefono[0]["Id"] != nil {
+							Telefono[0]["Dato"] = resultadoAux[i].(map[string]interface{})["Dato"]
+							errTelefonoPut := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+fmt.Sprintf("%.f", Telefono[0]["Id"]), "PUT", &TelefonoPut, Telefono[0])
+							if errTelefonoPut == nil {
+								if TelefonoPut != nil && TelefonoPut["Id"] != nil {
+									resultado["Telefono"] = TelefonoPut
+								} else {
+									errorGetAll = true
+									alertas = append(alertas, "No data found")
+									alerta.Code = "404"
+									alerta.Type = "error"
+									alerta.Body = alertas
+									c.Data["json"] = map[string]interface{}{"Response": alerta}
+								}
+							} else {
+								errorGetAll = true
+								alertas = append(alertas, errTelefonoPut.Error())
+								alerta.Code = "400"
+								alerta.Type = "error"
+								alerta.Body = alertas
+								c.Data["json"] = map[string]interface{}{"Response": alerta}
+							}
+						} else {
+							errorGetAll = true
+							alertas = append(alertas, "No data found")
+							alerta.Code = "404"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
+						}
+					} else {
+						errorGetAll = true
+						alertas = append(alertas, errTelefono.Error())
+						alerta.Code = "400"
+						alerta.Type = "error"
+						alerta.Body = alertas
+						c.Data["json"] = map[string]interface{}{"Response": alerta}
+					}
+				}
+				if i == 3 {
+					// Direccion (info complementaria 54)
+					errDireccion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+fmt.Sprintf("%.f", InfoContacto["Ente"])+",InfoComplementariaId__Id:54&sortby=Id&order=desc&limit=0", &Direccion)
+					if errDireccion == nil {
+						if Direccion != nil && Direccion[0]["Id"] != nil {
+							Direccion[0]["Dato"] = resultadoAux[i].(map[string]interface{})["Dato"]
+							errDireccionPut := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+fmt.Sprintf("%.f", Direccion[0]["Id"]), "PUT", &DireccionPut, Direccion[0])
+							if errDireccionPut == nil {
+								if DireccionPut != nil && DireccionPut["Id"] != nil {
+									resultado["Direccion"] = DireccionPut
+								} else {
+									errorGetAll = true
+									alertas = append(alertas, "No data found")
+									alerta.Code = "404"
+									alerta.Type = "error"
+									alerta.Body = alertas
+									c.Data["json"] = map[string]interface{}{"Response": alerta}
+								}
+							} else {
+								errorGetAll = true
+								alertas = append(alertas, errDireccionPut.Error())
+								alerta.Code = "400"
+								alerta.Type = "error"
+								alerta.Body = alertas
+								c.Data["json"] = map[string]interface{}{"Response": alerta}
+							}
+						} else {
+							errorGetAll = true
+							alertas = append(alertas, "No data found")
+							alerta.Code = "404"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
+						}
+					} else {
+						errorGetAll = true
+						alertas = append(alertas, errDireccion.Error())
+						alerta.Code = "400"
+						alerta.Type = "error"
+						alerta.Body = alertas
+						c.Data["json"] = map[string]interface{}{"Response": alerta}
+					}
+				}
+			}
+		} else {
+			if errPersona != nil {
+				alertas = append(alertas, errPersona)
+			}
+			if len(persona) == 0 {
+				alertas = append(alertas, []interface{}{"No existe ninguna persona con este ente"})
+			}
+			errorGetAll = true
+			alerta.Type = "error"
+			alerta.Code = "400"
+			alerta.Body = alertas
+			c.Data["json"] = map[string]interface{}{"Response": alerta}
+		}
+	} else {
+		errorGetAll = true
+		alertas = append(alertas, err.Error())
+		alerta.Code = "400"
+		alerta.Type = "error"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
+	if !errorGetAll {
+		alertas = append(alertas, resultado)
+		alerta.Code = "200"
+		alerta.Type = "OK"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
 	c.ServeJSON()
 }

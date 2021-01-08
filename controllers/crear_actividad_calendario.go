@@ -62,7 +62,7 @@ func (c *ActividadCalendarioController) PostActividadCalendario() {
 		for _, publicoTemp := range totalPublico {
 			CalendarioEventoTipoPersona := map[string]interface{}{
 				"Activo":             true,
-				"TipoPublicoId":      map[string]interface{}{"Id": publicoTemp.(map[string]interface{})["IdPublico"].(float64)},
+				"TipoPublicoId":      map[string]interface{}{"Id": publicoTemp.(map[string]interface{})["responsableID"].(float64)},
 				"CalendarioEventoId": map[string]interface{}{"Id": IdActividad.(float64)},
 			}
 
@@ -121,7 +121,7 @@ func (c *ActividadCalendarioController) UpdateActividadResponsables() {
 				for _, tipoPublico := range datos {
 					nuevoPublico := map[string]interface{}{
 						"Activo":             true,
-						"TipoPublicoId":      map[string]interface{}{"Id": tipoPublico.(map[string]interface{})["IdPublico"]},
+						"TipoPublicoId":      map[string]interface{}{"Id": tipoPublico.(map[string]interface{})["responsableID"]},
 						"CalendarioEventoId": map[string]interface{}{"Id": actividadId},
 					}
 					errPost := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento_tipo_publico", "POST", &auxUpdate, nuevoPublico)
