@@ -1172,18 +1172,18 @@
                 }
             }
         },
-        "/experiencia_laboral/by_tercero/{id_tercero}": {
+        "/experiencia_laboral/by_tercero/": {
             "get": {
                 "tags": [
                     "experiencia_laboral"
                 ],
-                "description": "consultar Experiencia Laboral por id del tercero",
+                "description": "Obtener la información de la empresa por el nit",
                 "operationId": "ExperienciaLaboralController.GetExperienciaLaboralByTercero",
                 "parameters": [
                     {
                         "in": "query",
-                        "name": "Tercero",
-                        "description": "Id del tercero",
+                        "name": "Id",
+                        "description": "nit de la empresa",
                         "required": true,
                         "type": "integer",
                         "format": "int64"
@@ -1193,8 +1193,8 @@
                     "200": {
                         "description": "{}"
                     },
-                    "404": {
-                        "description": "not found resource"
+                    "400": {
+                        "description": "the request contains incorrect syntax"
                     }
                 }
             }
