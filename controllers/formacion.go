@@ -295,9 +295,7 @@ func (c *FormacionController) GetInfoUniversidad() {
 	if errNit == nil {
 		if universidad != nil {
 			respuesta["NumeroIdentificacion"] = idStr
-			//formatdata.JsonPrint(universidad)
 			idUniversidad := universidad[0]["TerceroId"].(map[string]interface{})["Id"]
-			//fmt.Println(idUniversidad)
 			//GET que trae la información de la universidad
 			errUniversidad := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+fmt.Sprintf("%.f", idUniversidad), &universidadTercero)
 			if errUniversidad == nil && fmt.Sprintf("%v", universidadTercero["System"]) != "map[]" && universidadTercero["Id"] != nil {
@@ -451,10 +449,8 @@ func (c *FormacionController) GetInfoUniversidadByNombre() {
 
 	idStr := c.GetString("nombre")
 	var universidades []map[string]interface{}
-	//fmt.Println("El id es: " + idStr)
 	NombresAux := strings.Split(idStr, " ")
 
-	//fmt.Println(len(NombresAux))
 	if len(NombresAux) == 1 {
 		err := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/?query=NombreCompleto__contains:"+idStr+"&limit=0", &universidades)
 		if err == nil {
@@ -1210,13 +1206,8 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 					//GET para obtener el ID que relaciona las tablas tipo_documento y tercero
 					var IdTercero []map[string]interface{}
 					errIdTercero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=TipoDocumentoId__Id:7,Numero:"+AuxNit+"&limit=0", &IdTercero)
-					fmt.Println("antes")
-					fmt.Println(errIdTercero)
-					formatdata.JsonPrint(IdTercero)
-					fmt.Println("http://" + beego.AppConfig.String("TercerosService") + "datos_identificacion?query=TipoDocumentoId__Id:7,Numero:" + fmt.Sprintf("%v", resultadoAux["Nit"]) + "&limit=0")
 					if errIdTercero == nil && fmt.Sprintf("%v", IdTercero[0]) != "map[]" && IdTercero[0]["Id"] != nil {
 						if IdTercero[0]["Status"] != 404 {
-							fmt.Println("entra")
 							IdTerceroAux := IdTercero[0]["TerceroId"].(map[string]interface{})["Id"]
 
 							// GET para traer el nombre de la universidad y el país
