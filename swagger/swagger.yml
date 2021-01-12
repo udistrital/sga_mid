@@ -751,6 +751,23 @@ paths:
         "403":
           description: :persona is empty
   /experiencia_laboral/:
+    put:
+      tags:
+      - experiencia_laboral
+      description: Modificar Formacion Academica ud
+      operationId: ExperienciaLaboralController.PutExperienciaLaboral
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar Experiencia Laboral content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
     post:
       tags:
       - experiencia_laboral
