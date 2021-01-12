@@ -891,8 +891,11 @@ func (c *FormacionController) GetFormacionAcademica() {
 				var NumNit map[string]interface{}
 				ValorString := Nit[i]["Dato"].(string)
 				if err := json.Unmarshal([]byte(ValorString), &NumNit); err == nil {
-					NitAux := NumNit["value"]
-					fmt.Println(NitAux)
+					NitAux := fmt.Sprintf("%v", NumNit["value"])
+					//Conversion de notación científica a un valor entero
+					f, _ := strconv.ParseFloat(NitAux, 64)
+					j, _ := strconv.Atoi(fmt.Sprintf("%.f", f))
+					NitAux = fmt.Sprintf("%v", j)
 					if NitAux == IdNit {
 						// GET para filtrar por proyecto curricular
 						var ProyectoAux []map[string]interface{}
@@ -904,7 +907,6 @@ func (c *FormacionController) GetFormacionAcademica() {
 								if err := json.Unmarshal([]byte(ValorString), &NumProyecto); err == nil {
 									ProyAux := fmt.Sprintf("%v", NumProyecto["value"])
 									if ProyAux == IdProyecto {
-										fmt.Println("Filtrado")
 										//GET proyecto academico
 										var Proyecto []map[string]interface{}
 										errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Id:"+fmt.Sprintf("%v", NumProyecto["value"])+"&limit=0", &Proyecto)
@@ -1199,12 +1201,22 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 				ValorString := Nit[i]["Dato"].(string)
 				if err := json.Unmarshal([]byte(ValorString), &NumNit); err == nil {
 					resultadoAux["Nit"] = NumNit["value"]
+					AuxNit := fmt.Sprintf("%v", NumNit["value"])
+					//Conversion de notación científica a un valor entero
+					f, _ := strconv.ParseFloat(AuxNit, 64)
+					j, _ := strconv.Atoi(fmt.Sprintf("%.f", f))
+					AuxNit = fmt.Sprintf("%v", j)
 
 					//GET para obtener el ID que relaciona las tablas tipo_documento y tercero
 					var IdTercero []map[string]interface{}
-					errIdTercero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=TipoDocumentoId__Id:7,Numero:"+fmt.Sprintf("%v", resultadoAux["Nit"])+"&limit=0", &IdTercero)
+					errIdTercero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=TipoDocumentoId__Id:7,Numero:"+AuxNit+"&limit=0", &IdTercero)
+					fmt.Println("antes")
+					fmt.Println(errIdTercero)
+					formatdata.JsonPrint(IdTercero)
+					fmt.Println("http://" + beego.AppConfig.String("TercerosService") + "datos_identificacion?query=TipoDocumentoId__Id:7,Numero:" + fmt.Sprintf("%v", resultadoAux["Nit"]) + "&limit=0")
 					if errIdTercero == nil && fmt.Sprintf("%v", IdTercero[0]) != "map[]" && IdTercero[0]["Id"] != nil {
 						if IdTercero[0]["Status"] != 404 {
+							fmt.Println("entra")
 							IdTerceroAux := IdTercero[0]["TerceroId"].(map[string]interface{})["Id"]
 
 							// GET para traer el nombre de la universidad y el país
