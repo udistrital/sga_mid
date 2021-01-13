@@ -320,108 +320,6 @@ func (c *ExperienciaLaboralController) PostExperienciaLaboral() {
 	c.ServeJSON()
 }
 
-// PostExperienciaLaboral ...
-// @Title PostExperienciaLaboral
-// @Description Agregar Experiencia Laboral
-// @Param   body        body    {}  true        "body Agregar Experiencia Laboral content"
-// @Success 201 {int}
-// @Failure 400 the request contains incorrect syntax
-// @router / [post]
-// func (c *ExperienciaLaboralController) PostExperienciaLaboral() {
-// 	//resultado experiencia
-// 	var resultado map[string]interface{}
-// 	//experiencia
-// 	var experiencia map[string]interface{}
-// 	var experienciaPost map[string]interface{}
-// 	var dataPost map[string]interface{}
-
-// 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &dataPost); err == nil {
-
-// 		// post de la información de la empresa
-// 		date := time.Now()
-// 		info_complementaria := dataPost["InfoComplementariaTercero"].([]interface{})[0].(map[string]interface{})
-
-// 		info_complementaria["FechaCreacion"] = date
-// 		info_complementaria["FechaModificacion"] = date
-
-// 		var resultadoInfoComeplementaria map[string]interface{}
-// 		errInfoComplementaria := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero", "POST", &resultadoInfoComeplementaria, info_complementaria)
-// 		if resultadoInfoComeplementaria["Type"] == "error" || errInfoComplementaria != nil || resultadoInfoComeplementaria["Status"] == "404" || resultadoInfoComeplementaria["Message"] != nil {
-// 			logs.Error(errInfoComplementaria)
-// 			//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
-// 			c.Data["system"] = resultadoInfoComeplementaria
-// 			c.Abort("400")
-// 		} else {
-// 			fmt.Println("Info complementaria organizacion registrada", resultadoInfoComeplementaria["Id"])
-// 		}
-
-// 		// post de la información de la experiencia
-// 		experiencia = dataPost["Experiencia"].(map[string]interface{})
-// 		experienciaLaboral := map[string]interface{}{
-// 			"Persona":           experiencia["Persona"],
-// 			"Actividades":       experiencia["Actividades"],
-// 			"FechaInicio":       experiencia["FechaInicio"],
-// 			"FechaFinalizacion": experiencia["FechaFinalizacion"],
-// 			// "Organizacion":      experiencia["Organizacion"],
-// 			"Organizacion":    resultadoInfoComeplementaria["Id"],
-// 			"TipoDedicacion":  experiencia["TipoDedicacion"],
-// 			"Cargo":           experiencia["Cargo"],
-// 			"TipoVinculacion": experiencia["TipoVinculacion"],
-// 		}
-
-// 		errExperiencia := request.SendJson("http://"+beego.AppConfig.String("ExperienciaLaboralService")+"/experiencia_laboral", "POST", &experienciaPost, experienciaLaboral)
-// 		if errExperiencia == nil && fmt.Sprintf("%v", experienciaPost["System"]) != "map[]" && experienciaPost["Id"] != nil {
-// 			if experienciaPost["Status"] != 400 {
-// 				//soporte
-// 				var soporte map[string]interface{}
-
-// 				soporteexperiencia := map[string]interface{}{
-// 					"Documento":          experiencia["Documento"],
-// 					"ExperienciaLaboral": experienciaPost,
-// 				}
-
-// 				errSoporte := request.SendJson("http://"+beego.AppConfig.String("ExperienciaLaboralService")+"/soporte_experiencia_laboral", "POST", &soporte, soporteexperiencia)
-// 				if errSoporte == nil && fmt.Sprintf("%v", soporte["System"]) != "map[]" && soporte["Id"] != nil {
-// 					if soporte["Status"] != 400 {
-// 						resultado = experienciaPost
-// 						resultado["Documento"] = soporte["Documento"]
-// 						c.Data["json"] = resultado
-// 					} else {
-// 						//resultado solicitud de descuento
-// 						var resultado2 map[string]interface{}
-// 						request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("ExperienciaLaboralService")+"/experiencia_laboral/%.f", experienciaPost["Id"]), "DELETE", &resultado2, nil)
-// 						logs.Error(errSoporte)
-// 						//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
-// 						c.Data["system"] = soporte
-// 						c.Abort("400")
-// 					}
-// 				} else {
-// 					logs.Error(errSoporte)
-// 					//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-// 					c.Data["system"] = soporte
-// 					c.Abort("400")
-// 				}
-// 			} else {
-// 				logs.Error(errExperiencia)
-// 				//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
-// 				c.Data["system"] = experienciaPost
-// 				c.Abort("400")
-// 			}
-// 		} else {
-// 			logs.Error(errExperiencia)
-// 			//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-// 			c.Data["system"] = experienciaPost
-// 			c.Abort("400")
-// 		}
-// 	} else {
-// 		logs.Error(err)
-// 		//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
-// 		c.Data["system"] = err
-// 		c.Abort("400")
-// 	}
-// 	c.ServeJSON()
-// }
-
 // GetInformacionEmpresa ...
 // @Title GetInformacionEmpresa
 // @Description Obtener la información de la empresa por el nit
@@ -616,7 +514,6 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 	var resultado []map[string]interface{}
 	resultado = make([]map[string]interface{}, 0)
 	var empresaTercero map[string]interface{}
-	respuesta := make(map[string]interface{})
 	var Nit []map[string]interface{}
 	var alerta models.Alert
 	var errorGetAll bool
@@ -626,6 +523,7 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 	errNit := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+fmt.Sprintf("%v", TerceroID)+",InfoComplementariaId__Id:102&limit=0&sortby=Id&order=asc", &Nit)
 	if errNit == nil {
 		for i := 0; i < len(Nit); i++ {
+			respuesta := make(map[string]interface{})
 			if fmt.Sprintf("%v", Nit[i]) != "map[]" && Nit[i]["Id"] != nil {
 				var NumNit map[string]interface{}
 				ValorString := Nit[i]["Dato"].(string)
@@ -1005,104 +903,274 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 	c.ServeJSON()
 }
 
-/*
 // PutExperienciaLaboral ...
 // @Title PutExperienciaLaboral
-// @Description Modificar Experiencia Laboral
-// @Param   id      path    int  true        "el id de la experiencia laboral a modificar"
-// @Param   body        body    {}  true        "body Modificar Experiencia Laboral content"
-// @Success 200 {}
+// @Description Modificar Formacion Academica ud
+// @Param   body        body    {}  true		"body Agregar Experiencia Laboral content"
+// @Success 201 {int}
 // @Failure 400 the request contains incorrect syntax
-// @router /:id [put]
+// @router / [put]
 func (c *ExperienciaLaboralController) PutExperienciaLaboral() {
-	idStr := c.Ctx.Input.Param(":id")
-	//resultado experiencia
-	var resultado map[string]interface{}
-	//experiencia
-	var experiencia map[string]interface{}
-	var experienciaPut map[string]interface{}
 
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &experiencia); err == nil {
-		experienciaLaboral := map[string]interface{}{
-			"Id":                experiencia["Id"],
-			"Persona":           experiencia["Persona"],
-			"Actividades":       experiencia["Actividades"],
-			"FechaInicio":       experiencia["FechaInicio"],
-			"FechaFinalizacion": experiencia["FechaFinalizacion"],
-			"Organizacion":      experiencia["Organizacion"],
-			"TipoDedicacion":    experiencia["TipoDedicacion"],
-			"Cargo":             experiencia["Cargo"],
-			"TipoVinculacion":   experiencia["TipoVinculacion"],
-		}
+	var ExperienciaLaboral map[string]interface{}
+	var respuesta map[string]interface{}
+	respuesta = make(map[string]interface{})
+	var alerta models.Alert
+	var errorGetAll bool
+	alertas := append([]interface{}{"Data:"})
+	var resultado []map[string]interface{}
+	var fechaInicioPut map[string]interface{}
+	var fechaFinPut map[string]interface{}
+	var tipoDedicacionPut map[string]interface{}
+	var tipoVinculacionPut map[string]interface{}
+	var cargoPut map[string]interface{}
+	var descripcionPut map[string]interface{}
+	var soportePut map[string]interface{}
 
-		errExperiencia := request.SendJson("http://"+beego.AppConfig.String("ExperienciaLaboralService")+"/experiencia_laboral/"+idStr, "PUT", &experienciaPut, experienciaLaboral)
-		if errExperiencia == nil && fmt.Sprintf("%v", experienciaPut["System"]) != "map[]" && experienciaPut["Id"] != nil {
-			if experienciaPut["Status"] != 400 {
-				//soporte de descuento
-				var soporte []map[string]interface{}
-				var soportePut map[string]interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &ExperienciaLaboral); err == nil {
 
-				errSoporte := request.GetJson("http://"+beego.AppConfig.String("ExperienciaLaboralService")+"/soporte_experiencia_laboral/?query=ExperienciaLaboral:"+idStr, &soporte)
-				if errSoporte == nil && fmt.Sprintf("%v", soporte[0]["System"]) != "map[]" {
-					if soporte[0]["Status"] != 404 {
-						soporte[0]["Documento"] = experiencia["Documento"]
+		idTercero := ExperienciaLaboral["terceroID"].(float64)
+		// var NitEmpresaPOST map[string]interface{}
+		InfoComplementariaTercero := ExperienciaLaboral["InfoComplementariaTercero"].([]interface{})[0]
+		Experiencia := ExperienciaLaboral["Experiencia"].(map[string]interface{})
 
-						errSoportePut := request.SendJson("http://"+beego.AppConfig.String("ExperienciaLaboralService")+"/soporte_experiencia_laboral/"+
-							fmt.Sprintf("%v", soporte[0]["Id"]), "PUT", &soportePut, soporte[0])
-						if errSoportePut == nil && fmt.Sprintf("%v", soportePut["System"]) != "map[]" && soportePut["Id"] != nil {
-							if soportePut["Status"] != 400 {
-								resultado = experiencia
-								c.Data["json"] = resultado
+		DatoTercero := fmt.Sprintf("%v", InfoComplementariaTercero.(map[string]interface{})["Dato"].(string))
+		var datoTercero map[string]interface{}
+		json.Unmarshal([]byte(DatoTercero), &datoTercero)
+
+		indexExperiencia := ExperienciaLaboral["indexSelect"].(float64)
+
+		respuesta["InfoComplementariaTercero"] = InfoComplementariaTercero
+
+		//GET FECHA_INICIO (info_complementaria 103)
+		var FechaInicio []map[string]interface{}
+		errFechaInicio := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+fmt.Sprintf("%.f", idTercero)+",InfoComplementariaId__Id:103&limit=0&sortby=Id&order=asc", &FechaInicio)
+		if errFechaInicio == nil {
+
+			var FechaInicioUpdate = FechaInicio[int(indexExperiencia)]
+			FechaInicioUpdate["Dato"] = `{"value":` + `"` + Experiencia["FechaInicio"].(string) + `","Nit":"` + datoTercero["NumeroIdentificacion"].(string) + `"` + `}`
+
+			// PUT FECHA_INICIO (Info complementaria *103*)
+			errExperiencia := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%.f", FechaInicioUpdate["Id"]), "PUT", &fechaInicioPut, FechaInicioUpdate)
+			if errExperiencia == nil && fmt.Sprintf("%v", fechaInicioPut["System"]) != "map[]" && fechaInicioPut["Id"] != nil {
+				respuesta["FechaInicio"] = fechaInicioPut
+
+				//GET FECHA_FIN (info_complementaria 104)
+				var FechaFinalizacion []map[string]interface{}
+				errFechaFinalizacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+fmt.Sprintf("%.f", idTercero)+",InfoComplementariaId__Id:104&limit=0&sortby=Id&order=asc", &FechaFinalizacion)
+				if errFechaFinalizacion == nil {
+
+					var FechaFinalizacionUpdate = FechaFinalizacion[int(indexExperiencia)]
+					FechaInicioUpdate["Dato"] = `{"value":` + `"` + Experiencia["FechaFinalizacion"].(string) + `","Nit":"` + datoTercero["NumeroIdentificacion"].(string) + `"` + `}`
+
+					// PUT FECHA_FIN (Info complementaria *104*)
+					errExperiencia := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%.f", FechaFinalizacionUpdate["Id"]), "PUT", &fechaFinPut, FechaFinalizacionUpdate)
+					if errExperiencia == nil && fmt.Sprintf("%v", fechaFinPut["System"]) != "map[]" && fechaFinPut["Id"] != nil {
+						respuesta["FechaFinalizacion"] = fechaFinPut
+
+						//GET TIPO_DEDICACION (info_complementaria 105)
+						var TipoDedicacion []map[string]interface{}
+						errTipoDedicacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+fmt.Sprintf("%.f", idTercero)+",InfoComplementariaId__Id:105&limit=0&sortby=Id&order=asc", &TipoDedicacion)
+						if errTipoDedicacion == nil {
+
+							var TipoDedicacionUpdate = TipoDedicacion[int(indexExperiencia)]
+							Dedicacion := Experiencia["TipoDedicacion"].(map[string]interface{})["Id"]
+							NombreDedicacion := Experiencia["TipoDedicacion"].(map[string]interface{})["Nombre"].(string)
+							TipoDedicacionUpdate["Dato"] = `{"value":` + `"` + fmt.Sprintf("%v", Dedicacion) + `","nombre":"` + NombreDedicacion + `","Nit":"` + datoTercero["NumeroIdentificacion"].(string) + `"}`
+
+							// PUT TIPO_DEDICACION (Info complementaria *105*)
+							errExperiencia := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%.f", TipoDedicacionUpdate["Id"]), "PUT", &tipoDedicacionPut, TipoDedicacionUpdate)
+							if errExperiencia == nil && fmt.Sprintf("%v", tipoDedicacionPut["System"]) != "map[]" && tipoDedicacionPut["Id"] != nil {
+								respuesta["TipoDedicacion"] = tipoDedicacionPut
+
+								//GET TIPO_VINCULACION (info_complementaria 106)
+								var TipoVinculacion []map[string]interface{}
+								errTipoVinculacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+fmt.Sprintf("%.f", idTercero)+",InfoComplementariaId__Id:106&limit=0&sortby=Id&order=asc", &TipoVinculacion)
+								if errTipoVinculacion == nil {
+
+									var TipoVinculacionUpdate = TipoVinculacion[int(indexExperiencia)]
+									Vinculacion := Experiencia["TipoVinculacion"].(map[string]interface{})["Id"]
+									NombreVinculacion := Experiencia["TipoVinculacion"].(map[string]interface{})["Nombre"].(string)
+									TipoVinculacionUpdate["Dato"] = `{"value":` + `"` + fmt.Sprintf("%v", Vinculacion) + `","nombre":"` + NombreVinculacion + `","Nit":"` + datoTercero["NumeroIdentificacion"].(string) + `"}`
+
+									// PUT TIPO_VINCULACION (Info complementaria *106*)
+									errExperiencia := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%.f", TipoVinculacionUpdate["Id"]), "PUT", &tipoVinculacionPut, TipoVinculacionUpdate)
+									if errExperiencia == nil && fmt.Sprintf("%v", tipoVinculacionPut["System"]) != "map[]" && tipoVinculacionPut["Id"] != nil {
+										respuesta["TipoVinculacion"] = tipoVinculacionPut
+
+										//GET CARGO (info_complementaria 107)
+										var Cargo []map[string]interface{}
+										errCargo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+fmt.Sprintf("%.f", idTercero)+",InfoComplementariaId__Id:107&limit=0&sortby=Id&order=asc", &Cargo)
+										if errCargo == nil {
+
+											var CargoUpdate = Cargo[int(indexExperiencia)]
+											CargoID := Experiencia["Cargo"].(map[string]interface{})["Id"]
+											NombreCargo := Experiencia["Cargo"].(map[string]interface{})["Nombre"].(string)
+											CargoUpdate["Dato"] = `{"value":` + `"` + fmt.Sprintf("%v", CargoID) + `","nombre":"` + NombreCargo + `","Nit":"` + datoTercero["NumeroIdentificacion"].(string) + `"}`
+
+											// PUT CARGO (Info complementaria *107*)
+											errExperiencia := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%.f", CargoUpdate["Id"]), "PUT", &cargoPut, CargoUpdate)
+											if errExperiencia == nil && fmt.Sprintf("%v", cargoPut["System"]) != "map[]" && cargoPut["Id"] != nil {
+												respuesta["Cargo"] = cargoPut
+
+												//GET DESCRIPCION (info_complementaria 108)
+												var Descripcion []map[string]interface{}
+												errDescripcion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+fmt.Sprintf("%.f", idTercero)+",InfoComplementariaId__Id:108&limit=0&sortby=Id&order=asc", &Descripcion)
+												if errDescripcion == nil {
+
+													var DescripcionUpdate = Descripcion[int(indexExperiencia)]
+													DescripcionUpdate["Dato"] = `{"value":` + `"` + Experiencia["Actividades"].(string) + `","Nit":"` + datoTercero["NumeroIdentificacion"].(string) + `"` + `}`
+
+													// PUT DESCRIPCION (Info complementaria *108*)
+													errExperiencia := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%.f", DescripcionUpdate["Id"]), "PUT", &descripcionPut, DescripcionUpdate)
+													if errExperiencia == nil && fmt.Sprintf("%v", descripcionPut["System"]) != "map[]" && descripcionPut["Id"] != nil {
+														respuesta["Actividades"] = descripcionPut
+
+														//GET DOCUMENTO_ID (info_complementaria 109)
+														var Soporte []map[string]interface{}
+														errSoporte := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+fmt.Sprintf("%.f", idTercero)+",InfoComplementariaId__Id:109&limit=0&sortby=Id&order=asc", &Soporte)
+														if errSoporte == nil {
+
+															var SoporteUpdate = Soporte[int(indexExperiencia)]
+															SoporteUpdate["Dato"] = `{"value":` + `"` + fmt.Sprintf("%v", Experiencia["DocumentoId"]) + `","Nit":"` + datoTercero["NumeroIdentificacion"].(string) + `"` + `}`
+
+															// PUT DOCUMENTO_ID (Info complementaria *109*)
+															errExperiencia := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero/"+fmt.Sprintf("%.f", SoporteUpdate["Id"]), "PUT", &soportePut, SoporteUpdate)
+															if errExperiencia == nil && fmt.Sprintf("%v", soportePut["System"]) != "map[]" && soportePut["Id"] != nil {
+																respuesta["Soporte"] = soportePut
+															} else {
+																errorGetAll = true
+																alertas = append(alertas, errExperiencia.Error())
+																alerta.Code = "400"
+																alerta.Type = "error"
+																alerta.Body = alertas
+																c.Data["json"] = map[string]interface{}{"Data": alerta}
+															}
+														} else {
+															errorGetAll = true
+															alertas = append(alertas, errSoporte.Error())
+															alerta.Code = "400"
+															alerta.Type = "error"
+															alerta.Body = alertas
+															c.Data["json"] = map[string]interface{}{"Data": alerta}
+														}
+													} else {
+														errorGetAll = true
+														alertas = append(alertas, errExperiencia.Error())
+														alerta.Code = "400"
+														alerta.Type = "error"
+														alerta.Body = alertas
+														c.Data["json"] = map[string]interface{}{"Data": alerta}
+													}
+												} else {
+													errorGetAll = true
+													alertas = append(alertas, errDescripcion.Error())
+													alerta.Code = "400"
+													alerta.Type = "error"
+													alerta.Body = alertas
+													c.Data["json"] = map[string]interface{}{"Data": alerta}
+												}
+
+											} else {
+												errorGetAll = true
+												alertas = append(alertas, errExperiencia.Error())
+												alerta.Code = "400"
+												alerta.Type = "error"
+												alerta.Body = alertas
+												c.Data["json"] = map[string]interface{}{"Data": alerta}
+											}
+										} else {
+											errorGetAll = true
+											alertas = append(alertas, errCargo.Error())
+											alerta.Code = "400"
+											alerta.Type = "error"
+											alerta.Body = alertas
+											c.Data["json"] = map[string]interface{}{"Data": alerta}
+										}
+
+									} else {
+										errorGetAll = true
+										alertas = append(alertas, errExperiencia.Error())
+										alerta.Code = "400"
+										alerta.Type = "error"
+										alerta.Body = alertas
+										c.Data["json"] = map[string]interface{}{"Data": alerta}
+									}
+								} else {
+									errorGetAll = true
+									alertas = append(alertas, errTipoVinculacion.Error())
+									alerta.Code = "400"
+									alerta.Type = "error"
+									alerta.Body = alertas
+									c.Data["json"] = map[string]interface{}{"Data": alerta}
+								}
+
 							} else {
-								logs.Error(errSoportePut)
-								//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
-								c.Data["system"] = soportePut
-								c.Abort("400")
+								errorGetAll = true
+								alertas = append(alertas, errExperiencia.Error())
+								alerta.Code = "400"
+								alerta.Type = "error"
+								alerta.Body = alertas
+								c.Data["json"] = map[string]interface{}{"Data": alerta}
 							}
 						} else {
-							logs.Error(errSoportePut)
-							//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-							c.Data["system"] = soportePut
-							c.Abort("400")
+							errorGetAll = true
+							alertas = append(alertas, errTipoDedicacion.Error())
+							alerta.Code = "400"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Data": alerta}
 						}
-
 					} else {
-						if soporte[0]["Message"] == "Not found resource" {
-							c.Data["json"] = nil
-						} else {
-							logs.Error(soporte)
-							//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-							c.Data["system"] = errSoporte
-							c.Abort("404")
-						}
+						errorGetAll = true
+						alertas = append(alertas, errExperiencia.Error())
+						alerta.Code = "400"
+						alerta.Type = "error"
+						alerta.Body = alertas
+						c.Data["json"] = map[string]interface{}{"Data": alerta}
 					}
 				} else {
-					logs.Error(soporte)
-					//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-					c.Data["system"] = errSoporte
-					c.Abort("404")
+					errorGetAll = true
+					alertas = append(alertas, errFechaFinalizacion.Error())
+					alerta.Code = "400"
+					alerta.Type = "error"
+					alerta.Body = alertas
+					c.Data["json"] = map[string]interface{}{"Data": alerta}
 				}
+
 			} else {
-				logs.Error(errExperiencia)
-				//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
-				c.Data["system"] = experienciaPut
-				c.Abort("400")
+				errorGetAll = true
+				alertas = append(alertas, errExperiencia.Error())
+				alerta.Code = "400"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Data": alerta}
 			}
 		} else {
-			logs.Error(errExperiencia)
-			//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-			c.Data["system"] = experienciaPut
-			c.Abort("400")
+			errorGetAll = true
+			alertas = append(alertas, errFechaInicio.Error())
+			alerta.Code = "400"
+			alerta.Type = "error"
+			alerta.Body = alertas
+			c.Data["json"] = map[string]interface{}{"Data": alerta}
 		}
+
 	} else {
 		logs.Error(err)
-		//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
-		c.Data["system"] = err
+		c.Data["system"] = ExperienciaLaboral
 		c.Abort("400")
+	}
+
+	if !errorGetAll {
+		c.Data["json"] = resultado
+		alertas = append(alertas, resultado)
+		alerta.Code = "200"
+		alerta.Type = "OK"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Data": alerta}
 	}
 	c.ServeJSON()
 }
-*/
 
 // GetExperienciaLaboral ...
 // @Title GetExperienciaLaboral
@@ -1202,108 +1270,6 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboral() {
 	}
 	c.ServeJSON()
 }
-
-// GetExperienciaLaboralByTercero ...
-// @Title GetExperienciaLaboralByTercero
-// @Description consultar Experiencia Laboral por id del tercero
-// @Param	Tercero		query 	int	true		"Id del tercero"
-// @Success 200 {}
-// @Failure 404 not found resource
-// @router /by_tercero/:id_tercero [get]
-// func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
-// 	//Captura de parámetros
-// 	// idTercero := c.GetString("Tercero")
-// 	idTercero := c.Ctx.Input.Param(":id_tercero")
-// 	//resultado resultado final
-// 	var resultado []map[string]interface{}
-// 	//resultado experiencia
-// 	var experiencia []map[string]interface{}
-// 	fmt.Println("Consultando experiencia laboral del tercero ", idTercero)
-
-// 	errExperiencia := request.GetJson("http://"+beego.AppConfig.String("ExperienciaLaboralService")+"/experiencia_laboral?limit=0&query=Persona:"+idTercero, &experiencia)
-// 	if errExperiencia == nil && fmt.Sprintf("%v", experiencia[0]["System"]) != "map[]" {
-// 		if experiencia[0]["Status"] != 404 && experiencia[0]["Id"] != nil {
-// 			for u := 0; u < len(experiencia); u++ {
-// 				//buscar soporte_experiencia_laboral
-// 				var soporte []map[string]interface{}
-
-// 				errSoporte := request.GetJson("http://"+beego.AppConfig.String("ExperienciaLaboralService")+"/soporte_experiencia_laboral/?query=ExperienciaLaboral:"+
-// 					fmt.Sprintf("%v", experiencia[u]["Id"])+"&fields=Documento", &soporte)
-// 				if errSoporte == nil && fmt.Sprintf("%v", soporte[0]["System"]) != "map[]" {
-// 					if soporte[0]["Status"] != 404 && soporte[0]["Documento"] != nil {
-// 						experiencia[u]["Documento"] = soporte[0]["Documento"]
-// 					} else {
-// 						if soporte[0]["Message"] == "Not found resource" {
-// 							c.Data["json"] = nil
-// 						} else {
-// 							logs.Error(soporte)
-// 							//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-// 							c.Data["system"] = errSoporte
-// 							c.Abort("404")
-// 						}
-// 					}
-// 				} else {
-// 					logs.Error(soporte)
-// 					//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-// 					c.Data["system"] = errSoporte
-// 					c.Abort("404")
-// 				}
-
-// 				//buscar organizacion_experiencia_laboral
-// 				var organizacion []map[string]interface{}
-// 				errOrganizacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero?limit=1&query=Id:"+
-// 					// fmt.Sprintf("%v", experiencia[u]["Id"])+"&fields=Documento", &soporte)
-// 					fmt.Sprintf("%v", experiencia[u]["Organizacion"]), &organizacion)
-// 				if errOrganizacion == nil && fmt.Sprintf("%v", organizacion[0]["System"]) != "map[]" {
-// 					if organizacion[0]["Status"] != 404 && organizacion[0]["Id"] != nil {
-
-// 						// unmarshall dato
-// 						var organizacionJson map[string]interface{}
-// 						if err := json.Unmarshal([]byte(organizacion[0]["Dato"].(string)), &organizacionJson); err != nil {
-// 							experiencia[u]["Organizacion"] = nil
-// 						} else {
-// 							experiencia[u]["Organizacion"] = organizacionJson
-// 						}
-
-// 					} else {
-// 						if organizacion[0]["Message"] == "Not found resource" {
-// 							c.Data["json"] = nil
-// 						} else {
-// 							logs.Error(organizacion)
-// 							//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-// 							c.Data["system"] = errOrganizacion
-// 							c.Abort("404")
-// 						}
-// 					}
-// 				} else {
-// 					logs.Error(organizacion)
-// 					//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-// 					c.Data["system"] = errOrganizacion
-// 					c.Abort("404")
-// 				}
-// 			}
-
-// 			resultado = experiencia
-// 			c.Data["json"] = resultado
-
-// 		} else {
-// 			if experiencia[0]["Message"] == "Not found resource" {
-// 				c.Data["json"] = nil
-// 			} else {
-// 				logs.Error(experiencia)
-// 				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-// 				c.Data["system"] = errExperiencia
-// 				c.Abort("404")
-// 			}
-// 		}
-// 	} else {
-// 		logs.Error(experiencia)
-// 		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-// 		c.Data["system"] = errExperiencia
-// 		c.Abort("404")
-// 	}
-// 	c.ServeJSON()
-// }
 
 /*
 // DeleteExperienciaLaboral ...
