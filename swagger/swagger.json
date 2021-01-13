@@ -1305,6 +1305,48 @@
                     }
                 }
             },
+            "put": {
+                "tags": [
+                    "formacion_academica"
+                ],
+                "description": "Modificar Formacion Academica",
+                "operationId": "FormacionController.PutFormacionAcademica",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "IdProyecto",
+                        "description": "Id del proyecto academico",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "query",
+                        "name": "Nit",
+                        "description": "Nit de la universidad",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Modificar Formacion Academica content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            },
             "post": {
                 "tags": [
                     "formacion_academica"
