@@ -86,6 +86,12 @@ func PutPaqueteSolicitud(PaqueteSolicitud map[string]interface{}, idStr string) 
 	for _, solicitudTemp := range PaqueteSolicitud["SolicitudesList"].([]interface{}) {
 		solicitud := solicitudTemp.(map[string]interface{})
 
+		if solicitud["SolicitudFinalizada"] == nil {
+			solicitud["SolicitudFinalizada"] = false
+		}
+
+		fmt.Println(solicitud["SolicitudFinalizada"])
+
 		var paqueteSolicitudes map[string]interface{}
 		errPaquete := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/paquete_solicitud/?limit=0&query=PaqueteId:"+idStr, &paqueteSolicitudes)
 		if errPaquete == nil && fmt.Sprintf("%v", paqueteSolicitudes["System"]) != "map[]" {
