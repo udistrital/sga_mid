@@ -20,9 +20,13 @@ type SolicitudDocenteController struct {
 func (c *SolicitudDocenteController) URLMapping() {
 	c.Mapping("PostSolicitudDocente", c.PostSolicitudDocente)
 	c.Mapping("GetAllSolicitudDocente", c.GetAllSolicitudDocente)
+	c.Mapping("GetAllSolicitudDocenteActive", c.GetAllSolicitudDocenteActive)
+	c.Mapping("GetAllSolicitudDocenteInactive", c.GetAllSolicitudDocenteInactive)
 	c.Mapping("GetEstadoSolicitudDocente", c.GetEstadoSolicitudDocente)
 	c.Mapping("GetOneSolicitudDocente", c.GetOneSolicitudDocente)
 	c.Mapping("GetSolicitudDocenteTercero", c.GetSolicitudDocenteTercero)
+	c.Mapping("GetSolicitudDocenteTerceroActive", c.GetSolicitudDocenteTerceroActive)
+	c.Mapping("GetSolicitudDocenteTerceroInactive", c.GetSolicitudDocenteTerceroInactive)
 	c.Mapping("DeleteSolicitudDocente", c.DeleteSolicitudDocente)
 	c.Mapping("PutSolicitudDocente", c.PutSolicitudDocente)
 }
@@ -122,7 +126,49 @@ func (c *SolicitudDocenteController) GetAllSolicitudDocente() {
 	fmt.Println("Consultando todas las solicitudes")
 	//resultado resultado final
 	var resultadoGetSolicitud []map[string]interface{}
-	if resultado, err := models.GetAllSolicitudDocente(); err == nil {
+	if resultado, err := models.GetAllSolicitudDocente(2); err == nil {
+		resultadoGetSolicitud = resultado
+		c.Data["json"] = resultadoGetSolicitud
+	} else {
+		logs.Error(err)
+		c.Data["system"] = resultadoGetSolicitud
+		c.Abort("400")
+	}
+	c.ServeJSON()
+}
+
+// GetAllSolicitudDocenteActive ...
+// @Title GetAllSolicitudDocenteActive
+// @Description consultar todas las solicitudes académicas
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router /active/ [get]
+func (c *SolicitudDocenteController) GetAllSolicitudDocenteActive() {
+	fmt.Println("Consultando todas las solicitudes Activas")
+	//resultado resultado final
+	var resultadoGetSolicitud []map[string]interface{}
+	if resultado, err := models.GetAllSolicitudDocente(0); err == nil {
+		resultadoGetSolicitud = resultado
+		c.Data["json"] = resultadoGetSolicitud
+	} else {
+		logs.Error(err)
+		c.Data["system"] = resultadoGetSolicitud
+		c.Abort("400")
+	}
+	c.ServeJSON()
+}
+
+// GetAllSolicitudDocenteInactive ...
+// @Title GetAllSolicitudDocenteInactive
+// @Description consultar todas las solicitudes académicas
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router /inactive/ [get]
+func (c *SolicitudDocenteController) GetAllSolicitudDocenteInactive() {
+	fmt.Println("Consultando todas las solicitudes Inactivas")
+	//resultado resultado final
+	var resultadoGetSolicitud []map[string]interface{}
+	if resultado, err := models.GetAllSolicitudDocente(1); err == nil {
 		resultadoGetSolicitud = resultado
 		c.Data["json"] = resultadoGetSolicitud
 	} else {
@@ -143,10 +189,58 @@ func (c *SolicitudDocenteController) GetAllSolicitudDocente() {
 func (c *SolicitudDocenteController) GetSolicitudDocenteTercero() {
 	//Id del tercero
 	idTercero := c.Ctx.Input.Param(":tercero")
+	fmt.Println("Consultando solicitudes de tercero activas: " + idTercero)
+	//resultado resultado final
+	var resultadoGetSolicitud []map[string]interface{}
+	if resultado, err := models.GetSolicitudDocenteTercero(idTercero, 2); err == nil {
+		resultadoGetSolicitud = resultado
+		c.Data["json"] = resultadoGetSolicitud
+	} else {
+		logs.Error(err)
+		c.Data["system"] = resultadoGetSolicitud
+		c.Abort("400")
+	}
+	c.ServeJSON()
+}
+
+// GetSolicitudDocenteTerceroActive ...
+// @Title GetSolicitudDocenteTerceroActive
+// @Description consultar solicitud docente por tercero
+// @Param   tercero      path    int  true        "Tercero"
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router /active/:tercero [get]
+func (c *SolicitudDocenteController) GetSolicitudDocenteTerceroActive() {
+	//Id del tercero
+	idTercero := c.Ctx.Input.Param(":tercero")
 	fmt.Println("Consultando solicitudes de tercero: " + idTercero)
 	//resultado resultado final
 	var resultadoGetSolicitud []map[string]interface{}
-	if resultado, err := models.GetSolicitudDocenteTercero(idTercero); err == nil {
+	if resultado, err := models.GetSolicitudDocenteTercero(idTercero, 0); err == nil {
+		resultadoGetSolicitud = resultado
+		c.Data["json"] = resultadoGetSolicitud
+	} else {
+		logs.Error(err)
+		c.Data["system"] = resultadoGetSolicitud
+		c.Abort("400")
+	}
+	c.ServeJSON()
+}
+
+// GetSolicitudDocenteTerceroInactive ...
+// @Title GetSolicitudDocenteTerceroInactive
+// @Description consultar solicitud docente por tercero
+// @Param   tercero      path    int  true        "Tercero"
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router /inactive/:tercero [get]
+func (c *SolicitudDocenteController) GetSolicitudDocenteTerceroInactive() {
+	//Id del tercero
+	idTercero := c.Ctx.Input.Param(":tercero")
+	fmt.Println("Consultando solicitudes de tercero inactivas: " + idTercero)
+	//resultado resultado final
+	var resultadoGetSolicitud []map[string]interface{}
+	if resultado, err := models.GetSolicitudDocenteTercero(idTercero, 1); err == nil {
 		resultadoGetSolicitud = resultado
 		c.Data["json"] = resultadoGetSolicitud
 	} else {
