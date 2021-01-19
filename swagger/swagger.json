@@ -2557,6 +2557,50 @@
                 }
             }
         },
+        "/solicitud_docente/active/": {
+            "get": {
+                "tags": [
+                    "solicitud_docente"
+                ],
+                "description": "consultar todas las solicitudes académicas",
+                "operationId": "SolicitudDocenteController.GetAllSolicitudDocenteActive",
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/solicitud_docente/active/{tercero}": {
+            "get": {
+                "tags": [
+                    "solicitud_docente"
+                ],
+                "description": "consultar solicitud docente por tercero",
+                "operationId": "SolicitudDocenteController.GetSolicitudDocenteTerceroActive",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "tercero",
+                        "description": "Tercero",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
         "/solicitud_docente/get_estado/{id}": {
             "get": {
                 "tags": [
@@ -2596,6 +2640,50 @@
                         "in": "path",
                         "name": "id",
                         "description": "Id",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/solicitud_docente/inactive/": {
+            "get": {
+                "tags": [
+                    "solicitud_docente"
+                ],
+                "description": "consultar todas las solicitudes académicas",
+                "operationId": "SolicitudDocenteController.GetAllSolicitudDocenteInactive",
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/solicitud_docente/inactive/{tercero}": {
+            "get": {
+                "tags": [
+                    "solicitud_docente"
+                ],
+                "description": "consultar solicitud docente por tercero",
+                "operationId": "SolicitudDocenteController.GetSolicitudDocenteTerceroInactive",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "tercero",
+                        "description": "Tercero",
                         "required": true,
                         "type": "integer",
                         "format": "int64"
