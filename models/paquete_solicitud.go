@@ -74,13 +74,15 @@ func PostPaqueteSolicitud(PaqueteSolicitud map[string]interface{}) (result map[s
 // PutPaqueteSolicitud is ...
 func PutPaqueteSolicitud(PaqueteSolicitud map[string]interface{}, idStr string) (result map[string]interface{}, outputError interface{}) {
 	var resultado map[string]interface{}
+
 	PaqueteSolicitudPut := make(map[string]interface{})
 
 	PaqueteSolicitudPut["Paquete"] = map[string]interface{}{
-		"Id":           PaqueteSolicitud["Id"],
-		"Nombre":       PaqueteSolicitud["Nombre"],
-		"NumeroComite": PaqueteSolicitud["NumeroComite"],
-		"FechaComite":  PaqueteSolicitud["FechaComite"],
+		"Id":              PaqueteSolicitud["Id"],
+		"Nombre":          PaqueteSolicitud["Nombre"],
+		"NumeroComite":    PaqueteSolicitud["NumeroComite"],
+		"FechaComite":     PaqueteSolicitud["FechaComite"],
+		"PaqueteRevisado": PaqueteSolicitud["PaqueteRevisado"].(bool),
 	}
 	var solicitudesPaquete []map[string]interface{}
 	for _, solicitudTemp := range PaqueteSolicitud["SolicitudesList"].([]interface{}) {
@@ -89,9 +91,6 @@ func PutPaqueteSolicitud(PaqueteSolicitud map[string]interface{}, idStr string) 
 		if solicitud["SolicitudFinalizada"] == nil {
 			solicitud["SolicitudFinalizada"] = false
 		}
-
-		fmt.Println(solicitud["SolicitudFinalizada"])
-
 		var paqueteSolicitudes map[string]interface{}
 		errPaquete := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/paquete_solicitud/?limit=0&query=PaqueteId:"+idStr, &paqueteSolicitudes)
 		if errPaquete == nil && fmt.Sprintf("%v", paqueteSolicitudes["System"]) != "map[]" {
