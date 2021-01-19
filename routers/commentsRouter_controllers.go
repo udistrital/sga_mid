@@ -378,10 +378,8 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ExperienciaLaboralController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ExperienciaLaboralController"],
         beego.ControllerComments{
-<<<<<<< HEAD
-=======
             Method: "PutExperienciaLaboral",
-            Router: "/",
+            Router: `/`,
             AllowHTTPMethods: []string{"put"},
             MethodParams: param.Make(),
             Filters: nil,
@@ -389,7 +387,6 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ExperienciaLaboralController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ExperienciaLaboralController"],
         beego.ControllerComments{
->>>>>>> 70f7827a8867624f578ee5087d2f22e519f7dc61
             Method: "GetExperienciaLaboral",
             Router: `/:id`,
             AllowHTTPMethods: []string{"get"},
@@ -426,8 +423,6 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:FormacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:FormacionController"],
         beego.ControllerComments{
-<<<<<<< HEAD
-=======
             Method: "PutFormacionAcademica",
             Router: `/`,
             AllowHTTPMethods: []string{"put"},
@@ -437,7 +432,6 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:FormacionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:FormacionController"],
         beego.ControllerComments{
->>>>>>> 70f7827a8867624f578ee5087d2f22e519f7dc61
             Method: "GetFormacionAcademicaByTercero",
             Router: `/`,
             AllowHTTPMethods: []string{"get"},
@@ -700,11 +694,7 @@ func init() {
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PersonaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PersonaController"],
         beego.ControllerComments{
             Method: "ActualizarInfoFamiliar",
-<<<<<<< HEAD
             Router: `/info_familiar`,
-=======
-            Router: "/info_familiar",
->>>>>>> 70f7827a8867624f578ee5087d2f22e519f7dc61
             AllowHTTPMethods: []string{"put"},
             MethodParams: param.Make(),
             Filters: nil,
