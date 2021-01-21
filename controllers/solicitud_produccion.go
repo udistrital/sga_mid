@@ -8,6 +8,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 // SolicitudProduccionController ...
@@ -18,6 +19,7 @@ type SolicitudProduccionController struct {
 // URLMapping ...
 func (c *SolicitudProduccionController) URLMapping() {
 	c.Mapping("PostAlertSolicitudProduccion", c.PostAlertSolicitudProduccion)
+	c.Mapping("PutResultadoSolicitud", c.PutResultadoSolicitud)
 }
 
 // PostAlertSolicitudProduccion ...
@@ -40,13 +42,21 @@ func (c *SolicitudProduccionController) PostAlertSolicitudProduccion() {
 	fmt.Println("Id Tercero: ", idTipoProduccionSrt)
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &SolicitudProduccion); err == nil {
-		if SolicitudProduccionPut, errAlert := models.CheckCriteriaData(SolicitudProduccion, idTipoProduccion, idTercero); errAlert == nil {
-			idStr := fmt.Sprintf("%v", SolicitudProduccionPut["Id"])
-			if resultadoPutSolicitudDocente, errPut := models.PutSolicitudDocente(SolicitudProduccionPut, idStr); errPut == nil {
-				resultado = resultadoPutSolicitudDocente
-				c.Data["json"] = resultado
+		if SolicitudProduccionAlert, errAlert := models.CheckCriteriaData(SolicitudProduccion, idTipoProduccion, idTercero); errAlert == nil {
+			if SolicitudProduccionPut, errCoincidence := models.CheckCoincidenceProduction(SolicitudProduccionAlert, idTipoProduccion, idTercero); errCoincidence == nil {
+				idStr := fmt.Sprintf("%v", SolicitudProduccionPut["Id"])
+				fmt.Println(idStr)
+				if resultadoPutSolicitudDocente, errPut := models.PutSolicitudDocente(SolicitudProduccionPut, idStr); errPut == nil {
+					formatdata.JsonPrint(resultadoPutSolicitudDocente)
+					resultado = resultadoPutSolicitudDocente
+					c.Data["json"] = resultado
+				} else {
+					logs.Error(errPut)
+					c.Data["system"] = resultado
+					c.Abort("400")
+				}
 			} else {
-				logs.Error(errPut)
+				logs.Error(errCoincidence)
 				c.Data["system"] = resultado
 				c.Abort("400")
 			}

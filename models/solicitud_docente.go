@@ -256,7 +256,7 @@ func GetSolicitudDocenteTercero(idTercero string, isFinish int) (result []map[st
 
 // GetOneSolicitudDocente is ...
 func GetOneSolicitudDocente(idSolicitud string) (result []interface{}, outputError interface{}) {
-	fmt.Println(idSolicitud)
+	fmt.Println("id solicitud: ", idSolicitud)
 	var solicitudes []map[string]interface{}
 	var v []interface{}
 	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/solicitud/?query=Id:"+idSolicitud, &solicitudes)
