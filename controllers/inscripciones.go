@@ -84,7 +84,7 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 								fmt.Println(err)
 							} else {
 								if FechaActualFormato.Before(FechaLimiteFormato) == true {
-									Estado = "No Pago"
+									Estado = "Pendiente pago"
 								} else {
 									Estado = "Vencido"
 								}
