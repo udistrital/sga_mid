@@ -30,7 +30,7 @@ func CheckCoincidenceProduction(SolicitudProduccion map[string]interface{}, idTi
 						if fmt.Sprintf("%v", produccion["SubtipoProduccionId"].(map[string]interface{})["Id"]) == fmt.Sprintf("%v", produccionActual["ProduccionAcademica"].(map[string]interface{})["SubtipoProduccionId"].(map[string]interface{})["Id"]) {
 							distance := CheckTitle(produccionActual["ProduccionAcademica"].(map[string]interface{}), produccion)
 							if distance < 3 {
-								idSolicitudesList = append(idSolicitudesList, produccion["Id"].(float64))
+								idSolicitudesList = append(idSolicitudesList, solicitud["Id"].(float64))
 							}
 						}
 					} else {
