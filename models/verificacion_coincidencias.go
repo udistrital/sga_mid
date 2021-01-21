@@ -21,7 +21,6 @@ func CheckCoincidenceProduction(SolicitudProduccion map[string]interface{}, idTi
 
 			for _, solicitud := range solicitudes {
 				if fmt.Sprintf("%v", solicitud["Solicitantes"].([]interface{})[0].(map[string]interface{})["TerceroId"]) != idTercero {
-					fmt.Println("paso1")
 					type Reference struct{ Id int }
 					var reference Reference
 					json.Unmarshal([]byte(fmt.Sprintf("%v", solicitud["Referencia"])), &reference)
@@ -29,11 +28,8 @@ func CheckCoincidenceProduction(SolicitudProduccion map[string]interface{}, idTi
 						produccion := produccionList[0].(map[string]interface{})
 
 						if fmt.Sprintf("%v", produccion["SubtipoProduccionId"].(map[string]interface{})["Id"]) == fmt.Sprintf("%v", produccionActual["ProduccionAcademica"].(map[string]interface{})["SubtipoProduccionId"].(map[string]interface{})["Id"]) {
-							fmt.Println("paso2")
 							distance := CheckTitle(produccionActual["ProduccionAcademica"].(map[string]interface{}), produccion)
-							fmt.Println(distance)
 							if distance < 3 {
-								fmt.Println("paso3")
 								idSolicitudesList = append(idSolicitudesList, produccion["Id"].(float64))
 							}
 						}
@@ -43,7 +39,6 @@ func CheckCoincidenceProduction(SolicitudProduccion map[string]interface{}, idTi
 					}
 				}
 			}
-			fmt.Println(idSolicitudesList)
 
 			generateAlertCoincidences(SolicitudProduccion, idSolicitudesList)
 			return SolicitudProduccion, nil
@@ -65,8 +60,6 @@ func generateAlertCoincidences(SolicitudDocente map[string]interface{}, idCoinci
 		for _, id := range idCoincidences {
 			idList += fmt.Sprintf("%v", id) + ","
 		}
-
-		fmt.Println(idList)
 
 		errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tipo_observacion/?query=Id:4", &tipoObservacionData)
 		if errSolicitud == nil && fmt.Sprintf("%v", tipoObservacionData["System"]) != "map[]" {

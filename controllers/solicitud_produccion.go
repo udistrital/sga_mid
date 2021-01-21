@@ -8,7 +8,6 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
-	"github.com/udistrital/utils_oas/formatdata"
 )
 
 // SolicitudProduccionController ...
@@ -47,7 +46,6 @@ func (c *SolicitudProduccionController) PostAlertSolicitudProduccion() {
 				idStr := fmt.Sprintf("%v", SolicitudProduccionPut["Id"])
 				fmt.Println(idStr)
 				if resultadoPutSolicitudDocente, errPut := models.PutSolicitudDocente(SolicitudProduccionPut, idStr); errPut == nil {
-					formatdata.JsonPrint(resultadoPutSolicitudDocente)
 					resultado = resultadoPutSolicitudDocente
 					c.Data["json"] = resultado
 				} else {

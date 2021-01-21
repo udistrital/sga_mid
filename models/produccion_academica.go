@@ -10,7 +10,6 @@ import (
 
 // GetOneProduccionAcademica is ...
 func GetOneProduccionAcademica(idProduccion string) (result []interface{}, outputError interface{}) {
-	fmt.Println("id produccion: ", idProduccion)
 	var producciones []map[string]interface{}
 	var v []interface{}
 	errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/produccion_academica/?limit=0&query=Id:"+idProduccion, &producciones)
