@@ -324,6 +324,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DescuentoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DescuentoController"],
         beego.ControllerComments{
+            Method: "GetDescuentoAcademicoByDependenciaID",
+            Router: "/descuentoAcademicoByID/:dependencia_id",
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DescuentoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DescuentoController"],
+        beego.ControllerComments{
             Method: "GetDescuentoByPersonaPeriodoDependencia",
             Router: `/descuentopersonaperiododependencia/`,
             AllowHTTPMethods: []string{"get"},
