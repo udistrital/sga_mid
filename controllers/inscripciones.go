@@ -37,12 +37,14 @@ func (c *InscripcionesController) URLMapping() {
 // @Title GetEstadoInscripcion
 // @Description consultar los estados de todos los recibos generados por el tercero
 // @Param	persona_id	path	int	true	"Id del tercero"
+// @Param	id_periodo	path	int	true	"Id del ultimo periodo"
 // @Success 200 {}
 // @Failure 403 body is empty
-// @router /estado_recibos/:persona_id [get]
+// @router /estado_recibos/:persona_id/:id_periodo [get]
 func (c *InscripcionesController) GetEstadoInscripcion() {
 
 	persona_id := c.Ctx.Input.Param(":persona_id")
+	id_periodo := c.Ctx.Input.Param(":id_periodo")
 	var Inscripciones []map[string]interface{}
 	var ReciboXML map[string]interface{}
 	var resultadoAux []map[string]interface{}
@@ -54,7 +56,7 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 	alertas := append([]interface{}{"Response:"})
 
 	//Se consultan todas las inscripciones relacionadas a ese tercero
-	errInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion?query=PersonaId:"+persona_id, &Inscripciones)
+	errInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion?query=PersonaId:"+persona_id+",PeriodoId:"+id_periodo, &Inscripciones)
 	if errInscripcion == nil {
 		if Inscripciones != nil {
 			// Ciclo for que recorre todas las inscripciones del tercero
