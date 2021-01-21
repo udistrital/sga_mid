@@ -9,6 +9,7 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
 	"github.com/udistrital/utils_oas/request"
+	"github.com/udistrital/utils_oas/time_bogota"
 )
 
 // InscripcionesController ...
@@ -29,6 +30,112 @@ func (c *InscripcionesController) URLMapping() {
 	c.Mapping("PostInfoIcfesColegioNuevo", c.PostInfoIcfesColegioNuevo)
 	c.Mapping("ConsultarProyectosEventos", c.ConsultarProyectosEventos)
 	c.Mapping("ActualizarInfoContacto", c.ActualizarInfoContacto)
+	c.Mapping("GetEstadoInscripcion", c.GetEstadoInscripcion)
+}
+
+// GetEstadoInscripcion ...
+// @Title GetEstadoInscripcion
+// @Description consultar los estados de todos los recibos generados por el tercero
+// @Param	persona_id	path	int	true	"Id del tercero"
+// @Success 200 {}
+// @Failure 403 body is empty
+// @router /estado_recibos/:persona_id [get]
+func (c *InscripcionesController) GetEstadoInscripcion() {
+
+	persona_id := c.Ctx.Input.Param(":persona_id")
+	var Inscripciones []map[string]interface{}
+	var ReciboXML map[string]interface{}
+	var resultadoAux []map[string]interface{}
+	var resultado map[string]interface{}
+	resultado = make(map[string]interface{})
+	var Estado string
+	var alerta models.Alert
+	var errorGetAll bool
+	alertas := append([]interface{}{"Response:"})
+
+	//Se consultan todas las inscripciones relacionadas a ese tercero
+	errInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion?query=PersonaId:"+persona_id, &Inscripciones)
+	if errInscripcion == nil {
+		if Inscripciones != nil {
+			// Ciclo for que recorre todas las inscripciones del tercero
+			resultadoAux = make([]map[string]interface{}, len(Inscripciones))
+			for i := 0; i < len(Inscripciones); i++ {
+				ReciboInscripcion := fmt.Sprintf("%v", Inscripciones[i]["ReciboInscripcion"])
+				errRecibo := request.GetJsonWSO2("http://"+beego.AppConfig.String("ReciboJbpmService")+"recibos_pago/consulta_recibo/"+ReciboInscripcion, &ReciboXML)
+				if errRecibo == nil {
+					//Fecha límite de pago extraordinario
+					FechaLimite := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["fecha_extraordinario"]
+					EstadoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["estado"]
+					PagoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["pago"]
+					//Verificación si el recibo de pago se encuentra activo y pago
+					if EstadoRecibo == "A" && PagoRecibo == "S" {
+						Estado = "Pago"
+					} else {
+						//Verifica si el recibo está vencido o no
+						FechaActual := time_bogota.TiempoBogotaFormato() //time.Now()
+						layout := "2006-01-02T15:04:05.000-05:00"
+						FechaLimiteFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaLimite))
+						if err != nil {
+							fmt.Println(err)
+						} else {
+							layout := "2006-01-02T15:04:05.000000000-05:00"
+							FechaActualFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaActual))
+							if err != nil {
+								fmt.Println(err)
+							} else {
+								if FechaActualFormato.Before(FechaLimiteFormato) == true {
+									Estado = "No Pago"
+								} else {
+									Estado = "Vencido"
+								}
+							}
+						}
+					}
+
+					resultadoAux[i] = map[string]interface{}{
+						"Id":                  Inscripciones[i]["Id"],
+						"ProgramaAcademicoId": Inscripciones[i]["ProgramaAcademicoId"],
+						"ReciboInscripcion":   Inscripciones[i]["ReciboInscripcion"],
+						"FechaCreacion":       Inscripciones[i]["FechaCreacion"],
+						"Estado":              Estado,
+					}
+
+				} else {
+					errorGetAll = true
+					alertas = append(alertas, errRecibo.Error())
+					alerta.Code = "400"
+					alerta.Type = "error"
+					alerta.Body = alertas
+					c.Data["json"] = map[string]interface{}{"Response": alerta}
+				}
+			}
+			resultado["Inscripciones"] = resultadoAux
+		} else {
+			errorGetAll = true
+			alertas = append(alertas, "No data found")
+			alerta.Code = "404"
+			alerta.Type = "error"
+			alerta.Body = alertas
+			c.Data["json"] = map[string]interface{}{"Response": alerta}
+		}
+	} else {
+		errorGetAll = true
+		alertas = append(alertas, errInscripcion.Error())
+		alerta.Code = "400"
+		alerta.Type = "error"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
+	if !errorGetAll {
+		alertas = append(alertas, resultado)
+		alerta.Code = "200"
+		alerta.Type = "OK"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
+	c.ServeJSON()
 }
 
 // PostInformacionFamiliar ...
