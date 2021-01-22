@@ -1580,6 +1580,41 @@
                 }
             }
         },
+        "/inscripciones/estado_recibos/{persona_id}/{id_periodo}": {
+            "get": {
+                "tags": [
+                    "inscripciones"
+                ],
+                "description": "consultar los estados de todos los recibos generados por el tercero",
+                "operationId": "InscripcionesController.GetEstadoInscripcion",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "persona_id",
+                        "description": "Id del tercero",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "path",
+                        "name": "id_periodo",
+                        "description": "Id del ultimo periodo",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
         "/inscripciones/info_complementaria_tercero": {
             "post": {
                 "tags": [
