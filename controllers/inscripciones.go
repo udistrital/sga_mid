@@ -79,11 +79,13 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 						FechaLimiteFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaLimite))
 						if err != nil {
 							fmt.Println(err)
+							Estado = "Vencido"
 						} else {
 							layout := "2006-01-02T15:04:05.000000000-05:00"
 							FechaActualFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaActual))
 							if err != nil {
 								fmt.Println(err)
+								Estado = "Vencido"
 							} else {
 								if FechaActualFormato.Before(FechaLimiteFormato) == true {
 									Estado = "Pendiente pago"
