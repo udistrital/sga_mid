@@ -6,6 +6,7 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
+	"github.com/udistrital/sga_mid/models"
 	"github.com/udistrital/utils_oas/request"
 	"github.com/udistrital/utils_oas/time_bogota"
 )
@@ -230,64 +231,16 @@ func (c *ProduccionAcademicaController) PutProduccionAcademica() {
 func (c *ProduccionAcademicaController) GetOneProduccionAcademica() {
 	//Id de la producción
 	idProduccion := c.Ctx.Input.Param(":id")
+	fmt.Println("Consultando produccion de id: " + idProduccion)
 	//resultado experiencia
-	var producciones []map[string]interface{}
-
-	errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/produccion_academica/?limit=0&query=Id:"+idProduccion, &producciones)
-	if errProduccion == nil && fmt.Sprintf("%v", producciones[0]["System"]) != "map[]" {
-		if producciones[0]["Status"] != 404 && producciones[0]["Id"] != nil {
-			var autoresProduccion []map[string]interface{}
-			errAutorProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/autor_produccion_academica/?query=ProduccionAcademicaId:"+idProduccion, &autoresProduccion)
-			if errAutorProduccion == nil && fmt.Sprintf("%v", autoresProduccion[0]["System"]) != "map[]" {
-				if autoresProduccion[0]["Status"] != 404 && autoresProduccion[0]["Id"] != nil {
-					var metadatos []map[string]interface{}
-					errMetaProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/metadato_produccion_academica/?limit=0&query=ProduccionAcademicaId:"+idProduccion, &metadatos)
-					if errMetaProduccion == nil && fmt.Sprintf("%v", metadatos[0]["System"]) != "map[]" {
-						if metadatos[0]["Status"] != 404 && metadatos[0]["Id"] != nil {
-							var v []interface{}
-							v = append(v, map[string]interface{}{
-								"Id":                  producciones[0]["Id"],
-								"Titulo":              producciones[0]["Titulo"],
-								"Resumen":             producciones[0]["Resumen"],
-								"Fecha":               producciones[0]["Fecha"],
-								"SubtipoProduccionId": producciones[0]["SubtipoProduccionId"],
-								"Autores":             &autoresProduccion,
-								"Metadatos":           &metadatos,
-							})
-							c.Data["json"] = v
-						}
-					} else {
-						if metadatos[0]["Message"] == "Not found resource" {
-							c.Data["json"] = nil
-						} else {
-							logs.Error(metadatos)
-							c.Data["system"] = errMetaProduccion
-							c.Abort("404")
-						}
-					}
-				}
-			} else {
-				if autoresProduccion[0]["Message"] == "Not found resource" {
-					c.Data["json"] = nil
-				} else {
-					logs.Error(autoresProduccion)
-					c.Data["system"] = errAutorProduccion
-					c.Abort("404")
-				}
-			}
-		} else {
-			if producciones[0]["Message"] == "Not found resource" {
-				c.Data["json"] = nil
-			} else {
-				logs.Error(producciones)
-				c.Data["system"] = errProduccion
-				c.Abort("404")
-			}
-		}
+	var resultadoGetProduccion []interface{}
+	if resultado, err := models.GetOneProduccionAcademica(idProduccion); err == nil {
+		resultadoGetProduccion = resultado
+		c.Data["json"] = resultadoGetProduccion
 	} else {
-		logs.Error(producciones)
-		c.Data["system"] = errProduccion
-		c.Abort("404")
+		logs.Error(err)
+		c.Data["system"] = resultadoGetProduccion
+		c.Abort("400")
 	}
 	c.ServeJSON()
 }

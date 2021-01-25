@@ -58,52 +58,60 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 	//Se consultan todas las inscripciones relacionadas a ese tercero
 	errInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion?query=PersonaId:"+persona_id+",PeriodoId:"+id_periodo, &Inscripciones)
 	if errInscripcion == nil {
-		if Inscripciones != nil {
+		if Inscripciones != nil && fmt.Sprintf("%v", Inscripciones[0]) != "map[]" {
 			// Ciclo for que recorre todas las inscripciones del tercero
 			resultadoAux = make([]map[string]interface{}, len(Inscripciones))
 			for i := 0; i < len(Inscripciones); i++ {
 				ReciboInscripcion := fmt.Sprintf("%v", Inscripciones[i]["ReciboInscripcion"])
 				errRecibo := request.GetJsonWSO2("http://"+beego.AppConfig.String("ReciboJbpmService")+"recibos_pago/consulta_recibo/"+ReciboInscripcion, &ReciboXML)
 				if errRecibo == nil {
-					//Fecha límite de pago extraordinario
-					FechaLimite := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["fecha_extraordinario"]
-					EstadoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["estado"]
-					PagoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["pago"]
-					//Verificación si el recibo de pago se encuentra activo y pago
-					if EstadoRecibo == "A" && PagoRecibo == "S" {
-						Estado = "Pago"
-					} else {
-						//Verifica si el recibo está vencido o no
-						FechaActual := time_bogota.TiempoBogotaFormato() //time.Now()
-						layout := "2006-01-02T15:04:05.000-05:00"
-						FechaLimiteFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaLimite))
-						if err != nil {
-							fmt.Println(err)
-							Estado = "Vencido"
+					if ReciboXML != nil && fmt.Sprintf("%v", ReciboXML) != "map[]" {
+						//Fecha límite de pago extraordinario
+						FechaLimite := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["fecha_extraordinario"]
+						EstadoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["estado"]
+						PagoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["pago"]
+						//Verificación si el recibo de pago se encuentra activo y pago
+						if EstadoRecibo == "A" && PagoRecibo == "S" {
+							Estado = "Pago"
 						} else {
-							layout := "2006-01-02T15:04:05.000000000-05:00"
-							FechaActualFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaActual))
+							//Verifica si el recibo está vencido o no
+							FechaActual := time_bogota.TiempoBogotaFormato() //time.Now()
+							layout := "2006-01-02T15:04:05.000-05:00"
+							FechaLimiteFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaLimite))
 							if err != nil {
 								fmt.Println(err)
 								Estado = "Vencido"
 							} else {
-								if FechaActualFormato.Before(FechaLimiteFormato) == true {
-									Estado = "Pendiente pago"
-								} else {
+								layout := "2006-01-02T15:04:05.000000000-05:00"
+								FechaActualFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaActual))
+								if err != nil {
+									fmt.Println(err)
 									Estado = "Vencido"
+								} else {
+									if FechaActualFormato.Before(FechaLimiteFormato) == true {
+										Estado = "Pendiente pago"
+									} else {
+										Estado = "Vencido"
+									}
 								}
 							}
 						}
-					}
 
-					resultadoAux[i] = map[string]interface{}{
-						"Id":                  Inscripciones[i]["Id"],
-						"ProgramaAcademicoId": Inscripciones[i]["ProgramaAcademicoId"],
-						"ReciboInscripcion":   Inscripciones[i]["ReciboInscripcion"],
-						"FechaCreacion":       Inscripciones[i]["FechaCreacion"],
-						"Estado":              Estado,
+						resultadoAux[i] = map[string]interface{}{
+							"Id":                  Inscripciones[i]["Id"],
+							"ProgramaAcademicoId": Inscripciones[i]["ProgramaAcademicoId"],
+							"ReciboInscripcion":   Inscripciones[i]["ReciboInscripcion"],
+							"FechaCreacion":       Inscripciones[i]["FechaCreacion"],
+							"Estado":              Estado,
+						}
+					} else {
+						errorGetAll = true
+						alertas = append(alertas, "No data found")
+						alerta.Code = "404"
+						alerta.Type = "error"
+						alerta.Body = alertas
+						c.Data["json"] = map[string]interface{}{"Response": alerta}
 					}
-
 				} else {
 					errorGetAll = true
 					alertas = append(alertas, errRecibo.Error())

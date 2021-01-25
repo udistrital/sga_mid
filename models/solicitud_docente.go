@@ -18,6 +18,7 @@ func PostSolicitudDocente(SolicitudDocente map[string]interface{}) (result map[s
 
 	SolicitudDocentePost := make(map[string]interface{})
 	SolicitudDocentePost["Solicitud"] = map[string]interface{}{
+		"Resultado":             SolicitudDocente["Resultado"],
 		"Referencia":            SolicitudDocente["Referencia"],
 		"FechaRadicacion":       date,
 		"EstadoTipoSolicitudId": SolicitudDocente["EstadoTipoSolicitudId"],
@@ -65,6 +66,9 @@ func PostSolicitudDocente(SolicitudDocente map[string]interface{}) (result map[s
 
 	SolicitudDocentePost["EvolucionesEstado"] = solicitudesEvolucionEstado
 	SolicitudDocentePost["Observaciones"] = nil
+
+	fmt.Println("paso!")
+
 	var resultadoSolicitudDocente map[string]interface{}
 	errSolicitud := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud", "POST", &resultadoSolicitudDocente, SolicitudDocentePost)
 	if errSolicitud == nil && fmt.Sprintf("%v", resultadoSolicitudDocente["System"]) != "map[]" && resultadoSolicitudDocente["Solicitud"] != nil {
@@ -256,7 +260,7 @@ func GetSolicitudDocenteTercero(idTercero string, isFinish int) (result []map[st
 
 // GetOneSolicitudDocente is ...
 func GetOneSolicitudDocente(idSolicitud string) (result []interface{}, outputError interface{}) {
-	fmt.Println(idSolicitud)
+	fmt.Println("id solicitud: ", idSolicitud)
 	var solicitudes []map[string]interface{}
 	var v []interface{}
 	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/solicitud/?query=Id:"+idSolicitud, &solicitudes)

@@ -31,13 +31,13 @@ func CheckCriteriaData(SolicitudProduccion map[string]interface{}, idTipoProducc
 			var rangeAccepted int
 			isDurationAccepted = true
 			for _, produccion := range producciones {
-				distance := checkTitle(ProduccionAcademica["ProduccionAcademica"].(map[string]interface{}), produccion)
+				distance := CheckTitle(ProduccionAcademica["ProduccionAcademica"].(map[string]interface{}), produccion)
 				if distance < 6 {
 					coincidences++
 				}
 
 				if idTipoProduccion == 1 {
-					checkTitle(ProduccionAcademica["ProduccionAcademica"].(map[string]interface{}), produccion)
+					CheckTitle(ProduccionAcademica["ProduccionAcademica"].(map[string]interface{}), produccion)
 				}
 				if idTipoProduccion == 2 {
 					accumulatedPoints += checkGradePoints(produccion, idTipoProduccion, idTercero)
@@ -92,7 +92,8 @@ func CheckCriteriaData(SolicitudProduccion map[string]interface{}, idTipoProducc
 	return SolicitudProduccion, nil
 }
 
-func checkTitle(ProduccionAcademicaNew map[string]interface{}, ProduccionAcademicaRegister map[string]interface{}) (result int) {
+// CheckTitle is ...
+func CheckTitle(ProduccionAcademicaNew map[string]interface{}, ProduccionAcademicaRegister map[string]interface{}) (result int) {
 	distance := levenshtein.ComputeDistance(fmt.Sprintf("%v", ProduccionAcademicaNew["Titulo"]), fmt.Sprintf("%v", ProduccionAcademicaRegister["Titulo"]))
 	return distance
 }

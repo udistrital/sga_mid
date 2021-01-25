@@ -18,6 +18,8 @@ type SolicitudProduccionController struct {
 // URLMapping ...
 func (c *SolicitudProduccionController) URLMapping() {
 	c.Mapping("PostAlertSolicitudProduccion", c.PostAlertSolicitudProduccion)
+	c.Mapping("PostSolicitudEvaluacionCoincidencia", c.PostSolicitudEvaluacionCoincidencia)
+	c.Mapping("PutResultadoSolicitud", c.PutResultadoSolicitud)
 }
 
 // PostAlertSolicitudProduccion ...
@@ -40,13 +42,20 @@ func (c *SolicitudProduccionController) PostAlertSolicitudProduccion() {
 	fmt.Println("Id Tercero: ", idTipoProduccionSrt)
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &SolicitudProduccion); err == nil {
-		if SolicitudProduccionPut, errAlert := models.CheckCriteriaData(SolicitudProduccion, idTipoProduccion, idTercero); errAlert == nil {
-			idStr := fmt.Sprintf("%v", SolicitudProduccionPut["Id"])
-			if resultadoPutSolicitudDocente, errPut := models.PutSolicitudDocente(SolicitudProduccionPut, idStr); errPut == nil {
-				resultado = resultadoPutSolicitudDocente
-				c.Data["json"] = resultado
+		if SolicitudProduccionAlert, errAlert := models.CheckCriteriaData(SolicitudProduccion, idTipoProduccion, idTercero); errAlert == nil {
+			if SolicitudProduccionPut, errCoincidence := models.CheckCoincidenceProduction(SolicitudProduccionAlert, idTipoProduccion, idTercero); errCoincidence == nil {
+				idStr := fmt.Sprintf("%v", SolicitudProduccionPut["Id"])
+				fmt.Println(idStr)
+				if resultadoPutSolicitudDocente, errPut := models.PutSolicitudDocente(SolicitudProduccionPut, idStr); errPut == nil {
+					resultado = resultadoPutSolicitudDocente
+					c.Data["json"] = resultado
+				} else {
+					logs.Error(errPut)
+					c.Data["system"] = resultado
+					c.Abort("400")
+				}
 			} else {
-				logs.Error(errPut)
+				logs.Error(errCoincidence)
 				c.Data["system"] = resultado
 				c.Abort("400")
 			}
@@ -81,6 +90,44 @@ func (c *SolicitudProduccionController) PutResultadoSolicitud() {
 		} else {
 			logs.Error(SolicitudProduccionResult)
 			c.Data["system"] = errPuntaje
+			c.Abort("400")
+		}
+	} else {
+		logs.Error(err)
+		c.Data["system"] = err
+		c.Abort("400")
+	}
+	c.ServeJSON()
+}
+
+// PostSolicitudEvaluacionCoincidencia ...
+// @Title PostSolicitudEvaluacionCoincidencia
+// @Description Agregar Alerta en Solicitud docente en casos necesarios
+// @Param   body    body    {}  true        "body Agregar SolicitudProduccion content"
+// @Success 201 {int}
+// @Failure 400 the request contains incorrect syntax
+// @router /coincidencia/:id_solicitud/:id_coincidencia/:id_tercero [post]
+func (c *SolicitudProduccionController) PostSolicitudEvaluacionCoincidencia() {
+	idSolicitud := c.Ctx.Input.Param(":id_solicitud")
+	idSolicitudCoincidencia := c.Ctx.Input.Param(":id_coincidencia")
+	idTercero := c.Ctx.Input.Param(":id_tercero")
+
+	//resultado experiencia
+	resultado := make(map[string]interface{})
+	var SolicitudProduccion map[string]interface{}
+	fmt.Println("Post coincidence Solicitud Evaluacion")
+	fmt.Println("Id Solicitud: ", idSolicitud)
+	fmt.Println("Id Solicitud Coincidencia: ", idSolicitudCoincidencia)
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &SolicitudProduccion); err == nil {
+		if SolicitudProduccionClone, errClone := models.GenerateEvaluationsCloning(SolicitudProduccion, idSolicitud, idSolicitudCoincidencia, idTercero); errClone == nil {
+			if len(SolicitudProduccionClone) > 0 {
+				resultado = SolicitudProduccion
+				c.Data["json"] = resultado
+			}
+		} else {
+			logs.Error(errClone)
+			c.Data["system"] = resultado
 			c.Abort("400")
 		}
 	} else {
