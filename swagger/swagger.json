@@ -2156,6 +2156,34 @@
                 }
             }
         },
+        "/persona/guardar_complementarios_par": {
+            "post": {
+                "tags": [
+                    "persona"
+                ],
+                "description": "Guardar Datos Complementarios Persona ParAcademico",
+                "operationId": "PersonaController.GuardarDatosComplementariosParAcademico",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Guardar Datos Complementarios Persona content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
         "/persona/guardar_datos_contacto": {
             "post": {
                 "tags": [
@@ -2862,6 +2890,34 @@
                     },
                     "404": {
                         "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/solicitud_produccion/coincidencia/{id_solicitud}/{id_coincidencia}/{id_tercero}": {
+            "post": {
+                "tags": [
+                    "solicitud_produccion"
+                ],
+                "description": "Agregar Alerta en Solicitud docente en casos necesarios",
+                "operationId": "SolicitudProduccionController.PostSolicitudEvaluacionCoincidencia",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar SolicitudProduccion content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
                     }
                 }
             }
