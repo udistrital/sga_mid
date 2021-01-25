@@ -8,7 +8,6 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
-	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 	"github.com/udistrital/utils_oas/time_bogota"
 )
@@ -58,8 +57,6 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 
 	//Se consultan todas las inscripciones relacionadas a ese tercero
 	errInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion?query=PersonaId:"+persona_id+",PeriodoId:"+id_periodo, &Inscripciones)
-	fmt.Println(errInscripcion)
-	formatdata.JsonPrint(Inscripciones)
 	if errInscripcion == nil {
 		if Inscripciones != nil && fmt.Sprintf("%v", Inscripciones[0]) != "map[]" {
 			// Ciclo for que recorre todas las inscripciones del tercero
