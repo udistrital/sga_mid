@@ -2894,6 +2894,34 @@
                 }
             }
         },
+        "/solicitud_produccion/coincidencia/{id_solicitud}/{id_coincidencia}/{id_tercero}": {
+            "post": {
+                "tags": [
+                    "solicitud_produccion"
+                ],
+                "description": "Agregar Alerta en Solicitud docente en casos necesarios",
+                "operationId": "SolicitudProduccionController.PostSolicitudEvaluacionCoincidencia",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar SolicitudProduccion content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
         "/solicitud_produccion/{id}": {
             "put": {
                 "tags": [

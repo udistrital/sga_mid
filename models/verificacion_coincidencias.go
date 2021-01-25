@@ -3,6 +3,7 @@ package models
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
@@ -82,4 +83,50 @@ func generateAlertCoincidences(SolicitudDocente map[string]interface{}, idCoinci
 			}
 		}
 	}
+}
+
+//GenerateEvaluationsCloning is ...
+func GenerateEvaluationsCloning(SolicitudProduccion map[string]interface{}, idSolicitud string, idSolicitudCoincidencia string, idTerceroSrt string) (result []map[string]interface{}, outputError interface{}) {
+	idTercero, _ := strconv.Atoi(idTerceroSrt)
+	var solicitudesEvaluaciones []map[string]interface{}
+	var resultado []map[string]interface{}
+
+	errEvaluaciones := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/solicitud/?limit=0&query=SolicitudPadreId:"+idSolicitudCoincidencia, &solicitudesEvaluaciones)
+	if errEvaluaciones == nil && fmt.Sprintf("%v", solicitudesEvaluaciones[0]["System"]) != "map[]" {
+		if solicitudesEvaluaciones[0]["Status"] != 404 && solicitudesEvaluaciones[0]["Id"] != nil {
+			for _, evaluacion := range solicitudesEvaluaciones {
+				if evaluacion["EstadoTipoSolicitudId"].(map[string]interface{})["EstadoId"].(map[string]interface{})["Id"].(float64) == 13 {
+
+					var evaluadores []interface{}
+					errEvaluadores := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/solicitante/?query=SolicitudId:"+fmt.Sprintf("%v", evaluacion["Id"]), &evaluadores)
+					if errEvaluadores == nil {
+						SolicitudEvaluacion := make(map[string]interface{})
+						SolicitudEvaluacion["Evaluacion"] = map[string]interface{}{
+							"Autores":               evaluadores,
+							"EstadoTipoSolicitudId": evaluacion["EstadoTipoSolicitudId"],
+							"Referencia":            evaluacion["Referencia"],
+							"Resultado":             evaluacion["Resultado"],
+							"TerceroId":             idTercero,
+							"SolicitudPadreId":      SolicitudProduccion,
+						}
+						if solicitudPost, errPost := PostSolicitudDocente(SolicitudEvaluacion["Evaluacion"].(map[string]interface{})); errPost == nil {
+							resultado = append(resultado, solicitudPost)
+						} else {
+							logs.Error(solicitudPost)
+							return nil, errPost
+						}
+					} else {
+						logs.Error(evaluadores)
+						return nil, errEvaluadores
+					}
+				}
+			}
+			return resultado, nil
+		}
+	} else {
+		logs.Error(solicitudesEvaluaciones)
+		return nil, errEvaluaciones
+	}
+
+	return resultado, nil
 }

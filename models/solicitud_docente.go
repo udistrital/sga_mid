@@ -18,6 +18,7 @@ func PostSolicitudDocente(SolicitudDocente map[string]interface{}) (result map[s
 
 	SolicitudDocentePost := make(map[string]interface{})
 	SolicitudDocentePost["Solicitud"] = map[string]interface{}{
+		"Resultado":             SolicitudDocente["Resultado"],
 		"Referencia":            SolicitudDocente["Referencia"],
 		"FechaRadicacion":       date,
 		"EstadoTipoSolicitudId": SolicitudDocente["EstadoTipoSolicitudId"],
@@ -65,6 +66,9 @@ func PostSolicitudDocente(SolicitudDocente map[string]interface{}) (result map[s
 
 	SolicitudDocentePost["EvolucionesEstado"] = solicitudesEvolucionEstado
 	SolicitudDocentePost["Observaciones"] = nil
+
+	fmt.Println("paso!")
+
 	var resultadoSolicitudDocente map[string]interface{}
 	errSolicitud := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud", "POST", &resultadoSolicitudDocente, SolicitudDocentePost)
 	if errSolicitud == nil && fmt.Sprintf("%v", resultadoSolicitudDocente["System"]) != "map[]" && resultadoSolicitudDocente["Solicitud"] != nil {
