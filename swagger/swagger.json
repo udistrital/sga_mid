@@ -2156,6 +2156,34 @@
                 }
             }
         },
+        "/persona/guardar_complementarios_par": {
+            "post": {
+                "tags": [
+                    "persona"
+                ],
+                "description": "Guardar Datos Complementarios Persona ParAcademico",
+                "operationId": "PersonaController.GuardarDatosComplementariosParAcademico",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Guardar Datos Complementarios Persona content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
         "/persona/guardar_datos_contacto": {
             "post": {
                 "tags": [
