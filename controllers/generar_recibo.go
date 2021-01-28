@@ -94,7 +94,7 @@ func GenerarRecibo(datos map[string]interface{}) *gofpdf.Fpdf {
 
 	pdf = image(pdf, path+"/img/UDEscudo2.png", 5, 8, 13, 20)
 	pdf = image(pdf, path+"/img/UDEscudo2.png", 5, 90, 13, 20)
-	pdf = image(pdf, path+"/img/banco.png", 195, 8, 13, 16)
+	pdf = image(pdf, path+"/img/banco.PNG", 195, 8, 13, 16)
 	bcode := barcode.RegisterCode128(pdf, codigo)
 	barcode.Barcode(pdf, bcode, 10, 135, 130, 15, false)
 	barcode.Barcode(pdf, bcode, 10, 175, 130, 15, false)
