@@ -189,7 +189,7 @@ func (c *SolicitudDocenteController) GetAllSolicitudDocenteInactive() {
 func (c *SolicitudDocenteController) GetSolicitudDocenteTercero() {
 	//Id del tercero
 	idTercero := c.Ctx.Input.Param(":tercero")
-	fmt.Println("Consultando solicitudes de tercero activas: " + idTercero)
+	fmt.Println("Consultando solicitudes de tercero: " + idTercero)
 	//resultado resultado final
 	var resultadoGetSolicitud []map[string]interface{}
 	if resultado, err := models.GetSolicitudDocenteTercero(idTercero, 2); err == nil {
@@ -213,7 +213,7 @@ func (c *SolicitudDocenteController) GetSolicitudDocenteTercero() {
 func (c *SolicitudDocenteController) GetSolicitudDocenteTerceroActive() {
 	//Id del tercero
 	idTercero := c.Ctx.Input.Param(":tercero")
-	fmt.Println("Consultando solicitudes de tercero: " + idTercero)
+	fmt.Println("Consultando solicitudes de tercero activas: " + idTercero)
 	//resultado resultado final
 	var resultadoGetSolicitud []map[string]interface{}
 	if resultado, err := models.GetSolicitudDocenteTercero(idTercero, 0); err == nil {
