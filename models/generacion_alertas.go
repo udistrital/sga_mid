@@ -27,6 +27,7 @@ func CheckCriteriaData(SolicitudProduccion map[string]interface{}, idTipoProducc
 			var eventCoincidences int
 			var numAnnualProductions int
 			var accumulatedPoints int
+			var categoryLast int
 			var isDurationAccepted bool
 			var rangeAccepted int
 			isDurationAccepted = true
@@ -37,7 +38,9 @@ func CheckCriteriaData(SolicitudProduccion map[string]interface{}, idTipoProducc
 				}
 
 				if idTipoProduccion == 1 {
-					CheckTitle(ProduccionAcademica["ProduccionAcademica"].(map[string]interface{}), produccion)
+					if !checkLastChangeCategory(ProduccionAcademica["ProduccionAcademica"].(map[string]interface{}), produccion, idTipoProduccion, idTercero) {
+						categoryLast++
+					}
 				}
 				if idTipoProduccion == 2 {
 					accumulatedPoints += checkGradePoints(produccion, idTipoProduccion, idTercero)
@@ -82,7 +85,8 @@ func CheckCriteriaData(SolicitudProduccion map[string]interface{}, idTipoProducc
 			numRegisterCoincidences--
 			issnVolNumCoincidences--
 			eventCoincidences--
-			generateAlerts(SolicitudProduccion, coincidences, numAnnualProductions, accumulatedPoints, isbnCoincidences, numRegisterCoincidences, issnVolNumCoincidences, eventCoincidences, isDurationAccepted, rangeAccepted, idTipoProduccion)
+			isAccumulatedPass := checkMaxGradePoints(ProduccionAcademica["ProduccionAcademica"].(map[string]interface{}), accumulatedPoints)
+			generateAlerts(SolicitudProduccion, coincidences, numAnnualProductions, isAccumulatedPass, isbnCoincidences, numRegisterCoincidences, issnVolNumCoincidences, eventCoincidences, isDurationAccepted, rangeAccepted, categoryLast, idTipoProduccion)
 			return SolicitudProduccion, nil
 		}
 	} else {
@@ -98,22 +102,44 @@ func CheckTitle(ProduccionAcademicaNew map[string]interface{}, ProduccionAcademi
 	return distance
 }
 
-func checkLastChangeCategory(ProduccionAcademicaNew map[string]interface{}, ProduccionAcademicaRegister map[string]interface{}, idTipoProduccion int) (result bool) {
+func checkLastChangeCategory(ProduccionAcademicaNew map[string]interface{}, ProduccionAcademicaRegister map[string]interface{}, idTipoProduccion int, idTercero string) (result bool) {
 	idTipoProduccionRegisterSrt := fmt.Sprintf("%v", ProduccionAcademicaRegister["SubtipoProduccionId"].(map[string]interface{})["TipoProduccionId"].(map[string]interface{})["Id"])
 	idTipoProduccionRegister, _ := strconv.Atoi(idTipoProduccionRegisterSrt)
 	idSubTipoProduccionNewSrt := fmt.Sprintf("%v", ProduccionAcademicaNew["SubtipoProduccionId"].(map[string]interface{})["Id"])
 	idSubTipoProduccionNew, _ := strconv.Atoi(idSubTipoProduccionNewSrt)
 
+	idProduccionStr := fmt.Sprintf("%v", ProduccionAcademicaRegister["Id"])
+	idProduccion, _ := strconv.Atoi(idProduccionStr)
+
 	if idTipoProduccion == idTipoProduccionRegister {
-		dateNew, _ := time.Parse("2006-01-02", fmt.Sprintf("%v", ProduccionAcademicaNew["Fecha"]))
-		dateRegister, _ := time.Parse("2006-01-02", fmt.Sprintf("%v", ProduccionAcademicaRegister["Fecha"]))
-		result := dateRegister.Sub(dateNew)
-		fmt.Println(result)
-		if idSubTipoProduccionNew == 2 {
+		var solicitudes []map[string]interface{}
+		errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud/inactive/"+idTercero, &solicitudes)
+		if errSolicitud == nil && fmt.Sprintf("%v", solicitudes[0]["System"]) != "map[]" {
+			if solicitudes[0]["Status"] != 404 && solicitudes[0]["Id"] != nil {
+				for _, solicitud := range solicitudes {
+					type Reference struct{ Id int }
+					var reference Reference
+					json.Unmarshal([]byte(fmt.Sprintf("%v", solicitud["Referencia"])), &reference)
+					if reference.Id == idProduccion {
 
-		}
+						EvolucionEstadoList := solicitud["EvolucionEstado"].([]interface{})
+						EvolucionEstado := EvolucionEstadoList[len(EvolucionEstadoList)-1].(map[string]interface{})
 
-		if dateNew == dateRegister {
+						dateNew, _ := time.Parse("2006-01-02", string([]rune(fmt.Sprintf("%v", ProduccionAcademicaNew["Fecha"]))[0:10]))
+						dateRegister, _ := time.Parse("2006-01-02", string([]rune(fmt.Sprintf("%v", EvolucionEstado["FechaModificacion"]))[0:10]))
+						resultDate := dateNew.Sub(dateRegister)
+
+						if idSubTipoProduccionNew == 1 && (17532-resultDate.Hours()) > 0 {
+							return false
+						} else if idSubTipoProduccionNew == 2 && (26304-resultDate.Hours()) > 0 {
+							return false
+						} else if idSubTipoProduccionNew == 3 && (35064-resultDate.Hours()) > 0 {
+							return false
+						}
+					}
+				}
+			}
+		} else {
 			return true
 		}
 	}
@@ -309,7 +335,7 @@ func checkGradePoints(ProduccionAcademicaRegister map[string]interface{}, idTipo
 	points = 0
 	if idTipoProduccion == idTipoProduccionRegister {
 		var solicitudes []map[string]interface{}
-		errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud/"+idTercero, &solicitudes)
+		errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud/inactive/"+idTercero, &solicitudes)
 		if errSolicitud == nil && fmt.Sprintf("%v", solicitudes[0]["System"]) != "map[]" {
 			if solicitudes[0]["Status"] != 404 && solicitudes[0]["Id"] != nil {
 				for _, solicitud := range solicitudes {
@@ -317,10 +343,10 @@ func checkGradePoints(ProduccionAcademicaRegister map[string]interface{}, idTipo
 					var reference Reference
 					json.Unmarshal([]byte(fmt.Sprintf("%v", solicitud["Referencia"])), &reference)
 					if reference.Id == idProduccion && fmt.Sprintf("%v", solicitud["Resultado"]) != "" {
-						type Result struct{ Puntos int }
+						type Result struct{ Puntaje int }
 						var result Result
-						json.Unmarshal([]byte(fmt.Sprintf("%v", solicitud["Referencia"])), &result)
-						points += result.Puntos
+						json.Unmarshal([]byte(fmt.Sprintf("%v", solicitud["Resultado"])), &result)
+						points += result.Puntaje
 					}
 				}
 				return points
@@ -332,7 +358,20 @@ func checkGradePoints(ProduccionAcademicaRegister map[string]interface{}, idTipo
 	return 0
 }
 
-func generateAlerts(SolicitudDocente map[string]interface{}, coincidences int, numAnnualProductions int, accumulatedPoints int, isbnCoincidences int, numRegisterCoincidences int, issnVolNumCoincidences int, eventCoincidences int, isDurationAccepted bool, rangeAccepted int, idTipoProduccion int) {
+func checkMaxGradePoints(ProduccionAcademicaNew map[string]interface{}, accumulatedPoints int) (result bool) {
+	idSubtipoProduccionRegisterSrt := fmt.Sprintf("%v", ProduccionAcademicaNew["SubtipoProduccionId"].(map[string]interface{})["Id"])
+	idSubtipoProduccion, _ := strconv.Atoi(idSubtipoProduccionRegisterSrt)
+	if idSubtipoProduccion == 4 && (140-accumulatedPoints) < 20 {
+		return false
+	} else if idSubtipoProduccion == 5 && (140-accumulatedPoints) < 40 {
+		return false
+	} else if idSubtipoProduccion == 6 && (140-accumulatedPoints) < 80 {
+		return false
+	}
+	return true
+}
+
+func generateAlerts(SolicitudDocente map[string]interface{}, coincidences int, numAnnualProductions int, isAccumulatedPass bool, isbnCoincidences int, numRegisterCoincidences int, issnVolNumCoincidences int, eventCoincidences int, isDurationAccepted bool, rangeAccepted int, categoryLast int, idTipoProduccion int) {
 	coincidencesSrt := strconv.Itoa(coincidences)
 	var observaciones []interface{}
 	var tipoObservacionData map[string]interface{}
@@ -353,6 +392,14 @@ func generateAlerts(SolicitudDocente map[string]interface{}, coincidences int, n
 				observaciones = append(observaciones, map[string]interface{}{
 					"Titulo":            "alerta.titulo",
 					"Valor":             "alerta.alerta_evento",
+					"TipoObservacionId": &tipoObservacion,
+					"TerceroId":         0,
+				})
+			}
+			if categoryLast > 0 {
+				observaciones = append(observaciones, map[string]interface{}{
+					"Titulo":            "alerta.titulo",
+					"Valor":             "alerta.alerta_ultima_categoria",
 					"TipoObservacionId": &tipoObservacion,
 					"TerceroId":         0,
 				})
@@ -404,6 +451,14 @@ func generateAlerts(SolicitudDocente map[string]interface{}, coincidences int, n
 				default:
 					fmt.Println("No entro a ninguno de los caso")
 				}
+			}
+			if !isAccumulatedPass {
+				observaciones = append(observaciones, map[string]interface{}{
+					"Titulo":            "alerta.titulo",
+					"Valor":             "alerta.alerta_puntos_grados",
+					"TipoObservacionId": &tipoObservacion,
+					"TerceroId":         0,
+				})
 			}
 			if !isDurationAccepted {
 				observaciones = append(observaciones, map[string]interface{}{

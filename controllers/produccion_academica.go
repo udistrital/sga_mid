@@ -71,7 +71,7 @@ func (c *ProduccionAcademicaController) PostProduccionAcademica() {
 		for _, metadatoTemp := range produccionAcademica["Metadatos"].([]interface{}) {
 			metadato := metadatoTemp.(map[string]interface{})
 			metadatos = append(metadatos, map[string]interface{}{
-				"Valor": metadato["Valor"],
+				"Valor": fmt.Sprintf("%v", metadato["Valor"]),
 				// "MetadatoSubtipoProduccionId": metadato["MetadatoSubtipoProduccionId"],
 				"MetadatoSubtipoProduccionId": map[string]interface{}{"Id": metadato["MetadatoSubtipoProduccionId"]},
 				"ProduccionAcademicaId":       map[string]interface{}{"Id": 0},
@@ -186,7 +186,7 @@ func (c *ProduccionAcademicaController) PutProduccionAcademica() {
 		for _, metadatoTemp := range produccionAcademica["Metadatos"].([]interface{}) {
 			metadato := metadatoTemp.(map[string]interface{})
 			metadatos = append(metadatos, map[string]interface{}{
-				"Valor":                       metadato["Valor"],
+				"Valor":                       fmt.Sprintf("%v", metadato["Valor"]),
 				"MetadatoSubtipoProduccionId": map[string]interface{}{"Id": metadato["MetadatoSubtipoProduccionId"]},
 				"Activo":                      true,
 				"FechaModificacion":           date,
