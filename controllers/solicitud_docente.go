@@ -68,7 +68,7 @@ func (c *SolicitudDocenteController) PostSolicitudDocente() {
 // @Param   body        body    {}  true        "body Modificar SolicitudDocente content"
 // @Success 200 {}
 // @Failure 400 the request contains incorrect syntax
-// @router /:id [put]
+// @router /:id [post]
 func (c *SolicitudDocenteController) PutSolicitudDocente() {
 	idStr := c.Ctx.Input.Param(":id")
 	fmt.Println("Id es: " + idStr)
