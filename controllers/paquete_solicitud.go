@@ -61,7 +61,7 @@ func (c *PaqueteSolicitudController) PostPaqueteSolicitud() {
 // @Param   body        body    {}  true        "body Modificar PaqueteSolicitud content"
 // @Success 200 {}
 // @Failure 400 the request contains incorrect syntax
-// @router /:id [put]
+// @router /:id [post]
 func (c *PaqueteSolicitudController) PutPaqueteSolicitud() {
 	idStr := c.Ctx.Input.Param(":id")
 	fmt.Println("Id es: " + idStr)

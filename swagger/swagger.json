@@ -1930,7 +1930,7 @@
             }
         },
         "/paquete_solicitud/{id}": {
-            "put": {
+            "post": {
                 "tags": [
                     "paquete_solicitud"
                 ],
@@ -2375,7 +2375,7 @@
             }
         },
         "/produccion_academica/{id}": {
-            "put": {
+            "post": {
                 "tags": [
                     "produccion_academica"
                 ],
