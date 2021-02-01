@@ -1267,7 +1267,7 @@ paths:
         "404":
           description: not found resource
   /paquete_solicitud/{id}:
-    put:
+    post:
       tags:
       - paquete_solicitud
       description: Modificar solicitud docente
@@ -1517,7 +1517,7 @@ paths:
         "400":
           description: the request contains incorrect syntax
   /produccion_academica/{id}:
-    put:
+    post:
       tags:
       - produccion_academica
       description: Modificar Producción Academica
