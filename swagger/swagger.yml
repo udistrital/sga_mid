@@ -1739,7 +1739,7 @@ paths:
         "400":
           description: the request contains incorrect syntax
   /solicitud_docente/{id}:
-    put:
+    post:
       tags:
       - solicitud_docente
       description: Modificar solicitud docente

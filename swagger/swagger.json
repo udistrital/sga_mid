@@ -2790,7 +2790,7 @@
             }
         },
         "/solicitud_docente/{id}": {
-            "put": {
+            "post": {
                 "tags": [
                     "solicitud_docente"
                 ],
