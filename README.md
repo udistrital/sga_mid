@@ -14,6 +14,7 @@ API MID del Sistema de Gestión Académica (SGA)
 ### Variables de Entorno
 ```shell
 SGA_MID_HTTP_PORT: [Puerto de ejecución API]
+SGA_MID_STATIC_PATH: [Ruta de imágenes usadas en la generación de recibos de pago]
 RULER_URL: [Dirección API RULER]
 RULER_PORT: [Puerto API RULER]
 CONFIGURACION_SERVICE: [Servicio API CONFIGURACIÓN]

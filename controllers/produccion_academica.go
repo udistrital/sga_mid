@@ -71,7 +71,7 @@ func (c *ProduccionAcademicaController) PostProduccionAcademica() {
 		for _, metadatoTemp := range produccionAcademica["Metadatos"].([]interface{}) {
 			metadato := metadatoTemp.(map[string]interface{})
 			metadatos = append(metadatos, map[string]interface{}{
-				"Valor": metadato["Valor"],
+				"Valor": fmt.Sprintf("%v", metadato["Valor"]),
 				// "MetadatoSubtipoProduccionId": metadato["MetadatoSubtipoProduccionId"],
 				"MetadatoSubtipoProduccionId": map[string]interface{}{"Id": metadato["MetadatoSubtipoProduccionId"]},
 				"ProduccionAcademicaId":       map[string]interface{}{"Id": 0},
@@ -161,7 +161,7 @@ func (c *ProduccionAcademicaController) PutEstadoAutorProduccionAcademica() {
 // @Param   body        body    {}  true        "body Modificar ProduccionAcademica content"
 // @Success 200 {}
 // @Failure 400 the request contains incorrect syntax
-// @router /:id [put]
+// @router /:id [post]
 func (c *ProduccionAcademicaController) PutProduccionAcademica() {
 	idStr := c.Ctx.Input.Param(":id")
 	fmt.Println("Id es: " + idStr)
@@ -186,7 +186,7 @@ func (c *ProduccionAcademicaController) PutProduccionAcademica() {
 		for _, metadatoTemp := range produccionAcademica["Metadatos"].([]interface{}) {
 			metadato := metadatoTemp.(map[string]interface{})
 			metadatos = append(metadatos, map[string]interface{}{
-				"Valor":                       metadato["Valor"],
+				"Valor":                       fmt.Sprintf("%v", metadato["Valor"]),
 				"MetadatoSubtipoProduccionId": map[string]interface{}{"Id": metadato["MetadatoSubtipoProduccionId"]},
 				"Activo":                      true,
 				"FechaModificacion":           date,

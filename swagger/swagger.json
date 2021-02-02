@@ -1958,7 +1958,7 @@
             }
         },
         "/paquete_solicitud/{id}": {
-            "put": {
+            "post": {
                 "tags": [
                     "paquete_solicitud"
                 ],
@@ -2403,7 +2403,7 @@
             }
         },
         "/produccion_academica/{id}": {
-            "put": {
+            "post": {
                 "tags": [
                     "produccion_academica"
                 ],
@@ -2818,7 +2818,7 @@
             }
         },
         "/solicitud_docente/{id}": {
-            "put": {
+            "post": {
                 "tags": [
                     "solicitud_docente"
                 ],
@@ -2918,6 +2918,34 @@
                     },
                     "404": {
                         "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/solicitud_produccion/coincidencia/{id_solicitud}/{id_coincidencia}/{id_tercero}": {
+            "post": {
+                "tags": [
+                    "solicitud_produccion"
+                ],
+                "description": "Agregar Alerta en Solicitud docente en casos necesarios",
+                "operationId": "SolicitudProduccionController.PostSolicitudEvaluacionCoincidencia",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar SolicitudProduccion content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
                     }
                 }
             }

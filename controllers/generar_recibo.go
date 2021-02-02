@@ -63,8 +63,10 @@ func (c *GenerarReciboController) PostGenerarRecibo() {
 //
 func GenerarRecibo(datos map[string]interface{}) *gofpdf.Fpdf {
 
-	// generar aqui el numero consecutivo de comprobante
-	numComprobante := "100239"
+	path := beego.AppConfig.String("StaticPath")
+
+	// aqui el numero consecutivo de comprobante
+	numComprobante := datos["Comprobante"].(string)
 
 	//Se genera el codigo de barras y se agrega al archivo
 	documento := datos["DocumentoDelAspirante"].(string)
@@ -90,9 +92,9 @@ func GenerarRecibo(datos map[string]interface{}) *gofpdf.Fpdf {
 	pdf.SetMargins(5, 5, 5)
 	pdf = dibujarLayout(pdf)
 
-	pdf = image(pdf, "static/img/UDEscudo2.png", 5, 8, 13, 20)
-	pdf = image(pdf, "static/img/UDEscudo2.png", 5, 90, 13, 20)
-	pdf = image(pdf, "static/img/banco.png", 195, 8, 13, 16)
+	pdf = image(pdf, path+"/img/UDEscudo2.png", 5, 8, 13, 20)
+	pdf = image(pdf, path+"/img/UDEscudo2.png", 5, 90, 13, 20)
+	pdf = image(pdf, path+"/img/banco.PNG", 195, 8, 13, 16)
 	bcode := barcode.RegisterCode128(pdf, codigo)
 	barcode.Barcode(pdf, bcode, 10, 135, 130, 15, false)
 	barcode.Barcode(pdf, bcode, 10, 175, 130, 15, false)
@@ -146,6 +148,7 @@ func header(pdf *gofpdf.Fpdf, comprobante string, banco bool) *gofpdf.Fpdf {
 }
 
 func agregarDatosEstudiante(pdf *gofpdf.Fpdf, datos map[string]interface{}) *gofpdf.Fpdf {
+	tr := pdf.UnicodeTranslatorFromDescriptor("")
 	valorDerecho := fmt.Sprintf("$ %.f", datos["ValorDerecho"].(float64))
 	pdf.SetFont("Helvetica", "B", 9)
 	pdf.Ln(6)
@@ -153,9 +156,9 @@ func agregarDatosEstudiante(pdf *gofpdf.Fpdf, datos map[string]interface{}) *gof
 	pdf.Cell(75, 5, "Documento de Identidad")
 	pdf.Cell(60, 5, "Proyecto Curricular")
 	pdf.Ln(5)
-	pdf.Cell(70, 5, datos["NombreDelAspirante"].(string))
+	pdf.Cell(70, 5, tr(datos["NombreDelAspirante"].(string)))
 	pdf.Cell(75, 5, datos["DocumentoDelAspirante"].(string))
-	pdf.Cell(75, 5, datos["ProyectoAspirante"].(string))
+	pdf.Cell(75, 5, tr(datos["ProyectoAspirante"].(string)))
 	pdf.Ln(5)
 	pdf.Cell(35, 5, "Referencia")
 	pdf.Cell(65, 5, "Descripcion")
@@ -167,7 +170,7 @@ func agregarDatosEstudiante(pdf *gofpdf.Fpdf, datos map[string]interface{}) *gof
 	pdf.SetFont("Helvetica", "B", 8)
 	pdf.Cell(9, 5, "")
 	pdf.Cell(11, 5, "1")
-	pdf.Cell(40, 5, datos["Descripcion"].(string))
+	pdf.Cell(40, 5, tr(datos["Descripcion"].(string)))
 	pdf.CellFormat(80, 5, valorDerecho, "", 0, "R", false, 0, "")
 	pdf.Cell(15, 5, "")
 	pdf.Cell(30, 5, fechaActual())
@@ -203,6 +206,7 @@ func agregarDatosEstudiante(pdf *gofpdf.Fpdf, datos map[string]interface{}) *gof
 }
 
 func agregarDatosCopiaBanco(pdf *gofpdf.Fpdf, datos map[string]interface{}, codigo string) *gofpdf.Fpdf {
+	tr := pdf.UnicodeTranslatorFromDescriptor("")
 	valorDerecho := fmt.Sprintf("$ %.f", datos["ValorDerecho"].(float64))
 	pdf.SetFont("Helvetica", "B", 9)
 	pdf.Ln(5)
@@ -210,9 +214,9 @@ func agregarDatosCopiaBanco(pdf *gofpdf.Fpdf, datos map[string]interface{}, codi
 	pdf.Cell(75, 5, "Documento de Identidad")
 	pdf.Cell(60, 5, "Proyecto Curricular")
 	pdf.Ln(5)
-	pdf.Cell(70, 5, datos["NombreDelAspirante"].(string))
+	pdf.Cell(70, 5, tr(datos["NombreDelAspirante"].(string)))
 	pdf.Cell(75, 5, datos["DocumentoDelAspirante"].(string))
-	pdf.Cell(75, 5, datos["ProyectoAspirante"].(string))
+	pdf.Cell(75, 5, tr(datos["ProyectoAspirante"].(string)))
 	pdf.Ln(5)
 	pdf.Cell(8, 5, "")
 	pdf.Cell(35, 5, "Tipo de Pago")
@@ -233,16 +237,16 @@ func agregarDatosCopiaBanco(pdf *gofpdf.Fpdf, datos map[string]interface{}, codi
 	pdf.Ln(10)
 
 	pdf.SetFont("Helvetica", "B", 9)
-	pdf.Cell(150, 5, "")
+	pdf.Cell(147, 5, "")
 	pdf.Cell(15, 5, "Ref.")
-	pdf.Cell(25, 5, "Descripcion")
+	pdf.Cell(28, 5, "Descripcion")
 	pdf.Cell(10, 5, "Valor")
 	pdf.Ln(5)
 
 	pdf.SetFont("Helvetica", "B", 8)
-	pdf.Cell(150, 5, "")
-	pdf.Cell(15, 5, "1")
-	pdf.Cell(23, 5, datos["Descripcion"].(string))
+	pdf.Cell(147, 5, "")
+	pdf.Cell(9, 5, "1")
+	pdf.Cell(33, 5, tr(datos["Descripcion"].(string)))
 	pdf.Cell(10, 5, valorDerecho)
 	pdf.Ln(10)
 	pdf.SetFont("Helvetica", "", 8)
@@ -333,7 +337,7 @@ func dibujarLayout(pdf *gofpdf.Fpdf) *gofpdf.Fpdf {
 
 	pdf.RoundedRect(150, 135, 60, 25, 3, "1234", "")
 	pdf.Line(150, 140, 210, 140)
-	pdf.Line(165, 135, 165, 160)
+	pdf.Line(160, 135, 160, 160)
 	pdf.Line(193, 135, 193, 160)
 
 	pdf.RoundedRect(5, 160, 140, 10, 3, "1234", "")

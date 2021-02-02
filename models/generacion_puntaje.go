@@ -23,12 +23,10 @@ func GenerateResult(SolicitudProduccion map[string]interface{}) (result map[stri
 	valor = 1
 	var autores float64
 	autores = 0
-	if idSubtipoInt == 4 || idSubtipoInt==5 || idSubtipoInt==6{
-	valor, autores = findGradePoints(SolicitudProduccion, idSubtipoInt)
-
-	}else{
+	if idSubtipoInt == 4 || idSubtipoInt == 5 || idSubtipoInt == 6 {
+		valor, autores = findGradePoints(SolicitudProduccion, idSubtipoInt)
+	} else {
 		valor, autores = findCategoryPoints(Metadatos)
-
 	}
 
 	if SolicitudProduccionResult, errPuntaje := addResult(SolicitudProduccion, idSubtipoStr, valor, autores); errPuntaje == nil {
@@ -144,7 +142,7 @@ func addResult(SolicitudProduccion map[string]interface{}, idSubtipoStr string, 
 		resultadoStr := strconv.FormatFloat(resultado, 'f', -1, 64)
 		SolicitudProduccion["Resultado"] = `{"Puntaje":` + resultadoStr + `}`
 	} else {
-		errPuntaje := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/puntaje_subtipo_produccion/?query=SubTipoProduccionId:"+idSubtipoStr, &puntajes)
+		errPuntaje := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/puntaje_subtipo_produccion/?query=SubTipoProduccionId:"+idSubtipoStr+"&sortby=Id&order=asc", &puntajes)
 		if errPuntaje == nil && fmt.Sprintf("%v", puntajes[0]["System"]) != "map[]" {
 			if puntajes[0]["Status"] != 404 && puntajes[0]["Id"] != nil {
 

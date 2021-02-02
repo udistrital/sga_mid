@@ -68,7 +68,7 @@ func (c *SolicitudDocenteController) PostSolicitudDocente() {
 // @Param   body        body    {}  true        "body Modificar SolicitudDocente content"
 // @Success 200 {}
 // @Failure 400 the request contains incorrect syntax
-// @router /:id [put]
+// @router /:id [post]
 func (c *SolicitudDocenteController) PutSolicitudDocente() {
 	idStr := c.Ctx.Input.Param(":id")
 	fmt.Println("Id es: " + idStr)
@@ -189,7 +189,7 @@ func (c *SolicitudDocenteController) GetAllSolicitudDocenteInactive() {
 func (c *SolicitudDocenteController) GetSolicitudDocenteTercero() {
 	//Id del tercero
 	idTercero := c.Ctx.Input.Param(":tercero")
-	fmt.Println("Consultando solicitudes de tercero activas: " + idTercero)
+	fmt.Println("Consultando solicitudes de tercero: " + idTercero)
 	//resultado resultado final
 	var resultadoGetSolicitud []map[string]interface{}
 	if resultado, err := models.GetSolicitudDocenteTercero(idTercero, 2); err == nil {
@@ -213,7 +213,7 @@ func (c *SolicitudDocenteController) GetSolicitudDocenteTercero() {
 func (c *SolicitudDocenteController) GetSolicitudDocenteTerceroActive() {
 	//Id del tercero
 	idTercero := c.Ctx.Input.Param(":tercero")
-	fmt.Println("Consultando solicitudes de tercero: " + idTercero)
+	fmt.Println("Consultando solicitudes de tercero activas: " + idTercero)
 	//resultado resultado final
 	var resultadoGetSolicitud []map[string]interface{}
 	if resultado, err := models.GetSolicitudDocenteTercero(idTercero, 0); err == nil {
