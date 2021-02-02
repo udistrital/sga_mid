@@ -25,6 +25,79 @@ func (c *AdmisionController) URLMapping() {
 	c.Mapping("PostCuposAdmision", c.PostCuposAdmision)
 	c.Mapping("CambioEstadoAspiranteByPeriodoByProyecto", c.CambioEstadoAspiranteByPeriodoByProyecto)
 	c.Mapping("GetAspirantesByPeriodoByProyecto", c.GetAspirantesByPeriodoByProyecto)
+	c.Mapping("PostEvaluacionAspirantes", c.PostEvaluacionAspirantes)
+}
+
+// PostEvaluacionAspirantes ...
+// @Title PostEvaluacionAspirantes
+// @Description Agregar la evaluacion de los aspirantes de acuerdo a los criterios
+// @Param   body        body    {}  true        "body Agregar evaluacion aspirantes content"
+// @Success 200 {}
+// @Failure 403 body is empty
+// @router /registrar_evaluacion [post]
+func (c *AdmisionController) PostEvaluacionAspirantes() {
+	var Evaluacion map[string]interface{}
+	var Inscripciones []map[string]interface{}
+	//var respuesta []map[string]interface{}
+	var resultado map[string]interface{}
+	resultado = make(map[string]interface{})
+	var alerta models.Alert
+	var errorGetAll bool
+	alertas := append([]interface{}{"Response:"})
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &Evaluacion); err == nil {
+		//formatdata.JsonPrint(Evaluacion)
+		AspirantesData := Evaluacion["Aspirantes"].([]interface{})
+		ProgramaAcademicoId := Evaluacion["ProgramaId"]
+		PeriodoId := Evaluacion["PeriodoId"]
+		//formatdata.JsonPrint(AspirantesData)
+		respuesta := make([]map[string]interface{}, len(AspirantesData))
+		for i := 0; i < len(AspirantesData); i++ {
+			PersonaId := AspirantesData[i].(map[string]interface{})["Id"]
+
+			//GET para obtener el numero de la inscripcion de la persona
+			errInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion?query=PersonaId:"+fmt.Sprintf("%v", PersonaId)+",ProgramaAcademicoId:"+fmt.Sprintf("%v", ProgramaAcademicoId)+",PeriodoId:"+fmt.Sprintf("%v", PeriodoId), &Inscripciones)
+			if errInscripcion == nil {
+				if Inscripciones != nil && fmt.Sprintf("%v", Inscripciones) != "[{}]" {
+					fmt.Println(Inscripciones[0]["Id"])
+					respuesta[i]["InscripcionId"] = Inscripciones[0]["Id"]
+				} else {
+					errorGetAll = true
+					alertas = append(alertas, "No data found")
+					alerta.Code = "404"
+					alerta.Type = "error"
+					alerta.Body = alertas
+					c.Data["json"] = map[string]interface{}{"Response": alerta}
+				}
+			} else {
+				errorGetAll = true
+				alertas = append(alertas, errInscripcion.Error())
+				alerta.Code = "400"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Response": alerta}
+			}
+		}
+		resultado["Evaluacion"] = respuesta
+	} else {
+		errorGetAll = true
+		alertas = append(alertas, err.Error())
+		alerta.Code = "400"
+		alerta.Type = "error"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
+	if !errorGetAll {
+		alertas = append(alertas, resultado)
+		alerta.Code = "200"
+		alerta.Type = "OK"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
+	c.ServeJSON()
+
 }
 
 // PostCriterioIcfes ...

@@ -101,6 +101,24 @@ paths:
           description: '{}'
         "403":
           description: body is empty
+  /admision/registrar_evaluacion:
+    post:
+      tags:
+      - admision
+      description: Agregar la evaluacion de los aspirantes de acuerdo a los criterios
+      operationId: AdmisionController.PostEvaluacionAspirantes
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar evaluacion aspirantes content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
   /archivo_icfes/{id}:
     post:
       tags:
@@ -1414,6 +1432,24 @@ paths:
       - persona
       description: Guardar Datos Complementarios Persona
       operationId: PersonaController.GuardarDatosComplementarios
+      parameters:
+      - in: body
+        name: body
+        description: body for Guardar Datos Complementarios Persona content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
+  /persona/guardar_complementarios_par:
+    post:
+      tags:
+      - persona
+      description: Guardar Datos Complementarios Persona ParAcademico
+      operationId: PersonaController.GuardarDatosComplementariosParAcademico
       parameters:
       - in: body
         name: body
