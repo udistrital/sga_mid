@@ -6,6 +6,7 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
+	"github.com/udistrital/sga_mid/models"
 	"github.com/udistrital/utils_oas/request"
 	"github.com/udistrital/utils_oas/time_bogota"
 )
@@ -19,6 +20,8 @@ type ProduccionAcademicaController struct {
 func (c *ProduccionAcademicaController) URLMapping() {
 	c.Mapping("PostProduccionAcademica", c.PostProduccionAcademica)
 	c.Mapping("PutProduccionAcademica", c.PutProduccionAcademica)
+	c.Mapping("GetAllProduccionAcademica", c.GetAllProduccionAcademica)
+	c.Mapping("GetOneProduccionAcademica", c.GetOneProduccionAcademica)
 	c.Mapping("GetProduccionAcademica", c.GetProduccionAcademica)
 	c.Mapping("DeleteProduccionAcademica", c.DeleteProduccionAcademica)
 	c.Mapping("PutEstadoAutorProduccionAcademica", c.PutEstadoAutorProduccionAcademica)
@@ -54,7 +57,7 @@ func (c *ProduccionAcademicaController) PostProduccionAcademica() {
 		for _, autorTemp := range produccionAcademica["Autores"].([]interface{}) {
 			autor := autorTemp.(map[string]interface{})
 			autores = append(autores, map[string]interface{}{
-				"PersonaId":               autor["PersonaId"],
+				"Persona":                 autor["PersonaId"],
 				"EstadoAutorProduccionId": autor["EstadoAutorProduccionId"],
 				"ProduccionAcademicaId":   map[string]interface{}{"Id": 0},
 				"Activo":                  true,
@@ -63,14 +66,12 @@ func (c *ProduccionAcademicaController) PostProduccionAcademica() {
 			})
 		}
 		produccionAcademicaPost["Autores"] = autores
-		// fmt.Println("prdo", produccionAcademica)
-		// fmt.Println("metadatos", produccionAcademica["Metadatos"])
 
 		var metadatos []map[string]interface{}
 		for _, metadatoTemp := range produccionAcademica["Metadatos"].([]interface{}) {
 			metadato := metadatoTemp.(map[string]interface{})
 			metadatos = append(metadatos, map[string]interface{}{
-				"Valor": metadato["Valor"],
+				"Valor": fmt.Sprintf("%v", metadato["Valor"]),
 				// "MetadatoSubtipoProduccionId": metadato["MetadatoSubtipoProduccionId"],
 				"MetadatoSubtipoProduccionId": map[string]interface{}{"Id": metadato["MetadatoSubtipoProduccionId"]},
 				"ProduccionAcademicaId":       map[string]interface{}{"Id": 0},
@@ -82,25 +83,22 @@ func (c *ProduccionAcademicaController) PostProduccionAcademica() {
 		produccionAcademicaPost["Metadatos"] = metadatos
 		var resultadoProduccionAcademica map[string]interface{}
 		errProduccion := request.SendJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica", "POST", &resultadoProduccionAcademica, produccionAcademicaPost)
-		if errProduccion == nil && fmt.Sprintf("%v", resultadoProduccionAcademica["System"]) != "map[]" &&  resultadoProduccionAcademica["ProduccionAcademica"] != nil {
+		if errProduccion == nil && fmt.Sprintf("%v", resultadoProduccionAcademica["System"]) != "map[]" && resultadoProduccionAcademica["ProduccionAcademica"] != nil {
 			if resultadoProduccionAcademica["Status"] != 400 {
-				resultado = produccionAcademica
+				resultado = resultadoProduccionAcademica
 				c.Data["json"] = resultado
 			} else {
 				logs.Error(errProduccion)
-				//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
 				c.Data["system"] = resultadoProduccionAcademica
 				c.Abort("400")
 			}
 		} else {
 			logs.Error(errProduccion)
-			//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 			c.Data["system"] = resultadoProduccionAcademica
 			c.Abort("400")
 		}
 	} else {
 		logs.Error(err)
-		//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
 		c.Data["system"] = err
 		c.Abort("400")
 	}
@@ -139,20 +137,17 @@ func (c *ProduccionAcademicaController) PutEstadoAutorProduccionAcademica() {
 				c.Data["json"] = resultado
 			} else {
 				logs.Error(errAutor)
-				//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
 				c.Data["system"] = resultadoAutor
 				c.Abort("400")
 			}
 		} else {
 			logs.Error(errAutor)
-			//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 			c.Data["system"] = resultadoAutor
 			c.Abort("400")
 		}
 
 	} else {
 		logs.Error(err)
-		//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
 		c.Data["system"] = err
 		c.Abort("400")
 	}
@@ -166,10 +161,13 @@ func (c *ProduccionAcademicaController) PutEstadoAutorProduccionAcademica() {
 // @Param   body        body    {}  true        "body Modificar ProduccionAcademica content"
 // @Success 200 {}
 // @Failure 400 the request contains incorrect syntax
-// @router /:id [put]
+// @router /:id [post]
 func (c *ProduccionAcademicaController) PutProduccionAcademica() {
 	idStr := c.Ctx.Input.Param(":id")
 	fmt.Println("Id es: " + idStr)
+
+	date := time_bogota.TiempoBogotaFormato()
+
 	//resultado experiencia
 	var resultado map[string]interface{}
 	//produccion academica
@@ -181,28 +179,17 @@ func (c *ProduccionAcademicaController) PutProduccionAcademica() {
 			"Resumen":             produccionAcademica["Resumen"],
 			"Fecha":               produccionAcademica["Fecha"],
 			"SubtipoProduccionId": produccionAcademica["SubtipoProduccionId"],
+			"FechaModificacion":   date,
 		}
-
-		/*
-			var autores []map[string]interface{}
-			for _, autorTemp := range produccionAcademica["Autores"].([]interface{}) {
-				autor := autorTemp.(map[string]interface{})
-				autores = append(autores,map[string]interface{}{
-					"Ente": autor["Ente"],
-					"EstadoAutorProduccion": autor["EstadoAutorProduccion"],
-					"ProduccionAcademica": map[string]interface{}{"Id":0},
-				})
-			}
-			produccionAcademicaPost["Autores"] = autores
-		*/
 
 		var metadatos []map[string]interface{}
 		for _, metadatoTemp := range produccionAcademica["Metadatos"].([]interface{}) {
 			metadato := metadatoTemp.(map[string]interface{})
 			metadatos = append(metadatos, map[string]interface{}{
-				"Valor": metadato["Valor"],
-				"MetadatoSubtipoProduccionId": metadato["MetadatoSubtipoProduccionId"],
+				"Valor":                       fmt.Sprintf("%v", metadato["Valor"]),
+				"MetadatoSubtipoProduccionId": map[string]interface{}{"Id": metadato["MetadatoSubtipoProduccionId"]},
 				"Activo":                      true,
+				"FechaModificacion":           date,
 			})
 		}
 
@@ -218,21 +205,105 @@ func (c *ProduccionAcademicaController) PutProduccionAcademica() {
 				c.Data["json"] = resultado
 			} else {
 				logs.Error(errProduccion)
-				//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
 				c.Data["system"] = resultadoProduccionAcademica
 				c.Abort("400")
 			}
 		} else {
 			logs.Error(errProduccion)
-			//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 			c.Data["system"] = resultadoProduccionAcademica
 			c.Abort("400")
 		}
 	} else {
 		logs.Error(err)
-		//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
 		c.Data["system"] = err
 		c.Abort("400")
+	}
+	c.ServeJSON()
+}
+
+// GetOneProduccionAcademica ...
+// @Title GetOneProduccionAcademica
+// @Description consultar Produccion Academica por id
+// @Param   id      path    int  true        "Id"
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router /get_one/:id [get]
+func (c *ProduccionAcademicaController) GetOneProduccionAcademica() {
+	//Id de la producción
+	idProduccion := c.Ctx.Input.Param(":id")
+	fmt.Println("Consultando produccion de id: " + idProduccion)
+	//resultado experiencia
+	var resultadoGetProduccion []interface{}
+	if resultado, err := models.GetOneProduccionAcademica(idProduccion); err == nil {
+		resultadoGetProduccion = resultado
+		c.Data["json"] = resultadoGetProduccion
+	} else {
+		logs.Error(err)
+		c.Data["system"] = resultadoGetProduccion
+		c.Abort("400")
+	}
+	c.ServeJSON()
+}
+
+// GetAllProduccionAcademica ...
+// @Title GetAllProduccionAcademica
+// @Description consultar todas las Producciones académicas
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router / [get]
+func (c *ProduccionAcademicaController) GetAllProduccionAcademica() {
+	fmt.Println("Consultando todas las producciones")
+	//resultado resultado final
+	var resultado []map[string]interface{}
+	//resultado experiencia
+	var producciones []map[string]interface{}
+
+	errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/?limit=0", &producciones)
+	if errProduccion == nil && fmt.Sprintf("%v", producciones[0]["System"]) != "map[]" {
+		if producciones[0]["Status"] != 404 && producciones[0]["Id"] != nil {
+			for _, produccion := range producciones {
+				autores := produccion["Autores"].([]interface{})
+				for _, autorTemp := range autores {
+					autor := autorTemp.(map[string]interface{})
+					produccion["EstadoEnteAutorId"] = autor
+					//cargar nombre del autor
+					var autorProduccion map[string]interface{}
+
+					errAutor := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%v", autor["Persona"]), &autorProduccion)
+					if errAutor == nil && fmt.Sprintf("%v", autorProduccion["System"]) != "map[]" {
+						if autorProduccion["Status"] != 404 {
+							autor["Nombre"] = autorProduccion["NombreCompleto"].(string)
+						} else {
+							if autorProduccion["Message"] == "Not found resource" {
+								c.Data["json"] = nil
+							} else {
+								logs.Error(autorProduccion)
+								c.Data["system"] = errAutor
+								c.Abort("404")
+							}
+						}
+					} else {
+						logs.Error(autorProduccion)
+						c.Data["system"] = errAutor
+						c.Abort("404")
+					}
+				}
+			}
+			resultado = producciones
+			c.Data["json"] = resultado
+		} else {
+			if producciones[0]["Message"] == "Not found resource" {
+				c.Data["json"] = nil
+			} else {
+				logs.Error(producciones)
+				c.Data["system"] = errProduccion
+				c.Abort("404")
+			}
+		}
+	} else {
+		logs.Error(producciones)
+		c.Data["system"] = errProduccion
+		c.Abort("404")
 	}
 	c.ServeJSON()
 }
@@ -260,32 +331,27 @@ func (c *ProduccionAcademicaController) GetProduccionAcademica() {
 				autores := produccion["Autores"].([]interface{})
 				for _, autorTemp := range autores {
 					autor := autorTemp.(map[string]interface{})
-					fmt.Println("autor",autor["PersonaId"], idTercero);
-					if fmt.Sprintf("%v", autor["PersonaId"]) == fmt.Sprintf("%v", idTercero) {
+					if fmt.Sprintf("%v", autor["Persona"]) == fmt.Sprintf("%v", idTercero) {
 						produccion["EstadoEnteAutorId"] = autor
 					}
 					//cargar nombre del autor
 					var autorProduccion map[string]interface{}
 
-					errAutor := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%v", autor["PersonaId"]), &autorProduccion)
+					errAutor := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%v", autor["Persona"]), &autorProduccion)
 					if errAutor == nil && fmt.Sprintf("%v", autorProduccion["System"]) != "map[]" {
 						if autorProduccion["Status"] != 404 {
-							// autor["Nombre"] = autorProduccion["PrimerNombre"].(string) + " " + autorProduccion["SegundoNombre"].(string) + " " +
-								// autorProduccion["PrimerApellido"].(string) + " " + autorProduccion["SegundoApellido"].(string)
 							autor["Nombre"] = autorProduccion["NombreCompleto"].(string)
 						} else {
 							if autorProduccion["Message"] == "Not found resource" {
 								c.Data["json"] = nil
 							} else {
 								logs.Error(autorProduccion)
-								//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 								c.Data["system"] = errAutor
 								c.Abort("404")
 							}
 						}
 					} else {
 						logs.Error(autorProduccion)
-						//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 						c.Data["system"] = errAutor
 						c.Abort("404")
 					}
@@ -298,14 +364,12 @@ func (c *ProduccionAcademicaController) GetProduccionAcademica() {
 				c.Data["json"] = nil
 			} else {
 				logs.Error(producciones)
-				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 				c.Data["system"] = errProduccion
 				c.Abort("404")
 			}
 		}
 	} else {
 		logs.Error(producciones)
-		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 		c.Data["system"] = errProduccion
 		c.Abort("404")
 	}
@@ -332,13 +396,11 @@ func (c *ProduccionAcademicaController) DeleteProduccionAcademica() {
 			c.Data["json"] = map[string]interface{}{"ProduccionAcademica": borrado["Id"]}
 		} else {
 			logs.Error(borrado)
-			//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 			c.Data["system"] = errDelete
 			c.Abort("404")
 		}
 	} else {
 		logs.Error(borrado)
-		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 		c.Data["system"] = errDelete
 		c.Abort("404")
 	}

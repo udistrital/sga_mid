@@ -36,14 +36,22 @@ func init() {
 				&controllers.EventoController{},
 			),
 		),
+
 		beego.NSNamespace("/generar_codigo",
 			beego.NSInclude(
 				&controllers.GeneradorCodigoBarrasController{},
 			),
 		),
+
 		beego.NSNamespace("/produccion_academica",
 			beego.NSInclude(
 				&controllers.ProduccionAcademicaController{},
+			),
+		),
+
+		beego.NSNamespace("/solicitud_docente",
+			beego.NSInclude(
+				&controllers.SolicitudDocenteController{},
 			),
 		),
 
@@ -91,6 +99,51 @@ func init() {
 		beego.NSNamespace("/admision",
 			beego.NSInclude(
 				&controllers.AdmisionController{},
+			),
+		),
+		beego.NSNamespace("/consulta_calendario_academico",
+			beego.NSInclude(
+				&controllers.ConsultaCalendarioAcademicoController{},
+			),
+		),
+		beego.NSNamespace("/consulta_calendario_proyecto",
+			beego.NSInclude(
+				&controllers.ConsultaCalendarioProyectoController{},
+			),
+		),
+		beego.NSNamespace("/crear_actividad_calendario",
+			beego.NSInclude(
+				&controllers.ActividadCalendarioController{},
+			),
+		),
+		beego.NSNamespace("/clonar_calendario",
+			beego.NSInclude(
+				&controllers.CalendarioController{},
+			),
+		),
+		beego.NSNamespace("/derechos_pecuniarios",
+			beego.NSInclude(
+				&controllers.DerechosPecuniariosController{},
+			),
+		),
+		beego.NSNamespace("/paquete_solicitud",
+			beego.NSInclude(
+				&controllers.PaqueteSolicitudController{},
+			),
+		),
+		beego.NSNamespace("/solicitud_evaluacion",
+			beego.NSInclude(
+				&controllers.SolicitudEvaluacionController{},
+			),
+		),
+		beego.NSNamespace("/solicitud_produccion",
+			beego.NSInclude(
+				&controllers.SolicitudProduccionController{},
+			),
+		),
+		beego.NSNamespace("/generar_recibo",
+			beego.NSInclude(
+				&controllers.GenerarReciboController{},
 			),
 		),
 	)
