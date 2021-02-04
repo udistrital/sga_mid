@@ -11,7 +11,6 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
-	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 )
 
@@ -42,9 +41,9 @@ func (c *AdmisionController) PostEvaluacionAspirantes() {
 	var Inscripciones []map[string]interface{}
 	var Requisito []map[string]interface{}
 	var DetalleCalificacion string
-	var Calificacion []interface{}
 	var Ponderado float64
 	var respuesta []map[string]interface{}
+	var DetalleEvaluacion map[string]interface{}
 	var resultado map[string]interface{}
 	resultado = make(map[string]interface{})
 	var alerta models.Alert
@@ -67,9 +66,9 @@ func (c *AdmisionController) PostEvaluacionAspirantes() {
 				PorcentajeGeneral := Requisito[0]["PorcentajeGeneral"]
 				PorcentajeEspecifico := Requisito[0]["PorcentajeEspecifico"].(string)
 				if err := json.Unmarshal([]byte(PorcentajeEspecifico), &PorcentajeEspJSON); err == nil {
-					fmt.Println(PorcentajeGeneral)
 					for i := 0; i < len(AspirantesData); i++ {
 						PersonaId := AspirantesData[i].(map[string]interface{})["Id"]
+						Asistencia := AspirantesData[i].(map[string]interface{})["Asistencia"]
 
 						//GET para obtener el numero de la inscripcion de la persona
 						errInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion?query=PersonaId:"+fmt.Sprintf("%v", PersonaId)+",ProgramaAcademicoId:"+fmt.Sprintf("%v", ProgramaAcademicoId)+",PeriodoId:"+fmt.Sprintf("%v", PeriodoId), &Inscripciones)
@@ -77,36 +76,72 @@ func (c *AdmisionController) PostEvaluacionAspirantes() {
 							if Inscripciones != nil && fmt.Sprintf("%v", Inscripciones[0]) != "map[]" {
 								if PorcentajeEspJSON != nil && fmt.Sprintf("%v", PorcentajeEspJSON) != "map[]" {
 									//Calculos para los criterios que cuentan con subcriterios)
-									//formatdata.JsonPrint(PorcentajeEspJSON)
-									Calificacion = append([]interface{}{})
 									Ponderado = 0
+									DetalleCalificacion = "{\n\"areas\":\n["
+
 									for k := range PorcentajeEspJSON["areas"].([]interface{}) {
 										for k1, aux := range PorcentajeEspJSON["areas"].([]interface{})[k].(map[string]interface{}) {
 											for k2, aux2 := range Evaluacion["Aspirantes"].([]interface{})[i].(map[string]interface{}) {
 												if k1 == k2 {
-													f, _ := strconv.ParseFloat(fmt.Sprintf("%v", aux), 64)  //Porcentaje del subcriterio
-													j, _ := strconv.ParseFloat(fmt.Sprintf("%v", aux2), 64) //Nota subcriterio
-													PonderadoAux := j * (f / 100)
-													Ponderado = Ponderado + PonderadoAux
-													CalificacionAux := map[string]interface{}{
-														k2:          aux2,
-														"Ponderado": PonderadoAux,
+													//Si existe la columna de asistencia se hace la validación de la misma
+													if Asistencia != nil {
+														if Asistencia == true {
+															f, _ := strconv.ParseFloat(fmt.Sprintf("%v", aux), 64)  //Porcentaje del subcriterio
+															j, _ := strconv.ParseFloat(fmt.Sprintf("%v", aux2), 64) //Nota subcriterio
+															PonderadoAux := j * (f / 100)
+															Ponderado = Ponderado + PonderadoAux
+															if k+1 == len(PorcentajeEspJSON["areas"].([]interface{})) {
+																DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":" + fmt.Sprintf("%q", aux2) + ", \"Ponderado\":" + fmt.Sprintf("%.2f", PonderadoAux) + "}\n"
+															} else {
+																DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":" + fmt.Sprintf("%q", aux2) + ", \"Ponderado\":" + fmt.Sprintf("%.2f", PonderadoAux) + "},\n"
+															}
+														} else {
+															// Si el estudiante inscrito no asiste tendrá una calificación de 0
+															Ponderado = 0
+															if k+1 == len(PorcentajeEspJSON["areas"].([]interface{})) {
+																DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":\"0\", \"Ponderado\":\"0\"}\n"
+															} else {
+																DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":\"0\", \"Ponderado\":\"0\"},\n"
+															}
+														}
+													} else {
+														f, _ := strconv.ParseFloat(fmt.Sprintf("%v", aux), 64)  //Porcentaje del subcriterio
+														j, _ := strconv.ParseFloat(fmt.Sprintf("%v", aux2), 64) //Nota subcriterio
+														PonderadoAux := j * (f / 100)
+														Ponderado = Ponderado + PonderadoAux
+														if k+1 == len(PorcentajeEspJSON["areas"].([]interface{})) {
+															DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":" + fmt.Sprintf("%q", aux2) + ", \"Ponderado\":" + fmt.Sprintf("%.2f", PonderadoAux) + "}\n"
+														} else {
+															DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":" + fmt.Sprintf("%q", aux2) + ", \"Ponderado\":" + fmt.Sprintf("%.2f", PonderadoAux) + "},\n"
+														}
 													}
-													Calificacion = append(Calificacion, CalificacionAux)
 												}
 											}
 										}
 									}
-									formatdata.JsonPrint(Calificacion)
 									g, _ := strconv.ParseFloat(fmt.Sprintf("%v", PorcentajeGeneral), 64)
 									Ponderado = Ponderado * (g / 100)
+									DetalleCalificacion = DetalleCalificacion + "]\n}"
 								} else {
 									//Calculos para los criterios que no tienen subcriterios
-									//Ponderado =
-									f, _ := strconv.ParseFloat(fmt.Sprintf("%v", AspirantesData[i].(map[string]interface{})["Puntaje"]), 64)
-									g, _ := strconv.ParseFloat(fmt.Sprintf("%v", PorcentajeGeneral), 64)
-									Ponderado = f * (g / 100) //100% del puntaje que obtuvo el aspirante
-									DetalleCalificacion = "{\n \"areas\": [\n {\"Puntuacion\":" + fmt.Sprintf("%q", AspirantesData[i].(map[string]interface{})["Puntaje"]) + ", \"Ponderado\": " + fmt.Sprintf("%.f", Ponderado) + "}\n]\n}"
+									//Si existe la columna de asistencia se hace la validación de la misma
+									if Asistencia != nil {
+										if Asistencia == true {
+											f, _ := strconv.ParseFloat(fmt.Sprintf("%v", AspirantesData[i].(map[string]interface{})["Puntaje"]), 64) //Puntaje del aspirante
+											g, _ := strconv.ParseFloat(fmt.Sprintf("%v", PorcentajeGeneral), 64)                                     //Porcentaje del criterio
+											Ponderado = f * (g / 100)                                                                                //100% del puntaje que obtuvo el aspirante
+											DetalleCalificacion = "{\n \"areas\": [\n {\"Puntuacion\":" + fmt.Sprintf("%q", AspirantesData[i].(map[string]interface{})["Puntaje"]) + "}\n]\n}"
+										} else {
+											// Si el estudiante inscrito no asiste tendrá una calificación de 0
+											Ponderado = 0
+											DetalleCalificacion = "{\n \"areas\": [\n {\"Puntuacion\": \"0\"}\n]\n}"
+										}
+									} else {
+										f, _ := strconv.ParseFloat(fmt.Sprintf("%v", AspirantesData[i].(map[string]interface{})["Puntaje"]), 64) //Puntaje del aspirante
+										g, _ := strconv.ParseFloat(fmt.Sprintf("%v", PorcentajeGeneral), 64)                                     //Porcentaje del criterio
+										Ponderado = f * (g / 100)                                                                                //100% del puntaje que obtuvo el aspirante
+										DetalleCalificacion = "{\n \"areas\": [\n {\"Puntuacion\":" + fmt.Sprintf("%q", AspirantesData[i].(map[string]interface{})["Puntaje"]) + "}\n]\n}"
+									}
 								}
 								// JSON para el post detalle evaluacion
 								respuesta[i] = map[string]interface{}{
@@ -117,6 +152,27 @@ func (c *AdmisionController) PostEvaluacionAspirantes() {
 									"FechaModificacion":            time.Now(),
 									"DetalleCalificacion":          DetalleCalificacion,
 									"NotaRequisito":                Ponderado,
+								}
+								//Función POST a la tabla detalle_evaluación
+								errDetalleEvaluacion := request.SendJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"detalle_evaluacion", "POST", &DetalleEvaluacion, respuesta[i])
+								if errDetalleEvaluacion == nil {
+									if DetalleEvaluacion != nil && fmt.Sprintf("%v", DetalleEvaluacion) != "map[]" {
+										//respuesta[i] = DetalleEvaluacion
+									} else {
+										errorGetAll = true
+										alertas = append(alertas, "No data found")
+										alerta.Code = "404"
+										alerta.Type = "error"
+										alerta.Body = alertas
+										c.Data["json"] = map[string]interface{}{"Response": alerta}
+									}
+								} else {
+									errorGetAll = true
+									alertas = append(alertas, errDetalleEvaluacion.Error())
+									alerta.Code = "400"
+									alerta.Type = "error"
+									alerta.Body = alertas
+									c.Data["json"] = map[string]interface{}{"Response": alerta}
 								}
 							} else {
 								errorGetAll = true
