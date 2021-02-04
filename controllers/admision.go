@@ -6,10 +6,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
+	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 )
 
@@ -38,46 +40,119 @@ func (c *AdmisionController) URLMapping() {
 func (c *AdmisionController) PostEvaluacionAspirantes() {
 	var Evaluacion map[string]interface{}
 	var Inscripciones []map[string]interface{}
-	//var respuesta []map[string]interface{}
+	var Requisito []map[string]interface{}
+	var DetalleCalificacion string
+	var Calificacion []interface{}
+	var Ponderado float64
+	var respuesta []map[string]interface{}
 	var resultado map[string]interface{}
 	resultado = make(map[string]interface{})
 	var alerta models.Alert
 	var errorGetAll bool
 	alertas := append([]interface{}{"Response:"})
+	//Calificacion = append([]interface{}{"areas"})
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &Evaluacion); err == nil {
-		//formatdata.JsonPrint(Evaluacion)
 		AspirantesData := Evaluacion["Aspirantes"].([]interface{})
 		ProgramaAcademicoId := Evaluacion["ProgramaId"]
 		PeriodoId := Evaluacion["PeriodoId"]
-		//formatdata.JsonPrint(AspirantesData)
-		respuesta := make([]map[string]interface{}, len(AspirantesData))
-		for i := 0; i < len(AspirantesData); i++ {
-			PersonaId := AspirantesData[i].(map[string]interface{})["Id"]
+		CriterioId := Evaluacion["CriterioId"]
+		respuesta = make([]map[string]interface{}, len(AspirantesData))
+		//GET para obtener el porcentaje general, especifico (si lo hay)
+		errRequisito := request.GetJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"requisito_programa_academico?query=ProgramaAcademicoId:"+fmt.Sprintf("%v", ProgramaAcademicoId)+",PeriodoId:"+fmt.Sprintf("%v", PeriodoId)+",RequisitoId:"+fmt.Sprintf("%v", CriterioId), &Requisito)
+		if errRequisito == nil {
+			if Requisito != nil && fmt.Sprintf("%v", Requisito[0]) != "map[]" {
+				//Se guarda JSON con los porcentajes específicos
+				var PorcentajeEspJSON map[string]interface{}
+				PorcentajeGeneral := Requisito[0]["PorcentajeGeneral"]
+				PorcentajeEspecifico := Requisito[0]["PorcentajeEspecifico"].(string)
+				if err := json.Unmarshal([]byte(PorcentajeEspecifico), &PorcentajeEspJSON); err == nil {
+					fmt.Println(PorcentajeGeneral)
+					for i := 0; i < len(AspirantesData); i++ {
+						PersonaId := AspirantesData[i].(map[string]interface{})["Id"]
 
-			//GET para obtener el numero de la inscripcion de la persona
-			errInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion?query=PersonaId:"+fmt.Sprintf("%v", PersonaId)+",ProgramaAcademicoId:"+fmt.Sprintf("%v", ProgramaAcademicoId)+",PeriodoId:"+fmt.Sprintf("%v", PeriodoId), &Inscripciones)
-			if errInscripcion == nil {
-				if Inscripciones != nil && fmt.Sprintf("%v", Inscripciones) != "[{}]" {
-					fmt.Println(Inscripciones[0]["Id"])
-					respuesta[i]["InscripcionId"] = Inscripciones[0]["Id"]
-				} else {
-					errorGetAll = true
-					alertas = append(alertas, "No data found")
-					alerta.Code = "404"
-					alerta.Type = "error"
-					alerta.Body = alertas
-					c.Data["json"] = map[string]interface{}{"Response": alerta}
+						//GET para obtener el numero de la inscripcion de la persona
+						errInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion?query=PersonaId:"+fmt.Sprintf("%v", PersonaId)+",ProgramaAcademicoId:"+fmt.Sprintf("%v", ProgramaAcademicoId)+",PeriodoId:"+fmt.Sprintf("%v", PeriodoId), &Inscripciones)
+						if errInscripcion == nil {
+							if Inscripciones != nil && fmt.Sprintf("%v", Inscripciones[0]) != "map[]" {
+								if PorcentajeEspJSON != nil && fmt.Sprintf("%v", PorcentajeEspJSON) != "map[]" {
+									//Calculos para los criterios que cuentan con subcriterios)
+									//formatdata.JsonPrint(PorcentajeEspJSON)
+									Calificacion = append([]interface{}{})
+									Ponderado = 0
+									for k := range PorcentajeEspJSON["areas"].([]interface{}) {
+										for k1, aux := range PorcentajeEspJSON["areas"].([]interface{})[k].(map[string]interface{}) {
+											for k2, aux2 := range Evaluacion["Aspirantes"].([]interface{})[i].(map[string]interface{}) {
+												if k1 == k2 {
+													f, _ := strconv.ParseFloat(fmt.Sprintf("%v", aux), 64)  //Porcentaje del subcriterio
+													j, _ := strconv.ParseFloat(fmt.Sprintf("%v", aux2), 64) //Nota subcriterio
+													PonderadoAux := j * (f / 100)
+													Ponderado = Ponderado + PonderadoAux
+													CalificacionAux := map[string]interface{}{
+														k2:          aux2,
+														"Ponderado": PonderadoAux,
+													}
+													Calificacion = append(Calificacion, CalificacionAux)
+												}
+											}
+										}
+									}
+									formatdata.JsonPrint(Calificacion)
+									g, _ := strconv.ParseFloat(fmt.Sprintf("%v", PorcentajeGeneral), 64)
+									Ponderado = Ponderado * (g / 100)
+								} else {
+									//Calculos para los criterios que no tienen subcriterios
+									//Ponderado =
+									f, _ := strconv.ParseFloat(fmt.Sprintf("%v", AspirantesData[i].(map[string]interface{})["Puntaje"]), 64)
+									g, _ := strconv.ParseFloat(fmt.Sprintf("%v", PorcentajeGeneral), 64)
+									Ponderado = f * (g / 100) //100% del puntaje que obtuvo el aspirante
+									DetalleCalificacion = "{\n \"areas\": [\n {\"Puntuacion\":" + fmt.Sprintf("%q", AspirantesData[i].(map[string]interface{})["Puntaje"]) + ", \"Ponderado\": " + fmt.Sprintf("%.f", Ponderado) + "}\n]\n}"
+								}
+								// JSON para el post detalle evaluacion
+								respuesta[i] = map[string]interface{}{
+									"InscripcionId":                Inscripciones[0]["Id"],
+									"RequisitoProgramaAcademicoId": Requisito[0],
+									"Activo":                       true,
+									"FechaCreacion":                time.Now(),
+									"FechaModificacion":            time.Now(),
+									"DetalleCalificacion":          DetalleCalificacion,
+									"NotaRequisito":                Ponderado,
+								}
+							} else {
+								errorGetAll = true
+								alertas = append(alertas, "No data found")
+								alerta.Code = "404"
+								alerta.Type = "error"
+								alerta.Body = alertas
+								c.Data["json"] = map[string]interface{}{"Response": alerta}
+							}
+						} else {
+							errorGetAll = true
+							alertas = append(alertas, errInscripcion.Error())
+							alerta.Code = "400"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
+						}
+					}
 				}
 			} else {
 				errorGetAll = true
-				alertas = append(alertas, errInscripcion.Error())
-				alerta.Code = "400"
+				alertas = append(alertas, "No data found")
+				alerta.Code = "404"
 				alerta.Type = "error"
 				alerta.Body = alertas
 				c.Data["json"] = map[string]interface{}{"Response": alerta}
 			}
+		} else {
+			errorGetAll = true
+			alertas = append(alertas, errRequisito.Error())
+			alerta.Code = "400"
+			alerta.Type = "error"
+			alerta.Body = alertas
+			c.Data["json"] = map[string]interface{}{"Response": alerta}
 		}
+
 		resultado["Evaluacion"] = respuesta
 	} else {
 		errorGetAll = true
