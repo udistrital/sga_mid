@@ -127,6 +127,49 @@
                 }
             }
         },
+        "/admision/consultar_evaluacion/{id_programa}/{id_periodo}/{id_requisito}": {
+            "get": {
+                "tags": [
+                    "admision"
+                ],
+                "description": "Consultar la evaluacion de los aspirantes de acuerdo a los criterios",
+                "operationId": "AdmisionController.GetEvaluacionAspirantes",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id_requisito",
+                        "description": "Id del requisito",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "path",
+                        "name": "id_periodo",
+                        "description": "Id del periodo",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "path",
+                        "name": "id_programa",
+                        "description": "Id del programa academico",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
         "/admision/postcupos": {
             "post": {
                 "tags": [

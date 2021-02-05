@@ -27,6 +27,89 @@ func (c *AdmisionController) URLMapping() {
 	c.Mapping("CambioEstadoAspiranteByPeriodoByProyecto", c.CambioEstadoAspiranteByPeriodoByProyecto)
 	c.Mapping("GetAspirantesByPeriodoByProyecto", c.GetAspirantesByPeriodoByProyecto)
 	c.Mapping("PostEvaluacionAspirantes", c.PostEvaluacionAspirantes)
+	c.Mapping("GetEvaluacionAspirantes", c.GetEvaluacionAspirantes)
+}
+
+// GetEvaluacionAspirantes ...
+// @Title GetEvaluacionAspirantes
+// @Description Consultar la evaluacion de los aspirantes de acuerdo a los criterios
+// @Param	id_requisito	path	int	true	"Id del requisito"
+// @Param	id_periodo	path	int	true	"Id del periodo"
+// @Param	id_programa	path	int	true	"Id del programa academico"
+// @Success 200 {}
+// @Failure 403 body is empty
+// @router /consultar_evaluacion/:id_programa/:id_periodo/:id_requisito [get]
+func (c *AdmisionController) GetEvaluacionAspirantes() {
+	id_periodo := c.Ctx.Input.Param(":id_periodo")
+	id_programa := c.Ctx.Input.Param(":id_programa")
+	id_requisito := c.Ctx.Input.Param(":id_requisito")
+	var DetalleEvaluacion []map[string]interface{}
+	var respuesta []map[string]interface{}
+	var resultado map[string]interface{}
+	resultado = make(map[string]interface{})
+	var alerta models.Alert
+	var errorGetAll bool
+	alertas := append([]interface{}{})
+
+	//GET a la tabla detalle_evaluacion
+	errDetalleEvaluacion := request.GetJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"detalle_evaluacion?query=RequisitoProgramaAcademicoId__RequisitoId__Id:"+id_requisito+",RequisitoProgramaAcademicoId__PeriodoId:"+id_periodo+",RequisitoProgramaAcademicoId__ProgramaAcademicoId:"+id_programa+"&sortby=InscripcionId&order=asc", &DetalleEvaluacion)
+	if errDetalleEvaluacion == nil {
+		if DetalleEvaluacion != nil && fmt.Sprintf("%v", DetalleEvaluacion[0]) != "map[]" {
+			respuesta = make([]map[string]interface{}, len(DetalleEvaluacion))
+			for i, evaluacion := range DetalleEvaluacion {
+				respuestaAux := "{\n"
+				var Evaluacion map[string]interface{}
+				DetalleEspecifico := evaluacion["DetalleCalificacion"].(string)
+				if err := json.Unmarshal([]byte(DetalleEspecifico), &Evaluacion); err == nil {
+					for k := range Evaluacion["areas"].([]interface{}) {
+						for k1, aux := range Evaluacion["areas"].([]interface{})[k].(map[string]interface{}) {
+							if k1 != "Ponderado" {
+								if k+1 == len(Evaluacion["areas"].([]interface{})) {
+									respuestaAux = respuestaAux + fmt.Sprintf("%q", k1) + ":" + fmt.Sprintf("%q", aux) + "\n}"
+								} else {
+									respuestaAux = respuestaAux + fmt.Sprintf("%q", k1) + ":" + fmt.Sprintf("%q", aux) + ",\n"
+								}
+
+								respuesta[i] = map[string]interface{}{
+									k1: aux,
+								} /*
+									respuestaAux = append(respuestaAux, respuesta[i])*/
+							}
+						}
+					}
+					fmt.Println(respuestaAux)
+					//Convertir respuesta aux en json
+					//respuesta[i] = respuestaAux
+				}
+			}
+			resultado["Response"] = respuesta
+		} else {
+			errorGetAll = true
+			alertas = append(alertas, "No data found")
+			alerta.Code = "404"
+			alerta.Type = "error"
+			alerta.Body = alertas
+			c.Data["json"] = map[string]interface{}{"Response": alerta}
+		}
+
+	} else {
+		errorGetAll = true
+		alertas = append(alertas, errDetalleEvaluacion.Error())
+		alerta.Code = "400"
+		alerta.Type = "error"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
+	if !errorGetAll {
+		alertas = append(alertas, resultado)
+		alerta.Code = "200"
+		alerta.Type = "OK"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
+	c.ServeJSON()
 }
 
 // PostEvaluacionAspirantes ...
