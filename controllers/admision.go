@@ -44,7 +44,9 @@ func (c *AdmisionController) GetEvaluacionAspirantes() {
 	id_programa := c.Ctx.Input.Param(":id_programa")
 	id_requisito := c.Ctx.Input.Param(":id_requisito")
 	var DetalleEvaluacion []map[string]interface{}
-	var respuesta []map[string]interface{}
+	var DetalleEspecificoJSON []map[string]interface{}
+	var Inscripcion map[string]interface{}
+	var Terceros map[string]interface{}
 	var resultado map[string]interface{}
 	resultado = make(map[string]interface{})
 	var alerta models.Alert
@@ -55,7 +57,7 @@ func (c *AdmisionController) GetEvaluacionAspirantes() {
 	errDetalleEvaluacion := request.GetJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"detalle_evaluacion?query=RequisitoProgramaAcademicoId__RequisitoId__Id:"+id_requisito+",RequisitoProgramaAcademicoId__PeriodoId:"+id_periodo+",RequisitoProgramaAcademicoId__ProgramaAcademicoId:"+id_programa+"&sortby=InscripcionId&order=asc", &DetalleEvaluacion)
 	if errDetalleEvaluacion == nil {
 		if DetalleEvaluacion != nil && fmt.Sprintf("%v", DetalleEvaluacion[0]) != "map[]" {
-			respuesta = make([]map[string]interface{}, len(DetalleEvaluacion))
+			Respuesta := "[\n"
 			for i, evaluacion := range DetalleEvaluacion {
 				respuestaAux := "{\n"
 				var Evaluacion map[string]interface{}
@@ -64,25 +66,66 @@ func (c *AdmisionController) GetEvaluacionAspirantes() {
 					for k := range Evaluacion["areas"].([]interface{}) {
 						for k1, aux := range Evaluacion["areas"].([]interface{})[k].(map[string]interface{}) {
 							if k1 != "Ponderado" {
-								if k+1 == len(Evaluacion["areas"].([]interface{})) {
-									respuestaAux = respuestaAux + fmt.Sprintf("%q", k1) + ":" + fmt.Sprintf("%q", aux) + "\n}"
-								} else {
-									respuestaAux = respuestaAux + fmt.Sprintf("%q", k1) + ":" + fmt.Sprintf("%q", aux) + ",\n"
-								}
-
-								respuesta[i] = map[string]interface{}{
-									k1: aux,
-								} /*
-									respuestaAux = append(respuestaAux, respuesta[i])*/
+								respuestaAux = respuestaAux + fmt.Sprintf("%q", k1) + ":" + fmt.Sprintf("%q", aux) + ",\n"
 							}
 						}
 					}
-					fmt.Println(respuestaAux)
-					//Convertir respuesta aux en json
-					//respuesta[i] = respuestaAux
+
+					//GET a la tabla de inscripcion para saber el id del inscrito
+					InscripcionId := fmt.Sprintf("%v", evaluacion["InscripcionId"])
+					errInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion/"+InscripcionId, &Inscripcion)
+					if errInscripcion == nil {
+						if Inscripcion != nil && fmt.Sprintf("%v", Inscripcion) != "map[]" {
+
+							//GET a la tabla de terceros para obtener el nombre
+							TerceroId := fmt.Sprintf("%v", Inscripcion["PersonaId"])
+							errTerceros := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+TerceroId, &Terceros)
+							if errTerceros == nil {
+								if Terceros != nil && fmt.Sprintf("%v", Terceros) != "map[]" {
+									respuestaAux = respuestaAux + "\"Aspirantes\": " + fmt.Sprintf("%q", Terceros["NombreCompleto"]) + "\n}"
+								} else {
+									errorGetAll = true
+									alertas = append(alertas, "No data found")
+									alerta.Code = "404"
+									alerta.Type = "error"
+									alerta.Body = alertas
+									c.Data["json"] = map[string]interface{}{"Response": alerta}
+								}
+							} else {
+								errorGetAll = true
+								alertas = append(alertas, errTerceros.Error())
+								alerta.Code = "400"
+								alerta.Type = "error"
+								alerta.Body = alertas
+								c.Data["json"] = map[string]interface{}{"Response": alerta}
+							}
+						} else {
+							errorGetAll = true
+							alertas = append(alertas, "No data found")
+							alerta.Code = "404"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
+						}
+					} else {
+						errorGetAll = true
+						alertas = append(alertas, errInscripcion.Error())
+						alerta.Code = "400"
+						alerta.Type = "error"
+						alerta.Body = alertas
+						c.Data["json"] = map[string]interface{}{"Response": alerta}
+					}
+
+					if i+1 == len(DetalleEvaluacion) {
+						Respuesta = Respuesta + respuestaAux + "\n]"
+					} else {
+						Respuesta = Respuesta + respuestaAux + ",\n"
+					}
 				}
 			}
-			resultado["Response"] = respuesta
+			if err := json.Unmarshal([]byte(Respuesta), &DetalleEspecificoJSON); err == nil {
+				resultado["areas"] = DetalleEspecificoJSON
+			}
 		} else {
 			errorGetAll = true
 			alertas = append(alertas, "No data found")
