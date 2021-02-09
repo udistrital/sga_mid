@@ -195,6 +195,9 @@ func (c *AdmisionController) PostEvaluacionAspirantes() {
 					for i := 0; i < len(AspirantesData); i++ {
 						PersonaId := AspirantesData[i].(map[string]interface{})["Id"]
 						Asistencia := AspirantesData[i].(map[string]interface{})["Asistencia"]
+						if Asistencia == "" {
+							Asistencia = false
+						}
 
 						//GET para obtener el numero de la inscripcion de la persona
 						errInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion?query=PersonaId:"+fmt.Sprintf("%v", PersonaId)+",ProgramaAcademicoId:"+fmt.Sprintf("%v", ProgramaAcademicoId)+",PeriodoId:"+fmt.Sprintf("%v", PeriodoId), &Inscripciones)
@@ -256,7 +259,7 @@ func (c *AdmisionController) PostEvaluacionAspirantes() {
 											f, _ := strconv.ParseFloat(fmt.Sprintf("%v", AspirantesData[i].(map[string]interface{})["Puntaje"]), 64) //Puntaje del aspirante
 											g, _ := strconv.ParseFloat(fmt.Sprintf("%v", PorcentajeGeneral), 64)                                     //Porcentaje del criterio
 											Ponderado = f * (g / 100)                                                                                //100% del puntaje que obtuvo el aspirante
-											DetalleCalificacion = "{\n \"areas\": [\n {\"Puntuacion\":" + fmt.Sprintf("%q", AspirantesData[i].(map[string]interface{})["Puntaje"]) + "}\n]\n}"
+											DetalleCalificacion = "{\n \"areas\": [\n {\"Puntuacion\":" + fmt.Sprintf("%q", AspirantesData[i].(map[string]interface{})["Puntuacion"]) + "}\n]\n}"
 										} else {
 											// Si el estudiante inscrito no asiste tendrá una calificación de 0
 											Ponderado = 0
@@ -266,7 +269,7 @@ func (c *AdmisionController) PostEvaluacionAspirantes() {
 										f, _ := strconv.ParseFloat(fmt.Sprintf("%v", AspirantesData[i].(map[string]interface{})["Puntaje"]), 64) //Puntaje del aspirante
 										g, _ := strconv.ParseFloat(fmt.Sprintf("%v", PorcentajeGeneral), 64)                                     //Porcentaje del criterio
 										Ponderado = f * (g / 100)                                                                                //100% del puntaje que obtuvo el aspirante
-										DetalleCalificacion = "{\n \"areas\": [\n {\"Puntuacion\":" + fmt.Sprintf("%q", AspirantesData[i].(map[string]interface{})["Puntaje"]) + "}\n]\n}"
+										DetalleCalificacion = "{\n \"areas\": [\n {\"Puntuacion\":" + fmt.Sprintf("%q", AspirantesData[i].(map[string]interface{})["Puntuacion"]) + "}\n]\n}"
 									}
 								}
 								// JSON para el post detalle evaluacion
