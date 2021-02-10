@@ -5,6 +5,7 @@ import (
 
 	"encoding/json"
 	"fmt"
+	"math"
 	"strconv"
 	"time"
 
@@ -43,6 +44,7 @@ func (c *AdmisionController) PutNotaFinalAspirantes() {
 	var Evaluacion map[string]interface{}
 	var Inscripcion []map[string]interface{}
 	var DetalleEvaluacion []map[string]interface{}
+	var NotaFinal float64
 	var resultado map[string]interface{}
 	var alerta models.Alert
 	var errorGetAll bool
@@ -65,7 +67,17 @@ func (c *AdmisionController) PutNotaFinalAspirantes() {
 					errDetalleEvaluacion := request.GetJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"detalle_evaluacion?query=InscripcionId:"+InscripcionId+",RequisitoProgramaAcademicoId__ProgramaAcademicoId:"+ProgramaAcademicoId+",RequisitoProgramaAcademicoId__PeriodoId:"+PeriodoId+"&limit=0", &DetalleEvaluacion)
 					if errDetalleEvaluacion == nil {
 						if DetalleEvaluacion != nil && fmt.Sprintf("%v", DetalleEvaluacion[0]) != "map[]" {
-							formatdata.JsonPrint(DetalleEvaluacion)
+							NotaFinal = 0
+							// Calculo de la nota Final con los criterios relacionados al proyecto
+							for _, EvaluacionAux := range DetalleEvaluacion {
+								f, _ := strconv.ParseFloat(fmt.Sprintf("%v", EvaluacionAux["NotaRequisito"]), 64)
+								NotaFinal = NotaFinal + f
+							}
+							fmt.Println(NotaFinal)
+							NotaFinal = math.Round(NotaFinal*100) / 100
+							Inscripcion[0]["NotaFinal"] = NotaFinal
+							formatdata.JsonPrint(Inscripcion[0])
+							//PUT a inscripción con la nota final calculada
 						} else {
 							errorGetAll = true
 							alertas = append(alertas, "No data found")
