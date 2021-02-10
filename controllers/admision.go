@@ -11,6 +11,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
+	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 )
 
@@ -28,6 +29,94 @@ func (c *AdmisionController) URLMapping() {
 	c.Mapping("GetAspirantesByPeriodoByProyecto", c.GetAspirantesByPeriodoByProyecto)
 	c.Mapping("PostEvaluacionAspirantes", c.PostEvaluacionAspirantes)
 	c.Mapping("GetEvaluacionAspirantes", c.GetEvaluacionAspirantes)
+	c.Mapping("PutNotaFinalAspirantes", c.PutNotaFinalAspirantes)
+}
+
+// PutNotaFinalAspirantes ...
+// @Title PutNotaFinalAspirantes
+// @Description Se calcula la nota final de cada aspirante
+// @Param   body        body    {}  true        "body Calcular nota final content"
+// @Success 200 {}
+// @Failure 403 body is empty
+// @router /calcular_nota [put]
+func (c *AdmisionController) PutNotaFinalAspirantes() {
+	var Evaluacion map[string]interface{}
+	var Inscripcion []map[string]interface{}
+	var DetalleEvaluacion []map[string]interface{}
+	var resultado map[string]interface{}
+	var alerta models.Alert
+	var errorGetAll bool
+	alertas := append([]interface{}{})
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &Evaluacion); err == nil {
+		IdPersona := Evaluacion["IdPersona"].([]interface{})
+		PeriodoId := fmt.Sprintf("%v", Evaluacion["IdPeriodo"])
+		ProgramaAcademicoId := fmt.Sprintf("%v", Evaluacion["IdPrograma"])
+		for i := 0; i < len(IdPersona); i++ {
+			PersonaId := fmt.Sprintf("%v", IdPersona[i].(map[string]interface{})["Id"])
+
+			//GET a Inscripción para obtener el ID
+			errInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion?query=PersonaId:"+PersonaId+",PeriodoId:"+PeriodoId+",ProgramaAcademicoId:"+ProgramaAcademicoId, &Inscripcion)
+			if errInscripcion == nil {
+				if Inscripcion != nil && fmt.Sprintf("%v", Inscripcion[0]) != "map[]" {
+					InscripcionId := fmt.Sprintf("%v", Inscripcion[0]["Id"])
+
+					//GET a detalle evaluacion
+					errDetalleEvaluacion := request.GetJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"detalle_evaluacion?query=InscripcionId:"+InscripcionId+",RequisitoProgramaAcademicoId__ProgramaAcademicoId:"+ProgramaAcademicoId+",RequisitoProgramaAcademicoId__PeriodoId:"+PeriodoId+"&limit=0", &DetalleEvaluacion)
+					if errDetalleEvaluacion == nil {
+						if DetalleEvaluacion != nil && fmt.Sprintf("%v", DetalleEvaluacion[0]) != "map[]" {
+							formatdata.JsonPrint(DetalleEvaluacion)
+						} else {
+							errorGetAll = true
+							alertas = append(alertas, "No data found")
+							alerta.Code = "404"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
+						}
+					} else {
+						errorGetAll = true
+						alertas = append(alertas, errDetalleEvaluacion.Error())
+						alerta.Code = "400"
+						alerta.Type = "error"
+						alerta.Body = alertas
+						c.Data["json"] = map[string]interface{}{"Response": alerta}
+					}
+				} else {
+					errorGetAll = true
+					alertas = append(alertas, "No data found")
+					alerta.Code = "404"
+					alerta.Type = "error"
+					alerta.Body = alertas
+					c.Data["json"] = map[string]interface{}{"Response": alerta}
+				}
+			} else {
+				errorGetAll = true
+				alertas = append(alertas, errInscripcion.Error())
+				alerta.Code = "400"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Response": alerta}
+			}
+		}
+	} else {
+		errorGetAll = true
+		alertas = append(alertas, err.Error())
+		alerta.Code = "400"
+		alerta.Type = "error"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
+	if !errorGetAll {
+		alertas = append(alertas, resultado)
+		alerta.Code = "200"
+		alerta.Type = "OK"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
+	c.ServeJSON()
 }
 
 // GetEvaluacionAspirantes ...
@@ -256,9 +345,9 @@ func (c *AdmisionController) PostEvaluacionAspirantes() {
 									//Si existe la columna de asistencia se hace la validación de la misma
 									if Asistencia != nil {
 										if Asistencia == true {
-											f, _ := strconv.ParseFloat(fmt.Sprintf("%v", AspirantesData[i].(map[string]interface{})["Puntaje"]), 64) //Puntaje del aspirante
-											g, _ := strconv.ParseFloat(fmt.Sprintf("%v", PorcentajeGeneral), 64)                                     //Porcentaje del criterio
-											Ponderado = f * (g / 100)                                                                                //100% del puntaje que obtuvo el aspirante
+											f, _ := strconv.ParseFloat(fmt.Sprintf("%v", AspirantesData[i].(map[string]interface{})["Puntuacion"]), 64) //Puntaje del aspirante
+											g, _ := strconv.ParseFloat(fmt.Sprintf("%v", PorcentajeGeneral), 64)                                        //Porcentaje del criterio
+											Ponderado = f * (g / 100)                                                                                   //100% del puntaje que obtuvo el aspirante
 											DetalleCalificacion = "{\n \"areas\": [\n {\"Puntuacion\":" + fmt.Sprintf("%q", AspirantesData[i].(map[string]interface{})["Puntuacion"]) + "}\n]\n}"
 										} else {
 											// Si el estudiante inscrito no asiste tendrá una calificación de 0
@@ -266,9 +355,9 @@ func (c *AdmisionController) PostEvaluacionAspirantes() {
 											DetalleCalificacion = "{\n \"areas\": [\n {\"Puntuacion\": \"0\"}\n]\n}"
 										}
 									} else {
-										f, _ := strconv.ParseFloat(fmt.Sprintf("%v", AspirantesData[i].(map[string]interface{})["Puntaje"]), 64) //Puntaje del aspirante
-										g, _ := strconv.ParseFloat(fmt.Sprintf("%v", PorcentajeGeneral), 64)                                     //Porcentaje del criterio
-										Ponderado = f * (g / 100)                                                                                //100% del puntaje que obtuvo el aspirante
+										f, _ := strconv.ParseFloat(fmt.Sprintf("%v", AspirantesData[i].(map[string]interface{})["Puntuacion"]), 64) //Puntaje del aspirante
+										g, _ := strconv.ParseFloat(fmt.Sprintf("%v", PorcentajeGeneral), 64)                                        //Porcentaje del criterio
+										Ponderado = f * (g / 100)                                                                                   //100% del puntaje que obtuvo el aspirante
 										DetalleCalificacion = "{\n \"areas\": [\n {\"Puntuacion\":" + fmt.Sprintf("%q", AspirantesData[i].(map[string]interface{})["Puntuacion"]) + "}\n]\n}"
 									}
 								}
