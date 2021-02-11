@@ -12,7 +12,6 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
-	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 )
 
@@ -45,7 +44,10 @@ func (c *AdmisionController) PutNotaFinalAspirantes() {
 	var Inscripcion []map[string]interface{}
 	var DetalleEvaluacion []map[string]interface{}
 	var NotaFinal float64
+	var InscripcionPut map[string]interface{}
+	var respuesta []map[string]interface{}
 	var resultado map[string]interface{}
+	resultado = make(map[string]interface{})
 	var alerta models.Alert
 	var errorGetAll bool
 	alertas := append([]interface{}{})
@@ -54,6 +56,7 @@ func (c *AdmisionController) PutNotaFinalAspirantes() {
 		IdPersona := Evaluacion["IdPersona"].([]interface{})
 		PeriodoId := fmt.Sprintf("%v", Evaluacion["IdPeriodo"])
 		ProgramaAcademicoId := fmt.Sprintf("%v", Evaluacion["IdPrograma"])
+		respuesta = make([]map[string]interface{}, len(IdPersona))
 		for i := 0; i < len(IdPersona); i++ {
 			PersonaId := fmt.Sprintf("%v", IdPersona[i].(map[string]interface{})["Id"])
 
@@ -73,11 +76,30 @@ func (c *AdmisionController) PutNotaFinalAspirantes() {
 								f, _ := strconv.ParseFloat(fmt.Sprintf("%v", EvaluacionAux["NotaRequisito"]), 64)
 								NotaFinal = NotaFinal + f
 							}
-							fmt.Println(NotaFinal)
 							NotaFinal = math.Round(NotaFinal*100) / 100
 							Inscripcion[0]["NotaFinal"] = NotaFinal
-							formatdata.JsonPrint(Inscripcion[0])
+
 							//PUT a inscripción con la nota final calculada
+							errInscripcionPut := request.SendJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion/"+InscripcionId, "PUT", &InscripcionPut, Inscripcion[0])
+							if errInscripcionPut == nil {
+								if InscripcionPut != nil && fmt.Sprintf("%v", InscripcionPut) != "map[]" {
+									respuesta[i] = InscripcionPut
+								} else {
+									errorGetAll = true
+									alertas = append(alertas, "No data found")
+									alerta.Code = "404"
+									alerta.Type = "error"
+									alerta.Body = alertas
+									c.Data["json"] = map[string]interface{}{"Response": alerta}
+								}
+							} else {
+								errorGetAll = true
+								alertas = append(alertas, errInscripcionPut.Error())
+								alerta.Code = "400"
+								alerta.Type = "error"
+								alerta.Body = alertas
+								c.Data["json"] = map[string]interface{}{"Response": alerta}
+							}
 						} else {
 							errorGetAll = true
 							alertas = append(alertas, "No data found")
@@ -111,6 +133,7 @@ func (c *AdmisionController) PutNotaFinalAspirantes() {
 				c.Data["json"] = map[string]interface{}{"Response": alerta}
 			}
 		}
+		resultado["Response"] = respuesta
 	} else {
 		errorGetAll = true
 		alertas = append(alertas, err.Error())
