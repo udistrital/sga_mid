@@ -207,6 +207,8 @@ func GetAllSolicitudDocente(isFinish int) (result []map[string]interface{}, outp
 		logs.Error(solicitudes)
 		return nil, errSolicitud
 	}
+	resultado = append(resultado, map[string]interface{}{})
+	fmt.Println(resultado)
 	return resultado, nil
 }
 
@@ -224,6 +226,7 @@ func GetSolicitudDocenteTercero(idTercero string, isFinish int) (result []map[st
 		endpoint = "http://" + beego.AppConfig.String("SolicitudDocenteService") + "/tr_solicitud/active/" + idTercero
 	}
 
+	fmt.Println(endpoint)
 	errSolicitud := request.GetJson(endpoint, &solicitudes)
 	if errSolicitud == nil && fmt.Sprintf("%v", solicitudes[0]["System"]) != "map[]" {
 		if solicitudes[0]["Status"] != 404 && solicitudes[0]["Id"] != nil {
@@ -252,9 +255,11 @@ func GetSolicitudDocenteTercero(idTercero string, isFinish int) (result []map[st
 			return resultado, nil
 		}
 	} else {
-		logs.Error(solicitudes)
+		logs.Info(solicitudes)
+		logs.Error(errSolicitud)
 		return nil, errSolicitud
 	}
+	resultado = append(resultado, map[string]interface{}{})
 	return resultado, nil
 }
 
@@ -375,6 +380,7 @@ func GetEstadoSolicitudDocente(idEstado string) (result []interface{}, outputErr
 		logs.Error(solicitudes)
 		return nil, errSolicitud
 	}
+	v = append(v, map[string]interface{}{})
 	return v, nil
 }
 
