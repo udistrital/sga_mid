@@ -17,6 +17,7 @@ func PostSolicitudDocente(SolicitudDocente map[string]interface{}) (result map[s
 	var resultado map[string]interface{}
 
 	SolicitudDocentePost := make(map[string]interface{})
+	//formatdata.JsonPrint(SolicitudDocente)
 	SolicitudDocentePost["Solicitud"] = map[string]interface{}{
 		"Resultado":             SolicitudDocente["Resultado"],
 		"Referencia":            SolicitudDocente["Referencia"],
@@ -89,14 +90,25 @@ func PutSolicitudDocente(SolicitudDocente map[string]interface{}, idStr string) 
 	//resultado experiencia
 	var resultado map[string]interface{}
 	SolicitudDocentePut := make(map[string]interface{})
-	SolicitudDocentePut["Solicitud"] = map[string]interface{}{
-		"Resultado":             SolicitudDocente["Resultado"],
-		"Referencia":            SolicitudDocente["Referencia"],
-		"FechaRadicacion":       date,
-		"EstadoTipoSolicitudId": SolicitudDocente["EstadoTipoSolicitudId"],
-		"FechaModificacion":     date,
+	fechaRadicacion := time_bogota.TiempoCorreccionFormato(fmt.Sprintf("%v", SolicitudDocente["FechaRadicacion"]))
+	yesterday, _ := strconv.Atoi(fmt.Sprintf("%v", SolicitudDocente["EstadoTipoSolicitudId"].(map[string]interface{})["Id"]))
+	if (yesterday == 1) {
+		SolicitudDocentePut["Solicitud"] = map[string]interface{}{
+			"Resultado":             SolicitudDocente["Resultado"],
+			"Referencia":            SolicitudDocente["Referencia"],
+			"FechaRadicacion":       date,
+			"EstadoTipoSolicitudId": SolicitudDocente["EstadoTipoSolicitudId"],
+			"FechaModificacion":     date,
+		}
+	} else {
+		SolicitudDocentePut["Solicitud"] = map[string]interface{}{
+			"Resultado":             SolicitudDocente["Resultado"],
+			"Referencia":            SolicitudDocente["Referencia"],
+			"FechaRadicacion":       fechaRadicacion,
+			"EstadoTipoSolicitudId": SolicitudDocente["EstadoTipoSolicitudId"],
+			"FechaModificacion":     date,
+		}
 	}
-
 	var EstadoTipoSolicitudID interface{}
 	for _, evolucionEstadoTemp := range SolicitudDocente["EvolucionEstado"].([]interface{}) {
 		evolucionEstado := evolucionEstadoTemp.(map[string]interface{})
