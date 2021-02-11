@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
@@ -25,6 +26,335 @@ func (c *AdmisionController) URLMapping() {
 	c.Mapping("PostCuposAdmision", c.PostCuposAdmision)
 	c.Mapping("CambioEstadoAspiranteByPeriodoByProyecto", c.CambioEstadoAspiranteByPeriodoByProyecto)
 	c.Mapping("GetAspirantesByPeriodoByProyecto", c.GetAspirantesByPeriodoByProyecto)
+	c.Mapping("PostEvaluacionAspirantes", c.PostEvaluacionAspirantes)
+	c.Mapping("GetEvaluacionAspirantes", c.GetEvaluacionAspirantes)
+}
+
+// GetEvaluacionAspirantes ...
+// @Title GetEvaluacionAspirantes
+// @Description Consultar la evaluacion de los aspirantes de acuerdo a los criterios
+// @Param	id_requisito	path	int	true	"Id del requisito"
+// @Param	id_periodo	path	int	true	"Id del periodo"
+// @Param	id_programa	path	int	true	"Id del programa academico"
+// @Success 200 {}
+// @Failure 403 body is empty
+// @router /consultar_evaluacion/:id_programa/:id_periodo/:id_requisito [get]
+func (c *AdmisionController) GetEvaluacionAspirantes() {
+	id_periodo := c.Ctx.Input.Param(":id_periodo")
+	id_programa := c.Ctx.Input.Param(":id_programa")
+	id_requisito := c.Ctx.Input.Param(":id_requisito")
+	var DetalleEvaluacion []map[string]interface{}
+	var DetalleEspecificoJSON []map[string]interface{}
+	var Inscripcion map[string]interface{}
+	var Terceros map[string]interface{}
+	var resultado map[string]interface{}
+	resultado = make(map[string]interface{})
+	var alerta models.Alert
+	var errorGetAll bool
+	alertas := append([]interface{}{})
+
+	//GET a la tabla detalle_evaluacion
+	errDetalleEvaluacion := request.GetJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"detalle_evaluacion?query=RequisitoProgramaAcademicoId__RequisitoId__Id:"+id_requisito+",RequisitoProgramaAcademicoId__PeriodoId:"+id_periodo+",RequisitoProgramaAcademicoId__ProgramaAcademicoId:"+id_programa+"&sortby=InscripcionId&order=asc", &DetalleEvaluacion)
+	if errDetalleEvaluacion == nil {
+		if DetalleEvaluacion != nil && fmt.Sprintf("%v", DetalleEvaluacion[0]) != "map[]" {
+			Respuesta := "[\n"
+			for i, evaluacion := range DetalleEvaluacion {
+				respuestaAux := "{\n"
+				var Evaluacion map[string]interface{}
+				DetalleEspecifico := evaluacion["DetalleCalificacion"].(string)
+				if err := json.Unmarshal([]byte(DetalleEspecifico), &Evaluacion); err == nil {
+					for k := range Evaluacion["areas"].([]interface{}) {
+						for k1, aux := range Evaluacion["areas"].([]interface{})[k].(map[string]interface{}) {
+							if k1 != "Ponderado" {
+								respuestaAux = respuestaAux + fmt.Sprintf("%q", k1) + ":" + fmt.Sprintf("%q", aux) + ",\n"
+							}
+						}
+					}
+
+					//GET a la tabla de inscripcion para saber el id del inscrito
+					InscripcionId := fmt.Sprintf("%v", evaluacion["InscripcionId"])
+					errInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion/"+InscripcionId, &Inscripcion)
+					if errInscripcion == nil {
+						if Inscripcion != nil && fmt.Sprintf("%v", Inscripcion) != "map[]" {
+
+							//GET a la tabla de terceros para obtener el nombre
+							TerceroId := fmt.Sprintf("%v", Inscripcion["PersonaId"])
+							errTerceros := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+TerceroId, &Terceros)
+							if errTerceros == nil {
+								if Terceros != nil && fmt.Sprintf("%v", Terceros) != "map[]" {
+									respuestaAux = respuestaAux + "\"Aspirantes\": " + fmt.Sprintf("%q", Terceros["NombreCompleto"]) + "\n}"
+								} else {
+									errorGetAll = true
+									alertas = append(alertas, "No data found")
+									alerta.Code = "404"
+									alerta.Type = "error"
+									alerta.Body = alertas
+									c.Data["json"] = map[string]interface{}{"Response": alerta}
+								}
+							} else {
+								errorGetAll = true
+								alertas = append(alertas, errTerceros.Error())
+								alerta.Code = "400"
+								alerta.Type = "error"
+								alerta.Body = alertas
+								c.Data["json"] = map[string]interface{}{"Response": alerta}
+							}
+						} else {
+							errorGetAll = true
+							alertas = append(alertas, "No data found")
+							alerta.Code = "404"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
+						}
+					} else {
+						errorGetAll = true
+						alertas = append(alertas, errInscripcion.Error())
+						alerta.Code = "400"
+						alerta.Type = "error"
+						alerta.Body = alertas
+						c.Data["json"] = map[string]interface{}{"Response": alerta}
+					}
+
+					if i+1 == len(DetalleEvaluacion) {
+						Respuesta = Respuesta + respuestaAux + "\n]"
+					} else {
+						Respuesta = Respuesta + respuestaAux + ",\n"
+					}
+				}
+			}
+			if err := json.Unmarshal([]byte(Respuesta), &DetalleEspecificoJSON); err == nil {
+				resultado["areas"] = DetalleEspecificoJSON
+			}
+		} else {
+			errorGetAll = true
+			alertas = append(alertas, "No data found")
+			alerta.Code = "404"
+			alerta.Type = "error"
+			alerta.Body = alertas
+			c.Data["json"] = map[string]interface{}{"Response": alerta}
+		}
+
+	} else {
+		errorGetAll = true
+		alertas = append(alertas, errDetalleEvaluacion.Error())
+		alerta.Code = "400"
+		alerta.Type = "error"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
+	if !errorGetAll {
+		alertas = append(alertas, resultado)
+		alerta.Code = "200"
+		alerta.Type = "OK"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
+	c.ServeJSON()
+}
+
+// PostEvaluacionAspirantes ...
+// @Title PostEvaluacionAspirantes
+// @Description Agregar la evaluacion de los aspirantes de acuerdo a los criterios
+// @Param   body        body    {}  true        "body Agregar evaluacion aspirantes content"
+// @Success 200 {}
+// @Failure 403 body is empty
+// @router /registrar_evaluacion [post]
+func (c *AdmisionController) PostEvaluacionAspirantes() {
+	var Evaluacion map[string]interface{}
+	var Inscripciones []map[string]interface{}
+	var Requisito []map[string]interface{}
+	var DetalleCalificacion string
+	var Ponderado float64
+	var respuesta []map[string]interface{}
+	var DetalleEvaluacion map[string]interface{}
+	var resultado map[string]interface{}
+	resultado = make(map[string]interface{})
+	var alerta models.Alert
+	var errorGetAll bool
+	alertas := append([]interface{}{"Response:"})
+	//Calificacion = append([]interface{}{"areas"})
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &Evaluacion); err == nil {
+		AspirantesData := Evaluacion["Aspirantes"].([]interface{})
+		ProgramaAcademicoId := Evaluacion["ProgramaId"]
+		PeriodoId := Evaluacion["PeriodoId"]
+		CriterioId := Evaluacion["CriterioId"]
+		respuesta = make([]map[string]interface{}, len(AspirantesData))
+		//GET para obtener el porcentaje general, especifico (si lo hay)
+		errRequisito := request.GetJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"requisito_programa_academico?query=ProgramaAcademicoId:"+fmt.Sprintf("%v", ProgramaAcademicoId)+",PeriodoId:"+fmt.Sprintf("%v", PeriodoId)+",RequisitoId:"+fmt.Sprintf("%v", CriterioId), &Requisito)
+		if errRequisito == nil {
+			if Requisito != nil && fmt.Sprintf("%v", Requisito[0]) != "map[]" {
+				//Se guarda JSON con los porcentajes específicos
+				var PorcentajeEspJSON map[string]interface{}
+				PorcentajeGeneral := Requisito[0]["PorcentajeGeneral"]
+				PorcentajeEspecifico := Requisito[0]["PorcentajeEspecifico"].(string)
+				if err := json.Unmarshal([]byte(PorcentajeEspecifico), &PorcentajeEspJSON); err == nil {
+					for i := 0; i < len(AspirantesData); i++ {
+						PersonaId := AspirantesData[i].(map[string]interface{})["Id"]
+						Asistencia := AspirantesData[i].(map[string]interface{})["Asistencia"]
+
+						//GET para obtener el numero de la inscripcion de la persona
+						errInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion?query=PersonaId:"+fmt.Sprintf("%v", PersonaId)+",ProgramaAcademicoId:"+fmt.Sprintf("%v", ProgramaAcademicoId)+",PeriodoId:"+fmt.Sprintf("%v", PeriodoId), &Inscripciones)
+						if errInscripcion == nil {
+							if Inscripciones != nil && fmt.Sprintf("%v", Inscripciones[0]) != "map[]" {
+								if PorcentajeEspJSON != nil && fmt.Sprintf("%v", PorcentajeEspJSON) != "map[]" {
+									//Calculos para los criterios que cuentan con subcriterios)
+									Ponderado = 0
+									DetalleCalificacion = "{\n\"areas\":\n["
+
+									for k := range PorcentajeEspJSON["areas"].([]interface{}) {
+										for k1, aux := range PorcentajeEspJSON["areas"].([]interface{})[k].(map[string]interface{}) {
+											for k2, aux2 := range Evaluacion["Aspirantes"].([]interface{})[i].(map[string]interface{}) {
+												if k1 == k2 {
+													//Si existe la columna de asistencia se hace la validación de la misma
+													if Asistencia != nil {
+														if Asistencia == true {
+															f, _ := strconv.ParseFloat(fmt.Sprintf("%v", aux), 64)  //Porcentaje del subcriterio
+															j, _ := strconv.ParseFloat(fmt.Sprintf("%v", aux2), 64) //Nota subcriterio
+															PonderadoAux := j * (f / 100)
+															Ponderado = Ponderado + PonderadoAux
+															if k+1 == len(PorcentajeEspJSON["areas"].([]interface{})) {
+																DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":" + fmt.Sprintf("%q", aux2) + ", \"Ponderado\":" + fmt.Sprintf("%.2f", PonderadoAux) + "}\n"
+															} else {
+																DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":" + fmt.Sprintf("%q", aux2) + ", \"Ponderado\":" + fmt.Sprintf("%.2f", PonderadoAux) + "},\n"
+															}
+														} else {
+															// Si el estudiante inscrito no asiste tendrá una calificación de 0
+															Ponderado = 0
+															if k+1 == len(PorcentajeEspJSON["areas"].([]interface{})) {
+																DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":\"0\", \"Ponderado\":\"0\"}\n"
+															} else {
+																DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":\"0\", \"Ponderado\":\"0\"},\n"
+															}
+														}
+													} else {
+														f, _ := strconv.ParseFloat(fmt.Sprintf("%v", aux), 64)  //Porcentaje del subcriterio
+														j, _ := strconv.ParseFloat(fmt.Sprintf("%v", aux2), 64) //Nota subcriterio
+														PonderadoAux := j * (f / 100)
+														Ponderado = Ponderado + PonderadoAux
+														if k+1 == len(PorcentajeEspJSON["areas"].([]interface{})) {
+															DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":" + fmt.Sprintf("%q", aux2) + ", \"Ponderado\":" + fmt.Sprintf("%.2f", PonderadoAux) + "}\n"
+														} else {
+															DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":" + fmt.Sprintf("%q", aux2) + ", \"Ponderado\":" + fmt.Sprintf("%.2f", PonderadoAux) + "},\n"
+														}
+													}
+												}
+											}
+										}
+									}
+									g, _ := strconv.ParseFloat(fmt.Sprintf("%v", PorcentajeGeneral), 64)
+									Ponderado = Ponderado * (g / 100)
+									DetalleCalificacion = DetalleCalificacion + "]\n}"
+								} else {
+									//Calculos para los criterios que no tienen subcriterios
+									//Si existe la columna de asistencia se hace la validación de la misma
+									if Asistencia != nil {
+										if Asistencia == true {
+											f, _ := strconv.ParseFloat(fmt.Sprintf("%v", AspirantesData[i].(map[string]interface{})["Puntaje"]), 64) //Puntaje del aspirante
+											g, _ := strconv.ParseFloat(fmt.Sprintf("%v", PorcentajeGeneral), 64)                                     //Porcentaje del criterio
+											Ponderado = f * (g / 100)                                                                                //100% del puntaje que obtuvo el aspirante
+											DetalleCalificacion = "{\n \"areas\": [\n {\"Puntuacion\":" + fmt.Sprintf("%q", AspirantesData[i].(map[string]interface{})["Puntaje"]) + "}\n]\n}"
+										} else {
+											// Si el estudiante inscrito no asiste tendrá una calificación de 0
+											Ponderado = 0
+											DetalleCalificacion = "{\n \"areas\": [\n {\"Puntuacion\": \"0\"}\n]\n}"
+										}
+									} else {
+										f, _ := strconv.ParseFloat(fmt.Sprintf("%v", AspirantesData[i].(map[string]interface{})["Puntaje"]), 64) //Puntaje del aspirante
+										g, _ := strconv.ParseFloat(fmt.Sprintf("%v", PorcentajeGeneral), 64)                                     //Porcentaje del criterio
+										Ponderado = f * (g / 100)                                                                                //100% del puntaje que obtuvo el aspirante
+										DetalleCalificacion = "{\n \"areas\": [\n {\"Puntuacion\":" + fmt.Sprintf("%q", AspirantesData[i].(map[string]interface{})["Puntaje"]) + "}\n]\n}"
+									}
+								}
+								// JSON para el post detalle evaluacion
+								respuesta[i] = map[string]interface{}{
+									"InscripcionId":                Inscripciones[0]["Id"],
+									"RequisitoProgramaAcademicoId": Requisito[0],
+									"Activo":                       true,
+									"FechaCreacion":                time.Now(),
+									"FechaModificacion":            time.Now(),
+									"DetalleCalificacion":          DetalleCalificacion,
+									"NotaRequisito":                Ponderado,
+								}
+								//Función POST a la tabla detalle_evaluación
+								errDetalleEvaluacion := request.SendJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"detalle_evaluacion", "POST", &DetalleEvaluacion, respuesta[i])
+								if errDetalleEvaluacion == nil {
+									if DetalleEvaluacion != nil && fmt.Sprintf("%v", DetalleEvaluacion) != "map[]" {
+										//respuesta[i] = DetalleEvaluacion
+									} else {
+										errorGetAll = true
+										alertas = append(alertas, "No data found")
+										alerta.Code = "404"
+										alerta.Type = "error"
+										alerta.Body = alertas
+										c.Data["json"] = map[string]interface{}{"Response": alerta}
+									}
+								} else {
+									errorGetAll = true
+									alertas = append(alertas, errDetalleEvaluacion.Error())
+									alerta.Code = "400"
+									alerta.Type = "error"
+									alerta.Body = alertas
+									c.Data["json"] = map[string]interface{}{"Response": alerta}
+								}
+							} else {
+								errorGetAll = true
+								alertas = append(alertas, "No data found")
+								alerta.Code = "404"
+								alerta.Type = "error"
+								alerta.Body = alertas
+								c.Data["json"] = map[string]interface{}{"Response": alerta}
+							}
+						} else {
+							errorGetAll = true
+							alertas = append(alertas, errInscripcion.Error())
+							alerta.Code = "400"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
+						}
+					}
+				}
+			} else {
+				errorGetAll = true
+				alertas = append(alertas, "No data found")
+				alerta.Code = "404"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Response": alerta}
+			}
+		} else {
+			errorGetAll = true
+			alertas = append(alertas, errRequisito.Error())
+			alerta.Code = "400"
+			alerta.Type = "error"
+			alerta.Body = alertas
+			c.Data["json"] = map[string]interface{}{"Response": alerta}
+		}
+
+		resultado["Evaluacion"] = respuesta
+	} else {
+		errorGetAll = true
+		alertas = append(alertas, err.Error())
+		alerta.Code = "400"
+		alerta.Type = "error"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
+	if !errorGetAll {
+		alertas = append(alertas, resultado)
+		alerta.Code = "200"
+		alerta.Type = "OK"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
+	c.ServeJSON()
+
 }
 
 // PostCriterioIcfes ...
