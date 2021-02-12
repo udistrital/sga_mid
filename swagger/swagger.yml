@@ -29,6 +29,24 @@ paths:
           description: '{}'
         "403":
           description: body is empty
+  /admision/calcular_nota:
+    put:
+      tags:
+      - admision
+      description: Se calcula la nota final de cada aspirante
+      operationId: AdmisionController.PutNotaFinalAspirantes
+      parameters:
+      - in: body
+        name: body
+        description: body Calcular nota final content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
   /admision/cambioestado:
     post:
       tags:
