@@ -80,6 +80,8 @@ func findGradePoints(SolicitudProduccion map[string]interface{}, idSubtipoInt in
 	autores = 0
 	var numEspecializacion int
 	var numMaestria int
+	var numDoctorado int
+	numDoctorado = 0
 	numEspecializacion = 0
 	numMaestria = 0
 	errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idTercero, &producciones)
@@ -92,6 +94,8 @@ func findGradePoints(SolicitudProduccion map[string]interface{}, idSubtipoInt in
 					numEspecializacion++
 				} else if subtipoId == 5 {
 					numMaestria++
+				} else if subtipoId == 6 {
+					numDoctorado++
 				}
 
 			}
@@ -102,7 +106,7 @@ func findGradePoints(SolicitudProduccion map[string]interface{}, idSubtipoInt in
 	if idSubtipoInt == 4 {
 		if numEspecializacion >= 2 {
 			//editar este valor a -1 para ajustar cuentas
-			valorNum = 2
+			valorNum = -1
 		} else if numEspecializacion == 1 {
 			valorNum = 2
 		} else if numEspecializacion == 0 {
@@ -114,20 +118,20 @@ func findGradePoints(SolicitudProduccion map[string]interface{}, idSubtipoInt in
 		} else if numMaestria == 0 && numEspecializacion >= 2 {
 			//editar if numEspecializacion >=2 a ==2
 			valorNum = 2
-		} else if numMaestria >= 1 && numEspecializacion == 0 {
+		} else if numMaestria == 1 && numEspecializacion == 0 {
 			// editar if numMaestria >=1 a ==1
 			valorNum = 3
 		} else {
 			//cambiar a 0 el valornum
-			valorNum = 3
+			valorNum = -1
 		}
 	} else if idSubtipoInt == 6 {
-		if numMaestria >= 1 {
+		if numMaestria >= 1 && numDoctorado == 0 {
 			valorNum = 1
-		} else if numMaestria == 0 {
+		} else if numMaestria == 0 && numDoctorado == 0{
 			valorNum = 2
 		} else {
-			valorNum = 0
+			valorNum = -1
 		}
 	}
 
