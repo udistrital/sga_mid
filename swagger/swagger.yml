@@ -1981,6 +1981,24 @@ paths:
           description: '{}'
         "404":
           description: not found resource
+  /solicitud_evaluacion/registrar_solicitud:
+    post:
+      tags:
+      - solicitud_evaluacion
+      description: Agregar una solicitud de actualizacion de datos(ID o nombre)
+      operationId: SolicitudEvaluacionController.PostSolicitudActualizacionDatos
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar solicitud actualizacion datos content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
   /solicitud_produccion/{id}:
     put:
       tags:
