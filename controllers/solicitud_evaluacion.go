@@ -46,7 +46,7 @@ func (c *SolicitudEvaluacionController) GetDatosSolicitud() {
 	resultado = make(map[string]interface{})
 	var alerta models.Alert
 	var errorGetAll bool
-	alertas := append([]interface{}{"Data:"})
+	alertas := append([]interface{}{})
 
 	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=TerceroId:"+id_persona+",SolicitudId.EstadoTipoSolicitudId.Id:"+id_estado_tipo_solicitud, &Solicitudes)
 	if errSolicitud == nil {
