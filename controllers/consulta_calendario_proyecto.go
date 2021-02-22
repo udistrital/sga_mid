@@ -95,15 +95,9 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 	var proyectosArr map[string]interface{}
 	var salidaFilter []map[string]interface{}
 	alertas := append([]interface{}{"Response:"})
-	idStr, _ := strconv.Atoi(c.Ctx.Input.Param(":id"))
-	var nivel = ""
-	if idStr == 14 {
-		nivel = "Pregrado"
-	} else {
-		nivel = "Posgrado"
-	}
+	idStr := c.Ctx.Input.Param(":id")
 
-	errProyectos := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=NivelFormacionId__Nombre:"+nivel+"&limit=0", &proyectos)
+	errProyectos := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?limit=0&query=NivelFormacionId.Id:"+idStr, &proyectos)
 	if errProyectos == nil && fmt.Sprintf("%v", proyectos[0]["Id"]) != "map[]" {
 
 		errCalendarios := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Activo:true&limit=0", &calendarios)
