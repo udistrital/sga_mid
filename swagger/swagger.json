@@ -1714,6 +1714,34 @@
                 }
             }
         },
+        "/inscripciones/generar_inscripcion": {
+            "post": {
+                "tags": [
+                    "inscripciones"
+                ],
+                "description": "Registra una nueva inscripción con su respectivo recibo de pago",
+                "operationId": "InscripcionesController.PostGenerarInscripcion",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for información de suministrada por el usuario par la inscripción",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
         "/inscripciones/info_complementaria_tercero": {
             "post": {
                 "tags": [
