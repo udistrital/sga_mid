@@ -1266,9 +1266,9 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 			"TipoInscripcionId":   map[string]interface{}{"Id": SolicitudInscripcion["TipoInscripcionId"]},
 		}
 
-		if SolicitudInscripcion["Nivel"].(float64) == 14 {
+		if SolicitudInscripcion["Nivel"].(float64) == 1 {
 			TipoParametro = "13"
-		} else if SolicitudInscripcion["Nivel"].(float64) == 15 {
+		} else if SolicitudInscripcion["Nivel"].(float64) == 2 {
 			TipoParametro = "12"
 		}
 
@@ -1319,12 +1319,16 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 						respuesta.Body = errRecibo.Error()
 					}
 				} else {
+					var resDelete string
+					request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion/%.f", inscripcionRealizada["Id"]), "DELETE", &resDelete, nil)
 					logs.Error(errJson)
 					respuesta.Type = "error"
 					respuesta.Code = "403"
 					respuesta.Body = errJson.Error()
 				}
 			} else {
+				var resDelete string
+				request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion/%.f", inscripcionRealizada["Id"]), "DELETE", &resDelete, nil)
 				logs.Error(errParam)
 				respuesta.Type = "error"
 				respuesta.Code = "400"
