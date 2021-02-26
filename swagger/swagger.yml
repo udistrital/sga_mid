@@ -1711,6 +1711,24 @@ paths:
           description: '{}'
         "404":
           description: not found resource
+  /produccion_academica/pr_academica/{tercero}:
+    get:
+      tags:
+      - produccion_academica
+      description: consultar Produccion Academica por tercero
+      operationId: ProduccionAcademicaController.GetIdProduccionAcademica
+      parameters:
+      - in: path
+        name: tercero
+        description: Tercero
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
   /proyecto_academico/:
     post:
       tags:
