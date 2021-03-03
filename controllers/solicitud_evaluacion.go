@@ -27,6 +27,136 @@ func (c *SolicitudEvaluacionController) URLMapping() {
 	c.Mapping("PostSolicitudActualizacionDatos", c.PostSolicitudActualizacionDatos)
 	c.Mapping("GetSolicitudActualizacionDatos", c.GetSolicitudActualizacionDatos)
 	c.Mapping("GetDatosSolicitud", c.GetDatosSolicitud)
+	c.Mapping("GetAllSolicitudActualizacionDatos", c.GetAllSolicitudActualizacionDatos)
+}
+
+// GetAllSolicitudActualizacionDatos ...
+// @Title GetAllSolicitudActualizacionDatos
+// @Description Consultar todas la solicitudes de actualización de datos
+// @Success 200 {}
+// @Failure 403 body is empty
+// @router /consultar_solicitud [get]
+func (c *SolicitudEvaluacionController) GetAllSolicitudActualizacionDatos() {
+	//Consulta a tabla de solicitante la cual trae toda la info de la solicitud
+	var Solicitudes []map[string]interface{}
+	var TipoSolicitud map[string]interface{}
+	var Estado map[string]interface{}
+	var Observacion []map[string]interface{}
+	var respuesta []map[string]interface{}
+	//var respuestaAux []map[string]in
+	var resultado map[string]interface{}
+	resultado = make(map[string]interface{})
+	var alerta models.Alert
+	var errorGetAll bool
+	alertas := append([]interface{}{})
+
+	for j := 15; j < 17; j++ {
+		errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=SolicitudId.EstadoTipoSolicitudId.Id:"+fmt.Sprintf("%v", j)+"&sortby:Id&order:asc", &Solicitudes)
+		if errSolicitud == nil {
+			if Solicitudes != nil && fmt.Sprintf("%v", Solicitudes[0]) != "map[]" {
+				respuesta = make([]map[string]interface{}, len(Solicitudes))
+				for i := 0; i < len(Solicitudes); i++ {
+					IdTipoSolicitud := fmt.Sprintf("%v", Solicitudes[i]["SolicitudId"].(map[string]interface{})["EstadoTipoSolicitudId"].(map[string]interface{})["TipoSolicitud"].(map[string]interface{})["Id"])
+					//Nombre tipo solicitud
+					errTipoSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"tipo_solicitud/"+IdTipoSolicitud, &TipoSolicitud)
+					if errTipoSolicitud == nil {
+						if TipoSolicitud != nil && fmt.Sprintf("%v", TipoSolicitud) != "map[]" {
+							IdEstado := fmt.Sprintf("%v", Solicitudes[i]["SolicitudId"].(map[string]interface{})["EstadoTipoSolicitudId"].(map[string]interface{})["EstadoId"].(map[string]interface{})["Id"])
+							//Nombre estado de la solicitud
+							errEstado := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"estado/"+IdEstado, &Estado)
+							if errEstado == nil {
+								if Estado != nil && fmt.Sprintf("%v", Estado) != "map[]" {
+									// Observacion (Si la hay) sobre la solicitud
+									IdSolicitud := fmt.Sprintf("%v", Solicitudes[i]["SolicitudId"].(map[string]interface{})["Id"])
+									errObservacion := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"observacion?query=SolicitudId:"+IdSolicitud, &Observacion)
+									if errObservacion == nil {
+										if Observacion != nil && fmt.Sprintf("%v", Observacion[0]) != "map[]" {
+											respuesta[i] = map[string]interface{}{
+												"Numero":      Solicitudes[i]["SolicitudId"].(map[string]interface{})["Id"],
+												"Fecha":       Solicitudes[i]["SolicitudId"].(map[string]interface{})["FechaRadicacion"],
+												"Tipo":        TipoSolicitud["Data"].(map[string]interface{})["Nombre"],
+												"Estado":      Estado["Data"].(map[string]interface{})["Nombre"],
+												"Observacion": Observacion[0]["Valor"],
+											}
+										} else {
+											respuesta[i] = map[string]interface{}{
+												"Numero":      Solicitudes[i]["SolicitudId"].(map[string]interface{})["Id"],
+												"Fecha":       Solicitudes[i]["SolicitudId"].(map[string]interface{})["FechaRadicacion"],
+												"Tipo":        TipoSolicitud["Data"].(map[string]interface{})["Nombre"],
+												"Estado":      Estado["Data"].(map[string]interface{})["Nombre"],
+												"Observacion": "",
+											}
+										}
+									} else {
+										errorGetAll = true
+										alertas = append(alertas, errEstado.Error())
+										alerta.Code = "400"
+										alerta.Type = "error"
+										alerta.Body = alertas
+										c.Data["json"] = map[string]interface{}{"Response": alerta}
+									}
+								} else {
+									errorGetAll = true
+									alertas = append(alertas, "No data found")
+									alerta.Code = "404"
+									alerta.Type = "error"
+									alerta.Body = alertas
+									c.Data["json"] = map[string]interface{}{"Response": alerta}
+								}
+							} else {
+								errorGetAll = true
+								alertas = append(alertas, errEstado.Error())
+								alerta.Code = "400"
+								alerta.Type = "error"
+								alerta.Body = alertas
+								c.Data["json"] = map[string]interface{}{"Response": alerta}
+							}
+						} else {
+							errorGetAll = true
+							alertas = append(alertas, "No data found")
+							alerta.Code = "404"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
+						}
+					} else {
+						errorGetAll = true
+						alertas = append(alertas, errTipoSolicitud.Error())
+						alerta.Code = "400"
+						alerta.Type = "error"
+						alerta.Body = alertas
+						c.Data["json"] = map[string]interface{}{"Response": alerta}
+					}
+				}
+
+				resultado["Response "+fmt.Sprintf("%v", j)] = respuesta
+			} else {
+				errorGetAll = true
+				alertas = append(alertas, "No data found")
+				alerta.Code = "404"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Response": alerta}
+			}
+		} else {
+			errorGetAll = true
+			alertas = append(alertas, errSolicitud.Error())
+			alerta.Code = "400"
+			alerta.Type = "error"
+			alerta.Body = alertas
+			c.Data["json"] = map[string]interface{}{"Response": alerta}
+		}
+	}
+
+	if !errorGetAll {
+		alertas = append(alertas, resultado)
+		alerta.Code = "200"
+		alerta.Type = "OK"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
+	c.ServeJSON()
 }
 
 // GetDatosSolicitud ...

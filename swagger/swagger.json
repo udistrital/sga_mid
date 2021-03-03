@@ -3031,6 +3031,23 @@
                 }
             }
         },
+        "/solicitud_evaluacion/consultar_solicitud": {
+            "get": {
+                "tags": [
+                    "solicitud_evaluacion"
+                ],
+                "description": "Consultar todas la solicitudes de actualización de datos",
+                "operationId": "SolicitudEvaluacionController.GetAllSolicitudActualizacionDatos",
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
         "/solicitud_evaluacion/consultar_solicitud/{id_persona}": {
             "get": {
                 "tags": [
