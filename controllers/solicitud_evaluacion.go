@@ -128,6 +128,7 @@ func (c *SolicitudEvaluacionController) GetSolicitudActualizacionDatos() {
 	var Solicitudes []map[string]interface{}
 	var TipoSolicitud map[string]interface{}
 	var Estado map[string]interface{}
+	var Observacion []map[string]interface{}
 	var respuesta []map[string]interface{}
 	var resultado map[string]interface{}
 	resultado = make(map[string]interface{})
@@ -150,11 +151,34 @@ func (c *SolicitudEvaluacionController) GetSolicitudActualizacionDatos() {
 						errEstado := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"estado/"+IdEstado, &Estado)
 						if errEstado == nil {
 							if Estado != nil && fmt.Sprintf("%v", Estado) != "map[]" {
-								respuesta[i] = map[string]interface{}{
-									"Numero": Solicitudes[i]["SolicitudId"].(map[string]interface{})["Id"],
-									"Fecha":  Solicitudes[i]["SolicitudId"].(map[string]interface{})["FechaRadicacion"],
-									"Tipo":   TipoSolicitud["Data"].(map[string]interface{})["Nombre"],
-									"Estado": Estado["Data"].(map[string]interface{})["Nombre"],
+								// Observacion (Si la hay) sobre la solicitud
+								IdSolicitud := fmt.Sprintf("%v", Solicitudes[i]["SolicitudId"].(map[string]interface{})["Id"])
+								errObservacion := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"observacion?query=SolicitudId:"+IdSolicitud+",TerceroId:"+id_persona, &Observacion)
+								if errObservacion == nil {
+									if Observacion != nil && fmt.Sprintf("%v", Observacion[0]) != "map[]" {
+										respuesta[i] = map[string]interface{}{
+											"Numero":      Solicitudes[i]["SolicitudId"].(map[string]interface{})["Id"],
+											"Fecha":       Solicitudes[i]["SolicitudId"].(map[string]interface{})["FechaRadicacion"],
+											"Tipo":        TipoSolicitud["Data"].(map[string]interface{})["Nombre"],
+											"Estado":      Estado["Data"].(map[string]interface{})["Nombre"],
+											"Observacion": Observacion[0]["Valor"],
+										}
+									} else {
+										respuesta[i] = map[string]interface{}{
+											"Numero":      Solicitudes[i]["SolicitudId"].(map[string]interface{})["Id"],
+											"Fecha":       Solicitudes[i]["SolicitudId"].(map[string]interface{})["FechaRadicacion"],
+											"Tipo":        TipoSolicitud["Data"].(map[string]interface{})["Nombre"],
+											"Estado":      Estado["Data"].(map[string]interface{})["Nombre"],
+											"Observacion": "",
+										}
+									}
+								} else {
+									errorGetAll = true
+									alertas = append(alertas, errEstado.Error())
+									alerta.Code = "400"
+									alerta.Type = "error"
+									alerta.Body = alertas
+									c.Data["json"] = map[string]interface{}{"Response": alerta}
 								}
 							} else {
 								errorGetAll = true
