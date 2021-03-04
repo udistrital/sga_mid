@@ -385,6 +385,7 @@ func (c *SolicitudEvaluacionController) PostSolicitudActualizacionDatos() {
 	var SolicitantePost map[string]interface{}
 	var Referencia string
 	var IdEstadoTipoSolicitud int
+	var SolicitudEvolucionEstadoPost map[string]interface{}
 	var resultado map[string]interface{}
 	resultado = make(map[string]interface{})
 	var alerta models.Alert
@@ -433,7 +434,42 @@ func (c *SolicitudEvaluacionController) PostSolicitudActualizacionDatos() {
 				errSolicitante := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante", "POST", &SolicitantePost, Solicitante)
 				if errSolicitante == nil && fmt.Sprintf("%v", SolicitantePost["Status"]) != "400" {
 					if SolicitantePost != nil && fmt.Sprintf("%v", SolicitantePost) != "map[]" {
-						resultado["Solicitante"] = SolicitantePost["Data"]
+						//POST a la tabla solicitud_evolucion estado
+						SolicitudEvolucionEstado := map[string]interface{}{
+							"TerceroId": IdTercero,
+							"SolicitudId": map[string]interface{}{
+								"Id": IdSolicitud,
+							},
+							"EstadoTipoSolicitudIdAnterior": nil,
+							"EstadoTipoSolicitudId": map[string]interface{}{
+								"Id": IdEstadoTipoSolicitud,
+							},
+							"Activo":      true,
+							"FechaLimite": fmt.Sprintf("%v", SolicitudJson.(map[string]interface{})["FechaSolicitud"]),
+						}
+						errSolicitudEvolucionEstado := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado", "POST", &SolicitudEvolucionEstadoPost, SolicitudEvolucionEstado)
+						if errSolicitudEvolucionEstado == nil {
+							if SolicitudEvolucionEstadoPost != nil && fmt.Sprintf("%v", SolicitudEvolucionEstadoPost) != "map[]" {
+								resultado["Solicitante"] = SolicitantePost["Data"]
+							} else {
+								errorGetAll = true
+								alertas = append(alertas, "No data found")
+								alerta.Code = "404"
+								alerta.Type = "error"
+								alerta.Body = alertas
+								c.Data["json"] = map[string]interface{}{"Response": alerta}
+							}
+						} else {
+							var resultado2 map[string]interface{}
+							request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+fmt.Sprintf("%v", IdSolicitud), "DELETE", &resultado2, nil)
+							request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante/"+fmt.Sprintf("%v", SolicitantePost["Id"]), "DELETE", &resultado2, nil)
+							errorGetAll = true
+							//alertas = append(alertas, errSolicitante.Error())
+							alerta.Code = "400"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
+						}
 					} else {
 						errorGetAll = true
 						alertas = append(alertas, "No data found")
