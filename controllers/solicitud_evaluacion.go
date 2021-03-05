@@ -45,6 +45,7 @@ func (c *SolicitudEvaluacionController) PostSolicitudEvolucionEstado() {
 	var SolicitudEvolucionEstado []map[string]interface{}
 	var EstadoTipoSolicitudId int
 	var SolicitudEvolucionEstadoPost map[string]interface{}
+	var ObservacionPost map[string]interface{}
 	var resultado map[string]interface{}
 	resultado = make(map[string]interface{})
 	var alerta models.Alert
@@ -54,6 +55,7 @@ func (c *SolicitudEvaluacionController) PostSolicitudEvolucionEstado() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &Solicitud); err == nil {
 		SolicitudId := fmt.Sprintf("%v", Solicitud["SolicitudId"])
 		Aprobado := Solicitud["Aprobado"]
+		Observacion := Solicitud["Observacion"]
 		errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado?query=SolicitudId.Id:"+SolicitudId+"&sortby:Id&order:desc", &SolicitudEvolucionEstado)
 		if errSolicitud == nil {
 			if SolicitudEvolucionEstado != nil && fmt.Sprintf("%v", SolicitudEvolucionEstado[0]) != "map[]" {
@@ -106,6 +108,39 @@ func (c *SolicitudEvaluacionController) PostSolicitudEvolucionEstado() {
 								errSolicitudAux := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+SolicitudId, "PUT", &SolicitudAuxPost, SolicitudAux)
 								if errSolicitudAux == nil {
 									if SolicitudAuxPost != nil && fmt.Sprintf("%v", SolicitudAuxPost) != "map[]" {
+										//POST a observación (si hay alguna)
+										if Observacion != "" {
+											ObservacionAux := map[string]interface{}{
+												"TipoObservacionId": map[string]interface{}{
+													"Id": 1,
+												},
+												"SolicitudId": map[string]interface{}{
+													"Id": Solicitud["SolicitudId"],
+												},
+												"TerceroId": TerceroId,
+												"Valor":     Observacion,
+												"Activo":    true,
+											}
+											errObservacion := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"observacion", "POST", &ObservacionPost, ObservacionAux)
+											if errObservacion == nil {
+												if ObservacionPost != nil && fmt.Sprintf("%v", ObservacionPost) != "map[]" {
+												} else {
+													errorGetAll = true
+													alertas = append(alertas, "No data found")
+													alerta.Code = "404"
+													alerta.Type = "error"
+													alerta.Body = alertas
+													c.Data["json"] = map[string]interface{}{"Response": alerta}
+												}
+											} else {
+												errorGetAll = true
+												alertas = append(alertas, errSolicitudAux.Error())
+												alerta.Code = "400"
+												alerta.Type = "error"
+												alerta.Body = alertas
+												c.Data["json"] = map[string]interface{}{"Response": alerta}
+											}
+										}
 										resultado = SolicitudEvolucionEstadoPost
 									} else {
 										errorGetAll = true
