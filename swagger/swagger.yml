@@ -2017,17 +2017,6 @@ paths:
           description: '{}'
         "404":
           description: not found resource
-  /solicitud_evaluacion/consultar_solicitud:
-    get:
-      tags:
-      - solicitud_evaluacion
-      description: Consultar todas la solicitudes de actualización de datos
-      operationId: SolicitudEvaluacionController.GetAllSolicitudActualizacionDatos
-      responses:
-        "200":
-          description: '{}'
-        "403":
-          description: body is empty
   /solicitud_evaluacion/consultar_solicitud/{id_persona}:
     get:
       tags:
@@ -2062,6 +2051,24 @@ paths:
       - in: path
         name: id_estado_tipo_solicitud
         description: Id del estado del tipo de solictud
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /solicitud_evaluacion/consultar_solicitudes/{id_estado_tipo_sol}:
+    get:
+      tags:
+      - solicitud_evaluacion
+      description: Consultar todas la solicitudes de actualización de datos
+      operationId: SolicitudEvaluacionController.GetAllSolicitudActualizacionDatos
+      parameters:
+      - in: path
+        name: id_estado_tipo_sol
+        description: Id del estado tipo solicitud
         required: true
         type: integer
         format: int64

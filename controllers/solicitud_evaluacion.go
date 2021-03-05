@@ -229,11 +229,13 @@ func (c *SolicitudEvaluacionController) PostSolicitudEvolucionEstado() {
 // GetAllSolicitudActualizacionDatos ...
 // @Title GetAllSolicitudActualizacionDatos
 // @Description Consultar todas la solicitudes de actualización de datos
+// @Param	id_estado_tipo_sol	path	int	true	"Id del estado tipo solicitud"
 // @Success 200 {}
 // @Failure 403 body is empty
-// @router /consultar_solicitud [get]
+// @router /consultar_solicitudes/:id_estado_tipo_sol [get]
 func (c *SolicitudEvaluacionController) GetAllSolicitudActualizacionDatos() {
 	//Consulta a tabla de solicitante la cual trae toda la info de la solicitud
+	id_estado_tipo_sol := c.Ctx.Input.Param(":id_estado_tipo_sol")
 	var Solicitudes []map[string]interface{}
 	var TipoSolicitud map[string]interface{}
 	var Estado map[string]interface{}
@@ -246,102 +248,100 @@ func (c *SolicitudEvaluacionController) GetAllSolicitudActualizacionDatos() {
 	var errorGetAll bool
 	alertas := append([]interface{}{})
 
-	for j := 15; j < 17; j++ {
-		errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=SolicitudId.EstadoTipoSolicitudId.Id:"+fmt.Sprintf("%v", j)+"&sortby:Id&order:asc", &Solicitudes)
-		if errSolicitud == nil {
-			if Solicitudes != nil && fmt.Sprintf("%v", Solicitudes[0]) != "map[]" {
-				respuesta = make([]map[string]interface{}, len(Solicitudes))
-				for i := 0; i < len(Solicitudes); i++ {
-					IdTipoSolicitud := fmt.Sprintf("%v", Solicitudes[i]["SolicitudId"].(map[string]interface{})["EstadoTipoSolicitudId"].(map[string]interface{})["TipoSolicitud"].(map[string]interface{})["Id"])
-					//Nombre tipo solicitud
-					errTipoSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"tipo_solicitud/"+IdTipoSolicitud, &TipoSolicitud)
-					if errTipoSolicitud == nil {
-						if TipoSolicitud != nil && fmt.Sprintf("%v", TipoSolicitud) != "map[]" {
-							IdEstado := fmt.Sprintf("%v", Solicitudes[i]["SolicitudId"].(map[string]interface{})["EstadoTipoSolicitudId"].(map[string]interface{})["EstadoId"].(map[string]interface{})["Id"])
-							//Nombre estado de la solicitud
-							errEstado := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"estado/"+IdEstado, &Estado)
-							if errEstado == nil {
-								if Estado != nil && fmt.Sprintf("%v", Estado) != "map[]" {
-									// Observacion (Si la hay) sobre la solicitud
-									IdSolicitud := fmt.Sprintf("%v", Solicitudes[i]["SolicitudId"].(map[string]interface{})["Id"])
-									errObservacion := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"observacion?query=SolicitudId:"+IdSolicitud, &Observacion)
-									if errObservacion == nil {
-										if Observacion != nil && fmt.Sprintf("%v", Observacion[0]) != "map[]" {
-											respuesta[i] = map[string]interface{}{
-												"Numero":      Solicitudes[i]["SolicitudId"].(map[string]interface{})["Id"],
-												"Fecha":       Solicitudes[i]["SolicitudId"].(map[string]interface{})["FechaRadicacion"],
-												"Tipo":        TipoSolicitud["Data"].(map[string]interface{})["Nombre"],
-												"Estado":      Estado["Data"].(map[string]interface{})["Nombre"],
-												"Observacion": Observacion[0]["Valor"],
-											}
-										} else {
-											respuesta[i] = map[string]interface{}{
-												"Numero":      Solicitudes[i]["SolicitudId"].(map[string]interface{})["Id"],
-												"Fecha":       Solicitudes[i]["SolicitudId"].(map[string]interface{})["FechaRadicacion"],
-												"Tipo":        TipoSolicitud["Data"].(map[string]interface{})["Nombre"],
-												"Estado":      Estado["Data"].(map[string]interface{})["Nombre"],
-												"Observacion": "",
-											}
+	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=SolicitudId.EstadoTipoSolicitudId.Id:"+fmt.Sprintf("%v", id_estado_tipo_sol)+"&sortby:Id&order:asc", &Solicitudes)
+	if errSolicitud == nil {
+		if Solicitudes != nil && fmt.Sprintf("%v", Solicitudes[0]) != "map[]" {
+			respuesta = make([]map[string]interface{}, len(Solicitudes))
+			for i := 0; i < len(Solicitudes); i++ {
+				IdTipoSolicitud := fmt.Sprintf("%v", Solicitudes[i]["SolicitudId"].(map[string]interface{})["EstadoTipoSolicitudId"].(map[string]interface{})["TipoSolicitud"].(map[string]interface{})["Id"])
+				//Nombre tipo solicitud
+				errTipoSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"tipo_solicitud/"+IdTipoSolicitud, &TipoSolicitud)
+				if errTipoSolicitud == nil {
+					if TipoSolicitud != nil && fmt.Sprintf("%v", TipoSolicitud) != "map[]" {
+						IdEstado := fmt.Sprintf("%v", Solicitudes[i]["SolicitudId"].(map[string]interface{})["EstadoTipoSolicitudId"].(map[string]interface{})["EstadoId"].(map[string]interface{})["Id"])
+						//Nombre estado de la solicitud
+						errEstado := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"estado/"+IdEstado, &Estado)
+						if errEstado == nil {
+							if Estado != nil && fmt.Sprintf("%v", Estado) != "map[]" {
+								// Observacion (Si la hay) sobre la solicitud
+								IdSolicitud := fmt.Sprintf("%v", Solicitudes[i]["SolicitudId"].(map[string]interface{})["Id"])
+								errObservacion := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"observacion?query=SolicitudId:"+IdSolicitud, &Observacion)
+								if errObservacion == nil {
+									if Observacion != nil && fmt.Sprintf("%v", Observacion[0]) != "map[]" {
+										respuesta[i] = map[string]interface{}{
+											"Numero":      Solicitudes[i]["SolicitudId"].(map[string]interface{})["Id"],
+											"Fecha":       Solicitudes[i]["SolicitudId"].(map[string]interface{})["FechaRadicacion"],
+											"Tipo":        TipoSolicitud["Data"].(map[string]interface{})["Nombre"],
+											"Estado":      Estado["Data"].(map[string]interface{})["Nombre"],
+											"Observacion": Observacion[0]["Valor"],
 										}
 									} else {
-										errorGetAll = true
-										alertas = append(alertas, errEstado.Error())
-										alerta.Code = "400"
-										alerta.Type = "error"
-										alerta.Body = alertas
-										c.Data["json"] = map[string]interface{}{"Response": alerta}
+										respuesta[i] = map[string]interface{}{
+											"Numero":      Solicitudes[i]["SolicitudId"].(map[string]interface{})["Id"],
+											"Fecha":       Solicitudes[i]["SolicitudId"].(map[string]interface{})["FechaRadicacion"],
+											"Tipo":        TipoSolicitud["Data"].(map[string]interface{})["Nombre"],
+											"Estado":      Estado["Data"].(map[string]interface{})["Nombre"],
+											"Observacion": "",
+										}
 									}
 								} else {
 									errorGetAll = true
-									alertas = append(alertas, "No data found")
-									alerta.Code = "404"
+									alertas = append(alertas, errEstado.Error())
+									alerta.Code = "400"
 									alerta.Type = "error"
 									alerta.Body = alertas
 									c.Data["json"] = map[string]interface{}{"Response": alerta}
 								}
 							} else {
 								errorGetAll = true
-								alertas = append(alertas, errEstado.Error())
-								alerta.Code = "400"
+								alertas = append(alertas, "No data found")
+								alerta.Code = "404"
 								alerta.Type = "error"
 								alerta.Body = alertas
 								c.Data["json"] = map[string]interface{}{"Response": alerta}
 							}
 						} else {
 							errorGetAll = true
-							alertas = append(alertas, "No data found")
-							alerta.Code = "404"
+							alertas = append(alertas, errEstado.Error())
+							alerta.Code = "400"
 							alerta.Type = "error"
 							alerta.Body = alertas
 							c.Data["json"] = map[string]interface{}{"Response": alerta}
 						}
 					} else {
 						errorGetAll = true
-						alertas = append(alertas, errTipoSolicitud.Error())
-						alerta.Code = "400"
+						alertas = append(alertas, "No data found")
+						alerta.Code = "404"
 						alerta.Type = "error"
 						alerta.Body = alertas
 						c.Data["json"] = map[string]interface{}{"Response": alerta}
 					}
+				} else {
+					errorGetAll = true
+					alertas = append(alertas, errTipoSolicitud.Error())
+					alerta.Code = "400"
+					alerta.Type = "error"
+					alerta.Body = alertas
+					c.Data["json"] = map[string]interface{}{"Response": alerta}
 				}
-
-				resultado["Response "+fmt.Sprintf("%v", j)] = respuesta
-			} else {
-				errorGetAll = true
-				alertas = append(alertas, "No data found")
-				alerta.Code = "404"
-				alerta.Type = "error"
-				alerta.Body = alertas
-				c.Data["json"] = map[string]interface{}{"Response": alerta}
 			}
+
+			resultado["Data"] = respuesta
 		} else {
 			errorGetAll = true
-			alertas = append(alertas, errSolicitud.Error())
-			alerta.Code = "400"
+			alertas = append(alertas, "No data found")
+			alerta.Code = "404"
 			alerta.Type = "error"
 			alerta.Body = alertas
 			c.Data["json"] = map[string]interface{}{"Response": alerta}
 		}
+	} else {
+		errorGetAll = true
+		alertas = append(alertas, errSolicitud.Error())
+		alerta.Code = "400"
+		alerta.Type = "error"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
 	}
 
 	if !errorGetAll {
@@ -450,6 +450,7 @@ func (c *SolicitudEvaluacionController) GetDatosSolicitud() {
 // @Failure 403 body is empty
 // @router /consultar_solicitud/:id_persona [get]
 func (c *SolicitudEvaluacionController) GetSolicitudActualizacionDatos() {
+	fmt.Println("emtra")
 	id_persona := c.Ctx.Input.Param(":id_persona")
 	var Solicitudes []map[string]interface{}
 	var TipoSolicitud map[string]interface{}
@@ -463,6 +464,7 @@ func (c *SolicitudEvaluacionController) GetSolicitudActualizacionDatos() {
 	alertas := append([]interface{}{})
 
 	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=TerceroId:"+id_persona+"&sortby=Id&order=asc", &Solicitudes)
+	fmt.Println("http://" + beego.AppConfig.String("SolicitudDocenteService") + "solicitante?query=TerceroId:" + id_persona + "&sortby=Id&order=asc")
 	if errSolicitud == nil {
 		if Solicitudes != nil && fmt.Sprintf("%v", Solicitudes[0]) != "map[]" {
 			respuesta = make([]map[string]interface{}, len(Solicitudes))
