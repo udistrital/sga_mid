@@ -2070,6 +2070,25 @@ paths:
           description: '{}'
         "403":
           description: body is empty
+  /solicitud_evaluacion/registrar_evolucion:
+    post:
+      tags:
+      - solicitud_evaluacion
+      description: Agregar una evolucion del estado a la solicitud planteada
+      operationId: SolicitudEvaluacionController.PostSolicitudEvolucionEstado
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar una evolucion del estado a la solicitud planteada
+          content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
   /solicitud_evaluacion/registrar_solicitud:
     post:
       tags:
