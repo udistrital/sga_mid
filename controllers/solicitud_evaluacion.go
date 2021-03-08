@@ -43,6 +43,8 @@ func (c *SolicitudEvaluacionController) URLMapping() {
 func (c *SolicitudEvaluacionController) GetDatosSolicitudById() {
 	id_solicitud := c.Ctx.Input.Param(":id_solicitud")
 	var Solicitud map[string]interface{}
+	var TipoDocumentoGet map[string]interface{}
+	var TipoDocumentoActualGet map[string]interface{}
 	var resultado map[string]interface{}
 	resultado = make(map[string]interface{})
 	var alerta models.Alert
@@ -53,23 +55,68 @@ func (c *SolicitudEvaluacionController) GetDatosSolicitudById() {
 	if errSolicitud == nil {
 		if Solicitud != nil && fmt.Sprintf("%v", Solicitud) != "map[]" {
 			Referencia := Solicitud["Referencia"].(string)
+			resultado["FechaSolicitud"] = Solicitud["FechaRadicacion"]
 			var ReferenciaJson map[string]interface{}
 			if err := json.Unmarshal([]byte(Referencia), &ReferenciaJson); err == nil {
 				formatdata.JsonPrint(ReferenciaJson)
 				TipoSolicitud := Solicitud["EstadoTipoSolicitudId"].(map[string]interface{})["Id"]
 				TipoSolicitudId, _ := strconv.ParseInt(fmt.Sprintf("%v", TipoSolicitud), 10, 64)
+
 				if TipoSolicitudId == 15 || TipoSolicitudId == 17 || TipoSolicitudId == 20 {
-					resultado["TipoDocumentoActual"] = map[string]interface{}{
-						"Id": ReferenciaJson["DatosAnteriores"].(map[string]interface{})["TipoDocumentoActual"].(map[string]interface{})["Id"],
-					}
+					TipoDocumento := fmt.Sprintf("%v", ReferenciaJson["DatosAnteriores"].(map[string]interface{})["TipoDocumentoActual"].(map[string]interface{})["Id"])
 					resultado["NumeroActual"] = ReferenciaJson["DatosAnteriores"].(map[string]interface{})["NumeroActual"]
 					resultado["FechaExpedicionActual"] = ReferenciaJson["DatosAnteriores"].(map[string]interface{})["FechaExpedicionActual"]
-					resultado["TipoDocumentoNuevo"] = map[string]interface{}{
-						"Id": ReferenciaJson["DatosNuevos"].(map[string]interface{})["TipoDocumentoNuevo"].(map[string]interface{})["Id"],
-					}
 					resultado["NumeroNuevo"] = ReferenciaJson["DatosNuevos"].(map[string]interface{})["NumeroNuevo"]
 					resultado["FechaExpedicionNuevo"] = ReferenciaJson["DatosNuevos"].(map[string]interface{})["FechaExpedicionNuevo"]
 					resultado["Documento"] = ReferenciaJson["DocumentoId"]
+
+					errTipoDocumento := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tipo_documento/"+TipoDocumento, &TipoDocumentoGet)
+					if errTipoDocumento == nil {
+						if TipoDocumentoGet != nil && fmt.Sprintf("%v", TipoDocumentoGet) != "map[]" {
+							resultado["TipoDocumentoActual"] = map[string]interface{}{
+								"Id":     TipoDocumento,
+								"Nombre": TipoDocumentoGet["Nombre"],
+							}
+						} else {
+							errorGetAll = true
+							alertas = append(alertas, "No data found")
+							alerta.Code = "404"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
+						}
+					} else {
+						errorGetAll = true
+						alertas = append(alertas, errTipoDocumento.Error())
+						alerta.Code = "400"
+						alerta.Type = "error"
+						alerta.Body = alertas
+						c.Data["json"] = map[string]interface{}{"Response": alerta}
+					}
+					TipoDocumentoAux := fmt.Sprintf("%v", ReferenciaJson["DatosNuevos"].(map[string]interface{})["TipoDocumentoNuevo"].(map[string]interface{})["Id"])
+					errTipoDocumentoActual := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tipo_documento/"+TipoDocumentoAux, &TipoDocumentoActualGet)
+					if errTipoDocumentoActual == nil {
+						if TipoDocumentoActualGet != nil && fmt.Sprintf("%v", TipoDocumentoActualGet) != "map[]" {
+							resultado["TipoDocumentoNuevo"] = map[string]interface{}{
+								"Id":     TipoDocumentoAux,
+								"Nombre": TipoDocumentoActualGet["Nombre"],
+							}
+						} else {
+							errorGetAll = true
+							alertas = append(alertas, "No data found")
+							alerta.Code = "404"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
+						}
+					} else {
+						errorGetAll = true
+						alertas = append(alertas, errTipoDocumento.Error())
+						alerta.Code = "400"
+						alerta.Type = "error"
+						alerta.Body = alertas
+						c.Data["json"] = map[string]interface{}{"Response": alerta}
+					}
 				} else if TipoSolicitudId == 16 || TipoSolicitudId == 18 || TipoSolicitudId == 19 {
 					resultado["NombreActual"] = ReferenciaJson["DatosAnteriores"].(map[string]interface{})["NombreActual"]
 					resultado["ApellidoActual"] = ReferenciaJson["DatosAnteriores"].(map[string]interface{})["ApellidoActual"]
