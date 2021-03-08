@@ -3031,6 +3031,33 @@
                 }
             }
         },
+        "/solicitud_evaluacion/consultar_solicitud/solicitud/{id_solicitud}": {
+            "get": {
+                "tags": [
+                    "solicitud_evaluacion"
+                ],
+                "description": "Consultar los datos ingresados por el estudiante en su solicitud consultando por id de la solicitud",
+                "operationId": "SolicitudEvaluacionController.GetDatosSolicitudById",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id_solicitud",
+                        "description": "Id de la solicitud",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
         "/solicitud_evaluacion/consultar_solicitud/{id_persona}": {
             "get": {
                 "tags": [

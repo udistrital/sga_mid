@@ -8,6 +8,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
+	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 )
 
@@ -29,6 +30,80 @@ func (c *SolicitudEvaluacionController) URLMapping() {
 	c.Mapping("GetDatosSolicitud", c.GetDatosSolicitud)
 	c.Mapping("GetAllSolicitudActualizacionDatos", c.GetAllSolicitudActualizacionDatos)
 	c.Mapping("PostSolicitudEvolucionEstado", c.PostSolicitudEvolucionEstado)
+	c.Mapping("GetDatosSolicitudById", c.GetDatosSolicitudById)
+}
+
+// GetDatosSolicitudById ...
+// @Title GetDatosSolicitudById
+// @Description Consultar los datos ingresados por el estudiante en su solicitud consultando por id de la solicitud
+// @Param	id_solicitud	path	int	true	"Id de la solicitud"
+// @Success 200 {}
+// @Failure 403 body is empty
+// @router /consultar_solicitud/solicitud/:id_solicitud [get]
+func (c *SolicitudEvaluacionController) GetDatosSolicitudById() {
+	id_solicitud := c.Ctx.Input.Param(":id_solicitud")
+	var Solicitud map[string]interface{}
+	var resultado map[string]interface{}
+	resultado = make(map[string]interface{})
+	var alerta models.Alert
+	var errorGetAll bool
+	alertas := append([]interface{}{})
+
+	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+id_solicitud, &Solicitud)
+	if errSolicitud == nil {
+		if Solicitud != nil && fmt.Sprintf("%v", Solicitud) != "map[]" {
+			Referencia := Solicitud["Referencia"].(string)
+			var ReferenciaJson map[string]interface{}
+			if err := json.Unmarshal([]byte(Referencia), &ReferenciaJson); err == nil {
+				formatdata.JsonPrint(ReferenciaJson)
+				TipoSolicitud := Solicitud["EstadoTipoSolicitudId"].(map[string]interface{})["Id"]
+				TipoSolicitudId, _ := strconv.ParseInt(fmt.Sprintf("%v", TipoSolicitud), 10, 64)
+				if TipoSolicitudId == 15 || TipoSolicitudId == 17 || TipoSolicitudId == 20 {
+					resultado["TipoDocumentoActual"] = map[string]interface{}{
+						"Id": ReferenciaJson["DatosAnteriores"].(map[string]interface{})["TipoDocumentoActual"].(map[string]interface{})["Id"],
+					}
+					resultado["NumeroActual"] = ReferenciaJson["DatosAnteriores"].(map[string]interface{})["NumeroActual"]
+					resultado["FechaExpedicionActual"] = ReferenciaJson["DatosAnteriores"].(map[string]interface{})["FechaExpedicionActual"]
+					resultado["TipoDocumentoNuevo"] = map[string]interface{}{
+						"Id": ReferenciaJson["DatosNuevos"].(map[string]interface{})["TipoDocumentoNuevo"].(map[string]interface{})["Id"],
+					}
+					resultado["NumeroNuevo"] = ReferenciaJson["DatosNuevos"].(map[string]interface{})["NumeroNuevo"]
+					resultado["FechaExpedicionNuevo"] = ReferenciaJson["DatosNuevos"].(map[string]interface{})["FechaExpedicionNuevo"]
+					resultado["Documento"] = ReferenciaJson["DocumentoId"]
+				} else if TipoSolicitudId == 16 || TipoSolicitudId == 18 || TipoSolicitudId == 19 {
+					resultado["NombreActual"] = ReferenciaJson["DatosAnteriores"].(map[string]interface{})["NombreActual"]
+					resultado["ApellidoActual"] = ReferenciaJson["DatosAnteriores"].(map[string]interface{})["ApellidoActual"]
+					resultado["NombreNuevo"] = ReferenciaJson["DatosNuevos"].(map[string]interface{})["NombreNuevo"]
+					resultado["ApellidoNuevo"] = ReferenciaJson["DatosNuevos"].(map[string]interface{})["ApellidoNuevo"]
+					resultado["Documento"] = ReferenciaJson["DocumentoId"]
+				}
+			}
+		} else {
+			errorGetAll = true
+			alertas = append(alertas, "No data found")
+			alerta.Code = "404"
+			alerta.Type = "error"
+			alerta.Body = alertas
+			c.Data["json"] = map[string]interface{}{"Response": alerta}
+		}
+	} else {
+		errorGetAll = true
+		alertas = append(alertas, errSolicitud.Error())
+		alerta.Code = "400"
+		alerta.Type = "error"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
+	if !errorGetAll {
+		alertas = append(alertas, resultado)
+		alerta.Code = "200"
+		alerta.Type = "OK"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
+	c.ServeJSON()
 }
 
 // PostSolicitudEvolucionEstado ...
