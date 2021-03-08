@@ -3031,6 +3031,33 @@
                 }
             }
         },
+        "/solicitud_evaluacion/consultar_solicitud/solicitud/{id_solicitud}": {
+            "get": {
+                "tags": [
+                    "solicitud_evaluacion"
+                ],
+                "description": "Consultar los datos ingresados por el estudiante en su solicitud consultando por id de la solicitud",
+                "operationId": "SolicitudEvaluacionController.GetDatosSolicitudById",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id_solicitud",
+                        "description": "Id de la solicitud",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
         "/solicitud_evaluacion/consultar_solicitud/{id_persona}": {
             "get": {
                 "tags": [
@@ -3081,6 +3108,61 @@
                         "required": true,
                         "type": "integer",
                         "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/solicitud_evaluacion/consultar_solicitudes/{id_estado_tipo_sol}": {
+            "get": {
+                "tags": [
+                    "solicitud_evaluacion"
+                ],
+                "description": "Consultar todas la solicitudes de actualización de datos",
+                "operationId": "SolicitudEvaluacionController.GetAllSolicitudActualizacionDatos",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id_estado_tipo_sol",
+                        "description": "Id del estado tipo solicitud",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/solicitud_evaluacion/registrar_evolucion": {
+            "post": {
+                "tags": [
+                    "solicitud_evaluacion"
+                ],
+                "description": "Agregar una evolucion del estado a la solicitud planteada",
+                "operationId": "SolicitudEvaluacionController.PostSolicitudEvolucionEstado",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar una evolucion del estado a la solicitud planteada content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
                     }
                 ],
                 "responses": {
