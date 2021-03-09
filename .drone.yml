@@ -58,7 +58,6 @@ steps:
     - develop
     - release/*
     - feature/*
-    - release
     - master
     event:
     - push
@@ -80,7 +79,7 @@ steps:
     branch:
     - develop
     - feature/*
-    - release
+    - release/*
    
     event:
     - push
