@@ -97,22 +97,6 @@ steps:
     - feature/*
     - release
 
-#- name: publish_dockerhub
-#  image: plugins/docker
-#  settings:
-#    username:
-#      from_secret: DOCKER_USERNAME
-#    password:
-#      from_secret: DOCKER_PASSWORD
-#    repo: oas0/${DRONE_REPO##udistrital/}
-#    tags:
-#      - ${DRONE_COMMIT:0:7}
-#      - latest
-#  when:
-#    branch:
-#    - release
-#    - master
-
 - name: publish_to_ecr_release
   image: plugins/ecr
   settings:
