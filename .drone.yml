@@ -37,7 +37,6 @@ steps:
 
 - name: check_commits
   image: jjvargass/qa_develoment:latest
-  failure: ignore
   commands:
   - python /app/check_commits.py
   when:
@@ -58,6 +57,7 @@ steps:
     branch:
     - develop
     - release/*
+    - feature/*
     - master
     event:
     - push
@@ -78,8 +78,9 @@ steps:
   when:
     branch:
     - develop
+    - feature/*
     - release/*
-    - master
+   
     event:
     - push
 
@@ -127,9 +128,9 @@ steps:
       - release
   when:
     branch:
-      - release
+    - release
     event:
-      - push
+    - push
 
 - name: publish_to_ecr_master
   image: plugins/ecr
@@ -146,9 +147,9 @@ steps:
       - latest
   when:
     branch:
-      - master
+    - master
     event:
-      - push
+    - push
 
 - name: update_aws_ecs
   image: golang:1.9
@@ -174,14 +175,13 @@ steps:
     esac
   - AWS_REGION=us-east-1
   - SERVICE=${DRONE_REPO##udistrital/}_$AMBIENTE
-  - MYCONTAINER=oas0/${DRONE_REPO##udistrital/}:${DRONE_COMMIT:0:7}
   - container_name=${DRONE_REPO##udistrital/}
   - apt-get update
   - apt-get install unzip
   - wget https://github.com/Autodesk/go-awsecs/releases/download/v1.1/update-aws-ecs-service-linux-amd64.zip
   - unzip update-aws-ecs-service-linux-amd64.zip -d /go/bin
   - AWS_ACCESS_KEY_ID=$${AWS_ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=$${AWS_SECRET_ACCESS_KEY} AWS_REGION=$AWS_REGION
-    $GOPATH/bin/update-aws-ecs-service -cluster $CLUSTER -service $SERVICE -container-image $container_name=$MYCONTAINER
+    $GOPATH/bin/update-aws-ecs-service -cluster $CLUSTER -service $SERVICE -container-image $MYCONTAINER
   when:
     branch:
     - release/*
