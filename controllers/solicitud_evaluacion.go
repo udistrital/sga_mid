@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
@@ -168,6 +169,9 @@ func (c *SolicitudEvaluacionController) PostSolicitudEvolucionEstado() {
 	var EstadoTipoSolicitudId int
 	var SolicitudEvolucionEstadoPost map[string]interface{}
 	var ObservacionPost map[string]interface{}
+	var SolicitudAprob map[string]interface{}
+	var Tercero map[string]interface{}
+	var TerceroPut map[string]interface{}
 	var resultado map[string]interface{}
 	resultado = make(map[string]interface{})
 	var alerta models.Alert
@@ -263,6 +267,97 @@ func (c *SolicitudEvaluacionController) PostSolicitudEvolucionEstado() {
 												c.Data["json"] = map[string]interface{}{"Response": alerta}
 											}
 										}
+										// En caso de que la solicitud sea aprobada se traen los datos a cambiar y se hace POST a la respectiva tabla
+										if EstadoTipoSolicitudId == 17 || EstadoTipoSolicitudId == 18 {
+											errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+SolicitudId, &SolicitudAprob)
+											if errSolicitud == nil {
+												if SolicitudAprob != nil && fmt.Sprintf("%v", SolicitudAprob) != "map[]" {
+													Referencia := SolicitudAprob["Referencia"].(string)
+													var ReferenciaJson map[string]interface{}
+													if err := json.Unmarshal([]byte(Referencia), &ReferenciaJson); err == nil {
+														if EstadoTipoSolicitudId == 17 {
+															//POST a terceros, a la tabla datos_identificacion por cambio de identificación
+
+														} else if EstadoTipoSolicitudId == 18 {
+															//PUT a terceros, a la tabla tercero por cambio de nombre(s)
+															errTercero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+fmt.Sprintf("%v", TerceroId), &Tercero)
+															if errTercero == nil {
+																if Tercero != nil && fmt.Sprintf("%v", Tercero) != "map[]" {
+																	Tercero["NombreCompleto"] = (fmt.Sprintf("%v", ReferenciaJson["DatosNuevos"].(map[string]interface{})["NombreNuevo"]) + " " + fmt.Sprintf("%v", ReferenciaJson["DatosNuevos"].(map[string]interface{})["ApellidoNuevo"]))
+																	Nombres := strings.SplitAfter(fmt.Sprintf("%v", ReferenciaJson["DatosNuevos"].(map[string]interface{})["NombreNuevo"]), " ")
+																	Apellidos := strings.SplitAfter(fmt.Sprintf("%v", ReferenciaJson["DatosNuevos"].(map[string]interface{})["ApellidoNuevo"]), " ")
+																	//Se actualiza el primer y segundo nombre (si lo tiene)
+																	if len(Nombres) > 1 {
+																		Tercero["PrimerNombre"] = Nombres[0]
+																		Tercero["SegundoNombre"] = Nombres[1]
+																	} else {
+																		Tercero["PrimerNombre"] = Nombres[0]
+																		Tercero["SegundoNombre"] = ""
+																	}
+																	//Se actualiza el primer y segundo apellido (si lo tiene)
+																	if len(Apellidos) > 1 {
+																		Tercero["PrimerApellido"] = Apellidos[0]
+																		Tercero["SegundoApellido"] = Apellidos[1]
+																	} else {
+																		Tercero["PrimerApellido"] = Apellidos[0]
+																		Tercero["SegundoApellido"] = ""
+																	}
+																	errTerceroPut := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+fmt.Sprintf("%v", TerceroId), "PUT", &TerceroPut, Tercero)
+																	if errTerceroPut == nil {
+																		if TerceroPut != nil && fmt.Sprintf("%v", TerceroPut) != "map[]" {
+
+																		} else {
+																			errorGetAll = true
+																			alertas = append(alertas, "No data found")
+																			alerta.Code = "404"
+																			alerta.Type = "error"
+																			alerta.Body = alertas
+																			c.Data["json"] = map[string]interface{}{"Response": alerta}
+																		}
+																	} else {
+																		errorGetAll = true
+																		alertas = append(alertas, errTerceroPut.Error())
+																		alerta.Code = "400"
+																		alerta.Type = "error"
+																		alerta.Body = alertas
+																		c.Data["json"] = map[string]interface{}{"Response": alerta}
+																	}
+																} else {
+																	errorGetAll = true
+																	alertas = append(alertas, "No data found")
+																	alerta.Code = "404"
+																	alerta.Type = "error"
+																	alerta.Body = alertas
+																	c.Data["json"] = map[string]interface{}{"Response": alerta}
+																}
+															} else {
+																errorGetAll = true
+																alertas = append(alertas, errTercero.Error())
+																alerta.Code = "400"
+																alerta.Type = "error"
+																alerta.Body = alertas
+																c.Data["json"] = map[string]interface{}{"Response": alerta}
+															}
+														}
+													}
+												} else {
+													errorGetAll = true
+													alertas = append(alertas, "No data found")
+													alerta.Code = "404"
+													alerta.Type = "error"
+													alerta.Body = alertas
+													c.Data["json"] = map[string]interface{}{"Response": alerta}
+												}
+											} else {
+												errorGetAll = true
+												alertas = append(alertas, errSolicitud.Error())
+												alerta.Code = "400"
+												alerta.Type = "error"
+												alerta.Body = alertas
+												c.Data["json"] = map[string]interface{}{"Response": alerta}
+											}
+										}
+
 										resultado = SolicitudEvolucionEstadoPost
 									} else {
 										errorGetAll = true
@@ -572,7 +667,6 @@ func (c *SolicitudEvaluacionController) GetDatosSolicitud() {
 // @Failure 403 body is empty
 // @router /consultar_solicitud/:id_persona [get]
 func (c *SolicitudEvaluacionController) GetSolicitudActualizacionDatos() {
-	fmt.Println("emtra")
 	id_persona := c.Ctx.Input.Param(":id_persona")
 	var Solicitudes []map[string]interface{}
 	var TipoSolicitud map[string]interface{}
@@ -586,7 +680,6 @@ func (c *SolicitudEvaluacionController) GetSolicitudActualizacionDatos() {
 	alertas := append([]interface{}{})
 
 	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=TerceroId:"+id_persona+"&sortby=Id&order=asc", &Solicitudes)
-	fmt.Println("http://" + beego.AppConfig.String("SolicitudDocenteService") + "solicitante?query=TerceroId:" + id_persona + "&sortby=Id&order=asc")
 	if errSolicitud == nil {
 		if Solicitudes != nil && fmt.Sprintf("%v", Solicitudes[0]) != "map[]" {
 			respuesta = make([]map[string]interface{}, len(Solicitudes))
