@@ -702,14 +702,14 @@ func (c *PersonaController) ConsultarPersona() {
 	var resultado map[string]interface{}
 	var persona []map[string]interface{}
 
-	errPersona := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero?query=Id:"+idStr, &persona)
+	errPersona := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero?query=Id:"+idStr, &persona)
 	if errPersona == nil && fmt.Sprintf("%v", persona[0]) != "map[]" {
 		if persona[0]["Status"] != 404 {
 			// formatdata.JsonPrint(persona)
 
 			var identificacion []map[string]interface{}
 
-			errIdentificacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/datos_identificacion?query=Activo:true,TerceroId.Id:"+idStr+"&sortby=Id&order=desc&limit=0", &identificacion)
+			errIdentificacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=Activo:true,TerceroId.Id:"+idStr+"&sortby=Id&order=desc&limit=0", &identificacion)
 			if errIdentificacion == nil && fmt.Sprintf("%v", identificacion[0]) != "map[]" {
 				if identificacion[0]["Status"] != 404 {
 					var estado []map[string]interface{}
@@ -721,7 +721,7 @@ func (c *PersonaController) ConsultarPersona() {
 					resultado["FechaExpedicion"] = identificacion[0]["FechaExpedicion"]
 					resultado["SoporteDocumento"] = identificacion[0]["DocumentoSoporte"]
 
-					errEstado := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero?query=TerceroId.Id:"+
+					errEstado := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+
 						fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:2", &estado)
 					if errEstado == nil && fmt.Sprintf("%v", estado[0]) != "map[]" {
 						if estado[0]["Status"] != 404 {
@@ -743,7 +743,7 @@ func (c *PersonaController) ConsultarPersona() {
 						c.Abort("404")
 					}
 
-					errGenero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero?query=TerceroId.Id:"+
+					errGenero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+
 						fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:6", &genero)
 					if errGenero == nil && fmt.Sprintf("%v", genero[0]) != "map[]" {
 						if genero[0]["Status"] != 404 {
