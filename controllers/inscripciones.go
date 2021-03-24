@@ -1271,7 +1271,6 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 		} else if SolicitudInscripcion["Nivel"].(float64) == 2 {
 			TipoParametro = "12"
 		}
-
 		errInscripcion := request.SendJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion", "POST", &inscripcionRealizada, inscripcion)
 		if errInscripcion == nil && inscripcionRealizada["Status"] != "400" {
 			errParam := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId.TipoParametroId.Id:2,ParametroId.CodigoAbreviacion:"+TipoParametro+",PeriodoId.Id:3", &parametro)
@@ -1339,7 +1338,7 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 			logs.Error(errInscripcion)
 			respuesta.Type = "success"
 			respuesta.Code = "204"
-			respuesta.Body = errInscripcion.Error()
+			//respuesta.Body = errInscripcion.Error()
 		}
 	} else {
 		logs.Error(err)
