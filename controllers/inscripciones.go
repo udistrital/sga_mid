@@ -1250,8 +1250,6 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 			"fechaextraordinario": SolicitudInscripcion["FechaPago"].(string),
 			"aniopago":            SolicitudInscripcion["Year"].(float64),
 			"perpago":             SolicitudInscripcion["Periodo"].(float64),
-			"codigovalidacion":    "Socrates3164lhbydqo",
-			"secuencia":           0,
 		}
 
 		inscripcion := map[string]interface{}{
@@ -1280,13 +1278,7 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 					objTransaccion["valorordinario"] = Valor["Costo"].(float64)
 					objTransaccion["valorextraordinario"] = Valor["Costo"].(float64)
 
-					creaTransaccion := map[string]interface{}{
-						"objTransaccion": objTransaccion,
-					}
-
-					SolicitudRecibo := map[string]interface{}{
-						"creaTransaccion": creaTransaccion,
-					}
+					SolicitudRecibo := objTransaccion
 
 					reciboSolicitud := httplib.Post("http://" + beego.AppConfig.String("ReciboJbpmService") + "recibosPagoProxy")
 					reciboSolicitud.Header("Accept", "application/json")
