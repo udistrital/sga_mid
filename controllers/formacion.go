@@ -1166,7 +1166,14 @@ func (c *FormacionController) GetFormacionAcademica() {
 			c.Data["json"] = map[string]interface{}{"Response": alerta}
 		}
 	}
-	fmt.Println(errorGetAll)
+	if !errorGetAll {
+		alertas = append(alertas, resultado)
+		alerta.Code = "200"
+		alerta.Type = "OK"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
 	c.ServeJSON()
 }
 
@@ -1184,7 +1191,7 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 	var Nit []map[string]interface{}
 	var alerta models.Alert
 	var errorGetAll bool
-	alertas := append([]interface{}{"Response:"})
+	alertas := append([]interface{}{})
 
 	//GET para obtener el nit de la universidad
 	errNit := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+TerceroId+",InfoComplementariaId__Id:101&limit=0&sortby=Id&order=asc", &Nit)
@@ -1401,7 +1408,6 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 						c.Data["json"] = map[string]interface{}{"Response": alerta}
 					}
 					resultado = append(resultado, resultadoAux)
-					c.Data["json"] = resultado
 				}
 
 			} else {
@@ -1422,7 +1428,14 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 		}
 	}
 
-	fmt.Println(errorGetAll)
+	if !errorGetAll {
+		alertas = append(alertas, resultado)
+		alerta.Code = "200"
+		alerta.Type = "OK"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
 	c.ServeJSON()
 }
 

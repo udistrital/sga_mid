@@ -51,7 +51,7 @@ func (c *ConsultaCalendarioAcademicoController) GetAll() {
 				periodoID := fmt.Sprintf("%.f", calendario["PeriodoId"].(float64))
 				errPeriodo := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"periodo/"+periodoID, &periodo)
 				if errPeriodo == nil {
-					fmt.Println(periodo["Data"].(map[string]interface{})["Nombre"].(string))
+					//fmt.Println(periodo["Data"].(map[string]interface{})["Nombre"].(string))
 					resultado := map[string]interface{}{
 						"Id":      calendario["Id"].(float64),
 						"Nombre":  calendario["Nombre"].(string),
