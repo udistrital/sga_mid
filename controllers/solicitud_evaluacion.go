@@ -746,14 +746,13 @@ func (c *SolicitudEvaluacionController) GetSolicitudActualizacionDatos() {
 	var Solicitudes []map[string]interface{}
 	var TipoSolicitud map[string]interface{}
 	var Estado map[string]interface{}
-	var Observacion []map[string]interface{}
 	var respuesta []map[string]interface{}
 	var resultado map[string]interface{}
 	resultado = make(map[string]interface{})
 	var alerta models.Alert
 	var errorGetAll bool
 	alertas := append([]interface{}{})
-
+	
 	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=TerceroId:"+id_persona+"&sortby=Id&order=asc", &Solicitudes)
 	if errSolicitud == nil {
 		if Solicitudes != nil && fmt.Sprintf("%v", Solicitudes[0]) != "map[]" {
@@ -771,6 +770,7 @@ func (c *SolicitudEvaluacionController) GetSolicitudActualizacionDatos() {
 							if Estado != nil && fmt.Sprintf("%v", Estado) != "map[]" {
 								// Observacion (Si la hay) sobre la solicitud
 								IdSolicitud := fmt.Sprintf("%v", Solicitudes[i]["SolicitudId"].(map[string]interface{})["Id"])
+								var Observacion []map[string]interface{}
 								errObservacion := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"observacion?query=SolicitudId:"+IdSolicitud+",TerceroId:"+id_persona, &Observacion)
 								if errObservacion == nil {
 									if Observacion != nil && fmt.Sprintf("%v", Observacion[0]) != "map[]" {
