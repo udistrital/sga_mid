@@ -122,15 +122,15 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 							"CalendarioID": calendarioID,
 						}
 						proyectosArrMap = append(proyectosArrMap, proyectosArr)
-
+						
 						procesoArr = append(procesoArr, calendarioID)
 						calendarioID = "0"
 						break
 					}
 				}
-
+				
 			}
-
+			
 			m := make(map[string]bool)
 			// eliminar calendarios duplicados
 			for curIndex := 0; curIndex < len((*&proyectosArrMap)); curIndex++ {
@@ -140,18 +140,18 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 					calendariosFilter = append(calendariosFilter, proyectosArrMap[curIndex])
 				}
 			}
-
+			
 			*&calendariosArrMap = calendariosFilter
-
+			
 			m1 := make(map[int]bool)
 			// eliminar proyectos duplicados
 			for curIndex := 0; curIndex < len((*&proyectosArrMap)); curIndex++ {
 				curValue := proyectosArrMap[curIndex]["ProyectoId"].(int)
 				if has := m1[curValue]; !has {
 					m1[curValue] = true
-					proyectosFilter = append(calendariosFilter, proyectosArrMap[curIndex])
+					proyectosFilter = append(proyectosFilter, proyectosArrMap[curIndex])
 				}
-			}
+			} 
 
 			*&proyectosArrMap = proyectosFilter
 
