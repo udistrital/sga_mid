@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/astaxie/beego"
@@ -79,6 +80,7 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 							//Verifica si el recibo está vencido o no
 							FechaActual := time_bogota.TiempoBogotaFormato() //time.Now()
 							layout := "2006-01-02T15:04:05.000-05:00"
+							FechaLimite = strings.Replace(fmt.Sprintf("%v", FechaLimite),"+","-",-1)
 							FechaLimiteFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaLimite))
 							if err != nil {
 								fmt.Println(err)
