@@ -1089,17 +1089,17 @@ func (c *PersonaController) ConsultarDatosComplementarios() {
 	idStr := c.Ctx.Input.Param(":tercero_id")
 	//resultado datos complementarios persona
 	var resultado map[string]interface{}
-	var persona []map[string]interface{}
+	var tercero []map[string]interface{}
 
-	errPersona := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/?query=Id:"+idStr, &persona)
+	errTercero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/?query=Id:"+idStr, &tercero)
 
-	if errPersona == nil && fmt.Sprintf("%v", persona[0]) != "map[]" {
-		if persona[0]["Status"] != 404 {
+	if errTercero == nil && fmt.Sprintf("%v", tercero[0]) != "map[]" {
+		if tercero[0]["Status"] != 404 {
 
 			var grupoEtnico []map[string]interface{}
-			resultado = map[string]interface{}{"Ente": persona[0]["Ente"], "Persona": persona[0]["Id"]}
+			resultado = map[string]interface{}{"Tercero": tercero[0]["Id"]}
 
-			errGrupoEtnico := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero?query=terceroId.Id:"+fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:3&sortby=Id&order=desc&limit=1", &grupoEtnico)
+			errGrupoEtnico := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero?query=terceroId.Id:"+fmt.Sprintf("%v", tercero[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:3&sortby=Id&order=desc&limit=1", &grupoEtnico)
 
 			if errGrupoEtnico == nil && fmt.Sprintf("%v", grupoEtnico[0]) != "map[]" {
 				if grupoEtnico[0]["Status"] != 404 {
@@ -1107,21 +1107,21 @@ func (c *PersonaController) ConsultarDatosComplementarios() {
 					var grupoSanguineo []map[string]interface{}
 					resultado["GrupoEtnico"] = grupoEtnico[0]["InfoComplementariaId"]
 
-					errGrupoSanguineo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero?query=terceroId.Id:"+fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:7&sortby=Id&order=desc&limit=1", &grupoSanguineo)
+					errGrupoSanguineo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero?query=terceroId.Id:"+fmt.Sprintf("%v", tercero[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:7&sortby=Id&order=desc&limit=1", &grupoSanguineo)
 
 					if errGrupoSanguineo == nil && fmt.Sprintf("%v", grupoSanguineo[0]) != "map[]" {
 						if grupoSanguineo[0]["Status"] != 404 {
 
 							resultado["GrupoSanguineo"] = grupoSanguineo[0]["InfoComplementariaId"]
 							var fatorRHGet []map[string]interface{}
-							errFactorRh := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero?query=terceroId.Id:"+fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:8&sortby=Id&order=desc&limit=1", &fatorRHGet)
+							errFactorRh := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero?query=terceroId.Id:"+fmt.Sprintf("%v", tercero[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:8&sortby=Id&order=desc&limit=1", &fatorRHGet)
 							if errFactorRh == nil && fmt.Sprintf("%v", fatorRHGet[0]) != "map[]" {
 								if fatorRHGet[0]["Status"] != 404 {
 
 									resultado["Rh"] = fatorRHGet[0]["InfoComplementariaId"]
 
 									var discapacidades []map[string]interface{}
-									errDiscapacidad := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero?query=terceroId.Id:"+fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:1", &discapacidades)
+									errDiscapacidad := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero?query=terceroId.Id:"+fmt.Sprintf("%v", tercero[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:1", &discapacidades)
 									if errDiscapacidad == nil && fmt.Sprintf("%v", discapacidades[0]) != "map[]" {
 										if discapacidades[0]["Status"] != 404 {
 
@@ -1141,8 +1141,9 @@ func (c *PersonaController) ConsultarDatosComplementarios() {
 												if ubicacionEnte["Status"] != 404 {
 													//Consulta ciudad, departamento y pais
 													var lugar map[string]interface{}
-													errLugar := request.GetJson("http://"+beego.AppConfig.String("UbicacionesService")+"/relacion_lugares/jerarquia_lugar/"+fmt.Sprintf("%v", ubicacionEnte["LugarOrigen"]), &lugar)
-													if errLugar == nil && fmt.Sprintf("%v", lugar) != "map[]" {
+													errLugar := request.GetJson("http://"+beego.AppConfig.String("UbicacionesService")+"relacion_lugares/jerarquia_lugar/"+fmt.Sprintf("%v", ubicacionEnte["LugarOrigen"]), &lugar)
+
+													if errLugar == nil  {
 														if lugar["Status"] != 404 {
 															ubicacionEnte["Lugar"] = lugar
 															resultado["Lugar"] = ubicacionEnte
@@ -1245,19 +1246,19 @@ func (c *PersonaController) ConsultarDatosComplementarios() {
 				c.Abort("404")
 			}
 		} else {
-			if persona[0]["Message"] == "Not found resource" {
+			if tercero[0]["Message"] == "Not found resource" {
 				c.Data["json"] = nil
 			} else {
-				logs.Error(persona)
+				logs.Error(tercero)
 				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-				c.Data["system"] = errPersona
+				c.Data["system"] = errTercero
 				c.Abort("404")
 			}
 		}
 	} else {
-		logs.Error(persona)
+		logs.Error(tercero)
 		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-		c.Data["system"] = errPersona
+		c.Data["system"] = errTercero
 		c.Abort("404")
 	}
 	c.ServeJSON()
