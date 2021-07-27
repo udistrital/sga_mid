@@ -68,7 +68,7 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 				ReciboInscripcion := fmt.Sprintf("%v", Inscripciones[i]["ReciboInscripcion"])
 				errRecibo := request.GetJsonWSO2("http://"+beego.AppConfig.String("ReciboJbpmService")+"wso2eiserver/services/recibos_pago/consulta_recibo/"+ReciboInscripcion, &ReciboXML)
 				if errRecibo == nil {
-					if ReciboXML != nil && fmt.Sprintf("%v", ReciboXML) != "map[]" {
+					if ReciboXML != nil && fmt.Sprintf("%v", ReciboXML) != "map[reciboCollection:map[]]" && fmt.Sprintf("%v", ReciboXML) != "map[]" {
 						//Fecha límite de pago extraordinario
 						FechaLimite := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["fecha_extraordinario"]
 						EstadoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["estado"]
@@ -87,6 +87,11 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 								Estado = "Vencido"
 							} else {
 								layout := "2006-01-02T15:04:05.000000000-05:00"
+								if len(FechaActual) < len(layout){
+									n:=len(FechaActual)-26
+									s:=strings.Repeat("0",n)
+									layout=strings.ReplaceAll(layout, "000000000", s)
+								}
 								FechaActualFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaActual))
 								if err != nil {
 									fmt.Println(err)
@@ -109,12 +114,16 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 							"Estado":              Estado,
 						}
 					} else {
-						errorGetAll = true
-						alertas = append(alertas, "No data found")
-						alerta.Code = "404"
-						alerta.Type = "error"
-						alerta.Body = alertas
-						c.Data["json"] = map[string]interface{}{"Response": alerta}
+						if (fmt.Sprintf("%v", resultadoAux) != "map[]"){
+							resultado["Inscripciones"] = resultadoAux
+						} else {
+							errorGetAll = true
+							alertas = append(alertas, "No data found")
+							alerta.Code = "404"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
+						}
 					}
 				} else {
 					errorGetAll = true
