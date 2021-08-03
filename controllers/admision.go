@@ -190,7 +190,11 @@ func (c *AdmisionController) GetEvaluacionAspirantes() {
 					for k := range Evaluacion["areas"].([]interface{}) {
 						for k1, aux := range Evaluacion["areas"].([]interface{})[k].(map[string]interface{}) {
 							if k1 != "Ponderado" {
-								respuestaAux = respuestaAux + fmt.Sprintf("%q", k1) + ":" + fmt.Sprintf("%q", aux) + ",\n"
+								if k1 == "Asistencia"{
+									respuestaAux = respuestaAux + fmt.Sprintf("%q", k1) + ":" + fmt.Sprintf("%t", aux) + ",\n"
+								} else {
+									respuestaAux = respuestaAux + fmt.Sprintf("%q", k1) + ":" + fmt.Sprintf("%q", aux) + ",\n"
+								}
 							}
 						}
 					}
@@ -333,18 +337,18 @@ func (c *AdmisionController) PostEvaluacionAspirantes() {
 									DetalleCalificacion = "{\n\"areas\":\n["
 
 									for k := range PorcentajeEspJSON["areas"].([]interface{}) {
-										for k1, aux := range PorcentajeEspJSON["areas"].([]interface{})[k].(map[string]interface{}) {
+										for _, aux := range PorcentajeEspJSON["areas"].([]interface{})[k].(map[string]interface{}) {
 											for k2, aux2 := range Evaluacion["Aspirantes"].([]interface{})[i].(map[string]interface{}) {
-												if k1 == k2 {
+												if aux == k2 {
 													//Si existe la columna de asistencia se hace la validación de la misma
 													if Asistencia != nil {
 														if Asistencia == true {
-															f, _ := strconv.ParseFloat(fmt.Sprintf("%v", aux), 64)  //Porcentaje del subcriterio
+															f, _ := strconv.ParseFloat(fmt.Sprintf("%v", PorcentajeEspJSON["areas"].([]interface{})[k].(map[string]interface{})["Porcentaje"]), 64)  //Porcentaje del subcriterio
 															j, _ := strconv.ParseFloat(fmt.Sprintf("%v", aux2), 64) //Nota subcriterio
 															PonderadoAux := j * (f / 100)
 															Ponderado = Ponderado + PonderadoAux
 															if k+1 == len(PorcentajeEspJSON["areas"].([]interface{})) {
-																DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":" + fmt.Sprintf("%q", aux2) + ", \"Ponderado\":" + fmt.Sprintf("%.2f", PonderadoAux) + "}\n"
+																DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":" + fmt.Sprintf("%q", aux2) + ", \"Ponderado\":" + fmt.Sprintf("%.2f", PonderadoAux) + "},\n"
 															} else {
 																DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":" + fmt.Sprintf("%q", aux2) + ", \"Ponderado\":" + fmt.Sprintf("%.2f", PonderadoAux) + "},\n"
 															}
@@ -352,18 +356,18 @@ func (c *AdmisionController) PostEvaluacionAspirantes() {
 															// Si el estudiante inscrito no asiste tendrá una calificación de 0
 															Ponderado = 0
 															if k+1 == len(PorcentajeEspJSON["areas"].([]interface{})) {
-																DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":\"0\", \"Ponderado\":\"0\"}\n"
+																DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":\"0\", \"Ponderado\":\"0\"},\n"
 															} else {
 																DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":\"0\", \"Ponderado\":\"0\"},\n"
 															}
 														}
 													} else {
-														f, _ := strconv.ParseFloat(fmt.Sprintf("%v", aux), 64)  //Porcentaje del subcriterio
+														f, _ := strconv.ParseFloat(fmt.Sprintf("%v", PorcentajeEspJSON["areas"].([]interface{})[k].(map[string]interface{})["Porcentaje"]), 64)  //Porcentaje del subcriterio
 														j, _ := strconv.ParseFloat(fmt.Sprintf("%v", aux2), 64) //Nota subcriterio
 														PonderadoAux := j * (f / 100)
 														Ponderado = Ponderado + PonderadoAux
 														if k+1 == len(PorcentajeEspJSON["areas"].([]interface{})) {
-															DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":" + fmt.Sprintf("%q", aux2) + ", \"Ponderado\":" + fmt.Sprintf("%.2f", PonderadoAux) + "}\n"
+															DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":" + fmt.Sprintf("%q", aux2) + ", \"Ponderado\":" + fmt.Sprintf("%.2f", PonderadoAux) + "},\n"
 														} else {
 															DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":" + fmt.Sprintf("%q", aux2) + ", \"Ponderado\":" + fmt.Sprintf("%.2f", PonderadoAux) + "},\n"
 														}
@@ -374,7 +378,11 @@ func (c *AdmisionController) PostEvaluacionAspirantes() {
 									}
 									g, _ := strconv.ParseFloat(fmt.Sprintf("%v", PorcentajeGeneral), 64)
 									Ponderado = Ponderado * (g / 100)
-									DetalleCalificacion = DetalleCalificacion + "]\n}"
+									if Asistencia == true && Asistencia != nil{
+										DetalleCalificacion = DetalleCalificacion + "{\"Asistencia\": true" + "}]\n}"
+									} else {
+										DetalleCalificacion = DetalleCalificacion + "{\"Asistencia\": false" + "}]\n}"
+									}
 								} else {
 									//Calculos para los criterios que no tienen subcriterios
 									//Si existe la columna de asistencia se hace la validación de la misma
