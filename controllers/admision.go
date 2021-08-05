@@ -324,7 +324,7 @@ func (c *AdmisionController) PostEvaluacionAspirantes() {
 						PersonaId := AspirantesData[i].(map[string]interface{})["Id"]
 						Asistencia := AspirantesData[i].(map[string]interface{})["Asistencia"]
 						if Asistencia == "" {
-							Asistencia = false
+							Asistencia = nil
 						}
 
 						//GET para obtener el numero de la inscripcion de la persona
