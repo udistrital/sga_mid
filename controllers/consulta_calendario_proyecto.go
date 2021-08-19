@@ -97,7 +97,7 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 	alertas := append([]interface{}{"Response:"})
 	idStr := c.Ctx.Input.Param(":id")
 
-	errProyectos := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?limit=0&query=NivelFormacionId.Id:"+idStr, &proyectos)
+	errProyectos := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?limit=0", &proyectos)
 	if errProyectos == nil && fmt.Sprintf("%v", proyectos[0]["Id"]) != "map[]" {
 
 		errCalendarios := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Activo:true&limit=0", &calendarios)
@@ -110,8 +110,19 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 						json.Unmarshal([]byte(DependenciaID), &listaProyectos)
 						for _, id := range listaProyectos["proyectos"] {
 							if id == int(proyecto["Id"].(float64)) {
-								calendarioID = strconv.FormatFloat(calendario["Id"].(float64), 'f', 0, 64)
-								break
+								if proyecto["NivelFormacionId"].(map[string]interface{})["NivelFormacionPadreId"] != nil {
+									idNivel := fmt.Sprint(proyecto["NivelFormacionId"].(map[string]interface{})["NivelFormacionPadreId"].(map[string]interface{})["Id"] )
+									if idNivel == idStr{
+										calendarioID = strconv.FormatFloat(calendario["Id"].(float64), 'f', 0, 64)
+										break
+									}
+								} else {
+									idNivel := fmt.Sprint(proyecto["NivelFormacionId"].(map[string]interface{})["Id"])
+									if idNivel == idStr {
+										calendarioID = strconv.FormatFloat(calendario["Id"].(float64), 'f', 0, 64)
+										break
+									}
+								}
 							}
 						}
 					}
