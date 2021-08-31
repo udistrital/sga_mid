@@ -335,10 +335,14 @@ func (c *AdmisionController) PostEvaluacionAspirantes() {
 									//Calculos para los criterios que cuentan con subcriterios)
 									Ponderado = 0
 									DetalleCalificacion = "{\n\"areas\":\n["
+									ultimo := false
 
 									for k := range PorcentajeEspJSON["areas"].([]interface{}) {
 										for _, aux := range PorcentajeEspJSON["areas"].([]interface{})[k].(map[string]interface{}) {
 											for k2, aux2 := range Evaluacion["Aspirantes"].([]interface{})[i].(map[string]interface{}) {
+												if ultimo {
+													break
+												}
 												if aux == k2 {
 													//Si existe la columna de asistencia se hace la validación de la misma
 													if Asistencia != nil {
@@ -349,6 +353,7 @@ func (c *AdmisionController) PostEvaluacionAspirantes() {
 															Ponderado = Ponderado + PonderadoAux
 															if k+1 == len(PorcentajeEspJSON["areas"].([]interface{})) {
 																DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":" + fmt.Sprintf("%q", aux2) + ", \"Ponderado\":" + fmt.Sprintf("%.2f", PonderadoAux) + "},\n"
+																ultimo = true
 															} else {
 																DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":" + fmt.Sprintf("%q", aux2) + ", \"Ponderado\":" + fmt.Sprintf("%.2f", PonderadoAux) + "},\n"
 															}
@@ -357,6 +362,7 @@ func (c *AdmisionController) PostEvaluacionAspirantes() {
 															Ponderado = 0
 															if k+1 == len(PorcentajeEspJSON["areas"].([]interface{})) {
 																DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":\"0\", \"Ponderado\":\"0\"},\n"
+																ultimo = true
 															} else {
 																DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":\"0\", \"Ponderado\":\"0\"},\n"
 															}
@@ -368,6 +374,7 @@ func (c *AdmisionController) PostEvaluacionAspirantes() {
 														Ponderado = Ponderado + PonderadoAux
 														if k+1 == len(PorcentajeEspJSON["areas"].([]interface{})) {
 															DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":" + fmt.Sprintf("%q", aux2) + ", \"Ponderado\":" + fmt.Sprintf("%.2f", PonderadoAux) + "},\n"
+															ultimo = true
 														} else {
 															DetalleCalificacion = DetalleCalificacion + "{" + fmt.Sprintf("%q", k2) + ":" + fmt.Sprintf("%q", aux2) + ", \"Ponderado\":" + fmt.Sprintf("%.2f", PonderadoAux) + "},\n"
 														}
