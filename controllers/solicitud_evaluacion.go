@@ -296,7 +296,7 @@ func (c *SolicitudEvaluacionController) PostSolicitudEvolucionEstado() {
 																if DatosIdentificacion != nil && fmt.Sprintf("%v", DatosIdentificacion[0]) != "map[]" {
 																	//Se cambia el estado de true a false en los datos_identificación antiguos
 																	DatosIdentificacion[0]["Activo"] = false
-																	errDatosID := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion/"+fmt.Sprintf("%v", DatosIdentificacion[0]), "PUT", &DatosIdentificacionPut, DatosIdentificacion[0])
+																	errDatosID := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion/"+fmt.Sprintf("%v", DatosIdentificacion[0]["Id"]), "PUT", &DatosIdentificacionPut, DatosIdentificacion[0])
 																	if errDatosID == nil {
 																		if DatosIdentificacionPut != nil && fmt.Sprintf("%v", DatosIdentificacionPut) != "map[]" {
 																			//POST de los nuevos datos del terceros
@@ -390,7 +390,7 @@ func (c *SolicitudEvaluacionController) PostSolicitudEvolucionEstado() {
 																	errTerceroPut := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+fmt.Sprintf("%v", TerceroId), "PUT", &TerceroPut, Tercero)
 																	if errTerceroPut == nil {
 																		if TerceroPut != nil && fmt.Sprintf("%v", TerceroPut) != "map[]" {
-
+																			formatdata.JsonPrint(TerceroPut)
 																		} else {
 																			errorGetAll = true
 																			alertas = append(alertas, "No data found")
