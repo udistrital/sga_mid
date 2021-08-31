@@ -293,7 +293,7 @@ func (c *FormacionController) GetInfoUniversidad() {
 	//GET que asocia el nit con la universidad
 	errNit := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=TipoDocumentoId__Id:7,Numero:"+idStr, &universidad)
 	if errNit == nil {
-		if universidad != nil {
+		if universidad != nil && fmt.Sprintf("%v", universidad[0]) != "map[]" {
 			respuesta["NumeroIdentificacion"] = idStr
 			idUniversidad := universidad[0]["TerceroId"].(map[string]interface{})["Id"]
 			//GET que trae la información de la universidad
@@ -425,9 +425,9 @@ func (c *FormacionController) GetInfoUniversidad() {
 			}
 		} else {
 			logs.Error(errNit)
-			c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errNit.Error(), "Type": "error"}
+			c.Data["json"] = map[string]interface{}{"Code": "404", "Body": "errNit.Error()", "Type": "error"}
 			c.Data["system"] = universidad
-			c.Abort("400")
+			c.Abort("404")
 		}
 	} else {
 		logs.Error(errNit)
@@ -454,7 +454,7 @@ func (c *FormacionController) GetInfoUniversidadByNombre() {
 	if len(NombresAux) == 1 {
 		err := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/?query=NombreCompleto__contains:"+idStr+"&limit=0", &universidades)
 		if err == nil {
-			if universidades != nil {
+			if universidades != nil && fmt.Sprintf("%v", universidades[0]) != "map[]" {
 				c.Data["json"] = universidades
 			} else {
 				logs.Error(universidades)
