@@ -1189,6 +1189,7 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 	var resultado []map[string]interface{}
 	resultado = make([]map[string]interface{}, 0)
 	var Nit []map[string]interface{}
+	var Doc []map[string]interface{}
 	var alerta models.Alert
 	var errorGetAll bool
 	alertas := append([]interface{}{})
@@ -1209,6 +1210,23 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 					f, _ := strconv.ParseFloat(AuxNit, 64)
 					j, _ := strconv.Atoi(fmt.Sprintf("%.f", f))
 					AuxNit = fmt.Sprintf("%v", j)
+
+					//GET para obtener el doc de la universidad
+					errDoc := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+TerceroId+",InfoComplementariaId__Id:100&limit=0&sortby=Id&order=asc", &Doc)
+					if errDoc == nil && fmt.Sprintf("%v", Doc[i]) != "map[]" && Doc[i]["Id"] != nil {
+						if Doc[i]["Status"] != 404 {
+							var NumDoc map[string]interface{}
+							ValorString := Doc[i]["Dato"].(string)
+							if err := json.Unmarshal([]byte(ValorString), &NumDoc); err == nil {
+								AuxDoc := fmt.Sprintf("%v", NumDoc["value"])
+								f, _ := strconv.ParseFloat(AuxDoc, 64)
+								j, _ := strconv.Atoi(fmt.Sprintf("%.f", f))
+								AuxDoc = fmt.Sprintf("%v", j)
+								resultadoAux["Documento"] = AuxDoc
+							}
+						}
+					}
+
 
 					//GET para obtener el ID que relaciona las tablas tipo_documento y tercero
 					var IdTercero []map[string]interface{}
