@@ -5,7 +5,9 @@ import (
 	"fmt"
 
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/httplib"
 	"github.com/astaxie/beego/logs"
+	"github.com/udistrital/sga_mid/models"
 	"github.com/udistrital/utils_oas/request"
 )
 
@@ -20,6 +22,7 @@ func (c *DerechosPecuniariosController) URLMapping() {
 	c.Mapping("GetDerechosPecuniariosPorVigencia", c.GetDerechosPecuniariosPorVigencia)
 	c.Mapping("DeleteConcepto", c.DeleteConcepto)
 	c.Mapping("PutCostoConcepto", c.PutCostoConcepto)
+	c.Mapping("PostGenerarDerechoPecuniarioEstudiante", c.PostGenerarDerechoPecuniarioEstudiante)
 }
 
 // PostConcepto ...
@@ -397,5 +400,141 @@ func (c *DerechosPecuniariosController) PutCostoConcepto() {
 			}
 		}
 	}
+	c.ServeJSON()
+}
+
+// PostGenerarDerechoPecuniarioEstudiante ...
+// @Title PostGenerarrDerechoPecuniarioEstudiante
+// @Description Generar un recibo de derecho pecuniario por parte de estudiantes
+// @Param	body		body 	{}	true		"body Clonar Conceptos content"
+// @Success 200 {}
+// @Failure 400 body is empty
+// @router /generar_derecho/ [post]
+func (c *DerechosPecuniariosController) PostGenerarDerechoPecuniarioEstudiante() {
+	var respuesta models.Alert
+	var SolicitudDerechoPecuniario map[string]interface{}
+	var TipoParametro string
+	var Derecho map[string]interface{}
+	var Codigo []interface{}
+	var Valor map[string]interface{}
+	var NuevoRecibo map[string]interface{}
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &SolicitudDerechoPecuniario); err == nil {
+
+		objTransaccion := map[string]interface{}{
+			"codigo":              "-------",
+			"nombre":              SolicitudDerechoPecuniario["Nombre"].(string),
+			"apellido":            SolicitudDerechoPecuniario["Apellido"].(string),
+			"correo":              SolicitudDerechoPecuniario["Correo"].(string),
+			"proyecto":            SolicitudDerechoPecuniario["ProgramaAcademicoId"].(float64),
+			"tiporecibo":          0,
+			"concepto":            "-------",
+			"valorordinario":      0,
+			"valorextraordinario": 0,
+			"cuota":               1,
+			"fechaordinario":      SolicitudDerechoPecuniario["FechaPago"].(string),
+			"fechaextraordinario": SolicitudDerechoPecuniario["FechaPago"].(string),
+			"aniopago":            SolicitudDerechoPecuniario["Year"].(float64),
+			"perpago":             SolicitudDerechoPecuniario["Periodo"].(float64),
+		}
+
+		paramId := fmt.Sprintf("%.f",SolicitudDerechoPecuniario["DerechoPecuniarioId"].(float64))
+		terceroId := fmt.Sprintf("%.f",SolicitudDerechoPecuniario["Id"].(float64))
+		errParam := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId.Id:" + paramId, &Derecho)
+		if errParam == nil && fmt.Sprintf("%v", Derecho["Data"].([]interface{})[0]) != "map[]" {
+
+			errCodigo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:" + terceroId + ",InfoComplementariaId.Id:93", &Codigo)
+			if errCodigo == nil && fmt.Sprintf("%v", Codigo) != "map[]" {
+				objTransaccion["codigo"] = Codigo[0].(map[string]interface{})["Dato"]
+
+				Dato := Derecho["Data"].([]interface{})[0]
+				if errJson := json.Unmarshal([]byte(Dato.(map[string]interface{})["Valor"].(string)), &Valor); errJson == nil {
+					objTransaccion["valorordinario"] = Valor["Costo"].(float64)
+					objTransaccion["valorextraordinario"] = Valor["Costo"].(float64)
+					
+					TipoParametro = fmt.Sprintf("%v", Dato.(map[string]interface{})["ParametroId"].(map[string]interface{})["CodigoAbreviacion"])
+					// Pendiente SISTEMATICACION, MULTAS BIBLIOTECA y FOTOCOPIAS
+					switch TipoParametro{
+					case "40":
+						objTransaccion["tiporecibo"] = 5
+						objTransaccion["concepto"] = "CERTIFICADO DE NOTAS"
+					case "50":
+						objTransaccion["tiporecibo"] = 8
+						objTransaccion["concepto"] = "DERECHOS DE GRADO"
+					case "51":
+						objTransaccion["tiporecibo"] = 9
+						objTransaccion["concepto"] = "DUPLICADO DEL DIPLOMA DE GRADO"
+					case "44":
+						objTransaccion["tiporecibo"] = 10
+						objTransaccion["concepto"] = "DUPLICADO DEL CARNET ESTUDIANTIL"
+					case "31":
+						objTransaccion["tiporecibo"] = 13
+						objTransaccion["concepto"] = "CURSOS VACIONALES"
+					case "41":
+						objTransaccion["tiporecibo"] = 6
+						objTransaccion["concepto"] = "CONSTANCIAS DE ESTUDIO"
+					case "49":
+						objTransaccion["tiporecibo"] = 17
+						objTransaccion["concepto"] = "COPIA ACTA DE GRADO"
+					case "42":
+						objTransaccion["tiporecibo"] = 18
+						objTransaccion["concepto"] = "CARNET ESTUDIANTIL"
+					}
+	
+					SolicitudRecibo := objTransaccion
+	
+					reciboSolicitud := httplib.Post("http://" + beego.AppConfig.String("ReciboJbpmService") + "recibos_pago/recibos_pago_proxy")
+					reciboSolicitud.Header("Accept", "application/json")
+					reciboSolicitud.Header("Content-Type", "application/json")
+					reciboSolicitud.JSONBody(SolicitudRecibo)
+	
+					if errRecibo := reciboSolicitud.ToJSON(&NuevoRecibo); errRecibo == nil {
+						derechoPecuniarioSolicitado := map[string]interface{}{
+							"TerceroId": 				map[string]interface{}{
+															"Id": SolicitudDerechoPecuniario["Id"].(float64),
+														},
+							"InfoComplementariaId": 	map[string]interface{}{
+															"Id": 307,
+														},
+							"Activo": 					true,
+					 		"Dato": 					`{"value":` + `"` + fmt.Sprintf("%v/%.f", NuevoRecibo["creaTransaccionResponse"].(map[string]interface{})["secuencia"], SolicitudDerechoPecuniario["Year"]) + `"` + `}`,
+					 	}
+						
+					 	var complementario map[string]interface{}
+					 	errComplementarioPost := request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"), "POST", &complementario, derechoPecuniarioSolicitado)
+					 	if errComplementarioPost == nil {
+					 		respuesta.Type = "success"
+					 	 	respuesta.Code = "200"
+					 	 	respuesta.Body = complementario
+					 	} else {
+					 	 	logs.Error(errComplementarioPost)
+					 	 	respuesta.Type = "error"
+					 	 	respuesta.Code = "400"
+					 	 	respuesta.Body = errComplementarioPost.Error()
+					 	}
+					} 
+
+				} else {
+					logs.Error(err)
+					respuesta.Type = "error"
+					respuesta.Code = "403"
+					respuesta.Body = err.Error()
+				}
+
+			} else {
+				logs.Error(err)
+				respuesta.Type = "error"
+				respuesta.Code = "404"
+				respuesta.Body = err.Error()
+			}
+		} else {
+			logs.Error(err)
+			respuesta.Type = "error"
+			respuesta.Code = "404"
+			respuesta.Body = err.Error()
+		}
+	}
+
+	c.Data["json"] = respuesta
 	c.ServeJSON()
 }
