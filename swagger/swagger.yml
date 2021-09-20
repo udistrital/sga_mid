@@ -645,6 +645,24 @@ paths:
           description: '{}'
         "400":
           description: body is empty
+  /derechos_pecuniarios/generar_derecho/:
+    post:
+      tags:
+      - derechos_pecuniarios
+      description: Generar un recibo de derecho pecuniario por parte de estudiantes
+      operationId: DerechosPecuniariosController.PostGenerarrDerechoPecuniarioEstudiante
+      parameters:
+      - in: body
+        name: body
+        description: body Clonar Conceptos content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "400":
+          description: body is empty
   /derechos_pecuniarios/update/{id}:
     put:
       tags:

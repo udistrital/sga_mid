@@ -315,6 +315,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"],
         beego.ControllerComments{
+            Method: "PostGenerarDerechoPecuniarioEstudiante",
+            Router: "/generar_derecho/",
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"],
+        beego.ControllerComments{
             Method: "PutConcepto",
             Router: "/update/:id",
             AllowHTTPMethods: []string{"put"},
