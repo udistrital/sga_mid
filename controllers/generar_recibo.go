@@ -22,6 +22,42 @@ type GenerarReciboController struct {
 // URLMapping ...
 func (c *GenerarReciboController) URLMapping() {
 	c.Mapping("PostGenerarRecibo", c.PostGenerarRecibo)
+	c.Mapping("PostGenerarEstudianteRecibo", c.PostGenerarEstudianteRecibo)
+}
+
+// PostGenerarEstudianteRecibo ...
+// @Title PostGenerarEstudianteRecibo
+// @Description Genera un recibo de pago
+// @Param	body		body 	{}	true		"body Datos del recibo content"
+// @Success 200 {}
+// @Failure 400 body is empty
+// @router /recibo_estudiante/ [post]
+func (c *GenerarReciboController) PostGenerarEstudianteRecibo() {
+
+	var data map[string]interface{}
+	//First we fetch the data
+
+	if parseErr := json.Unmarshal(c.Ctx.Input.RequestBody, &data); parseErr == nil {
+		//Then we create a new PDF document and write the title and the current date.
+		pdf := GenerarEstudianteRecibo(data)
+
+		if pdf.Err() {
+			logs.Error("Failed creating PDF report: %s\n", pdf.Error())
+			c.Data["json"] = map[string]interface{}{"Code": "400", "Body": pdf.Error(), "Type": "error"}
+		}
+
+		if pdf.Ok() {
+			encodedFile := encodePDF(pdf)
+			c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Query successful", "Data": encodedFile}
+		}
+
+	} else {
+		logs.Error(parseErr)
+		c.Data["json"] = map[string]interface{}{"Code": "400", "Body": parseErr.Error(), "Type": "error"}
+		c.Abort("400")
+	}
+
+	c.ServeJSON()
 }
 
 // PostGenerarRecibo ...
@@ -114,6 +150,59 @@ func GenerarRecibo(datos map[string]interface{}) *gofpdf.Fpdf {
 	return pdf
 }
 
+func GenerarEstudianteRecibo(datos map[string]interface{}) *gofpdf.Fpdf {
+
+	path := beego.AppConfig.String("StaticPath")
+
+	// aqui el numero consecutivo de comprobante
+	numComprobante := datos["Comprobante"].(string)
+
+	//Se genera el codigo de barras y se agrega al archivo
+	documento := datos["DocumentoDelEstudiante"].(string)
+	for len(documento) < 12 {
+		documento = "0" + documento
+	}
+
+	for len(numComprobante) < 6 {
+		numComprobante = "0" + numComprobante
+	}
+
+	costo := fmt.Sprintf("%.f", datos["ValorDerecho"].(float64))
+	for len(costo) < 12 {
+		costo = "0" + costo
+	}
+
+	fecha := strings.Split(datos["Fecha_pago"].(string), "/")
+	codigo := "41577099980004218020" + documento + numComprobante + "3900" + costo + "96" + fecha[2] + fecha[1] + fecha[0]
+	codigoTexto := "(415)7709998000421(8020)" + documento + numComprobante + "(3900)" + costo + "(96)" + fecha[2] + fecha[1] + fecha[0]
+
+	pdf := gofpdf.New("P", "mm", "Letter", "")
+	pdf.AddPage()
+	pdf.SetMargins(5, 5, 5)
+	pdf = dibujarLayoutEstudianteRecibo(pdf)
+
+	pdf = image(pdf, path+"/img/UDEscudo2.png", 5, 8, 13, 20)
+	pdf = image(pdf, path+"/img/UDEscudo2.png", 5, 90, 13, 20)
+	pdf = image(pdf, path+"/img/banco.PNG", 195, 8, 13, 16)
+	bcode := barcode.RegisterCode128(pdf, codigo)
+	barcode.Barcode(pdf, bcode, 10, 135, 130, 15, false)
+	barcode.Barcode(pdf, bcode, 10, 175, 130, 15, false)
+
+	pdf = header(pdf, numComprobante, true)
+
+	pdf.Ln(2)
+
+	// Se agregan datos del desprendible del estudiante
+	pdf = agregarDatosEstudianteRecibo(pdf, datos)
+
+	pdf.Ln(8)
+	pdf = header(pdf, numComprobante, false)
+
+	pdf = agregarDatosCopiaBancoEstudianteRecibo(pdf, datos, codigoTexto)
+
+	return pdf
+}
+
 // header
 // Description: genera el encabezado reutilizable del recibo de pago
 func header(pdf *gofpdf.Fpdf, comprobante string, banco bool) *gofpdf.Fpdf {
@@ -177,6 +266,72 @@ func agregarDatosEstudiante(pdf *gofpdf.Fpdf, datos map[string]interface{}) *gof
 	pdf.Cell(15, 5, datos["Periodo"].(string))
 	pdf.Ln(20)
 
+	pdf.SetFont("Helvetica", "B", 9)
+	pdf.Cell(8, 5, "")
+	pdf.Cell(35, 5, "Tipo de Pago")
+	pdf.Cell(45, 5, "Pague Hasta")
+	pdf.Cell(40, 5, "TOTAL A PAGAR")
+	pdf.Ln(5)
+
+	pdf.SetFont("Helvetica", "B", 8)
+	pdf.Cell(45, 5, "Ordinario")
+	pdf.Cell(50, 5, datos["Fecha_pago"].(string))
+	pdf.Cell(30, 5, valorDerecho)
+	pdf.Ln(5)
+
+	pdf.Cell(45, 5, "Extraodinario")
+	pdf.Cell(50, 5, datos["Fecha_pago"].(string))
+	pdf.Cell(30, 5, valorDerecho)
+	pdf.Ln(5)
+
+	pdf.SetFont("Helvetica", "", 8)
+	pdf.CellFormat(140, 5, "-COPIA ESTUDIANTE-", "", 0, "C", false, 0, "")
+	pdf.CellFormat(70, 5, "-Espacio para timbre o sello Banco-", "", 0, "C", false, 0, "")
+	pdf.Ln(5)
+
+	pdf.Cell(210, 5, "............................................................................................................................Doblar............................................................................................................................")
+
+	return pdf
+}
+
+func agregarDatosEstudianteRecibo(pdf *gofpdf.Fpdf, datos map[string]interface{}) *gofpdf.Fpdf {
+	tr := pdf.UnicodeTranslatorFromDescriptor("")
+	valorDerecho := fmt.Sprintf("$ %.f", datos["ValorDerecho"].(float64))
+	pdf.SetFont("Helvetica", "B", 9)
+	pdf.Ln(6)
+	pdf.Cell(70, 5, "Nombre del Estudiante")
+	pdf.CellFormat(35, 5, "Codigo", "", 0, "C", false, 0, "")
+	pdf.CellFormat(35, 5, "Doc. Identidad", "", 0, "C", false, 0, "")
+	pdf.Cell(5, 5, "")
+	pdf.Cell(60, 5, "Proyecto Curricular")
+	pdf.Ln(5)
+	pdf.Cell(70, 5, tr(datos["NombreDelEstudiante"].(string)))
+	pdf.CellFormat(35, 5, datos["CodigoDelEstudiante"].(string), "", 0, "C", false, 0, "")
+	pdf.CellFormat(35, 5, datos["DocumentoDelEstudiante"].(string), "", 0, "C", false, 0, "")
+	pdf.Cell(5, 5, "")
+	pdf.Cell(75, 5, tr(datos["ProyectoEstudiante"].(string)))
+	pdf.Ln(5)
+	pdf.Cell(35, 5, "Referencia")
+	pdf.Cell(65, 5, "Descripcion")
+	pdf.Cell(45, 5, "Valor")
+	pdf.Cell(35, 5, "Fecha de Expedicion")
+	pdf.Cell(20, 5, "Periodo")
+	pdf.Ln(5)
+
+	pdf.SetFont("Helvetica", "B", 8)
+	pdf.Cell(9, 5, "")
+	pdf.Cell(11, 5, datos["Codigo"].(string))
+	pdf.Cell(40, 5, tr(datos["Descripcion"].(string)))
+	pdf.CellFormat(80, 5, valorDerecho, "", 0, "R", false, 0, "")
+	pdf.Cell(15, 5, "")
+	pdf.Cell(30, 5, fechaActual())
+	pdf.Cell(15, 5, datos["Periodo"].(string))
+	pdf.Ln(5)
+	pdf.Cell(145, 5, "")
+	pdf.Cell(20, 5, tr(datos["Descripcion"].(string)))
+	pdf.Ln(5)
+	pdf.Ln(10)
+	
 	pdf.SetFont("Helvetica", "B", 9)
 	pdf.Cell(8, 5, "")
 	pdf.Cell(35, 5, "Tipo de Pago")
@@ -278,6 +433,86 @@ func agregarDatosCopiaBanco(pdf *gofpdf.Fpdf, datos map[string]interface{}, codi
 	return pdf
 }
 
+func agregarDatosCopiaBancoEstudianteRecibo(pdf *gofpdf.Fpdf, datos map[string]interface{}, codigo string) *gofpdf.Fpdf {
+	tr := pdf.UnicodeTranslatorFromDescriptor("")
+	valorDerecho := fmt.Sprintf("$ %.f", datos["ValorDerecho"].(float64))
+	pdf.SetFont("Helvetica", "B", 9)
+	pdf.Ln(5)
+	pdf.Cell(70, 5, "Nombre del Estudiante")
+	pdf.CellFormat(35, 5, "Codigo", "", 0, "C", false, 0, "")
+	pdf.CellFormat(35, 5, "Doc. Identidad", "", 0, "C", false, 0, "")
+	pdf.Cell(5, 5, "")
+	pdf.Cell(60, 5, "Proyecto Curricular")
+	pdf.Ln(5)
+	pdf.Cell(70, 5, tr(datos["NombreDelEstudiante"].(string)))
+	pdf.CellFormat(35, 5, datos["CodigoDelEstudiante"].(string), "", 0, "C", false, 0, "")
+	pdf.CellFormat(35, 5, datos["DocumentoDelEstudiante"].(string), "", 0, "C", false, 0, "")
+	pdf.Cell(5, 5, "")
+	pdf.Cell(60, 5, tr(datos["ProyectoEstudiante"].(string)))
+	pdf.Ln(5)
+	pdf.Cell(8, 5, "")
+	pdf.Cell(35, 5, "Tipo de Pago")
+	pdf.Cell(45, 5, "Pague Hasta")
+	pdf.Cell(58, 5, "TOTAL A PAGAR")
+	pdf.Cell(35, 5, "Fecha de Expedicion")
+	pdf.Cell(20, 5, "Periodo")
+	pdf.Ln(5)
+
+	pdf.SetFont("Helvetica", "B", 8)
+	pdf.Cell(45, 5, "Ordinario")
+	pdf.Cell(50, 5, datos["Fecha_pago"].(string))
+	pdf.Cell(35, 5, valorDerecho)
+
+	pdf.Cell(25, 5, "")
+	pdf.Cell(30, 5, fechaActual())
+	pdf.Cell(15, 5, datos["Periodo"].(string))
+	pdf.Ln(10)
+
+	pdf.SetFont("Helvetica", "B", 9)
+	pdf.Cell(147, 5, "")
+	pdf.Cell(15, 5, "Ref.")
+	pdf.Cell(28, 5, "Descripcion")
+	pdf.Cell(10, 5, "Valor")
+	pdf.Ln(5)
+
+	pdf.SetFont("Helvetica", "B", 8)
+	pdf.Cell(147, 5, "")
+	pdf.Cell(9, 5, datos["Codigo"].(string))
+	pdf.Cell(33, 5, tr(datos["Descripcion"].(string)))
+	pdf.Cell(10, 5, valorDerecho)
+	pdf.Ln(10)
+	pdf.SetFont("Helvetica", "", 8)
+	pdf.CellFormat(140, 5, codigo, "", 0, "C", false, 0, "")
+	pdf.Ln(10)
+
+	pdf.SetFont("Helvetica", "B", 9)
+	pdf.CellFormat(35, 5, "Tipo de Pago", "", 0, "C", false, 0, "")
+	pdf.CellFormat(35, 5, "Pague Hasta", "", 0, "C", false, 0, "")
+	pdf.CellFormat(70, 5, "TOTAL A PAGAR", "", 0, "C", false, 0, "")
+	pdf.Cell(5, 5, "")
+	pdf.Cell(35, 5, "OBSERVACION")
+	pdf.Ln(5)
+
+	pdf.SetFont("Helvetica", "B", 8)
+	pdf.CellFormat(35, 5, "Extraordinario", "", 0, "C", false, 0, "")
+	pdf.CellFormat(35, 5, datos["Fecha_pago"].(string), "", 0, "C", false, 0, "")
+	pdf.Cell(70, 5, valorDerecho)
+	pdf.Cell(5, 5, "")
+	pdf.Cell(33, 5, tr(datos["Descripcion"].(string)))
+	pdf.Ln(25)
+	pdf.SetFont("Helvetica", "", 8)
+	pdf.CellFormat(140, 5, codigo, "", 0, "C", false, 0, "")
+	pdf.Ln(5)
+
+	pdf.CellFormat(140, 5, "-COPIA BANCO-", "", 0, "C", false, 0, "")
+	pdf.CellFormat(70, 5, "-Espacio para timbre o sello Banco-", "", 0, "C", false, 0, "")
+	pdf.Ln(5)
+
+	pdf.Cell(210, 5, "............................................................................................................................Doblar............................................................................................................................")
+
+	return pdf
+}
+
 func image(pdf *gofpdf.Fpdf, image string, x, y, w, h float64) *gofpdf.Fpdf {
 	//The ImageOptions method takes a file path, x, y, width, and height parameters, and an ImageOptions struct to specify a couple of options.
 	pdf.ImageOptions(image, x, y, w, h, false, gofpdf.ImageOptions{ImageType: "PNG", ReadDpi: true}, 0, "")
@@ -325,6 +560,57 @@ func dibujarLayout(pdf *gofpdf.Fpdf) *gofpdf.Fpdf {
 	pdf.Line(5, 115, 145, 115)
 	pdf.Line(5, 120, 145, 120)
 	pdf.Line(5, 125, 145, 125)
+	pdf.Line(75, 110, 75, 130) // linea vertival
+	pdf.Line(40, 120, 40, 130)
+
+	// dibujado del segundo recuadro pequeño de datos
+	pdf.RoundedRect(150, 110, 60, 20, 3, "1234", "")
+	pdf.Line(150, 115, 210, 115)
+	pdf.Line(150, 120, 210, 120)
+	pdf.Line(150, 125, 210, 125)
+	pdf.Line(185, 120, 185, 130)
+
+	pdf.RoundedRect(150, 135, 60, 25, 3, "1234", "")
+	pdf.Line(150, 140, 210, 140)
+	pdf.Line(160, 135, 160, 160)
+	pdf.Line(193, 135, 193, 160)
+
+	pdf.RoundedRect(5, 160, 140, 10, 3, "1234", "")
+	pdf.Line(5, 165, 145, 165)
+	pdf.Line(75, 160, 75, 170) // linea vertival
+	pdf.Line(40, 160, 40, 170)
+
+	return pdf
+}
+
+func dibujarLayoutEstudianteRecibo(pdf *gofpdf.Fpdf) *gofpdf.Fpdf {
+
+	// dibujado del primer recuadro grande de datos
+	pdf.RoundedRect(5, 30, 140, 50, 3, "1234", "")
+	pdf.Line(75, 30, 75, 80) //linea vertical central
+	pdf.Line(5, 35, 145, 35)
+	pdf.Line(5, 40, 145, 40)
+	pdf.Line(5, 45, 145, 45)
+	pdf.Line(25, 40, 25, 65)
+	pdf.Line(40, 65, 40, 80)
+	pdf.Line(110, 30, 110, 40) //linea vertical documento
+	pdf.Line(5, 65, 145, 65)
+	pdf.Line(5, 70, 145, 70)
+	pdf.Line(5, 75, 145, 75)
+
+	// dibujado del primer recuadro pequeño de datos
+	pdf.RoundedRect(150, 30, 60, 20, 3, "1234", "")
+	pdf.Line(150, 35, 210, 35)
+	pdf.Line(150, 40, 210, 40)
+	pdf.Line(150, 45, 210, 45)
+	pdf.Line(185, 40, 185, 50) //linea vertical
+
+	// dibujando el primer recuadra de la copia del banco
+	pdf.RoundedRect(5, 110, 140, 20, 3, "1234", "")
+	pdf.Line(5, 115, 145, 115)
+	pdf.Line(5, 120, 145, 120)
+	pdf.Line(5, 125, 145, 125)
+	pdf.Line(110, 110, 110, 120) //linea vertical documento
 	pdf.Line(75, 110, 75, 130) // linea vertival
 	pdf.Line(40, 120, 40, 130)
 
