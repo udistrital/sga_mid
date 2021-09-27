@@ -315,6 +315,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"],
         beego.ControllerComments{
+            Method: "GetEstadoRecibo",
+            Router: "/estado_recibos/:persona_id/:id_periodo",
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"],
+        beego.ControllerComments{
             Method: "PostGenerarDerechoPecuniarioEstudiante",
             Router: "/generar_derecho/",
             AllowHTTPMethods: []string{"post"},
@@ -524,6 +533,15 @@ func init() {
         beego.ControllerComments{
             Method: "PostGenerarRecibo",
             Router: "/",
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:GenerarReciboController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:GenerarReciboController"],
+        beego.ControllerComments{
+            Method: "PostGenerarEstudianteRecibo",
+            Router: "/recibo_estudiante/",
             AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
