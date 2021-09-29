@@ -1463,7 +1463,7 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 // @Param   body        body    {}  true		"body Agregar nuevo tercero content"
 // @Success 200 {}
 // @Failure 400 the request contains incorrect syntax
-// @router /post_tercero  [post]
+// @router /post_tercero [post]
 func (c *FormacionController) PostTercero() {
 	//resultado solicitud de descuento
 	var resultado map[string]interface{}
