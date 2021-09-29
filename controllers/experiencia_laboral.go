@@ -338,6 +338,7 @@ func (c *ExperienciaLaboralController) GetInformacionEmpresa() {
 	//GET que asocia el nit con la empresa
 	errNit := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=TipoDocumentoId__Id:7,Numero:"+idStr, &empresa)
 	if errNit == nil {
+		beego.Info(empresa)
 		if empresa != nil && len(empresa[0]) > 0 {
 			respuesta["NumeroIdentificacion"] = idStr
 			idEmpresa := empresa[0]["TerceroId"].(map[string]interface{})["Id"]
