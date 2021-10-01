@@ -67,7 +67,7 @@ steps:
   commands:
   - go get -t
   - go get github.com/smartystreets/goconvey/convey
-  - GO111MODULE=off go get -u gopkg.in/alecthomas/gometalinter.v1
+  - GO111MODULE=on get -u gopkg.in/alecthomas/gometalinter.v1
   - GO111MODULE=on gometalinter.v1 --install
   - go get github.com/axw/gocov/...
   - go get github.com/AlekSi/gocov-xml
