@@ -1496,6 +1496,9 @@ func (c *FormacionController) PostTercero() {
 				TerceroId := map[string]interface{}{
 					"Id": idTerceroCreado,
 				}
+				TipoTerceroId := map[string]interface{}{
+					"Id": tercero["TipoTrecero"].(map[string]interface{})["Id"].(float64),
+				}
 				identificaciontercero := map[string]interface{}{
 					"Numero":          tercero["Nit"],
 					"TipoDocumentoId": TipoDocumentoId,
@@ -1512,6 +1515,31 @@ func (c *FormacionController) PostTercero() {
 						var telefono map[string]interface{}
 						var correo map[string]interface{}
 						var direccion map[string]interface{}
+						
+						terceroTipoTercero := map[string]interface{}{
+							"TerceroId": TerceroId,
+							"TipoTerceroId": TipoTerceroId,
+						}
+
+						errTipoTercero := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"tercero_tipo_tercero", "POST", &terceroTipoTercero, terceroTipoTercero)
+						if errTipoTercero == nil && fmt.Sprintf("%v", terceroTipoTercero) != "map[]" && terceroTipoTercero["Id"] != nil {
+							if terceroTipoTercero["Status"] != 400 {
+								resultado = terceroPost
+								resultado["NumeroIdentificacion"] = identificacion["Numero"]
+								resultado["TipoIdentificacionId"] = identificacion["TipoDocumentoId"].(map[string]interface{})["Id"]
+								resultado["TipoTerceroId"] = terceroTipoTercero["Id"]
+								c.Data["json"] = terceroTipoTercero
+
+							} else {
+								logs.Error(errTipoTercero)
+								c.Data["system"] = terceroTipoTercero
+								c.Abort("400")
+							}
+						} else {
+							logs.Error(errTipoTercero)
+							c.Data["system"] = terceroTipoTercero
+							c.Abort("400")
+						}
 
 						InfoComplementariaTelefono := map[string]interface{}{
 							"Id": 51,
