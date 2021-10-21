@@ -765,6 +765,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PersonaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PersonaController"],
         beego.ControllerComments{
+            Method: "GuardarAutor",
+            Router: "/guardar_autor",
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PersonaController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PersonaController"],
+        beego.ControllerComments{
             Method: "GuardarDatosComplementarios",
             Router: "/guardar_complementarios",
             AllowHTTPMethods: []string{"post"},
