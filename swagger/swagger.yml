@@ -1589,6 +1589,24 @@ paths:
           description: '{}'
         "404":
           description: not found resource
+  /persona/guardar_autor:
+    post:
+      tags:
+      - persona
+      description: Guardar autor
+      operationId: PersonaController.PostAutor
+      parameters:
+      - in: body
+        name: body
+        description: body for Guardar autor content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
   /persona/guardar_complementarios:
     post:
       tags:
