@@ -32,6 +32,7 @@ func (c *PersonaController) URLMapping() {
 	c.Mapping("ActualizarDatosComplementarios", c.ActualizarDatosComplementarios)
 	c.Mapping("ActualizarInfoFamiliar", c.ActualizarInfoFamiliar)
 	c.Mapping("ConsultarInfoEstudiante", c.ConsultarInfoEstudiante)
+	c.Mapping("GuardarAutor", c.GuardarAutor)
 }
 
 // GuardarPersona ...
@@ -2585,5 +2586,82 @@ func (c *PersonaController) ConsultarInfoEstudiante() {
 		c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": resultado}
 	}
 
+	c.ServeJSON()
+}
+
+// GuardarAutor ...
+// @Title PostAutor
+// @Description Guardar autor
+// @Param	body		body 	{}	true		"body for Guardar autor content"
+// @Success 201 {int}
+// @Failure 400 the request contains incorrect syntax
+// @router /guardar_autor [post]
+func (c *PersonaController) GuardarAutor() {
+
+	//resultado solicitud de descuento
+	var resultado map[string]interface{}
+	//solicitud de descuento
+	var tercero map[string]interface{}
+	var terceroPost map[string]interface{}
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &tercero); err == nil {
+		guardarpersona := map[string]interface{}{
+			"NombreCompleto":      tercero["NombreCompleto"].(string),
+			"Activo":              false,
+			"TipoContribuyenteId": tercero["TipoContribuyenteId"], 
+		}
+		errPersona := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"tercero", "POST", &terceroPost, guardarpersona)
+
+		if errPersona == nil && fmt.Sprintf("%v", terceroPost) != "map[]" && terceroPost["Id"] != nil {
+			if terceroPost["Status"] != 400 {
+				idTerceroCreado := terceroPost["Id"]
+				var identificacion map[string]interface{}
+
+				TerceroId := map[string]interface{}{
+					"Id": idTerceroCreado,
+				}
+				identificaciontercero := map[string]interface{}{
+					"Numero":          tercero["NumeroIdentificacion"],
+					"TipoDocumentoId": tercero["TipoDocumentoId"],
+					"TerceroId":       TerceroId,
+					"Activo":          true,
+				}
+				errIdentificacion := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion", "POST", &identificacion, identificaciontercero)
+				if errIdentificacion == nil && fmt.Sprintf("%v", identificacion) != "map[]" && identificacion["Id"] != nil {
+					if identificacion["Status"] != 400 {
+						resultado = terceroPost
+
+						resultado["NumeroIdentificacion"] = identificacion["Numero"]
+						resultado["TipoIdentificacionId"] = identificacion["TipoDocumentoId"].(map[string]interface{})["Id"]
+						c.Data["json"] = resultado
+						
+					} else {
+						//Si pasa un error borra todo lo creado al momento del registro del documento de identidad
+						var resultado2 map[string]interface{}
+						request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"tercero/%.f", terceroPost["Id"]), "DELETE", &resultado2, nil)
+						logs.Error(errIdentificacion)
+						c.Data["system"] = identificacion
+						c.Abort("400")
+					}
+				} else {
+					logs.Error(errIdentificacion)
+					c.Data["system"] = identificacion
+					c.Abort("400")
+				}
+			} else {
+				logs.Error(errPersona)
+				c.Data["system"] = terceroPost
+				c.Abort("400")
+			}
+		} else {
+			logs.Error(errPersona)
+			c.Data["system"] = terceroPost
+			c.Abort("400")
+		}
+	} else {
+		logs.Error(err)
+		c.Data["system"] = err
+		c.Abort("400")
+	}
 	c.ServeJSON()
 }
