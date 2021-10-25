@@ -95,15 +95,9 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 	var proyectosArr map[string]interface{}
 	var salidaFilter []map[string]interface{}
 	alertas := append([]interface{}{"Response:"})
-	idStr, _ := strconv.Atoi(c.Ctx.Input.Param(":id"))
-	var nivel = ""
-	if idStr == 14 {
-		nivel = "Pregrado"
-	} else {
-		nivel = "Posgrado"
-	}
+	idStr := c.Ctx.Input.Param(":id")
 
-	errProyectos := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=NivelFormacionId__Nombre:"+nivel+"&limit=0", &proyectos)
+	errProyectos := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?limit=0", &proyectos)
 	if errProyectos == nil && fmt.Sprintf("%v", proyectos[0]["Id"]) != "map[]" {
 
 		errCalendarios := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Activo:true&limit=0", &calendarios)
@@ -116,8 +110,19 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 						json.Unmarshal([]byte(DependenciaID), &listaProyectos)
 						for _, id := range listaProyectos["proyectos"] {
 							if id == int(proyecto["Id"].(float64)) {
-								calendarioID = strconv.FormatFloat(calendario["Id"].(float64), 'f', 0, 64)
-								break
+								if proyecto["NivelFormacionId"].(map[string]interface{})["NivelFormacionPadreId"] != nil {
+									idNivel := fmt.Sprint(proyecto["NivelFormacionId"].(map[string]interface{})["NivelFormacionPadreId"].(map[string]interface{})["Id"] )
+									if idNivel == idStr{
+										calendarioID = strconv.FormatFloat(calendario["Id"].(float64), 'f', 0, 64)
+										break
+									}
+								} else {
+									idNivel := fmt.Sprint(proyecto["NivelFormacionId"].(map[string]interface{})["Id"])
+									if idNivel == idStr {
+										calendarioID = strconv.FormatFloat(calendario["Id"].(float64), 'f', 0, 64)
+										break
+									}
+								}
 							}
 						}
 					}
@@ -128,15 +133,15 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 							"CalendarioID": calendarioID,
 						}
 						proyectosArrMap = append(proyectosArrMap, proyectosArr)
-
+						
 						procesoArr = append(procesoArr, calendarioID)
 						calendarioID = "0"
 						break
 					}
 				}
-
+				
 			}
-
+			
 			m := make(map[string]bool)
 			// eliminar calendarios duplicados
 			for curIndex := 0; curIndex < len((*&proyectosArrMap)); curIndex++ {
@@ -146,18 +151,18 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 					calendariosFilter = append(calendariosFilter, proyectosArrMap[curIndex])
 				}
 			}
-
+			
 			*&calendariosArrMap = calendariosFilter
-
+			
 			m1 := make(map[int]bool)
 			// eliminar proyectos duplicados
 			for curIndex := 0; curIndex < len((*&proyectosArrMap)); curIndex++ {
 				curValue := proyectosArrMap[curIndex]["ProyectoId"].(int)
 				if has := m1[curValue]; !has {
 					m1[curValue] = true
-					proyectosFilter = append(calendariosFilter, proyectosArrMap[curIndex])
+					proyectosFilter = append(proyectosFilter, proyectosArrMap[curIndex])
 				}
-			}
+			} 
 
 			*&proyectosArrMap = proyectosFilter
 

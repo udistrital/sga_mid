@@ -44,9 +44,9 @@ func (c *DescuentoController) PostDescuentoAcademico() {
 	var tipoDescuento []map[string]interface{}
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &solicitud); err == nil {
-
 		IDTipoDescuento := fmt.Sprintf("%v", solicitud["DescuentosDependenciaId"].(map[string]interface{})["Id"])
-		errDescuentosDependencia := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"descuentos_dependencia?query=TipoDescuentoId__Id:"+IDTipoDescuento, &tipoDescuento)
+		IDDependencia := fmt.Sprintf("%v", solicitud["DescuentosDependenciaId"].(map[string]interface{})["Dependencia"])
+		errDescuentosDependencia := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"descuentos_dependencia?query=TipoDescuentoId__Id:"+IDTipoDescuento+",DependenciaId:"+IDDependencia, &tipoDescuento)
 		if errDescuentosDependencia == nil && fmt.Sprintf("%v", tipoDescuento[0]["System"]) != "map[]" {
 
 			// DescuentosDependenciaID := map[string]interface{}{
@@ -606,8 +606,7 @@ func (c *DescuentoController) GetDescuentoByPersonaPeriodoDependencia() {
 	var errorGetAll bool
 	alertas := append([]interface{}{"Data:"})
 
-	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"solicitud_descuento/?query=TerceroId:"+idPersona+",PeriodoId:"+
-		idPeriodo+",DescuentosDependenciaId.DependenciaId:"+idDependencia+"&fields=Id,TerceroId,Estado,PeriodoId,DescuentosDependenciaId", &solicitud)
+	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"solicitud_descuento?query=TerceroId:"+idPersona+",PeriodoId:"+idPeriodo+",DescuentosDependenciaId.DependenciaId:"+idDependencia+"&fields=Id,TerceroId,Estado,PeriodoId,DescuentosDependenciaId", &solicitud)
 	if errSolicitud == nil && fmt.Sprintf("%v", solicitud[0]["System"]) != "map[]" {
 		if solicitud[0]["Status"] != 404 && len(solicitud[0]) > 1 {
 			for u := 0; u < len(solicitud); u++ {

@@ -645,6 +645,49 @@ paths:
           description: '{}'
         "400":
           description: body is empty
+  /derechos_pecuniarios/estado_recibos/{persona_id}/{id_periodo}:
+    get:
+      tags:
+      - derechos_pecuniarios
+      description: consultar los estados de todos los recibos de derechos pecuniarios
+        generados por el tercero
+      operationId: DerechosPecuniariosController.GetEstadoRecibo
+      parameters:
+      - in: path
+        name: persona_id
+        description: Id del tercero
+        required: true
+        type: integer
+        format: int64
+      - in: path
+        name: id_periodo
+        description: Id del ultimo periodo
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+  /derechos_pecuniarios/generar_derecho/:
+    post:
+      tags:
+      - derechos_pecuniarios
+      description: Generar un recibo de derecho pecuniario por parte de estudiantes
+      operationId: DerechosPecuniariosController.PostGenerarrDerechoPecuniarioEstudiante
+      parameters:
+      - in: body
+        name: body
+        description: body Clonar Conceptos content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "400":
+          description: body is empty
   /derechos_pecuniarios/update/{id}:
     put:
       tags:
@@ -1062,6 +1105,24 @@ paths:
           description: '{}'
         "400":
           description: the request contains incorrect syntax
+  /formacion_academica/post_tercero:
+    post:
+      tags:
+      - formacion_academica
+      description: Agregar nuevo tercero
+      operationId: FormacionController.PostTercero
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar nuevo tercero content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "400":
+          description: the request contains incorrect syntax
   /generar_codigo/:
     post:
       tags:
@@ -1086,6 +1147,24 @@ paths:
       - generar_recibo
       description: Genera un recibo de pago
       operationId: GenerarReciboController.PostGenerarRecibo
+      parameters:
+      - in: body
+        name: body
+        description: body Datos del recibo content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "400":
+          description: body is empty
+  /generar_recibo/recibo_estudiante/:
+    post:
+      tags:
+      - generar_recibo
+      description: Genera un recibo de pago
+      operationId: GenerarReciboController.PostGenerarEstudianteRecibo
       parameters:
       - in: body
         name: body
@@ -1135,6 +1214,24 @@ paths:
         required: true
         type: integer
         format: int64
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /inscripciones/generar_inscripcion:
+    post:
+      tags:
+      - inscripciones
+      description: Registra una nueva inscripción con su respectivo recibo de pago
+      operationId: InscripcionesController.PostGenerarInscripcion
+      parameters:
+      - in: body
+        name: body
+        description: body for información de suministrada por el usuario par la inscripción
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
       responses:
         "200":
           description: '{}'
@@ -1456,6 +1553,24 @@ paths:
           description: '{}'
         "404":
           description: not found resource
+  /persona/consultar_info_solicitante/{tercero_id}:
+    get:
+      tags:
+      - persona
+      description: get ConsultarInfoSolicitante by id
+      operationId: PersonaController.ConsultarInfoSolicitante
+      parameters:
+      - in: path
+        name: tercero_id
+        description: Id del tercero
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
   /persona/consultar_persona/{tercero_id}:
     get:
       tags:
@@ -1474,6 +1589,24 @@ paths:
           description: '{}'
         "404":
           description: not found resource
+  /persona/guardar_autor:
+    post:
+      tags:
+      - persona
+      description: Guardar autor
+      operationId: PersonaController.PostAutor
+      parameters:
+      - in: body
+        name: body
+        description: body for Guardar autor content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
   /persona/guardar_complementarios:
     post:
       tags:
@@ -1685,6 +1818,24 @@ paths:
       - in: path
         name: id
         description: Id
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+  /produccion_academica/pr_academica/{tercero}:
+    get:
+      tags:
+      - produccion_academica
+      description: consultar Produccion Academica por tercero
+      operationId: ProduccionAcademicaController.GetIdProduccionAcademica
+      parameters:
+      - in: path
+        name: tercero
+        description: Tercero
         required: true
         type: integer
         format: int64
@@ -1981,6 +2132,122 @@ paths:
           description: '{}'
         "404":
           description: not found resource
+  /solicitud_evaluacion/consultar_solicitud/{id_persona}:
+    get:
+      tags:
+      - solicitud_evaluacion
+      description: Consultar la solicitudes de un estudiante de actualización de datos
+      operationId: SolicitudEvaluacionController.GetSolicitudActualizacionDatos
+      parameters:
+      - in: path
+        name: id_persona
+        description: Id del estudiante
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /solicitud_evaluacion/consultar_solicitud/{id_persona}/{id_estado_tipo_solicitud}:
+    get:
+      tags:
+      - solicitud_evaluacion
+      description: Consultar los datos ingresados por el estudiante en su solicitud
+      operationId: SolicitudEvaluacionController.GetDatosSolicitud
+      parameters:
+      - in: path
+        name: id_persona
+        description: Id del estudiante
+        required: true
+        type: integer
+        format: int64
+      - in: path
+        name: id_estado_tipo_solicitud
+        description: Id del estado del tipo de solictud
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /solicitud_evaluacion/consultar_solicitud/solicitud/{id_solicitud}:
+    get:
+      tags:
+      - solicitud_evaluacion
+      description: Consultar los datos ingresados por el estudiante en su solicitud
+        consultando por id de la solicitud
+      operationId: SolicitudEvaluacionController.GetDatosSolicitudById
+      parameters:
+      - in: path
+        name: id_solicitud
+        description: Id de la solicitud
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /solicitud_evaluacion/consultar_solicitudes/{id_estado_tipo_sol}:
+    get:
+      tags:
+      - solicitud_evaluacion
+      description: Consultar todas la solicitudes de actualización de datos
+      operationId: SolicitudEvaluacionController.GetAllSolicitudActualizacionDatos
+      parameters:
+      - in: path
+        name: id_estado_tipo_sol
+        description: Id del estado tipo solicitud
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /solicitud_evaluacion/registrar_evolucion:
+    post:
+      tags:
+      - solicitud_evaluacion
+      description: Agregar una evolucion del estado a la solicitud planteada
+      operationId: SolicitudEvaluacionController.PostSolicitudEvolucionEstado
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar una evolucion del estado a la solicitud planteada
+          content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
+  /solicitud_evaluacion/registrar_solicitud:
+    post:
+      tags:
+      - solicitud_evaluacion
+      description: Agregar una solicitud de actualizacion de datos(ID o nombre)
+      operationId: SolicitudEvaluacionController.PostSolicitudActualizacionDatos
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar solicitud actualizacion datos content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
   /solicitud_produccion/{id}:
     put:
       tags:

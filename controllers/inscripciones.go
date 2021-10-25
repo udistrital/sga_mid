@@ -3,9 +3,11 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/httplib"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
 	"github.com/udistrital/utils_oas/request"
@@ -31,6 +33,7 @@ func (c *InscripcionesController) URLMapping() {
 	c.Mapping("ConsultarProyectosEventos", c.ConsultarProyectosEventos)
 	c.Mapping("ActualizarInfoContacto", c.ActualizarInfoContacto)
 	c.Mapping("GetEstadoInscripcion", c.GetEstadoInscripcion)
+	c.Mapping("PostGenerarInscripcion", c.PostGenerarInscripcion)
 }
 
 // GetEstadoInscripcion ...
@@ -63,9 +66,9 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 			resultadoAux = make([]map[string]interface{}, len(Inscripciones))
 			for i := 0; i < len(Inscripciones); i++ {
 				ReciboInscripcion := fmt.Sprintf("%v", Inscripciones[i]["ReciboInscripcion"])
-				errRecibo := request.GetJsonWSO2("http://"+beego.AppConfig.String("ReciboJbpmService")+"recibos_pago/consulta_recibo/"+ReciboInscripcion, &ReciboXML)
+				errRecibo := request.GetJsonWSO2("http://"+beego.AppConfig.String("ReciboJbpmService")+"wso2eiserver/services/recibos_pago/consulta_recibo/"+ReciboInscripcion, &ReciboXML)
 				if errRecibo == nil {
-					if ReciboXML != nil && fmt.Sprintf("%v", ReciboXML) != "map[]" {
+					if ReciboXML != nil && fmt.Sprintf("%v", ReciboXML) != "map[reciboCollection:map[]]" && fmt.Sprintf("%v", ReciboXML) != "map[]" {
 						//Fecha límite de pago extraordinario
 						FechaLimite := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["fecha_extraordinario"]
 						EstadoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["estado"]
@@ -77,12 +80,18 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 							//Verifica si el recibo está vencido o no
 							FechaActual := time_bogota.TiempoBogotaFormato() //time.Now()
 							layout := "2006-01-02T15:04:05.000-05:00"
+							FechaLimite = strings.Replace(fmt.Sprintf("%v", FechaLimite),"+","-",-1)
 							FechaLimiteFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaLimite))
 							if err != nil {
 								fmt.Println(err)
 								Estado = "Vencido"
 							} else {
 								layout := "2006-01-02T15:04:05.000000000-05:00"
+								if len(FechaActual) < len(layout){
+									n:=len(FechaActual)-26
+									s:=strings.Repeat("0",n)
+									layout=strings.ReplaceAll(layout, "000000000", s)
+								}
 								FechaActualFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaActual))
 								if err != nil {
 									fmt.Println(err)
@@ -105,12 +114,16 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 							"Estado":              Estado,
 						}
 					} else {
-						errorGetAll = true
-						alertas = append(alertas, "No data found")
-						alerta.Code = "404"
-						alerta.Type = "error"
-						alerta.Body = alertas
-						c.Data["json"] = map[string]interface{}{"Response": alerta}
+						if (fmt.Sprintf("%v", resultadoAux) != "map[]"){
+							resultado["Inscripciones"] = resultadoAux
+						} else {
+							errorGetAll = true
+							alertas = append(alertas, "No data found")
+							alerta.Code = "404"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
+						}
 					}
 				} else {
 					errorGetAll = true
@@ -1214,4 +1227,130 @@ func (c *InscripcionesController) ActualizarInfoContacto() {
 		c.Data["json"] = map[string]interface{}{"Response": alerta}
 	}
 	c.ServeJSON()
+}
+
+// PostGenerarInscripcion ...
+// @Title PostGenerarInscripcion
+// @Description Registra una nueva inscripción con su respectivo recibo de pago
+// @Param	body	body 	{}	true		"body for información de suministrada por el usuario par la inscripción"
+// @Success 200 {}
+// @Failure 403 body is empty
+// @router /generar_inscripcion [post]
+func (c *InscripcionesController) PostGenerarInscripcion() {
+	var respuesta models.Alert
+	var SolicitudInscripcion map[string]interface{}
+	var TipoParametro string
+	var parametro map[string]interface{}
+	var Valor map[string]interface{}
+	var NuevoRecibo map[string]interface{}
+	var inscripcionRealizada map[string]interface{}
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &SolicitudInscripcion); err == nil {
+		objTransaccion := map[string]interface{}{
+			"codigo":              SolicitudInscripcion["Id"].(float64),
+			"nombre":              SolicitudInscripcion["Nombre"].(string),
+			"apellido":            SolicitudInscripcion["Apellido"].(string),
+			"correo":              SolicitudInscripcion["Correo"].(string),
+			"proyecto":            SolicitudInscripcion["ProgramaAcademicoId"].(float64),
+			"tiporecibo":          15,
+			"concepto":            "Inscripcion Virtual",
+			"valorordinario":      0,
+			"valorextraordinario": 0,
+			"cuota":               1,
+			"fechaordinario":      SolicitudInscripcion["FechaPago"].(string),
+			"fechaextraordinario": SolicitudInscripcion["FechaPago"].(string),
+			"aniopago":            SolicitudInscripcion["Year"].(float64),
+			"perpago":             SolicitudInscripcion["Periodo"].(float64),
+		}
+
+		inscripcion := map[string]interface{}{
+			"PersonaId":           SolicitudInscripcion["PersonaId"].(float64),
+			"ProgramaAcademicoId": SolicitudInscripcion["ProgramaAcademicoId"].(float64),
+			"ReciboInscripcion":   "",
+			"PeriodoId":           SolicitudInscripcion["PeriodoId"].(float64),
+			"AceptaTerminos":      true,
+			"FechaAceptaTerminos": time.Now(),
+			"Activo":              true,
+			"EstadoInscripcionId": map[string]interface{}{"Id": 1},
+			"TipoInscripcionId":   map[string]interface{}{"Id": SolicitudInscripcion["TipoInscripcionId"]},
+		}
+
+		if SolicitudInscripcion["Nivel"].(float64) == 1 {
+			TipoParametro = "13"
+		} else if SolicitudInscripcion["Nivel"].(float64) == 2 {
+			TipoParametro = "12"
+		}
+		errInscripcion := request.SendJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion", "POST", &inscripcionRealizada, inscripcion)
+		if errInscripcion == nil && inscripcionRealizada["Status"] != "400" {
+			errParam := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId.TipoParametroId.Id:2,ParametroId.CodigoAbreviacion:"+TipoParametro+",PeriodoId.Id:3", &parametro)
+			if errParam == nil && fmt.Sprintf("%v", parametro["Data"].([]interface{})[0]) != "map[]" {
+				Dato := parametro["Data"].([]interface{})[0]
+				if errJson := json.Unmarshal([]byte(Dato.(map[string]interface{})["Valor"].(string)), &Valor); errJson == nil {
+					objTransaccion["valorordinario"] = Valor["Costo"].(float64)
+					objTransaccion["valorextraordinario"] = Valor["Costo"].(float64)
+
+					SolicitudRecibo := objTransaccion
+
+					reciboSolicitud := httplib.Post("http://" + beego.AppConfig.String("ReciboJbpmService") + "recibos_pago/recibos_pago_proxy")
+					reciboSolicitud.Header("Accept", "application/json")
+					reciboSolicitud.Header("Content-Type", "application/json")
+					reciboSolicitud.JSONBody(SolicitudRecibo)
+					//errRecibo := request.SendJson("http://"+beego.AppConfig.String("ReciboJbpmService")+"recibosPagoProxy", "POST", &NuevoRecibo, SolicitudRecibo)
+					//fmt.Println("http://" + beego.AppConfig.String("ReciboJbpmService") + "recibosPagoProxy")
+
+					if errRecibo := reciboSolicitud.ToJSON(&NuevoRecibo); errRecibo == nil {
+						inscripcionRealizada["ReciboInscripcion"] = fmt.Sprintf("%v/%.f", NuevoRecibo["creaTransaccionResponse"].(map[string]interface{})["secuencia"], SolicitudInscripcion["Year"])
+						var inscripcionUpdate map[string]interface{}
+						errInscripcionUpdate := request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion/%.f", inscripcionRealizada["Id"]), "PUT", &inscripcionUpdate, inscripcionRealizada)
+						if errInscripcionUpdate == nil {
+							respuesta.Type = "success"
+							respuesta.Code = "200"
+							respuesta.Body = inscripcionUpdate
+						} else {
+							logs.Error(errInscripcionUpdate)
+							respuesta.Type = "error"
+							respuesta.Code = "400"
+							respuesta.Body = errInscripcionUpdate.Error()
+						}
+					} else {
+						var resDelete string
+						request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion/%.f", inscripcionRealizada["Id"]), "DELETE", &resDelete, nil)
+						logs.Error(errRecibo)
+						respuesta.Type = "error"
+						respuesta.Code = "400"
+						respuesta.Body = errRecibo.Error()
+					}
+				} else {
+					var resDelete string
+					request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion/%.f", inscripcionRealizada["Id"]), "DELETE", &resDelete, nil)
+					logs.Error(errJson)
+					respuesta.Type = "error"
+					respuesta.Code = "403"
+					respuesta.Body = errJson.Error()
+				}
+			} else {
+				var resDelete string
+				request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion/%.f", inscripcionRealizada["Id"]), "DELETE", &resDelete, nil)
+				logs.Error(errParam)
+				respuesta.Type = "error"
+				respuesta.Code = "400"
+				respuesta.Body = errParam.Error()
+			}
+
+		} else {
+			logs.Error(errInscripcion)
+			respuesta.Type = "success"
+			respuesta.Code = "204"
+			//respuesta.Body = errInscripcion.Error()
+		}
+	} else {
+		logs.Error(err)
+		respuesta.Type = "error"
+		respuesta.Code = "403"
+		respuesta.Body = err.Error()
+	}
+
+	c.Data["json"] = respuesta
+	c.ServeJSON()
+
 }
