@@ -1334,32 +1334,6 @@
             }
         },
         "/experiencia_laboral/": {
-            "put": {
-                "tags": [
-                    "experiencia_laboral"
-                ],
-                "description": "Modificar Formacion Academica ud",
-                "operationId": "ExperienciaLaboralController.PutExperienciaLaboral",
-                "parameters": [
-                    {
-                        "in": "body",
-                        "name": "body",
-                        "description": "body Agregar Experiencia Laboral content",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/{}"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "{int}"
-                    },
-                    "400": {
-                        "description": "the request contains incorrect syntax"
-                    }
-                }
-            },
             "post": {
                 "tags": [
                     "experiencia_laboral"
@@ -1466,6 +1440,57 @@
                         "description": "not found resource"
                     }
                 }
+            },
+            "put": {
+                "tags": [
+                    "experiencia_laboral"
+                ],
+                "description": "Modificar Formacion Academica ud",
+                "operationId": "ExperienciaLaboralController.PutExperienciaLaboral",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Agregar Experiencia Laboral content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "experiencia_laboral"
+                ],
+                "description": "eliminar Experiencia Laboral por id",
+                "operationId": "ExperienciaLaboralController.DeleteExperienciaLaboral",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "Id de la Experiencia Laboral",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{string} delete success!"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
             }
         },
         "/formacion_academica/": {
@@ -1503,16 +1528,8 @@
                 "parameters": [
                     {
                         "in": "query",
-                        "name": "IdProyecto",
-                        "description": "Id del proyecto academico",
-                        "required": true,
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    {
-                        "in": "query",
-                        "name": "Nit",
-                        "description": "Nit de la universidad",
+                        "name": "Id",
+                        "description": "Id del registro de formación",
                         "required": true,
                         "type": "integer",
                         "format": "int64"
@@ -1573,24 +1590,8 @@
                 "parameters": [
                     {
                         "in": "query",
-                        "name": "IdTercero",
-                        "description": "Id del tercero",
-                        "required": true,
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    {
-                        "in": "query",
-                        "name": "IdProyecto",
-                        "description": "Id del proyecto academico",
-                        "required": true,
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    {
-                        "in": "query",
-                        "name": "Nit",
-                        "description": "Nit de la universidad",
+                        "name": "Id",
+                        "description": "Id del registro de formación",
                         "required": true,
                         "type": "integer",
                         "format": "int64"
@@ -1683,6 +1684,33 @@
                     },
                     "400": {
                         "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
+        "/formacion_academica/{id}": {
+            "delete": {
+                "tags": [
+                    "formacion_academica"
+                ],
+                "description": "eliminar Formacion Academica por id de la formacion",
+                "operationId": "FormacionController.DeleteFormacionAcademica",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "Id de la formacion academica",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{string} delete success!"
+                    },
+                    "404": {
+                        "description": "not found resource"
                     }
                 }
             }
