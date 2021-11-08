@@ -501,7 +501,7 @@ func (c *DerechosPecuniariosController) PostGenerarDerechoPecuniarioEstudiante()
 															"Id": 307,
 														},
 							"Activo": 					true,
-					 		"Dato": 					`{"value":` + `"` + fmt.Sprintf("%v/%.f", NuevoRecibo["creaTransaccionResponse"].(map[string]interface{})["secuencia"], SolicitudDerechoPecuniario["Year"]) + `"` + `}`,
+					 		"Dato": 					`{"value":` + `"` + fmt.Sprintf("%v/%v", NuevoRecibo["creaTransaccionResponse"].(map[string]interface{})["secuencia"], NuevoRecibo["creaTransaccionResponse"].(map[string]interface{})["anio"]) + `"` + `}`,
 					 	}
 						
 					 	var complementario map[string]interface{}
