@@ -1751,8 +1751,10 @@ paths:
           description: ""
           schema:
             $ref: '#/definitions/models.Practicas_academicas'
-        "403":
-          description: ""
+        "400":
+          description: the request contains incorrect syntax
+        "404":
+          description: not data found
     post:
       tags:
       - practicas_academicas

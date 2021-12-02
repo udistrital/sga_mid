@@ -80,11 +80,13 @@ func (c *PracticasAcademicasController) Post() {
 		jsonProyecto, _ := json.Marshal(solicitud["Proyecto"])
 		jsonEspacio, _ := json.Marshal(solicitud["EspacioAcademico"])
 		jsonVehiculo, _ := json.Marshal(solicitud["TipoVehiculo"])
+		jsonDocente, _ := json.Marshal(solicitud["DocenteSolicitante"])
 		jsonDocentes, _ := json.Marshal(solicitud["DocentesInvitados"])
 
 		Referencia = "{\n\"Periodo\":" + fmt.Sprintf("%v", string(jsonPeriodo)) +
 			",\n\"Proyecto\": " + fmt.Sprintf("%v", string(jsonProyecto)) +
 			",\n\"EspacioAcademico\": " + fmt.Sprintf("%v", string(jsonEspacio)) +
+			",\n\"Semestre\": " + fmt.Sprintf("%v", solicitud["Semestre"]) +
 			",\n\"NumeroEstudiantes\": " + fmt.Sprintf("%v", solicitud["NumeroEstudiantes"]) +
 			",\n\"NumeroGrupos\": " + fmt.Sprintf("%v", solicitud["NumeroGrupos"]) +
 			",\n\"Duracion\": " + fmt.Sprintf("%v", solicitud["Duracion"]) +
@@ -93,6 +95,7 @@ func (c *PracticasAcademicasController) Post() {
 			",\n\"FechaHoraSalida\": \"" + time_bogota.TiempoCorreccionFormato(solicitud["FechaHoraSalida"].(string)) + "\"" +
 			",\n\"FechaHoraRegreso\": \"" + time_bogota.TiempoCorreccionFormato(solicitud["FechaHoraRegreso"].(string)) + "\"" +
 			",\n\"Documentos\": " + fmt.Sprintf("%v", string(jsonDocumento)) +
+			",\n\"DocenteSolicitante\": " + fmt.Sprintf("%v", string(jsonDocente)) +
 			",\n\"DocentesInvitados\": " + fmt.Sprintf("%v", string(jsonDocentes)) + "\n}"
 
 		IdEstadoTipoSolicitud = 34
@@ -226,7 +229,59 @@ func (c *PracticasAcademicasController) Post() {
 // @Failure 404 not found resource
 // @router /:id [get]
 func (c *PracticasAcademicasController) GetOne() {
+	id_practica := c.Ctx.Input.Param(":id")
+	var Solicitudes []map[string]interface{}
+	var tipoSolicitud map[string]interface{}
+	var Estados []map[string]interface{}
+	resultado := make(map[string]interface{})
+	var errorGetAll bool
 
+	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=SolicitudId.Id:"+id_practica, &Solicitudes)
+	if errSolicitud == nil {
+		if Solicitudes != nil && fmt.Sprintf("%v", Solicitudes[0]) != "map[]" {
+			Referencia := Solicitudes[0]["SolicitudId"].(map[string]interface{})["Referencia"].(string)
+			fechaRadicado := Solicitudes[0]["SolicitudId"].(map[string]interface{})["FechaRadicacion"].(string) 
+			var ReferenciaJson map[string]interface{}
+			if err := json.Unmarshal([]byte(Referencia), &ReferenciaJson); err == nil {
+				ReferenciaJson["Id"] = id_practica
+				resultado = ReferenciaJson
+				resultado["FechaRadicado"] = fechaRadicado
+			}
+
+			idEstado := fmt.Sprintf("%v", Solicitudes[0]["SolicitudId"].(map[string]interface{})["EstadoTipoSolicitudId"].(map[string]interface{})["Id"].(float64))
+
+			errTipoSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"estado_tipo_solicitud?query=Id:"+idEstado, &tipoSolicitud)
+			if errTipoSolicitud == nil {
+				if tipoSolicitud != nil && fmt.Sprintf("%v", tipoSolicitud["Data"].([]interface{})[0]) != "map[]" {
+					resultado["EstadoTipoSolicitudId"] = tipoSolicitud["Data"].([]interface{})[0]
+				}
+			}
+
+
+			errEstados := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado?query=SolicitudId.Id:"+id_practica, &Estados)
+			if errEstados == nil {
+				if Estados != nil && fmt.Sprintf("%v", Estados[0]) != "map[]" {
+					resultado["Estados"] = Estados
+				}
+			}
+
+		} else {
+			errorGetAll = true
+			c.Data["message"] = "Error service GetAll: No data found"
+			c.Abort("404")
+		}
+	} else {
+		errorGetAll = true
+		c.Data["message"] = "Error service GetAll: " + errSolicitud.Error()
+		c.Abort("400")
+	}
+
+	if !errorGetAll {
+		c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": resultado}
+
+	}
+
+	c.ServeJSON()
 }
 
 // GetAll ...
@@ -239,10 +294,48 @@ func (c *PracticasAcademicasController) GetOne() {
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
 // @Success 200 {object} models.Practicas_academicas
-// @Failure 403
+// @Failure 404 not data found
+// @Failure 400 the request contains incorrect syntax
 // @router / [get]
 func (c *PracticasAcademicasController) GetAll() {
+	var query string
+	var fields string
+	var Solicitudes []map[string]interface{}
+	resultado := append([]interface{}{})
+	var errorGetAll bool
 
+	// query: k:v,k:v
+	if query = c.GetString("query"); query != "" {
+		query = "&query=" + query
+	}
+	// fields: col1,col2,entity.col3
+	if fields = c.GetString("fields"); fields != "" {
+		fields = "&fields=" + fields
+	}
+
+	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud?limit=0"+query+fields, &Solicitudes)
+
+	if errSolicitud == nil {
+		if Solicitudes != nil && fmt.Sprintf("%v", Solicitudes[0]) != "map[]" {
+			for _, solicitud := range Solicitudes {
+				resultado = append(resultado, solicitud)
+			}
+		} else {
+			errorGetAll = true
+			c.Data["message"] = "Error service GetAll: No data found"
+			c.Abort("404")
+		}
+	} else {
+		errorGetAll = true
+		c.Data["message"] = "Error service GetAll: " + errSolicitud.Error()
+		c.Abort("400")
+	}
+
+	if !errorGetAll {
+		c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": resultado}
+	}
+
+	c.ServeJSON()
 }
 
 // Put ...
