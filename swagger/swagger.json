@@ -2717,6 +2717,26 @@
                 }
             }
         },
+        "/practicas_academicas/consultar_estados/": {
+            "get": {
+                "tags": [
+                    "practicas_academicas"
+                ],
+                "description": "get estados de practica academica",
+                "operationId": "PracticasAcademicasController.ConsultarEstados",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Practicas_academicas"
+                        }
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
         "/practicas_academicas/consultar_parametros/": {
             "get": {
                 "tags": [
