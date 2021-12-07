@@ -233,6 +233,7 @@ func (c *PracticasAcademicasController) GetOne() {
 	var Solicitudes []map[string]interface{}
 	var tipoSolicitud map[string]interface{}
 	var Estados []map[string]interface{}
+	var Comentario []map[string]interface{}
 	resultado := make(map[string]interface{})
 	var errorGetAll bool
 
@@ -240,7 +241,7 @@ func (c *PracticasAcademicasController) GetOne() {
 	if errSolicitud == nil {
 		if Solicitudes != nil && fmt.Sprintf("%v", Solicitudes[0]) != "map[]" {
 			Referencia := Solicitudes[0]["SolicitudId"].(map[string]interface{})["Referencia"].(string)
-			fechaRadicado := Solicitudes[0]["SolicitudId"].(map[string]interface{})["FechaRadicacion"].(string) 
+			fechaRadicado := Solicitudes[0]["SolicitudId"].(map[string]interface{})["FechaRadicacion"].(string)
 			var ReferenciaJson map[string]interface{}
 			if err := json.Unmarshal([]byte(Referencia), &ReferenciaJson); err == nil {
 				ReferenciaJson["Id"] = id_practica
@@ -250,17 +251,27 @@ func (c *PracticasAcademicasController) GetOne() {
 
 			idEstado := fmt.Sprintf("%v", Solicitudes[0]["SolicitudId"].(map[string]interface{})["EstadoTipoSolicitudId"].(map[string]interface{})["Id"].(float64))
 
-			errTipoSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"estado_tipo_solicitud?query=Id:"+idEstado, &tipoSolicitud)
+			errTipoSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"estado_tipo_solicitud?query=Activo:true,Id:"+idEstado, &tipoSolicitud)
 			if errTipoSolicitud == nil {
 				if tipoSolicitud != nil && fmt.Sprintf("%v", tipoSolicitud["Data"].([]interface{})[0]) != "map[]" {
 					resultado["EstadoTipoSolicitudId"] = tipoSolicitud["Data"].([]interface{})[0]
 				}
 			}
 
-
 			errEstados := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado?query=SolicitudId.Id:"+id_practica, &Estados)
 			if errEstados == nil {
 				if Estados != nil && fmt.Sprintf("%v", Estados[0]) != "map[]" {
+					for _, v := range Estados {
+
+						errComentario := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"observacion?query=titulo:"+fmt.Sprintf("%v", v["Id"]), &Comentario)
+						if errComentario == nil {
+							if Comentario != nil && fmt.Sprintf("%v", Comentario[0]) != "map[]" {
+								v["Comentario"] = Comentario[0]["Valor"]
+							} else {
+								v["Comentario"] = ""
+							}
+						}
+					}
 					resultado["Estados"] = Estados
 				}
 			}
@@ -301,7 +312,7 @@ func (c *PracticasAcademicasController) GetAll() {
 	var query string
 	var fields string
 	var Solicitudes []map[string]interface{}
-	resultado := append([]interface{}{})
+	resultado := []interface{}{}
 	var errorGetAll bool
 
 	// query: k:v,k:v
@@ -322,13 +333,15 @@ func (c *PracticasAcademicasController) GetAll() {
 			}
 		} else {
 			errorGetAll = true
-			c.Data["message"] = "Error service GetAll: No data found"
-			c.Abort("404")
+			// c.Data["message"] = "Error service GetAll: No data found"
+			c.Data["json"] = map[string]interface{}{"Success": true, "Status": "404", "Message": "Error service GetAll: No data found", "Data": nil}
+			// c.Abort("404")
 		}
 	} else {
 		errorGetAll = true
-		c.Data["message"] = "Error service GetAll: " + errSolicitud.Error()
-		c.Abort("400")
+		// c.Data["message"] = "Error service GetAll: " + errSolicitud.Error()
+		c.Data["json"] = map[string]interface{}{"Success": true, "Status": "400", "Message": "Error service GetAll: " + errSolicitud.Error(), "Data": nil}
+		// c.Abort("400")
 	}
 
 	if !errorGetAll {
@@ -347,7 +360,176 @@ func (c *PracticasAcademicasController) GetAll() {
 // @Failure 403 :id is not int
 // @router /:id [put]
 func (c *PracticasAcademicasController) Put() {
+	id_practica := c.Ctx.Input.Param(":id")
+	var RespuestaSolicitud map[string]interface{}
+	var Solicitud map[string]interface{}
+	var SolicitudPut map[string]interface{}
+	var NuevoEstado map[string]interface{}
+	var anteriorEstado []map[string]interface{}
 
+	var SolicitudEvolucionEstadoPost map[string]interface{}
+	var anteriorEstadoPost map[string]interface{}
+	var observacionPost map[string]interface{}
+	var resultado = make(map[string]interface{})
+	var alerta models.Alert
+	var errorGetAll bool
+	alertas := []interface{}{}
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &RespuestaSolicitud); err == nil {
+		// Actualización del anterior estado
+		errAntEstado := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado?query=activo:true,solicitudId.Id:"+id_practica, &anteriorEstado)
+		if errAntEstado == nil {
+			if anteriorEstado != nil && fmt.Sprintf("%v", anteriorEstado) != "map[]" {
+
+				anteriorEstado[0]["Activo"] = false
+				estasAnteriorId := fmt.Sprintf("%v", anteriorEstado[0]["Id"])
+
+				errSolicitudEvolucionEstado := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado/"+estasAnteriorId, "PUT", &anteriorEstadoPost, anteriorEstado[0])
+				if errSolicitudEvolucionEstado == nil {
+
+					// Consulta de información de la solicitud
+					errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+id_practica, &Solicitud)
+					if errSolicitud == nil {
+						if Solicitud != nil && fmt.Sprintf("%v", Solicitud["Status"]) != "404" {
+
+							// Búsqueda de estado relacionado con las prácticas académicas
+							idEstado := fmt.Sprintf("%v", RespuestaSolicitud["Estado"].(map[string]interface{})["Id"])
+							errEstado := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"estado_tipo_solicitud?query=EstadoId.Id:"+
+								idEstado+",TipoSolicitud.Id:23", &NuevoEstado)
+
+							if errEstado == nil {
+
+								estadoId := NuevoEstado["Data"]
+
+								id, _ := strconv.Atoi(id_practica)
+								SolicitudEvolucionEstado := map[string]interface{}{
+									"TerceroId": int(RespuestaSolicitud["IdTercero"].(float64)),
+									"SolicitudId": map[string]interface{}{
+										"Id": id,
+									},
+									"EstadoTipoSolicitudId": map[string]interface{}{
+										"Id": int(estadoId.([]interface{})[0].(map[string]interface{})["Id"].(float64)),
+									},
+									"EstadoTipoSolicitudIdAnterior": map[string]interface{}{
+										"Id": int(RespuestaSolicitud["EstadoTipoSolicitudIdAnterior"].(map[string]interface{})["Id"].(float64)),
+									},
+									"Activo":      true,
+									"FechaLimite": RespuestaSolicitud["FechaRespuesta"],
+								}
+
+								errSolicitudEvolucionEstado := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado", "POST", &SolicitudEvolucionEstadoPost, SolicitudEvolucionEstado)
+								if errSolicitudEvolucionEstado == nil {
+									if SolicitudEvolucionEstadoPost != nil && fmt.Sprintf("%v", SolicitudEvolucionEstadoPost) != "map[]" {
+
+										Solicitud["Resultado"] = "{\"Periodo\":\"" + fmt.Sprintf("%v", string(RespuestaSolicitud["Comentario"].(string))) + "\"}"
+										Solicitud["EstadoTipoSolicitudId"] = SolicitudEvolucionEstadoPost["Data"].(map[string]interface{})["EstadoTipoSolicitudId"]
+										Solicitud["EstadoTipoSolicitudId"].(map[string]interface{})["Activo"] = true
+
+										Observacion := map[string]interface{}{
+											"TerceroId": RespuestaSolicitud["IdTercero"],
+											"TipoObservacionId": map[string]interface{}{
+												"Id": 1,
+											},
+											"SolicitudId": map[string]interface{}{
+												"Id": int(Solicitud["Id"].(float64)),
+											},
+											"Valor":  RespuestaSolicitud["Comentario"].(string),
+											"Titulo": fmt.Sprintf("%v", SolicitudEvolucionEstadoPost["Data"].(map[string]interface{})["Id"]),
+											"Activo": true,
+										}
+
+										errObservacion := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"observacion", "POST", &observacionPost, Observacion)
+										if errObservacion == nil {
+
+											errPutEstado := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+id_practica, "PUT", &SolicitudPut, Solicitud)
+
+											if errPutEstado == nil {
+												if SolicitudPut["Status"] != "400" {
+													resultado = SolicitudPut
+												} else {
+													errorGetAll = true
+													alertas = append(alertas, SolicitudPut["Message"])
+													alerta.Code = "400"
+													alerta.Type = "error"
+													alerta.Body = alertas
+													c.Data["json"] = map[string]interface{}{"Response": alerta}
+												}
+											} else {
+												errorGetAll = true
+												alertas = append(alertas, errPutEstado)
+												alerta.Code = "400"
+												alerta.Type = "error"
+												alerta.Body = alertas
+												c.Data["json"] = map[string]interface{}{"Response": alerta}
+											}
+										}
+									} else {
+										errorGetAll = true
+										alertas = append(alertas, "No data found")
+										alerta.Code = "404"
+										alerta.Type = "error"
+										alerta.Body = alertas
+										c.Data["json"] = map[string]interface{}{"Response": alerta}
+									}
+								} else {
+									errorGetAll = true
+									alertas = append(alertas, errSolicitudEvolucionEstado)
+									alerta.Code = "400"
+									alerta.Type = "error"
+									alerta.Body = alertas
+									c.Data["json"] = map[string]interface{}{"Response": alerta}
+								}
+							} else {
+								errorGetAll = true
+								alertas = append(alertas, "No data found")
+								alerta.Code = "404"
+								alerta.Type = "error"
+								alerta.Body = alertas
+								c.Data["json"] = map[string]interface{}{"Response": alerta}
+							}
+
+						} else {
+							errorGetAll = true
+							c.Data["message"] = "Error service GetAll: No data found"
+							c.Abort("404")
+						}
+					} else {
+						errorGetAll = true
+						alertas = append(alertas, errSolicitud.Error())
+						alerta.Code = "400"
+						alerta.Type = "error"
+						alerta.Body = alertas
+						c.Data["json"] = map[string]interface{}{"Response": alerta}
+					}
+				} else {
+					errorGetAll = true
+					alertas = append(alertas, errSolicitudEvolucionEstado.Error())
+					alerta.Code = "400"
+					alerta.Type = "error"
+					alerta.Body = alertas
+					c.Data["json"] = map[string]interface{}{"Response": alerta}
+				}
+			}
+		}
+
+	} else {
+		errorGetAll = true
+		alertas = append(alertas, err.Error())
+		alerta.Code = "400"
+		alerta.Type = "error"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
+	if !errorGetAll {
+		alertas = append(alertas, resultado)
+		alerta.Code = "200"
+		alerta.Type = "OK"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
+	c.ServeJSON()
 }
 
 // Delete ...
@@ -860,9 +1042,11 @@ func (c *PracticasAcademicasController) ConsultarInfoColaborador() {
 func (c *PracticasAcademicasController) ConsultarParametros() {
 	var getProyecto []map[string]interface{}
 	var proyectos []map[string]interface{}
+	var estados []interface{}
 	var vehiculos map[string]interface{}
 	var resultado = make(map[string]interface{})
 	var periodos map[string]interface{}
+	var tipoEstados map[string]interface{}
 
 	errPeriodo := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"periodo?query=CodigoAbreviacion:PA,Activo:true&limit=1&sortby=Id&order=desc", &periodos)
 	if errPeriodo == nil && fmt.Sprintf("%v", periodos["Data"]) != "[map[]]" {
@@ -904,6 +1088,49 @@ func (c *PracticasAcademicasController) ConsultarParametros() {
 		resultado["proyectos"] = nil
 		logs.Error(getProyecto)
 		c.Data["system"] = errVehiculo
+		c.Abort("404")
+	}
+
+	errTipoEstados := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"estado_tipo_solicitud?query=TipoSolicitud.Id:23", &tipoEstados)
+	if errTipoEstados == nil && fmt.Sprintf("%v", tipoEstados["Data"]) != "[map[]]" {
+		if tipoEstados["Status"] != "404" {
+			for _, estado := range tipoEstados["Data"].([]interface{}) {
+				estados = append(estados, estado.(map[string]interface{})["EstadoId"])
+				resultado["estados"] = estados
+			}
+		}
+	} else {
+		logs.Error(tipoEstados)
+		c.Data["system"] = errTipoEstados
+		c.Abort("404")
+	}
+
+	c.Ctx.Output.SetStatus(200)
+	c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Query successful", "Data": resultado}
+
+	c.ServeJSON()
+}
+
+// ConsultarEstados ...
+// @Title ConsultarEstados
+// @Description get estados de practica academica
+// @Success 200 {object} models.Practicas_academicas
+// @Failure 404 not found resource
+// @router /consultar_estados/ [get]
+func (c *PracticasAcademicasController) ConsultarEstados() {
+	resultado := []interface{}{}
+	var tipoEstados map[string]interface{}
+
+	errTipoEstados := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"estado_tipo_solicitud?query=TipoSolicitud.Id:23", &tipoEstados)
+	if errTipoEstados == nil && fmt.Sprintf("%v", tipoEstados["Data"]) != "[map[]]" {
+		if tipoEstados["Status"] != "404" {
+			for _, estado := range tipoEstados["Data"].([]interface{}) {
+				resultado = append(resultado, estado.(map[string]interface{})["EstadoId"])
+			}
+		}
+	} else {
+		logs.Error(tipoEstados)
+		c.Data["system"] = errTipoEstados
 		c.Abort("404")
 	}
 
