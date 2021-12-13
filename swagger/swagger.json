@@ -3246,6 +3246,20 @@
                 ],
                 "description": "consultar todas las solicitudes académicas",
                 "operationId": "SolicitudDocenteController.GetAllSolicitudDocente",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "limit",
+                        "description": "Limit the size of result set. Must be an integer",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "offset",
+                        "description": "Start position of result set. Must be an integer",
+                        "type": "string"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "{}"
@@ -3289,6 +3303,20 @@
                 ],
                 "description": "consultar todas las solicitudes académicas",
                 "operationId": "SolicitudDocenteController.GetAllSolicitudDocenteActive",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "limit",
+                        "description": "Limit the size of result set. Must be an integer",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "offset",
+                        "description": "Start position of result set. Must be an integer",
+                        "type": "string"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "{}"
@@ -3387,6 +3415,20 @@
                 ],
                 "description": "consultar todas las solicitudes académicas",
                 "operationId": "SolicitudDocenteController.GetAllSolicitudDocenteInactive",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "limit",
+                        "description": "Limit the size of result set. Must be an integer",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "offset",
+                        "description": "Start position of result set. Must be an integer",
+                        "type": "string"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "{}"
