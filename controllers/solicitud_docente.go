@@ -119,14 +119,29 @@ func (c *SolicitudDocenteController) GetOneSolicitudDocente() {
 // GetAllSolicitudDocente ...
 // @Title GetAllSolicitudDocente
 // @Description consultar todas las solicitudes académicas
+// @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
+// @Param	offset	query	string	false	"Start position of result set. Must be an integer"
 // @Success 200 {}
 // @Failure 404 not found resource
 // @router / [get]
 func (c *SolicitudDocenteController) GetAllSolicitudDocente() {
 	fmt.Println("Consultando todas las solicitudes")
+
+	var limit int64 = 0
+	var offset int64 = 0
+
+	// limit: 0 (default is 0)
+	if v, err := c.GetInt64("limit"); err == nil {
+		limit = v
+	}
+	// offset: 0 (default is 0)
+	if v, err := c.GetInt64("offset"); err == nil {
+		offset = v
+	}
+
 	//resultado resultado final
 	var resultadoGetSolicitud []map[string]interface{}
-	if resultado, err := models.GetAllSolicitudDocente(2); err == nil {
+	if resultado, err := models.GetAllSolicitudDocente(2, offset, limit); err == nil {
 		resultadoGetSolicitud = resultado
 		c.Data["json"] = resultadoGetSolicitud
 	} else {
@@ -140,14 +155,29 @@ func (c *SolicitudDocenteController) GetAllSolicitudDocente() {
 // GetAllSolicitudDocenteActive ...
 // @Title GetAllSolicitudDocenteActive
 // @Description consultar todas las solicitudes académicas
+// @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
+// @Param	offset	query	string	false	"Start position of result set. Must be an integer"
 // @Success 200 {}
 // @Failure 404 not found resource
 // @router /active/ [get]
 func (c *SolicitudDocenteController) GetAllSolicitudDocenteActive() {
 	fmt.Println("Consultando todas las solicitudes Activas")
+	
+	var limit int64 = 0
+	var offset int64 = 0
+
+	// limit: 0 (default is 0)
+	if v, err := c.GetInt64("limit"); err == nil {
+		limit = v
+	}
+	// offset: 0 (default is 0)
+	if v, err := c.GetInt64("offset"); err == nil {
+		offset = v
+	}
+	
 	//resultado resultado final
 	var resultadoGetSolicitud []map[string]interface{}
-	if resultado, err := models.GetAllSolicitudDocente(0); err == nil {
+	if resultado, err := models.GetAllSolicitudDocente(0, offset, limit); err == nil {
 		resultadoGetSolicitud = resultado
 		c.Data["json"] = resultadoGetSolicitud
 	} else {
@@ -161,14 +191,29 @@ func (c *SolicitudDocenteController) GetAllSolicitudDocenteActive() {
 // GetAllSolicitudDocenteInactive ...
 // @Title GetAllSolicitudDocenteInactive
 // @Description consultar todas las solicitudes académicas
+// @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
+// @Param	offset	query	string	false	"Start position of result set. Must be an integer"
 // @Success 200 {}
 // @Failure 404 not found resource
 // @router /inactive/ [get]
 func (c *SolicitudDocenteController) GetAllSolicitudDocenteInactive() {
 	fmt.Println("Consultando todas las solicitudes Inactivas")
+
+	var limit int64 = 0
+	var offset int64 = 0
+
+	// limit: 0 (default is 0)
+	if v, err := c.GetInt64("limit"); err == nil {
+		limit = v
+	}
+	// offset: 0 (default is 0)
+	if v, err := c.GetInt64("offset"); err == nil {
+		offset = v
+	}
+
 	//resultado resultado final
 	var resultadoGetSolicitud []map[string]interface{}
-	if resultado, err := models.GetAllSolicitudDocente(1); err == nil {
+	if resultado, err := models.GetAllSolicitudDocente(1, offset, limit); err == nil {
 		resultadoGetSolicitud = resultado
 		c.Data["json"] = resultadoGetSolicitud
 	} else {
