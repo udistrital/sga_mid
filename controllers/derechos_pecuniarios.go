@@ -442,12 +442,12 @@ func (c *DerechosPecuniariosController) PostGenerarDerechoPecuniarioEstudiante()
 			"perpago":             SolicitudDerechoPecuniario["Periodo"].(float64),
 		}
 
-		paramId := fmt.Sprintf("%.f",SolicitudDerechoPecuniario["DerechoPecuniarioId"].(float64))
-		terceroId := fmt.Sprintf("%.f",SolicitudDerechoPecuniario["Id"].(float64))
-		errParam := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId.Id:" + paramId, &Derecho)
+		paramId := fmt.Sprintf("%.f", SolicitudDerechoPecuniario["DerechoPecuniarioId"].(float64))
+		terceroId := fmt.Sprintf("%.f", SolicitudDerechoPecuniario["Id"].(float64))
+		errParam := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId.Id:"+paramId, &Derecho)
 		if errParam == nil && fmt.Sprintf("%v", Derecho["Data"].([]interface{})[0]) != "map[]" {
 
-			errCodigo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=InfoComplementariaId.Id:93,TerceroId.Id:" + terceroId, &Codigo)
+			errCodigo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=InfoComplementariaId.Id:93,TerceroId.Id:"+terceroId, &Codigo)
 			if errCodigo == nil && fmt.Sprintf("%v", Codigo) != "map[]" {
 				objTransaccion["codigo"] = Codigo[0].(map[string]interface{})["Dato"]
 
@@ -455,10 +455,10 @@ func (c *DerechosPecuniariosController) PostGenerarDerechoPecuniarioEstudiante()
 				if errJson := json.Unmarshal([]byte(Dato.(map[string]interface{})["Valor"].(string)), &Valor); errJson == nil {
 					objTransaccion["valorordinario"] = Valor["Costo"].(float64)
 					objTransaccion["valorextraordinario"] = Valor["Costo"].(float64)
-					
+
 					TipoParametro = fmt.Sprintf("%v", Dato.(map[string]interface{})["ParametroId"].(map[string]interface{})["CodigoAbreviacion"])
 					// Pendiente SISTEMATICACION, MULTAS BIBLIOTECA y FOTOCOPIAS
-					switch TipoParametro{
+					switch TipoParametro {
 					case "40":
 						objTransaccion["tiporecibo"] = 5
 						objTransaccion["concepto"] = "CERTIFICADO DE NOTAS"
@@ -484,40 +484,40 @@ func (c *DerechosPecuniariosController) PostGenerarDerechoPecuniarioEstudiante()
 						objTransaccion["tiporecibo"] = 18
 						objTransaccion["concepto"] = "CARNET ESTUDIANTIL"
 					}
-	
+
 					SolicitudRecibo := objTransaccion
-	
-					reciboSolicitud := httplib.Post("http://" + beego.AppConfig.String("ReciboJbpmService") + "recibos_pago/recibos_pago_proxy")
+
+					reciboSolicitud := httplib.Post("http://" + beego.AppConfig.String("GenerarReciboJbpmService") + "recibos_pago_proxy")
 					reciboSolicitud.Header("Accept", "application/json")
 					reciboSolicitud.Header("Content-Type", "application/json")
 					reciboSolicitud.JSONBody(SolicitudRecibo)
-	
+
 					if errRecibo := reciboSolicitud.ToJSON(&NuevoRecibo); errRecibo == nil {
 						derechoPecuniarioSolicitado := map[string]interface{}{
-							"TerceroId": 				map[string]interface{}{
-															"Id": SolicitudDerechoPecuniario["Id"].(float64),
-														},
-							"InfoComplementariaId": 	map[string]interface{}{
-															"Id": 307,
-														},
-							"Activo": 					true,
-					 		"Dato": 					`{"value":` + `"` + fmt.Sprintf("%v/%v", NuevoRecibo["creaTransaccionResponse"].(map[string]interface{})["secuencia"], NuevoRecibo["creaTransaccionResponse"].(map[string]interface{})["anio"]) + `"` + `}`,
-					 	}
-						
-					 	var complementario map[string]interface{}
-						
-					 	errComplementarioPost := request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"), "POST", &complementario, derechoPecuniarioSolicitado)
-					 	if errComplementarioPost == nil {
-					 		respuesta.Type = "success"
-					 	 	respuesta.Code = "200"
-					 	 	respuesta.Body = complementario
-					 	} else {
-					 	 	logs.Error(errComplementarioPost)
-					 	 	respuesta.Type = "error"
-					 	 	respuesta.Code = "400"
-					 	 	respuesta.Body = errComplementarioPost.Error()
-					 	}
-					} 
+							"TerceroId": map[string]interface{}{
+								"Id": SolicitudDerechoPecuniario["Id"].(float64),
+							},
+							"InfoComplementariaId": map[string]interface{}{
+								"Id": 307,
+							},
+							"Activo": true,
+							"Dato":   `{"value":` + `"` + fmt.Sprintf("%v/%v", NuevoRecibo["creaTransaccionResponse"].(map[string]interface{})["secuencia"], NuevoRecibo["creaTransaccionResponse"].(map[string]interface{})["anio"]) + `"` + `}`,
+						}
+
+						var complementario map[string]interface{}
+
+						errComplementarioPost := request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"), "POST", &complementario, derechoPecuniarioSolicitado)
+						if errComplementarioPost == nil {
+							respuesta.Type = "success"
+							respuesta.Code = "200"
+							respuesta.Body = complementario
+						} else {
+							logs.Error(errComplementarioPost)
+							respuesta.Type = "error"
+							respuesta.Code = "400"
+							respuesta.Body = errComplementarioPost.Error()
+						}
+					}
 
 				} else {
 					logs.Error(err)
@@ -570,7 +570,7 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 
 	errPeriodo := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"periodo?query=id:"+id_periodo, &Periodo)
 	if errPeriodo == nil {
-		if Periodo != nil && fmt.Sprintf("%v", Periodo["Data"]) != "[map[]]"{
+		if Periodo != nil && fmt.Sprintf("%v", Periodo["Data"]) != "[map[]]" {
 			PeriodoConsulta = fmt.Sprint(Periodo["Data"].([]interface{})[0].(map[string]interface{})["Year"])
 
 			//Se consultan todos los recibos de derechos pecuniarios relacionados a ese tercero
@@ -589,8 +589,8 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 							ReciboDerecho = fmt.Sprintf("%v", reciboJson["value"])
 						}
 
-						if strings.Split(ReciboDerecho, "/")[1] == PeriodoConsulta {						
-							errRecibo := request.GetJsonWSO2("http://"+beego.AppConfig.String("ReciboJbpmService")+"wso2eiserver/services/recibos_pago/consulta_recibo/"+ReciboDerecho, &ReciboXML)
+						if strings.Split(ReciboDerecho, "/")[1] == PeriodoConsulta {
+							errRecibo := request.GetJsonWSO2("http://"+beego.AppConfig.String("ConsultarReciboJbpmService")+"consulta_recibo/"+ReciboDerecho, &ReciboXML)
 							if errRecibo == nil {
 								if ReciboXML != nil && fmt.Sprintf("%v", ReciboXML) != "map[reciboCollection:map[]]" && fmt.Sprintf("%v", ReciboXML) != "map[]" {
 									//Fecha límite de pago extraordinario
@@ -598,10 +598,10 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 									EstadoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["estado"]
 									PagoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["pago"]
 									Valor := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["valor_ordinario"]
-									concepto:= ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["observaciones"]
-									Fecha_pago:= ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["fecha_ordinario"]
-									Codigo_estudiante:= ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["documento"]
-									ProgramaAcademicoId:= ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["carrera"]
+									concepto := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["observaciones"]
+									Fecha_pago := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["fecha_ordinario"]
+									Codigo_estudiante := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["documento"]
+									ProgramaAcademicoId := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["carrera"]
 									IdConcepto := "0"
 
 									switch concepto {
@@ -622,11 +622,11 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 									case "CARNET ESTUDIANTIL":
 										IdConcepto = "42"
 									}
-									
+
 									//Nombre del derecho pecuniario
 									errDerecho := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId.CodigoAbreviacion:"+IdConcepto, &Derecho)
 									NombreConcepto := "---"
-									if errDerecho == nil && fmt.Sprintf("%v", Derecho["Data"]) != "map[]"  {
+									if errDerecho == nil && fmt.Sprintf("%v", Derecho["Data"]) != "map[]" {
 										NombreConcepto = fmt.Sprint(Derecho["Data"].([]interface{})[0].(map[string]interface{})["ParametroId"].(map[string]interface{})["Nombre"])
 									} else {
 										errorGetAll = true
@@ -636,7 +636,7 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 										alerta.Body = alertas
 										c.Data["json"] = map[string]interface{}{"Response": alerta}
 									}
-									
+
 									//Verificación si el recibo de pago se encuentra activo y pago
 									if EstadoRecibo == "A" && PagoRecibo == "S" {
 										Estado = "Pago"
@@ -644,16 +644,16 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 										//Verifica si el recibo está vencido o no
 										FechaActual := time_bogota.TiempoBogotaFormato() //time.Now()
 										layout := "2006-01-02T15:04:05.000-05:00"
-										Fecha = strings.Replace(fmt.Sprintf("%v", Fecha),"+","-",-1)
+										Fecha = strings.Replace(fmt.Sprintf("%v", Fecha), "+", "-", -1)
 										FechaLimiteFormato, err := time.Parse(layout, fmt.Sprintf("%v", Fecha))
 										if err != nil {
 											Estado = "Vencido"
 										} else {
 											layout := "2006-01-02T15:04:05.000000000-05:00"
-											if len(FechaActual) < len(layout){
-												n:=len(FechaActual)-26
-												s:=strings.Repeat("0",n)
-												layout=strings.ReplaceAll(layout, "000000000", s)
+											if len(FechaActual) < len(layout) {
+												n := len(FechaActual) - 26
+												s := strings.Repeat("0", n)
+												layout = strings.ReplaceAll(layout, "000000000", s)
 											}
 											FechaActualFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaActual))
 											if err != nil {
@@ -669,19 +669,19 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 									}
 
 									resultadoAux[i] = map[string]interface{}{
-										"Codigo":			   IdConcepto,
-										"Valor": 			   Valor,
-										"Nombre": 			   NombreConcepto,
+										"Codigo":              IdConcepto,
+										"Valor":               Valor,
+										"Nombre":              NombreConcepto,
 										"ReciboInscripcion":   ReciboDerecho,
 										"FechaCreacion":       Recibos[i]["FechaCreacion"],
 										"Estado":              Estado,
-										"Fecha_pago":		   Fecha_pago,
+										"Fecha_pago":          Fecha_pago,
 										"ProgramaAcademicoId": ProgramaAcademicoId,
 										"Codigo_estudiante":   Codigo_estudiante,
 									}
 
 								} else {
-									if (fmt.Sprintf("%v", resultadoAux) != "map[]"){
+									if fmt.Sprintf("%v", resultadoAux) != "map[]" {
 										resultado = resultadoAux
 									} else {
 										errorGetAll = true
@@ -696,7 +696,7 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 								errorGetAll = true
 								alertas = append(alertas, errRecibo.Error())
 								alerta.Code = "400"
-								alerta.Type = "error"  
+								alerta.Type = "error"
 								alerta.Body = alertas
 								c.Data["json"] = map[string]interface{}{"Response": alerta}
 							}
@@ -722,7 +722,6 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 			}
 		}
 	}
-	
 
 	if !errorGetAll {
 		c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": resultado}
