@@ -66,7 +66,7 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 			resultadoAux = make([]map[string]interface{}, len(Inscripciones))
 			for i := 0; i < len(Inscripciones); i++ {
 				ReciboInscripcion := fmt.Sprintf("%v", Inscripciones[i]["ReciboInscripcion"])
-				errRecibo := request.GetJsonWSO2("http://"+beego.AppConfig.String("ReciboJbpmService")+"wso2eiserver/services/recibos_pago/consulta_recibo/"+ReciboInscripcion, &ReciboXML)
+				errRecibo := request.GetJsonWSO2("http://"+beego.AppConfig.String("ConsultarReciboJbpmService")+"consulta_recibo/"+ReciboInscripcion, &ReciboXML)
 				if errRecibo == nil {
 					if ReciboXML != nil && fmt.Sprintf("%v", ReciboXML) != "map[reciboCollection:map[]]" && fmt.Sprintf("%v", ReciboXML) != "map[]" {
 						//Fecha límite de pago extraordinario
@@ -80,17 +80,17 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 							//Verifica si el recibo está vencido o no
 							FechaActual := time_bogota.TiempoBogotaFormato() //time.Now()
 							layout := "2006-01-02T15:04:05.000-05:00"
-							FechaLimite = strings.Replace(fmt.Sprintf("%v", FechaLimite),"+","-",-1)
+							FechaLimite = strings.Replace(fmt.Sprintf("%v", FechaLimite), "+", "-", -1)
 							FechaLimiteFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaLimite))
 							if err != nil {
 								fmt.Println(err)
 								Estado = "Vencido"
 							} else {
 								layout := "2006-01-02T15:04:05.000000000-05:00"
-								if len(FechaActual) < len(layout){
-									n:=len(FechaActual)-26
-									s:=strings.Repeat("0",n)
-									layout=strings.ReplaceAll(layout, "000000000", s)
+								if len(FechaActual) < len(layout) {
+									n := len(FechaActual) - 26
+									s := strings.Repeat("0", n)
+									layout = strings.ReplaceAll(layout, "000000000", s)
 								}
 								FechaActualFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaActual))
 								if err != nil {
@@ -114,7 +114,7 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 							"Estado":              Estado,
 						}
 					} else {
-						if (fmt.Sprintf("%v", resultadoAux) != "map[]"){
+						if fmt.Sprintf("%v", resultadoAux) != "map[]" {
 							resultado["Inscripciones"] = resultadoAux
 						} else {
 							errorGetAll = true
@@ -1291,12 +1291,12 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 
 					SolicitudRecibo := objTransaccion
 
-					reciboSolicitud := httplib.Post("http://" + beego.AppConfig.String("ReciboJbpmService") + "recibos_pago/recibos_pago_proxy")
+					reciboSolicitud := httplib.Post("http://" + beego.AppConfig.String("GenerarReciboJbpmService") + "recibos_pago_proxy")
 					reciboSolicitud.Header("Accept", "application/json")
 					reciboSolicitud.Header("Content-Type", "application/json")
 					reciboSolicitud.JSONBody(SolicitudRecibo)
-					//errRecibo := request.SendJson("http://"+beego.AppConfig.String("ReciboJbpmService")+"recibosPagoProxy", "POST", &NuevoRecibo, SolicitudRecibo)
-					//fmt.Println("http://" + beego.AppConfig.String("ReciboJbpmService") + "recibosPagoProxy")
+					//errRecibo := request.SendJson("http://"+beego.AppConfig.String("GenerarReciboJbpmService")+"recibosPagoProxy", "POST", &NuevoRecibo, SolicitudRecibo)
+					//fmt.Println("http://" + beego.AppConfig.String("GenerarReciboJbpmService") + "recibosPagoProxy")
 
 					if errRecibo := reciboSolicitud.ToJSON(&NuevoRecibo); errRecibo == nil {
 						inscripcionRealizada["ReciboInscripcion"] = fmt.Sprintf("%v/%v", NuevoRecibo["creaTransaccionResponse"].(map[string]interface{})["secuencia"], NuevoRecibo["creaTransaccionResponse"].(map[string]interface{})["anio"])
