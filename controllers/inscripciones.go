@@ -863,11 +863,14 @@ func (c *InscripcionesController) GetInfoComplementariaTercero() {
 	persona_id := c.Ctx.Input.Param(":persona_id")
 	//resultado consulta
 	resultado := map[string]interface{}{}
+	// var resultado map[string]interface{}
+	var errorGetAll bool
+	var alerta models.Alert
+	alertas := []interface{}{}
 
 	// 41 = estrato
 	var resultadoEstrato []map[string]interface{}
 	errEstratoResidencia := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=1&query=Activo:true,InfoComplementariaId__Id:41,TerceroId:"+persona_id+"&sortby=Id&order=desc&limit=1", &resultadoEstrato)
-
 	if errEstratoResidencia == nil && fmt.Sprintf("%v", resultadoEstrato[0]["System"]) != "map[]" {
 		if resultadoEstrato[0]["Status"] != 404 && resultadoEstrato[0]["Id"] != nil {
 			// unmarshall dato
@@ -879,19 +882,28 @@ func (c *InscripcionesController) GetInfoComplementariaTercero() {
 			}
 		} else {
 			if resultadoEstrato[0]["Message"] == "Not found resource" {
-				c.Data["json"] = nil
+				errorGetAll = true
+				alertas = append(alertas, "Not found resource")
+				alerta.Code = "404"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Response": alerta}
 			} else {
-				logs.Error(resultadoEstrato)
-				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-				c.Data["system"] = errEstratoResidencia
-				c.Abort("404")
+				errorGetAll = true
+				alertas = append(alertas, errEstratoResidencia)
+				alerta.Code = "404"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Response": alerta}
 			}
 		}
 	} else {
-		logs.Error(resultadoEstrato)
-		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-		c.Data["system"] = resultadoEstrato
-		c.Abort("404")
+		errorGetAll = true
+		alertas = append(alertas, errEstratoResidencia)
+		alerta.Code = "404"
+		alerta.Type = "error"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
 	}
 
 	// 55 = codigo postal
@@ -908,19 +920,28 @@ func (c *InscripcionesController) GetInfoComplementariaTercero() {
 			}
 		} else {
 			if resultadoCodigoPostal[0]["Message"] == "Not found resource" {
-				c.Data["json"] = nil
+				errorGetAll = true
+				alertas = append(alertas, "Not found resource")
+				alerta.Code = "404"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Response": alerta}
 			} else {
-				logs.Error(resultadoCodigoPostal)
-				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-				c.Data["system"] = errCodigoPostal
-				c.Abort("404")
+				errorGetAll = true
+				alertas = append(alertas, errCodigoPostal)
+				alerta.Code = "404"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Response": alerta}
 			}
 		}
 	} else {
-		logs.Error(resultadoCodigoPostal)
-		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-		c.Data["system"] = resultadoCodigoPostal
-		c.Abort("404")
+		errorGetAll = true
+		alertas = append(alertas, errCodigoPostal)
+		alerta.Code = "404"
+		alerta.Type = "error"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
 	}
 
 	// 51 = telefono
@@ -939,19 +960,29 @@ func (c *InscripcionesController) GetInfoComplementariaTercero() {
 			}
 		} else {
 			if resultadoTelefono[0]["Message"] == "Not found resource" {
-				c.Data["json"] = nil
+				errorGetAll = true
+				alertas = append(alertas, "Not found resource")
+				alerta.Code = "404"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Response": alerta}
 			} else {
-				logs.Error(resultadoTelefono)
-				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-				c.Data["system"] = errTelefono
-				c.Abort("404")
+				errorGetAll = true
+				errorGetAll = true
+				alertas = append(alertas, errTelefono)
+				alerta.Code = "404"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Response": alerta}
 			}
 		}
 	} else {
-		logs.Error(resultadoTelefono)
-		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-		c.Data["system"] = resultadoTelefono
-		c.Abort("404")
+		errorGetAll = true
+		alertas = append(alertas, errTelefono)
+		alerta.Code = "404"
+		alerta.Type = "error"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
 	}
 
 	// 54 = direccion
@@ -975,22 +1006,37 @@ func (c *InscripcionesController) GetInfoComplementariaTercero() {
 			}
 		} else {
 			if resultadoDireccion[0]["Message"] == "Not found resource" {
-				c.Data["json"] = nil
+				errorGetAll = true
+				alertas = append(alertas, "Not found resource")
+				alerta.Code = "404"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Response": alerta}
 			} else {
-				logs.Error(resultadoDireccion)
-				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-				c.Data["system"] = errDireccion
-				c.Abort("404")
+				errorGetAll = true
+				alertas = append(alertas, errDireccion)
+				alerta.Code = "404"
+				alerta.Type = "error"
+				alerta.Body = alertas
 			}
 		}
 	} else {
-		logs.Error(resultadoDireccion)
-		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-		c.Data["system"] = resultadoDireccion
-		c.Abort("404")
+		errorGetAll = true
+		alertas = append(alertas, errDireccion)
+		alerta.Code = "404"
+		alerta.Type = "error"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
 	}
 
-	c.Data["json"] = resultado
+	if !errorGetAll {
+		// alertas = append(alertas, resultado)
+		// alerta.Code = "200"
+		// alerta.Type = "OK"
+		// alerta.Body = alertas
+		c.Data["json"] = resultado
+	}
+
 	c.ServeJSON()
 }
 
