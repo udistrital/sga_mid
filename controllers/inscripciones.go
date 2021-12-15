@@ -66,7 +66,7 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 			resultadoAux = make([]map[string]interface{}, len(Inscripciones))
 			for i := 0; i < len(Inscripciones); i++ {
 				ReciboInscripcion := fmt.Sprintf("%v", Inscripciones[i]["ReciboInscripcion"])
-				errRecibo := request.GetJsonWSO2("http://"+beego.AppConfig.String("ReciboJbpmService")+"wso2eiserver/services/recibos_pago/consulta_recibo/"+ReciboInscripcion, &ReciboXML)
+				errRecibo := request.GetJsonWSO2("http://"+beego.AppConfig.String("ConsultarReciboJbpmService")+"consulta_recibo/"+ReciboInscripcion, &ReciboXML)
 				if errRecibo == nil {
 					if ReciboXML != nil && fmt.Sprintf("%v", ReciboXML) != "map[reciboCollection:map[]]" && fmt.Sprintf("%v", ReciboXML) != "map[]" {
 						//Fecha límite de pago extraordinario
