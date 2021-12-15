@@ -1030,11 +1030,11 @@ func (c *InscripcionesController) GetInfoComplementariaTercero() {
 	}
 
 	if !errorGetAll {
-		// alertas = append(alertas, resultado)
-		// alerta.Code = "200"
-		// alerta.Type = "OK"
-		// alerta.Body = alertas
-		c.Data["json"] = resultado
+		alertas = append(alertas, resultado)
+		alerta.Code = "200"
+		alerta.Type = "OK"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
 	}
 
 	c.ServeJSON()
