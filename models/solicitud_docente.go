@@ -176,18 +176,19 @@ func PutSolicitudDocente(SolicitudDocente map[string]interface{}, idStr string) 
 }
 
 // GetAllSolicitudDocente is ...
-func GetAllSolicitudDocente(isFinish int) (result []map[string]interface{}, outputError interface{}) {
+func GetAllSolicitudDocente(isFinish int, offset int64, limit int64) (result []map[string]interface{}, outputError interface{}) {
 	var solicitudes []map[string]interface{}
 	var resultado []map[string]interface{}
 
 	var endpoint string
 	if isFinish == 2 {
-		endpoint = "http://" + beego.AppConfig.String("SolicitudDocenteService") + "/tr_solicitud/"
+		endpoint = "http://" + beego.AppConfig.String("SolicitudDocenteService") + "tr_solicitud/"
 	} else if isFinish == 1 {
-		endpoint = "http://" + beego.AppConfig.String("SolicitudDocenteService") + "/tr_solicitud/inactive/"
+		endpoint = "http://" + beego.AppConfig.String("SolicitudDocenteService") + "tr_solicitud/inactive/"
 	} else if isFinish == 0 {
-		endpoint = "http://" + beego.AppConfig.String("SolicitudDocenteService") + "/tr_solicitud/active/"
+		endpoint = "http://" + beego.AppConfig.String("SolicitudDocenteService") + "tr_solicitud/active/"
 	}
+	endpoint += "?limit=" + fmt.Sprintf("%v", limit) + "&offset=" + fmt.Sprintf("%v", offset)
 
 	errSolicitud := request.GetJson(endpoint, &solicitudes)
 	if errSolicitud == nil && fmt.Sprintf("%v", solicitudes[0]["System"]) != "map[]" {

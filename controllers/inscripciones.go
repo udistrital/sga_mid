@@ -66,7 +66,7 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 			resultadoAux = make([]map[string]interface{}, len(Inscripciones))
 			for i := 0; i < len(Inscripciones); i++ {
 				ReciboInscripcion := fmt.Sprintf("%v", Inscripciones[i]["ReciboInscripcion"])
-				errRecibo := request.GetJsonWSO2("http://"+beego.AppConfig.String("ReciboJbpmService")+"wso2eiserver/services/recibos_pago/consulta_recibo/"+ReciboInscripcion, &ReciboXML)
+				errRecibo := request.GetJsonWSO2("http://"+beego.AppConfig.String("ConsultarReciboJbpmService")+"consulta_recibo/"+ReciboInscripcion, &ReciboXML)
 				if errRecibo == nil {
 					if ReciboXML != nil && fmt.Sprintf("%v", ReciboXML) != "map[reciboCollection:map[]]" && fmt.Sprintf("%v", ReciboXML) != "map[]" {
 						//Fecha límite de pago extraordinario
@@ -80,17 +80,17 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 							//Verifica si el recibo está vencido o no
 							FechaActual := time_bogota.TiempoBogotaFormato() //time.Now()
 							layout := "2006-01-02T15:04:05.000-05:00"
-							FechaLimite = strings.Replace(fmt.Sprintf("%v", FechaLimite),"+","-",-1)
+							FechaLimite = strings.Replace(fmt.Sprintf("%v", FechaLimite), "+", "-", -1)
 							FechaLimiteFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaLimite))
 							if err != nil {
 								fmt.Println(err)
 								Estado = "Vencido"
 							} else {
 								layout := "2006-01-02T15:04:05.000000000-05:00"
-								if len(FechaActual) < len(layout){
-									n:=len(FechaActual)-26
-									s:=strings.Repeat("0",n)
-									layout=strings.ReplaceAll(layout, "000000000", s)
+								if len(FechaActual) < len(layout) {
+									n := len(FechaActual) - 26
+									s := strings.Repeat("0", n)
+									layout = strings.ReplaceAll(layout, "000000000", s)
 								}
 								FechaActualFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaActual))
 								if err != nil {
@@ -114,7 +114,7 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 							"Estado":              Estado,
 						}
 					} else {
-						if (fmt.Sprintf("%v", resultadoAux) != "map[]"){
+						if fmt.Sprintf("%v", resultadoAux) != "map[]" {
 							resultado["Inscripciones"] = resultadoAux
 						} else {
 							errorGetAll = true
@@ -863,11 +863,14 @@ func (c *InscripcionesController) GetInfoComplementariaTercero() {
 	persona_id := c.Ctx.Input.Param(":persona_id")
 	//resultado consulta
 	resultado := map[string]interface{}{}
+	// var resultado map[string]interface{}
+	var errorGetAll bool
+	var alerta models.Alert
+	alertas := []interface{}{}
 
 	// 41 = estrato
 	var resultadoEstrato []map[string]interface{}
 	errEstratoResidencia := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=1&query=Activo:true,InfoComplementariaId__Id:41,TerceroId:"+persona_id+"&sortby=Id&order=desc&limit=1", &resultadoEstrato)
-
 	if errEstratoResidencia == nil && fmt.Sprintf("%v", resultadoEstrato[0]["System"]) != "map[]" {
 		if resultadoEstrato[0]["Status"] != 404 && resultadoEstrato[0]["Id"] != nil {
 			// unmarshall dato
@@ -879,19 +882,28 @@ func (c *InscripcionesController) GetInfoComplementariaTercero() {
 			}
 		} else {
 			if resultadoEstrato[0]["Message"] == "Not found resource" {
-				c.Data["json"] = nil
+				errorGetAll = true
+				alertas = append(alertas, "Not found resource")
+				alerta.Code = "404"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Response": alerta}
 			} else {
-				logs.Error(resultadoEstrato)
-				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-				c.Data["system"] = errEstratoResidencia
-				c.Abort("404")
+				errorGetAll = true
+				alertas = append(alertas, errEstratoResidencia)
+				alerta.Code = "404"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Response": alerta}
 			}
 		}
 	} else {
-		logs.Error(resultadoEstrato)
-		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-		c.Data["system"] = resultadoEstrato
-		c.Abort("404")
+		errorGetAll = true
+		alertas = append(alertas, errEstratoResidencia)
+		alerta.Code = "404"
+		alerta.Type = "error"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
 	}
 
 	// 55 = codigo postal
@@ -908,19 +920,28 @@ func (c *InscripcionesController) GetInfoComplementariaTercero() {
 			}
 		} else {
 			if resultadoCodigoPostal[0]["Message"] == "Not found resource" {
-				c.Data["json"] = nil
+				errorGetAll = true
+				alertas = append(alertas, "Not found resource")
+				alerta.Code = "404"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Response": alerta}
 			} else {
-				logs.Error(resultadoCodigoPostal)
-				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-				c.Data["system"] = errCodigoPostal
-				c.Abort("404")
+				errorGetAll = true
+				alertas = append(alertas, errCodigoPostal)
+				alerta.Code = "404"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Response": alerta}
 			}
 		}
 	} else {
-		logs.Error(resultadoCodigoPostal)
-		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-		c.Data["system"] = resultadoCodigoPostal
-		c.Abort("404")
+		errorGetAll = true
+		alertas = append(alertas, errCodigoPostal)
+		alerta.Code = "404"
+		alerta.Type = "error"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
 	}
 
 	// 51 = telefono
@@ -939,19 +960,29 @@ func (c *InscripcionesController) GetInfoComplementariaTercero() {
 			}
 		} else {
 			if resultadoTelefono[0]["Message"] == "Not found resource" {
-				c.Data["json"] = nil
+				errorGetAll = true
+				alertas = append(alertas, "Not found resource")
+				alerta.Code = "404"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Response": alerta}
 			} else {
-				logs.Error(resultadoTelefono)
-				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-				c.Data["system"] = errTelefono
-				c.Abort("404")
+				errorGetAll = true
+				errorGetAll = true
+				alertas = append(alertas, errTelefono)
+				alerta.Code = "404"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Response": alerta}
 			}
 		}
 	} else {
-		logs.Error(resultadoTelefono)
-		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-		c.Data["system"] = resultadoTelefono
-		c.Abort("404")
+		errorGetAll = true
+		alertas = append(alertas, errTelefono)
+		alerta.Code = "404"
+		alerta.Type = "error"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
 	}
 
 	// 54 = direccion
@@ -975,22 +1006,37 @@ func (c *InscripcionesController) GetInfoComplementariaTercero() {
 			}
 		} else {
 			if resultadoDireccion[0]["Message"] == "Not found resource" {
-				c.Data["json"] = nil
+				errorGetAll = true
+				alertas = append(alertas, "Not found resource")
+				alerta.Code = "404"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Response": alerta}
 			} else {
-				logs.Error(resultadoDireccion)
-				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-				c.Data["system"] = errDireccion
-				c.Abort("404")
+				errorGetAll = true
+				alertas = append(alertas, errDireccion)
+				alerta.Code = "404"
+				alerta.Type = "error"
+				alerta.Body = alertas
 			}
 		}
 	} else {
-		logs.Error(resultadoDireccion)
-		//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-		c.Data["system"] = resultadoDireccion
-		c.Abort("404")
+		errorGetAll = true
+		alertas = append(alertas, errDireccion)
+		alerta.Code = "404"
+		alerta.Type = "error"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
 	}
 
-	c.Data["json"] = resultado
+	if !errorGetAll {
+		alertas = append(alertas, resultado)
+		alerta.Code = "200"
+		alerta.Type = "OK"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
 	c.ServeJSON()
 }
 
@@ -1291,15 +1337,15 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 
 					SolicitudRecibo := objTransaccion
 
-					reciboSolicitud := httplib.Post("http://" + beego.AppConfig.String("ReciboJbpmService") + "recibos_pago/recibos_pago_proxy")
+					reciboSolicitud := httplib.Post("http://" + beego.AppConfig.String("GenerarReciboJbpmService") + "recibos_pago_proxy")
 					reciboSolicitud.Header("Accept", "application/json")
 					reciboSolicitud.Header("Content-Type", "application/json")
 					reciboSolicitud.JSONBody(SolicitudRecibo)
-					//errRecibo := request.SendJson("http://"+beego.AppConfig.String("ReciboJbpmService")+"recibosPagoProxy", "POST", &NuevoRecibo, SolicitudRecibo)
-					//fmt.Println("http://" + beego.AppConfig.String("ReciboJbpmService") + "recibosPagoProxy")
+					//errRecibo := request.SendJson("http://"+beego.AppConfig.String("GenerarReciboJbpmService")+"recibosPagoProxy", "POST", &NuevoRecibo, SolicitudRecibo)
+					//fmt.Println("http://" + beego.AppConfig.String("GenerarReciboJbpmService") + "recibosPagoProxy")
 
 					if errRecibo := reciboSolicitud.ToJSON(&NuevoRecibo); errRecibo == nil {
-						inscripcionRealizada["ReciboInscripcion"] = fmt.Sprintf("%v/%.f", NuevoRecibo["creaTransaccionResponse"].(map[string]interface{})["secuencia"], SolicitudInscripcion["Year"])
+						inscripcionRealizada["ReciboInscripcion"] = fmt.Sprintf("%v/%v", NuevoRecibo["creaTransaccionResponse"].(map[string]interface{})["secuencia"], NuevoRecibo["creaTransaccionResponse"].(map[string]interface{})["anio"])
 						var inscripcionUpdate map[string]interface{}
 						errInscripcionUpdate := request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion/%.f", inscripcionRealizada["Id"]), "PUT", &inscripcionUpdate, inscripcionRealizada)
 						if errInscripcionUpdate == nil {

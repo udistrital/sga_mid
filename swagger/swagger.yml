@@ -888,23 +888,6 @@ paths:
         "403":
           description: :persona is empty
   /experiencia_laboral/:
-    put:
-      tags:
-      - experiencia_laboral
-      description: Modificar Formacion Academica ud
-      operationId: ExperienciaLaboralController.PutExperienciaLaboral
-      parameters:
-      - in: body
-        name: body
-        description: body Agregar Experiencia Laboral content
-        required: true
-        schema:
-          $ref: '#/definitions/{}'
-      responses:
-        "201":
-          description: '{int}'
-        "400":
-          description: the request contains incorrect syntax
     post:
       tags:
       - experiencia_laboral
@@ -938,6 +921,40 @@ paths:
       responses:
         "200":
           description: '{}'
+        "404":
+          description: not found resource
+    put:
+      tags:
+      - experiencia_laboral
+      description: Modificar Formacion Academica ud
+      operationId: ExperienciaLaboralController.PutExperienciaLaboral
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar Experiencia Laboral content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "201":
+          description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
+    delete:
+      tags:
+      - experiencia_laboral
+      description: eliminar Experiencia Laboral por id
+      operationId: ExperienciaLaboralController.DeleteExperienciaLaboral
+      parameters:
+      - in: path
+        name: id
+        description: Id de la Experiencia Laboral
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{string} delete success!'
         "404":
           description: not found resource
   /experiencia_laboral/by_tercero/:
@@ -1001,14 +1018,8 @@ paths:
       operationId: FormacionController.PutFormacionAcademica
       parameters:
       - in: query
-        name: IdProyecto
-        description: Id del proyecto academico
-        required: true
-        type: integer
-        format: int64
-      - in: query
-        name: Nit
-        description: Nit de la universidad
+        name: Id
+        description: Id del registro de formación
         required: true
         type: integer
         format: int64
@@ -1040,6 +1051,24 @@ paths:
           description: '{int}'
         "400":
           description: the request contains incorrect syntax
+  /formacion_academica/{id}:
+    delete:
+      tags:
+      - formacion_academica
+      description: eliminar Formacion Academica por id de la formacion
+      operationId: FormacionController.DeleteFormacionAcademica
+      parameters:
+      - in: path
+        name: id
+        description: Id de la formacion academica
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{string} delete success!'
+        "404":
+          description: not found resource
   /formacion_academica/info_complementaria/:
     get:
       tags:
@@ -1048,20 +1077,8 @@ paths:
       operationId: FormacionController.GetFormacionAcademica
       parameters:
       - in: query
-        name: IdTercero
-        description: Id del tercero
-        required: true
-        type: integer
-        format: int64
-      - in: query
-        name: IdProyecto
-        description: Id del proyecto academico
-        required: true
-        type: integer
-        format: int64
-      - in: query
-        name: Nit
-        description: Nit de la universidad
+        name: Id
+        description: Id del registro de formación
         required: true
         type: integer
         format: int64
@@ -1697,6 +1714,189 @@ paths:
           description: '{}'
         "403":
           description: body is empty
+  /practicas_academicas/:
+    get:
+      tags:
+      - practicas_academicas
+      description: get Practicas_academicas
+      operationId: PracticasAcademicasController.GetAll
+      parameters:
+      - in: query
+        name: query
+        description: Filter. e.g. col1:v1,col2:v2 ...
+        type: string
+      - in: query
+        name: fields
+        description: Fields returned. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: sortby
+        description: Sorted-by fields. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: order
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
+        type: string
+      - in: query
+        name: limit
+        description: Limit the size of result set. Must be an integer
+        type: string
+      - in: query
+        name: offset
+        description: Start position of result set. Must be an integer
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Practicas_academicas'
+        "400":
+          description: the request contains incorrect syntax
+        "404":
+          description: not data found
+    post:
+      tags:
+      - practicas_academicas
+      description: create Practicas_academicas
+      operationId: PracticasAcademicasController.Create
+      parameters:
+      - in: body
+        name: body
+        description: body for Practicas_academicas content
+        required: true
+        schema:
+          $ref: '#/definitions/models.Practicas_academicas'
+      responses:
+        "201":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Practicas_academicas'
+        "400":
+          description: the request contains incorrect syntaxis
+  /practicas_academicas/{id}:
+    get:
+      tags:
+      - practicas_academicas
+      description: get Practicas_academicas by id
+      operationId: PracticasAcademicasController.GetOne
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Practicas_academicas'
+        "404":
+          description: not found resource
+    put:
+      tags:
+      - practicas_academicas
+      description: update the Practicas_academicas
+      operationId: PracticasAcademicasController.Put
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to update
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body for Practicas_academicas content
+        required: true
+        schema:
+          $ref: '#/definitions/models.Practicas_academicas'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Practicas_academicas'
+        "403":
+          description: :id is not int
+    delete:
+      tags:
+      - practicas_academicas
+      description: delete the Practicas_academicas
+      operationId: PracticasAcademicasController.Delete
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to delete
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{string} delete success!'
+        "403":
+          description: id is empty
+  /practicas_academicas/consultar_colaborador/{id}:
+    get:
+      tags:
+      - practicas_academicas
+      description: get información del docente colaborador
+      operationId: PracticasAcademicasController.ConsultarInfoColaborador
+      parameters:
+      - in: documento
+        name: id
+        description: identidad
+        schema:
+          $ref: '#/definitions/de'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Practicas_academicas'
+        "404":
+          description: not found resource
+  /practicas_academicas/consultar_estados/:
+    get:
+      tags:
+      - practicas_academicas
+      description: get estados de practica academica
+      operationId: PracticasAcademicasController.ConsultarEstados
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Practicas_academicas'
+        "404":
+          description: not found resource
+  /practicas_academicas/consultar_parametros/:
+    get:
+      tags:
+      - practicas_academicas
+      description: get parametros para creación de practica academica
+      operationId: PracticasAcademicasController.ConsultarParametros
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Practicas_academicas'
+        "404":
+          description: not found resource
+  /practicas_academicas/consultar_solicitante/{id}:
+    get:
+      tags:
+      - practicas_academicas
+      description: get información del docente solicitante de la practica academica
+      operationId: PracticasAcademicasController.ConsultarInfoSolicitante
+      parameters:
+      - in: id
+        name: id
+        description: terceros
+        schema:
+          $ref: '#/definitions/perteneciente'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Practicas_academicas'
+        "404":
+          description: not found resource
   /produccion_academica/:
     get:
       tags:
@@ -1946,6 +2146,15 @@ paths:
       - solicitud_docente
       description: consultar todas las solicitudes académicas
       operationId: SolicitudDocenteController.GetAllSolicitudDocente
+      parameters:
+      - in: query
+        name: limit
+        description: Limit the size of result set. Must be an integer
+        type: string
+      - in: query
+        name: offset
+        description: Start position of result set. Must be an integer
+        type: string
       responses:
         "200":
           description: '{}'
@@ -2033,6 +2242,15 @@ paths:
       - solicitud_docente
       description: consultar todas las solicitudes académicas
       operationId: SolicitudDocenteController.GetAllSolicitudDocenteActive
+      parameters:
+      - in: query
+        name: limit
+        description: Limit the size of result set. Must be an integer
+        type: string
+      - in: query
+        name: offset
+        description: Start position of result set. Must be an integer
+        type: string
       responses:
         "200":
           description: '{}'
@@ -2098,6 +2316,15 @@ paths:
       - solicitud_docente
       description: consultar todas las solicitudes académicas
       operationId: SolicitudDocenteController.GetAllSolicitudDocenteInactive
+      parameters:
+      - in: query
+        name: limit
+        description: Limit the size of result set. Must be an integer
+        type: string
+      - in: query
+        name: offset
+        description: Start position of result set. Must be an integer
+        type: string
       responses:
         "200":
           description: '{}'
@@ -2336,6 +2563,9 @@ definitions:
   '{}':
     title: '{}'
     type: object
+  de:
+    title: de
+    type: object
   models.ConsultaCalendarioAcademico:
     title: ConsultaCalendarioAcademico
     type: object
@@ -2344,6 +2574,12 @@ definitions:
     type: object
   models.ConsultaProyectoAcademico:
     title: ConsultaProyectoAcademico
+    type: object
+  models.Practicas_academicas:
+    title: Practicas_academicas
+    type: object
+  perteneciente:
+    title: perteneciente
     type: object
 tags:
 - name: archivo_icfes
@@ -2397,6 +2633,9 @@ tags:
 - name: paquete_solicitud
   description: |
     PaqueteSolicitudController ...
+- name: practicas_academicas
+  description: |
+    PracticasAcademicasController operations for Practicas_academicas
 - name: solicitud_evaluacion
   description: |
     SolicitudEvaluacionController ...
