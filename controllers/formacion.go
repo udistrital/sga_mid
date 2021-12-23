@@ -505,9 +505,16 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 					j, _ := strconv.Atoi(fmt.Sprintf("%.f", f))
 					AuxNit = fmt.Sprintf("%v", j)
 
+					endpoit := "datos_identificacion?query=TipoDocumentoId__Id:7,Numero:" + formacion["NitUniversidad"].(string)
+
+					if strings.Contains(formacion["NitUniversidad"].(string), "-") {
+						var auxId = strings.Split(formacion["NitUniversidad"].(string), "-")
+						endpoit = "datos_identificacion?query=TipoDocumentoId__Id:7,Numero:" + auxId[0] + ",DigitoVerificacion:" + auxId[1]
+					}
+
 					//GET para obtener el ID que relaciona las tablas tipo_documento y tercero
 					var IdTercero []map[string]interface{}
-					errIdTercero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=TipoDocumentoId__Id:7,Numero:"+AuxNit+"&limit=0", &IdTercero)
+					errIdTercero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+endpoit, &IdTercero)
 					if errIdTercero == nil && fmt.Sprintf("%v", IdTercero[0]) != "map[]" && IdTercero[0]["Id"] != nil {
 						if IdTercero[0]["Status"] != 404 {
 							IdTerceroAux := IdTercero[0]["TerceroId"].(map[string]interface{})["Id"]
