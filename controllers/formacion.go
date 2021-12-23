@@ -44,7 +44,7 @@ func (c *FormacionController) PostFormacionAcademica() {
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &FormacionAcademica); err == nil {
 		var FormacionAcademicaPost map[string]interface{}
-		
+
 		NombrePrograma := fmt.Sprintf("%v", FormacionAcademica["ProgramaAcademicoId"])
 		FechaI := fmt.Sprintf("%q", FormacionAcademica["FechaInicio"])
 		FechaF := fmt.Sprintf("%q", FormacionAcademica["FechaFinalizacion"])
@@ -57,17 +57,17 @@ func (c *FormacionController) PostFormacionAcademica() {
 		FormacionAcademicaData := map[string]interface{}{
 			"TerceroId":            map[string]interface{}{"Id": FormacionAcademica["TerceroId"].(float64)},
 			"InfoComplementariaId": map[string]interface{}{"Id": 313},
-			"Dato":                 "{\n    " +
-									"\"ProgramaAcademico\": " + NombrePrograma + ",    " +
-									"\"FechaInicio\": " + FechaI + ",    " +
-									"\"FechaFin\": " + FechaF + ",    " +
-									"\"TituloTrabajoGrado\": " + TituloTG + ",    " +
-									"\"DesTrabajoGrado\": " + DescripcionTG + ",    " +
-									"\"DocumentoId\": " + DocumentoId + ",    " +
-									"\"NitUniversidad\": " + NitU +
-									// "\"NivelFormacion\": " + NivelFormacion + ", \n " +
-									"\n }",
-			"Activo":               true,
+			"Dato": "{\n    " +
+				"\"ProgramaAcademico\": " + NombrePrograma + ",    " +
+				"\"FechaInicio\": " + FechaI + ",    " +
+				"\"FechaFin\": " + FechaF + ",    " +
+				"\"TituloTrabajoGrado\": " + TituloTG + ",    " +
+				"\"DesTrabajoGrado\": " + DescripcionTG + ",    " +
+				"\"DocumentoId\": " + DocumentoId + ",    " +
+				"\"NitUniversidad\": " + NitU +
+				// "\"NivelFormacion\": " + NivelFormacion + ", \n " +
+				"\n }",
+			"Activo": true,
 		}
 
 		errFormacion := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/", "POST", &FormacionAcademicaPost, FormacionAcademicaData)
@@ -109,8 +109,15 @@ func (c *FormacionController) GetInfoUniversidad() {
 	var universidadTercero map[string]interface{}
 	var respuesta map[string]interface{}
 	respuesta = make(map[string]interface{})
+	endpoit := "datos_identificacion?query=TipoDocumentoId__Id:7,Numero:" + idStr
+
+	if strings.Contains(idStr, "-") {
+		var auxId = strings.Split(idStr, "-")
+		endpoit = "datos_identificacion?query=TipoDocumentoId__Id:7,Numero:" + auxId[0] + ",DigitoVerificacion:" + auxId[1]
+	}
+
 	//GET que asocia el nit con la universidad
-	errNit := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=TipoDocumentoId__Id:7,Numero:"+idStr, &universidad)
+	errNit := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+endpoit, &universidad)
 	if errNit == nil {
 		if universidad != nil && fmt.Sprintf("%v", universidad[0]) != "map[]" {
 			respuesta["NumeroIdentificacion"] = idStr
@@ -328,16 +335,16 @@ func (c *FormacionController) PutFormacionAcademica() {
 		if errData == nil {
 			if Data != nil {
 				Data[0]["Dato"] = "{\n    " +
-								  "\"ProgramaAcademico\": " + fmt.Sprintf("%v", InfoAcademica["ProgramaAcademicoId"]) + ",    " +
-								  "\"FechaInicio\": " + fmt.Sprintf("%q", InfoAcademica["FechaInicio"]) + ",    " +
-								  "\"FechaFin\": " + fmt.Sprintf("%q", InfoAcademica["FechaFinalizacion"]) + ",    " +
-								  "\"TituloTrabajoGrado\": " + fmt.Sprintf("%q", InfoAcademica["TituloTrabajoGrado"]) + ",    " +
-								  "\"DesTrabajoGrado\": " + fmt.Sprintf("%q", InfoAcademica["DescripcionTrabajoGrado"]) + ",    " +
-								  "\"DocumentoId\": " + fmt.Sprintf("%v", InfoAcademica["DocumentoId"]) + ",    " +
-								  "\"NitUniversidad\": " + fmt.Sprintf("%q", InfoAcademica["NitUniversidad"]) + 
-								  "\n }"
-				
-				errPut := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+ Id, "PUT", &Put, Data[0])
+					"\"ProgramaAcademico\": " + fmt.Sprintf("%v", InfoAcademica["ProgramaAcademicoId"]) + ",    " +
+					"\"FechaInicio\": " + fmt.Sprintf("%q", InfoAcademica["FechaInicio"]) + ",    " +
+					"\"FechaFin\": " + fmt.Sprintf("%q", InfoAcademica["FechaFinalizacion"]) + ",    " +
+					"\"TituloTrabajoGrado\": " + fmt.Sprintf("%q", InfoAcademica["TituloTrabajoGrado"]) + ",    " +
+					"\"DesTrabajoGrado\": " + fmt.Sprintf("%q", InfoAcademica["DescripcionTrabajoGrado"]) + ",    " +
+					"\"DocumentoId\": " + fmt.Sprintf("%v", InfoAcademica["DocumentoId"]) + ",    " +
+					"\"NitUniversidad\": " + fmt.Sprintf("%q", InfoAcademica["NitUniversidad"]) +
+					"\n }"
+
+				errPut := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+Id, "PUT", &Put, Data[0])
 				if errPut == nil {
 					if Put != nil {
 						resultado = Put
@@ -356,7 +363,7 @@ func (c *FormacionController) PutFormacionAcademica() {
 					alerta.Type = "error"
 					alerta.Body = alertas
 					c.Data["json"] = map[string]interface{}{"Response": alerta}
-					
+
 				}
 			}
 		} else {
@@ -419,7 +426,7 @@ func (c *FormacionController) GetFormacionAcademica() {
 				NumProyecto := fmt.Sprintf("%v", formacion["ProgramaAcademico"])
 				//GET para consultar el proyecto curricular
 				var Proyecto []map[string]interface{}
-				errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Id:"+fmt.Sprintf("%v",NumProyecto)+"&limit=0", &Proyecto)
+				errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Id:"+fmt.Sprintf("%v", NumProyecto)+"&limit=0", &Proyecto)
 				if errProyecto == nil && fmt.Sprintf("%v", Proyecto[0]) != "map[]" && Proyecto[0]["Id"] != nil {
 					if Proyecto[0]["Status"] != 404 {
 						resultadoAux["ProgramaAcademico"] = Proyecto[0]
@@ -439,7 +446,7 @@ func (c *FormacionController) GetFormacionAcademica() {
 					alerta.Body = alertas
 					c.Data["json"] = map[string]interface{}{"Response": alerta}
 				}
-				
+
 				resultado = resultadoAux
 			} else {
 				errorGetAll = true
@@ -481,7 +488,7 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 
 	errData := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+TerceroId+",InfoComplementariaId__Id:313,Activo:true&limit=0&sortby=Id&order=asc", &Data)
 	if errData == nil {
-		if Data != nil && fmt.Sprintf("%v", Data) != "[map[]]"{
+		if Data != nil && fmt.Sprintf("%v", Data) != "[map[]]" {
 			var formacion map[string]interface{}
 			for i := 0; i < len(Data); i++ {
 				resultadoAux := make(map[string]interface{})
@@ -491,13 +498,13 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 					resultadoAux["Documento"] = formacion["DocumentoId"]
 					resultadoAux["FechaInicio"] = formacion["FechaInicio"]
 					resultadoAux["FechaFinalizacion"] = formacion["FechaFin"]
-					
+
 					AuxNit := fmt.Sprintf("%v", formacion["NitUniversidad"])
 					//Conversion de notación científica a un valor entero
 					f, _ := strconv.ParseFloat(AuxNit, 64)
 					j, _ := strconv.Atoi(fmt.Sprintf("%.f", f))
 					AuxNit = fmt.Sprintf("%v", j)
-					
+
 					//GET para obtener el ID que relaciona las tablas tipo_documento y tercero
 					var IdTercero []map[string]interface{}
 					errIdTercero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=TipoDocumentoId__Id:7,Numero:"+AuxNit+"&limit=0", &IdTercero)
@@ -578,7 +585,7 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 							resultadoAux["ProgramaAcademico"] = map[string]interface{}{
 								"Id":     NumProyecto,
 								"Nombre": Proyecto[0]["Nombre"],
-							}	
+							}
 						} else {
 							errorGetAll = true
 							alertas = append(alertas, errProyecto.Error())
@@ -605,7 +612,7 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 					alerta.Body = alertas
 					c.Data["json"] = map[string]interface{}{"Response": alerta}
 				}
-			} 
+			}
 		} else {
 			errorGetAll = true
 			alertas = append(alertas, "No data found")
@@ -677,10 +684,11 @@ func (c *FormacionController) PostTercero() {
 					"Id": tercero["TipoTrecero"].(map[string]interface{})["Id"].(float64),
 				}
 				identificaciontercero := map[string]interface{}{
-					"Numero":          tercero["Nit"],
-					"TipoDocumentoId": TipoDocumentoId,
-					"TerceroId":       TerceroId,
-					"Activo":          true,
+					"Numero":             tercero["Nit"],
+					"DigitoVerificacion": tercero["Verificacion"],
+					"TipoDocumentoId":    TipoDocumentoId,
+					"TerceroId":          TerceroId,
+					"Activo":             true,
 				}
 				errIdentificacion := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion", "POST", &identificacion, identificaciontercero)
 				if errIdentificacion == nil && fmt.Sprintf("%v", identificacion) != "map[]" && identificacion["Id"] != nil {
@@ -692,9 +700,9 @@ func (c *FormacionController) PostTercero() {
 						var telefono map[string]interface{}
 						var correo map[string]interface{}
 						var direccion map[string]interface{}
-						
+
 						terceroTipoTercero := map[string]interface{}{
-							"TerceroId": TerceroId,
+							"TerceroId":     TerceroId,
 							"TipoTerceroId": TipoTerceroId,
 						}
 
@@ -869,7 +877,6 @@ func (c *FormacionController) PostTercero() {
 	c.ServeJSON()
 }
 
-
 // DeleteFormacionAcademica ...
 // @Title DeleteFormacionAcademica
 // @Description eliminar Formacion Academica por id de la formacion
@@ -878,7 +885,7 @@ func (c *FormacionController) PostTercero() {
 // @Failure 404 not found resource
 // @router /:id [delete]
 func (c *FormacionController) DeleteFormacionAcademica() {
-	Id :=  c.Ctx.Input.Param(":id")
+	Id := c.Ctx.Input.Param(":id")
 	var Data []map[string]interface{}
 	var Put map[string]interface{}
 	var resultado map[string]interface{}
@@ -891,8 +898,8 @@ func (c *FormacionController) DeleteFormacionAcademica() {
 	if errData == nil {
 		if Data != nil {
 			Data[0]["Activo"] = false
-			
-			errPut := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+ Id, "PUT", &Put, Data[0])
+
+			errPut := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+Id, "PUT", &Put, Data[0])
 			if errPut == nil {
 				if Put != nil {
 					resultado = Put
@@ -911,7 +918,7 @@ func (c *FormacionController) DeleteFormacionAcademica() {
 				alerta.Type = "error"
 				alerta.Body = alertas
 				c.Data["json"] = map[string]interface{}{"Response": alerta}
-				
+
 			}
 		}
 	} else {
