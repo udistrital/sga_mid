@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/astaxie/beego"
@@ -499,16 +498,10 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 					resultadoAux["FechaInicio"] = formacion["FechaInicio"]
 					resultadoAux["FechaFinalizacion"] = formacion["FechaFin"]
 
-					AuxNit := fmt.Sprintf("%v", formacion["NitUniversidad"])
-					//Conversion de notación científica a un valor entero
-					f, _ := strconv.ParseFloat(AuxNit, 64)
-					j, _ := strconv.Atoi(fmt.Sprintf("%.f", f))
-					AuxNit = fmt.Sprintf("%v", j)
+					endpoit := "datos_identificacion?query=TipoDocumentoId__Id:7,Numero:" + fmt.Sprintf("%v", formacion["NitUniversidad"])
 
-					endpoit := "datos_identificacion?query=TipoDocumentoId__Id:7,Numero:" + formacion["NitUniversidad"].(string)
-
-					if strings.Contains(formacion["NitUniversidad"].(string), "-") {
-						var auxId = strings.Split(formacion["NitUniversidad"].(string), "-")
+					if strings.Contains(fmt.Sprintf("%v", formacion["NitUniversidad"]), "-") {
+						var auxId = strings.Split(fmt.Sprintf("%v", formacion["NitUniversidad"]), "-")
 						endpoit = "datos_identificacion?query=TipoDocumentoId__Id:7,Numero:" + auxId[0] + ",DigitoVerificacion:" + auxId[1]
 					}
 
