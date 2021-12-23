@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/astaxie/beego"
@@ -59,7 +58,7 @@ func (c *ExperienciaLaboralController) PostExperienciaLaboral() {
 			"TerceroId":            map[string]interface{}{"Id": Experiencia["Persona"].(float64)},
 			"InfoComplementariaId": map[string]interface{}{"Id": 312},
 			"Dato": "{\n    " +
-				"\"Nit\": " + dato["NumeroIdentificacion"].(string) + ",    " +
+				"\"Nit\": \"" + fmt.Sprintf("%v", dato["NumeroIdentificacion"]) + "\",    " +
 				"\"FechaInicio\": \"" + Experiencia["FechaInicio"].(string) + "\",    " +
 				"\"FechaFinalizacion\": \"" + Experiencia["FechaFinalizacion"].(string) + "\",    " +
 				"\"TipoDedicacion\": { \"Id\": \"" + fmt.Sprintf("%v", Dedicacion) + "\", \"Nombre\": \"" + NombreDedicacion + "\"},    " +
@@ -321,16 +320,14 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 					resultadoAux["FechaFinalizacion"] = experiencia["FechaFinalizacion"]
 					resultadoAux["FechaInicio"] = experiencia["FechaInicio"]
 
-					AuxNit := fmt.Sprintf("%v", experiencia["Nit"])
-					//Conversion de notación científica a un valor entero
-					f, _ := strconv.ParseFloat(AuxNit, 64)
-					j, _ := strconv.Atoi(fmt.Sprintf("%.f", f))
-					AuxNit = fmt.Sprintf("%v", j)
+					endpoit := "datos_identificacion?query=TipoDocumentoId__Id:7,Numero:" + fmt.Sprintf("%v", experiencia["Nit"])
 
-					resultadoAux["Nit"] = AuxNit
-					idEmpresa := AuxNit
+					if strings.Contains(fmt.Sprintf("%v", experiencia["Nit"]), "-") {
+						var auxNit = strings.Split(fmt.Sprintf("%v", experiencia["Nit"]), "-")
+						endpoit = "datos_identificacion?query=TipoDocumentoId__Id:7,Numero:" + auxNit[0] + ",DigitoVerificacion:" + auxNit[1]
+					}
 
-					errDatosIdentificacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=TipoDocumentoId__Id:7,Numero:"+fmt.Sprintf("%v", idEmpresa), &empresa)
+					errDatosIdentificacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+endpoit, &empresa)
 					if errDatosIdentificacion == nil {
 						if empresa != nil && len(empresa[0]) > 0 {
 							idEmpresa := empresa[0]["TerceroId"].(map[string]interface{})["Id"]
