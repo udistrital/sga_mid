@@ -2787,6 +2787,37 @@
                 }
             }
         },
+        "/practicas_academicas/enviar_invitacion/": {
+            "post": {
+                "tags": [
+                    "practicas_academicas"
+                ],
+                "description": "enviar invitaciones al correo de los estudiantes",
+                "operationId": "PracticasAcademicasController.EnviarInvitaciones",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Practicas_academicas content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Practicas_academicas"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Practicas_academicas"
+                        }
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntaxis"
+                    }
+                }
+            }
+        },
         "/practicas_academicas/{id}": {
             "get": {
                 "tags": [
@@ -2848,30 +2879,6 @@
                     },
                     "403": {
                         "description": ":id is not int"
-                    }
-                }
-            },
-            "delete": {
-                "tags": [
-                    "practicas_academicas"
-                ],
-                "description": "delete the Practicas_academicas",
-                "operationId": "PracticasAcademicasController.Delete",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "description": "The id you want to delete",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{string} delete success!"
-                    },
-                    "403": {
-                        "description": "id is empty"
                     }
                 }
             }
