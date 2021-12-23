@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
@@ -23,10 +24,10 @@ func (c *PracticasAcademicasController) URLMapping() {
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
 	c.Mapping("Put", c.Put)
-	c.Mapping("Delete", c.Delete)
 	c.Mapping("ConsultarInfoSolicitante", c.ConsultarInfoSolicitante)
 	c.Mapping("ConsultarInfoColaborador", c.ConsultarInfoColaborador)
 	c.Mapping("ConsultarParametros", c.ConsultarParametros)
+	c.Mapping("EnviarInvitaciones", c.EnviarInvitaciones)
 }
 
 // Post ...
@@ -530,17 +531,6 @@ func (c *PracticasAcademicasController) Put() {
 	}
 
 	c.ServeJSON()
-}
-
-// Delete ...
-// @Title Delete
-// @Description delete the Practicas_academicas
-// @Param	id		path 	string	true		"The id you want to delete"
-// @Success 200 {string} delete success!
-// @Failure 403 id is empty
-// @router /:id [delete]
-func (c *PracticasAcademicasController) Delete() {
-
 }
 
 // ConsultarInfoSolicitante ...
@@ -1136,6 +1126,109 @@ func (c *PracticasAcademicasController) ConsultarEstados() {
 
 	c.Ctx.Output.SetStatus(200)
 	c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Query successful", "Data": resultado}
+
+	c.ServeJSON()
+}
+
+// EnviarInvitaciones ...
+// @Title EnviarInvitaciones
+// @Description enviar invitaciones al correo de los estudiantes
+// @Param	body		body 	models.Practicas_academicas	true		"body for Practicas_academicas content"
+// @Success 201 {object} models.Practicas_academicas
+// @Failure 400 the request contains incorrect syntaxis
+// @router /enviar_invitacion/ [post]
+func (c *PracticasAcademicasController) EnviarInvitaciones() {
+
+	var Solicitudes []map[string]interface{}
+	var CorreoPost map[string]interface{}
+	var solicitud map[string]interface{}
+	var alerta models.Alert
+	var errorGetAll bool
+	alertas := []interface{}{}
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &solicitud); err == nil {
+		id_practica := solicitud["Id"]
+
+		errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=SolicitudId.Id:"+id_practica.(string), &Solicitudes)
+		if errSolicitud == nil {
+			if Solicitudes != nil && fmt.Sprintf("%v", Solicitudes[0]) != "map[]" {
+				Referencia := Solicitudes[0]["SolicitudId"].(map[string]interface{})["Referencia"].(string)
+				var ReferenciaJson map[string]interface{}
+				if err := json.Unmarshal([]byte(Referencia), &ReferenciaJson); err == nil {
+					ReferenciaJson["Id"] = id_practica
+				}
+
+				idEstado := fmt.Sprintf("%v", Solicitudes[0]["SolicitudId"].(map[string]interface{})["EstadoTipoSolicitudId"].(map[string]interface{})["Id"].(float64))
+
+				if idEstado == "39" {
+
+					// TO DO: Consulta de correos electronicos de los estudiantes inscritos en el espacio académico
+					correoEstudiantes := []interface{}{
+						"correo1@correo.com", "correo2@correo.com",
+					}
+					nombreEstudiantes := []interface{}{
+						"Nombre 1", "Nombre 2",
+					}
+
+					for index, correo := range correoEstudiantes {
+						correo := map[string]interface{}{
+							"to":           []interface{}{correo},
+							"cc":           []interface{}{},
+							"bcc":          []interface{}{},
+							"subject":      "Invitación a práctica académica",
+							"templateName": "invitacion_practica_academica.html",
+							"templateData": map[string]interface{}{
+								"Fecha":            strings.Replace(time_bogota.TiempoBogotaFormato()[:16], "T", " ", 1),
+								"FechaInicio":      strings.Replace(time_bogota.TiempoCorreccionFormato(ReferenciaJson["FechaHoraSalida"].(string))[:16], "t", " ", 1),
+								"FechaFin":         strings.Replace(time_bogota.TiempoCorreccionFormato(ReferenciaJson["FechaHoraRegreso"].(string))[:16], "t", " ", 1),
+								"EspacioAcademico": ReferenciaJson["EspacioAcademico"].(map[string]interface{})["Nombre"],
+								"NombreEstudiante": nombreEstudiantes[index],
+								"NombreDocente":    ReferenciaJson["DocenteSolicitante"].(map[string]interface{})["Nombre"],
+							},
+						}
+
+						errEnvioCorreos := request.SendJson("http://"+beego.AppConfig.String("GOOGLE_MID")+"notificacion", "POST", &CorreoPost, correo)
+						if errEnvioCorreos == nil {
+							if CorreoPost == nil || fmt.Sprintf("%v", CorreoPost) == "400" {
+								errorGetAll = true
+								alertas = append(alertas, "No data found")
+								alerta.Code = "404"
+								alerta.Type = "error"
+								alerta.Body = alertas
+								c.Data["json"] = map[string]interface{}{"Response": alerta}
+							}
+						} else {
+							errorGetAll = true
+							alertas = append(alertas, errEnvioCorreos.Error())
+							alerta.Code = "400"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
+						}
+
+					}
+				}
+
+			} else {
+				errorGetAll = true
+				c.Data["message"] = "Error service GetAll: No data found"
+				c.Abort("404")
+			}
+		} else {
+			errorGetAll = true
+			c.Data["message"] = "Error service GetAll: " + errSolicitud.Error()
+			c.Abort("400")
+		}
+
+	}
+
+	if !errorGetAll {
+		alertas = append(alertas, "Correos enviados")
+		alerta.Code = "200"
+		alerta.Type = "OK"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
 
 	c.ServeJSON()
 }
