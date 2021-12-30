@@ -494,8 +494,14 @@ func (c *PracticasAcademicasController) Put() {
 											Solicitud["EstadoTipoSolicitudId"] = SolicitudEvolucionEstadoPost["Data"].(map[string]interface{})["EstadoTipoSolicitudId"]
 											Solicitud["EstadoTipoSolicitudId"].(map[string]interface{})["Activo"] = true
 
+											// Si hay modificaciones en la información de la solicitud
 											if len(Referencia) > 0 || Referencia != "" {
 												Solicitud["Referencia"] = Referencia
+											}
+
+											// Si la practica es ejecutada, se da por finalizada la solicitud
+											if idEstado == "23" { 
+												Solicitud["SolicitudFinalizada"] = true
 											}
 
 											Observacion := map[string]interface{}{
