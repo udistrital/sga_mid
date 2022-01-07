@@ -27,6 +27,7 @@ func (c *DerechosPecuniariosController) URLMapping() {
 	c.Mapping("PutCostoConcepto", c.PutCostoConcepto)
 	c.Mapping("PostGenerarDerechoPecuniarioEstudiante", c.PostGenerarDerechoPecuniarioEstudiante)
 	c.Mapping("GetEstadoRecibo", c.GetEstadoRecibo)
+	c.Mapping("GetConsultarPersona", c.GetConsultarPersona)
 }
 
 // PostConcepto ...
@@ -727,5 +728,87 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 		c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": resultado}
 	}
 
+	c.ServeJSON()
+}
+
+// GetConsultarPersona ...
+// @Title GetConsultarPersona
+// @Description get ConsultaPersona by id
+// @Param	persona_id	path	int	true	"Id del tercero"
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router /consultar_persona/:persona_id [get]
+func (c *DerechosPecuniariosController) GetConsultarPersona() {
+	//Id del tercero
+	idStr := c.Ctx.Input.Param(":persona_id")
+	//resultado informacion basica persona
+	var resultado map[string]interface{}
+	var persona []map[string]interface{}
+
+	errPersona := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero?query=Id:"+idStr, &persona)
+	if errPersona == nil && fmt.Sprintf("%v", persona[0]) != "map[]" {
+		if persona[0]["Status"] != 404 {
+
+			var identificacion []map[string]interface{}
+
+			errIdentificacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=Activo:true,TerceroId.Id:"+idStr+"&sortby=Id&order=desc&limit=0", &identificacion)
+			if errIdentificacion == nil && fmt.Sprintf("%v", identificacion[0]) != "map[]" {
+				if identificacion[0]["Status"] != 404 {
+					// 	var estado []map[string]interface{}
+					// 	var genero []map[string]interface{}
+					var codigos []map[string]interface{}
+					var proyecto []map[string]interface{}
+
+					resultado = persona[0]
+					resultado["NumeroIdentificacion"] = identificacion[0]["Numero"]
+					resultado["TipoIdentificacion"] = identificacion[0]["TipoDocumentoId"]
+					resultado["FechaExpedicion"] = identificacion[0]["FechaExpedicion"]
+					resultado["SoporteDocumento"] = identificacion[0]["DocumentoSoporte"]
+
+					errCodigoEst := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+
+						fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.Id:93&limit=0", &codigos)
+					if errCodigoEst == nil && fmt.Sprintf("%v", codigos[0]) != "map[]" {
+						for _, codigo := range codigos {
+							errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Codigo:"+codigo["Dato"].(string)[5:8], &proyecto)
+							if errProyecto == nil && fmt.Sprintf("%v", proyecto[0]) != "map[]" {
+								codigo["Proyecto"] = codigo["Dato"].(string) + " Proyecto: " + codigo["Dato"].(string)[5:8] + " - " + proyecto[0]["Nombre"].(string)
+								codigo["IdProyecto"] = proyecto[0]["Id"]
+							}
+						}
+						
+						resultado["Codigos"] = codigos
+					}
+
+					c.Data["json"] = resultado
+
+				} else {
+					if identificacion[0]["Message"] == "Not found resource" {
+						c.Data["json"] = nil
+					} else {
+						logs.Error(identificacion)
+						c.Data["system"] = errIdentificacion
+						c.Abort("404")
+					}
+				}
+			} else {
+				logs.Error(identificacion)
+				c.Data["system"] = errIdentificacion
+				c.Abort("404")
+			}
+		} else {
+			if persona[0]["Message"] == "Not found resource" {
+				c.Data["json"] = nil
+			} else {
+				logs.Error(persona)
+				c.Data["system"] = errPersona
+				c.Abort("404")
+			}
+		}
+	} else {
+		logs.Error(persona)
+		c.Data["system"] = errPersona
+		c.Abort("404")
+
+	}
 	c.ServeJSON()
 }
