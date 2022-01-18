@@ -843,7 +843,7 @@
                     "derechos_pecuniarios"
                 ],
                 "description": "Agregar un concepto",
-                "operationId": "DerechosPecuniariosController.PostConcepto",
+                "operationId": "DerechosPecuniariosController.PostSolicitudDerechoPecuniario",
                 "parameters": [
                     {
                         "in": "body",
