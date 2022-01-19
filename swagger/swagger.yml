@@ -563,7 +563,7 @@ paths:
       tags:
       - derechos_pecuniarios
       description: Agregar un concepto
-      operationId: DerechosPecuniariosController.PostSolicitudDerechoPecuniario
+      operationId: DerechosPecuniariosController.PostConcepto
       parameters:
       - in: body
         name: body
@@ -609,7 +609,7 @@ paths:
           description: '{}'
         "403":
           description: :id is empty
-  /derechos_pecuniarios/ActualizarValor/:
+  /derechos_pecuniarios/actualizar_valor:
     post:
       tags:
       - derechos_pecuniarios
@@ -627,7 +627,7 @@ paths:
           description: '{}'
         "403":
           description: :body is empty
-  /derechos_pecuniarios/clonar/:
+  /derechos_pecuniarios/clonar:
     post:
       tags:
       - derechos_pecuniarios
@@ -688,7 +688,7 @@ paths:
           description: '{}'
         "404":
           description: not found resource
-  /derechos_pecuniarios/generar_derecho/:
+  /derechos_pecuniarios/generar_derecho:
     post:
       tags:
       - derechos_pecuniarios
@@ -698,6 +698,24 @@ paths:
       - in: body
         name: body
         description: body Clonar Conceptos content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "400":
+          description: body is empty
+  /derechos_pecuniarios/solicitud:
+    post:
+      tags:
+      - derechos_pecuniarios
+      description: Agregar un concepto
+      operationId: DerechosPecuniariosController.PostSolicitudDerechoPecuniario
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar Concepto content
         required: true
         schema:
           $ref: '#/definitions/{}'
