@@ -299,18 +299,23 @@ func agregarDatosEstudianteRecibo(pdf *gofpdf.Fpdf, datos map[string]interface{}
 	valorDerecho := fmt.Sprintf("$ %.f", datos["ValorDerecho"].(float64))
 	pdf.SetFont("Helvetica", "B", 9)
 	pdf.Ln(6)
+	pdf.SetTextColor(70, 70, 70)
 	pdf.Cell(70, 5, "Nombre del Estudiante")
 	pdf.CellFormat(35, 5, "Codigo", "", 0, "C", false, 0, "")
 	pdf.CellFormat(35, 5, "Doc. Identidad", "", 0, "C", false, 0, "")
 	pdf.Cell(5, 5, "")
-	pdf.Cell(60, 5, "Proyecto Curricular")
+	pdf.CellFormat(60, 5, "Proyecto Curricular", "", 0, "C", false, 0, "")
+
+	pdf.SetTextColor(0, 0, 0)
 	pdf.Ln(5)
 	pdf.Cell(70, 5, tr(datos["NombreDelEstudiante"].(string)))
 	pdf.CellFormat(35, 5, datos["CodigoDelEstudiante"].(string), "", 0, "C", false, 0, "")
 	pdf.CellFormat(35, 5, datos["DocumentoDelEstudiante"].(string), "", 0, "C", false, 0, "")
 	pdf.Cell(5, 5, "")
 	pdf.Cell(75, 5, tr(datos["ProyectoEstudiante"].(string)))
+
 	pdf.Ln(5)
+	pdf.SetTextColor(70, 70, 70)
 	pdf.Cell(35, 5, "Referencia")
 	pdf.Cell(65, 5, "Descripcion")
 	pdf.Cell(45, 5, "Valor")
@@ -320,6 +325,7 @@ func agregarDatosEstudianteRecibo(pdf *gofpdf.Fpdf, datos map[string]interface{}
 
 	pdf.SetFont("Helvetica", "B", 8)
 	pdf.Cell(9, 5, "")
+	pdf.SetTextColor(0, 0, 0)
 	pdf.Cell(11, 5, datos["Codigo"].(string))
 	pdf.Cell(40, 5, tr(datos["Descripcion"].(string)))
 	pdf.CellFormat(80, 5, valorDerecho, "", 0, "R", false, 0, "")
@@ -330,8 +336,9 @@ func agregarDatosEstudianteRecibo(pdf *gofpdf.Fpdf, datos map[string]interface{}
 	pdf.Cell(145, 5, "")
 	pdf.Cell(20, 5, tr(datos["Descripcion"].(string)))
 	pdf.Ln(5)
+
 	pdf.Ln(10)
-	
+	pdf.SetTextColor(70, 70, 70)
 	pdf.SetFont("Helvetica", "B", 9)
 	pdf.Cell(8, 5, "")
 	pdf.Cell(35, 5, "Tipo de Pago")
@@ -340,6 +347,7 @@ func agregarDatosEstudianteRecibo(pdf *gofpdf.Fpdf, datos map[string]interface{}
 	pdf.Ln(5)
 
 	pdf.SetFont("Helvetica", "B", 8)
+	pdf.SetTextColor(0, 0, 0)
 	pdf.Cell(45, 5, "Ordinario")
 	pdf.Cell(50, 5, datos["Fecha_pago"].(string))
 	pdf.Cell(30, 5, valorDerecho)
@@ -351,11 +359,13 @@ func agregarDatosEstudianteRecibo(pdf *gofpdf.Fpdf, datos map[string]interface{}
 	pdf.Ln(5)
 
 	pdf.SetFont("Helvetica", "", 8)
+	pdf.SetTextColor(70, 70, 70)
 	pdf.CellFormat(140, 5, "-COPIA ESTUDIANTE-", "", 0, "C", false, 0, "")
 	pdf.CellFormat(70, 5, "-Espacio para timbre o sello Banco-", "", 0, "C", false, 0, "")
 	pdf.Ln(5)
 
 	pdf.Cell(210, 5, "............................................................................................................................Doblar............................................................................................................................")
+	pdf.SetTextColor(0, 0, 0)
 
 	return pdf
 }
@@ -437,19 +447,24 @@ func agregarDatosCopiaBancoEstudianteRecibo(pdf *gofpdf.Fpdf, datos map[string]i
 	tr := pdf.UnicodeTranslatorFromDescriptor("")
 	valorDerecho := fmt.Sprintf("$ %.f", datos["ValorDerecho"].(float64))
 	pdf.SetFont("Helvetica", "B", 9)
+	pdf.SetTextColor(70, 70, 70)
 	pdf.Ln(5)
 	pdf.Cell(70, 5, "Nombre del Estudiante")
 	pdf.CellFormat(35, 5, "Codigo", "", 0, "C", false, 0, "")
 	pdf.CellFormat(35, 5, "Doc. Identidad", "", 0, "C", false, 0, "")
 	pdf.Cell(5, 5, "")
-	pdf.Cell(60, 5, "Proyecto Curricular")
+	pdf.CellFormat(60, 5, "Proyecto Curricular", "", 0, "C", false, 0, "")
+
 	pdf.Ln(5)
+	pdf.SetTextColor(0, 0, 0)
 	pdf.Cell(70, 5, tr(datos["NombreDelEstudiante"].(string)))
 	pdf.CellFormat(35, 5, datos["CodigoDelEstudiante"].(string), "", 0, "C", false, 0, "")
 	pdf.CellFormat(35, 5, datos["DocumentoDelEstudiante"].(string), "", 0, "C", false, 0, "")
 	pdf.Cell(5, 5, "")
 	pdf.Cell(60, 5, tr(datos["ProyectoEstudiante"].(string)))
+	
 	pdf.Ln(5)
+	pdf.SetTextColor(70, 70, 70)
 	pdf.Cell(8, 5, "")
 	pdf.Cell(35, 5, "Tipo de Pago")
 	pdf.Cell(45, 5, "Pague Hasta")
@@ -459,16 +474,17 @@ func agregarDatosCopiaBancoEstudianteRecibo(pdf *gofpdf.Fpdf, datos map[string]i
 	pdf.Ln(5)
 
 	pdf.SetFont("Helvetica", "B", 8)
-	pdf.Cell(45, 5, "Ordinario")
-	pdf.Cell(50, 5, datos["Fecha_pago"].(string))
-	pdf.Cell(35, 5, valorDerecho)
-
-	pdf.Cell(25, 5, "")
-	pdf.Cell(30, 5, fechaActual())
-	pdf.Cell(15, 5, datos["Periodo"].(string))
+	pdf.SetTextColor(0, 0, 0)
+	pdf.CellFormat(35, 5, "Ordinario", "", 0, "C", false, 0, "")
+	pdf.CellFormat(35, 5, datos["Fecha_pago"].(string), "", 0, "C", false, 0, "")
+	pdf.CellFormat(70, 5, valorDerecho, "", 0, "C", false, 0, "")
+	pdf.Cell(5, 5, "")
+	pdf.CellFormat(35, 5, fechaActual(), "", 0, "C", false, 0, "")
+	pdf.CellFormat(25, 5, datos["Periodo"].(string), "", 0, "C", false, 0, "")
 	pdf.Ln(10)
 
 	pdf.SetFont("Helvetica", "B", 9)
+	pdf.SetTextColor(70, 70, 70)
 	pdf.Cell(147, 5, "")
 	pdf.Cell(15, 5, "Ref.")
 	pdf.Cell(28, 5, "Descripcion")
@@ -476,6 +492,7 @@ func agregarDatosCopiaBancoEstudianteRecibo(pdf *gofpdf.Fpdf, datos map[string]i
 	pdf.Ln(5)
 
 	pdf.SetFont("Helvetica", "B", 8)
+	pdf.SetTextColor(0, 0, 0)
 	pdf.Cell(147, 5, "")
 	pdf.Cell(9, 5, datos["Codigo"].(string))
 	pdf.Cell(33, 5, tr(datos["Descripcion"].(string)))
@@ -486,6 +503,7 @@ func agregarDatosCopiaBancoEstudianteRecibo(pdf *gofpdf.Fpdf, datos map[string]i
 	pdf.Ln(10)
 
 	pdf.SetFont("Helvetica", "B", 9)
+	pdf.SetTextColor(70, 70, 70)
 	pdf.CellFormat(35, 5, "Tipo de Pago", "", 0, "C", false, 0, "")
 	pdf.CellFormat(35, 5, "Pague Hasta", "", 0, "C", false, 0, "")
 	pdf.CellFormat(70, 5, "TOTAL A PAGAR", "", 0, "C", false, 0, "")
@@ -494,21 +512,24 @@ func agregarDatosCopiaBancoEstudianteRecibo(pdf *gofpdf.Fpdf, datos map[string]i
 	pdf.Ln(5)
 
 	pdf.SetFont("Helvetica", "B", 8)
+	pdf.SetTextColor(0, 0, 0)
 	pdf.CellFormat(35, 5, "Extraordinario", "", 0, "C", false, 0, "")
 	pdf.CellFormat(35, 5, datos["Fecha_pago"].(string), "", 0, "C", false, 0, "")
-	pdf.Cell(70, 5, valorDerecho)
+	pdf.CellFormat(70, 5, valorDerecho, "", 0, "C", false, 0, "")
 	pdf.Cell(5, 5, "")
 	pdf.Cell(33, 5, tr(datos["Descripcion"].(string)))
 	pdf.Ln(25)
 	pdf.SetFont("Helvetica", "", 8)
 	pdf.CellFormat(140, 5, codigo, "", 0, "C", false, 0, "")
-	pdf.Ln(5)
 
+	pdf.Ln(5)
+	pdf.SetTextColor(70, 70, 70)
 	pdf.CellFormat(140, 5, "-COPIA BANCO-", "", 0, "C", false, 0, "")
 	pdf.CellFormat(70, 5, "-Espacio para timbre o sello Banco-", "", 0, "C", false, 0, "")
 	pdf.Ln(5)
 
 	pdf.Cell(210, 5, "............................................................................................................................Doblar............................................................................................................................")
+	pdf.SetTextColor(0, 0, 0)
 
 	return pdf
 }
