@@ -926,7 +926,7 @@
                 "tags": [
                     "derechos_pecuniarios"
                 ],
-                "description": "get ConsultaPersona by id",
+                "description": "get información del estudainte por el id de tercero",
                 "operationId": "DerechosPecuniariosController.GetConsultarPersona",
                 "parameters": [
                     {
@@ -1016,7 +1016,7 @@
                 "tags": [
                     "derechos_pecuniarios"
                 ],
-                "description": "Agregar un concepto",
+                "description": "Crear una solicitud de derecho pecuniario",
                 "operationId": "DerechosPecuniariosController.PostSolicitudDerechoPecuniario",
                 "parameters": [
                     {
@@ -1029,6 +1029,23 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "400": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/derechos_pecuniarios/solicitudes": {
+            "get": {
+                "tags": [
+                    "derechos_pecuniarios"
+                ],
+                "description": "Obtener todos las solicitudes de derechos pecuniarios",
+                "operationId": "DerechosPecuniariosController.GetSolicitudDerechoPecuniario",
                 "responses": {
                     "200": {
                         "description": "{}"

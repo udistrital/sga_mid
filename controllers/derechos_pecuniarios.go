@@ -29,6 +29,7 @@ func (c *DerechosPecuniariosController) URLMapping() {
 	c.Mapping("GetEstadoRecibo", c.GetEstadoRecibo)
 	c.Mapping("GetConsultarPersona", c.GetConsultarPersona)
 	c.Mapping("PostSolicitudDerechoPecuniario", c.PostSolicitudDerechoPecuniario)
+	c.Mapping("GetSolicitudDerechoPecuniario", c.GetSolicitudDerechoPecuniario)
 }
 
 // PostConcepto ...
@@ -514,29 +515,28 @@ func (c *DerechosPecuniariosController) PostGenerarDerechoPecuniarioEstudiante()
 							respuesta.Body = complementario
 						} else {
 							logs.Error(errComplementarioPost)
-							respuesta.Type = "error"
-							respuesta.Code = "400"
-							respuesta.Body = errComplementarioPost.Error()
+							respuesta.Type = "success"
+							respuesta.Code = "204"
 						}
 					}
 
 				} else {
 					logs.Error(err)
 					respuesta.Type = "error"
-					respuesta.Code = "403"
+					respuesta.Code = "400"
 					respuesta.Body = err.Error()
 				}
 
 			} else {
 				logs.Error(err)
 				respuesta.Type = "error"
-				respuesta.Code = "404"
+				respuesta.Code = "400"
 				respuesta.Body = err.Error()
 			}
 		} else {
 			logs.Error(err)
 			respuesta.Type = "error"
-			respuesta.Code = "404"
+			respuesta.Code = "400"
 			respuesta.Body = err.Error()
 		}
 	}
@@ -561,7 +561,7 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 	var Periodo map[string]interface{}
 	var ReciboXML map[string]interface{}
 	var resultadoAux []map[string]interface{}
-	var resultado []map[string]interface{}
+	resultado := make([]map[string]interface{}, 0)
 	var Derecho map[string]interface{}
 	var Programa map[string]interface{}
 	var Solicitudes []map[string]interface{}
@@ -625,7 +625,7 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 									}
 
 									//Nombre del derecho pecuniario
-									errDerecho := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId.CodigoAbreviacion:"+IdConcepto, &Derecho)
+									errDerecho := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId.CodigoAbreviacion:"+IdConcepto+",PeriodoId.Id:"+id_periodo+",Activo:true", &Derecho)
 									NombreConcepto := "---"
 									if errDerecho == nil && fmt.Sprintf("%v", Derecho["Data"]) != "map[]" {
 										NombreConcepto = fmt.Sprint(Derecho["Data"].([]interface{})[0].(map[string]interface{})["ParametroId"].(map[string]interface{})["Nombre"])
@@ -643,7 +643,7 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 									RespuestaDocID := ""
 
 									//Verificación si el recibo de pago se encuentra activo y pago
-									if EstadoRecibo == "A" && PagoRecibo == "S" {
+									if (EstadoRecibo == "A" && PagoRecibo == "S") || reciboJson["SolicitudId"] != "" {
 										Estado = "Pago"
 
 										valorPagado = fmt.Sprintf("%v", Valor)
@@ -652,10 +652,10 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 										//Información de la solicitud
 										errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud?query=Id:"+fmt.Sprintf("%v", reciboJson["SolicitudId"]), &Solicitudes)
 										if errSolicitud == nil {
-											if Solicitudes != nil && fmt.Sprintf("%v", Solicitudes[0]) != "map[]" {
-												Resultado := Solicitudes[0]["SolicitudId"].(map[string]interface{})["Resultado"].(string)
-												Estado = Solicitudes[0]["SolicitudId"].(map[string]interface{})["EstadoTipoSolicitudId"].(map[string]interface{})["EstadoId"].(map[string]interface{})["Nombre"].(string)
-												
+											if Solicitudes != nil && fmt.Sprintf("%v", Solicitudes[0]) != "map[]" && Solicitudes[0]["Resultado"] != nil {
+												Resultado := Solicitudes[0]["Resultado"].(string)
+												Estado = Solicitudes[0]["EstadoTipoSolicitudId"].(map[string]interface{})["EstadoId"].(map[string]interface{})["Nombre"].(string)
+
 												var ResultadoJson map[string]interface{}
 												if err := json.Unmarshal([]byte(Resultado), &ResultadoJson); err == nil {
 													RespuestaDocID = fmt.Sprintf("%v", ResultadoJson["DocRespuesta"])
@@ -705,7 +705,7 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 										"Codigo":              IdConcepto,
 										"Valor":               Valor,
 										"Concepto":            NombreConcepto,
-										"Id":                  ReciboDerecho,
+										"Id":                  strings.Split(ReciboDerecho, "/")[0],
 										"FechaCreacion":       Recibos[i]["FechaCreacion"],
 										"Estado":              Estado,
 										"FechaOrdinaria":      Fecha_pago,
@@ -717,15 +717,15 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 										"ValorPagado":         valorPagado,
 										"FechaPago":           fechaPago,
 										"VerRespuesta":        RespuestaDocID,
-										"IdComplementario":    Recibos[i]["Id"].(string),
+										"IdComplementario":    fmt.Sprintf("%v", Recibos[i]["Id"]),
 									}
 
 								} else {
-									if fmt.Sprintf("%v", resultadoAux) != "map[]" {
-										resultado = resultadoAux
+									if len(resultado) > 0 {
+										errorGetAll = false
 									} else {
 										errorGetAll = true
-										alertas = append(alertas, "No data found")
+										alertas = []interface{}{"No data found"}
 										alerta.Code = "404"
 										alerta.Type = "error"
 										alerta.Body = alertas
@@ -741,9 +741,11 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 								c.Data["json"] = map[string]interface{}{"Response": alerta}
 							}
 						}
+						if fmt.Sprintf("%v", resultadoAux[i]) != "map[]" {
+							resultado = append(resultado, resultadoAux[i])
+							errorGetAll = false
+						}
 					}
-
-					resultado = resultadoAux
 				} else {
 					errorGetAll = true
 					alertas = append(alertas, "No data found")
@@ -772,7 +774,7 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 
 // GetConsultarPersona ...
 // @Title GetConsultarPersona
-// @Description get ConsultaPersona by id
+// @Description get información del estudainte por el id de tercero
 // @Param	persona_id	path	int	true	"Id del tercero"
 // @Success 200 {}
 // @Failure 404 not found resource
@@ -852,7 +854,7 @@ func (c *DerechosPecuniariosController) GetConsultarPersona() {
 
 // PostSolicitudDerechoPecuniario ...
 // @Title PostSolicitudDerechoPecuniario
-// @Description Agregar un concepto
+// @Description Crear una solicitud de derecho pecuniario
 // @Param	body		body 	{}	true		"body Agregar Concepto content"
 // @Success 200 {}
 // @Failure 400 body is empty
@@ -867,6 +869,8 @@ func (c *DerechosPecuniariosController) PostSolicitudDerechoPecuniario() {
 	var SolicitudData map[string]interface{}
 	var Infocomplementario map[string]interface{}
 	var InfocomplementarioPut map[string]interface{}
+	var Derecho map[string]interface{}
+	var TerceroSolicitante map[string]interface{}
 	resultado := make(map[string]interface{})
 	var alerta models.Alert
 	var errorGetAll bool
@@ -876,11 +880,11 @@ func (c *DerechosPecuniariosController) PostSolicitudDerechoPecuniario() {
 
 		auxDoc := []map[string]interface{}{}
 		documento := map[string]interface{}{
-			"IdTipoDocumento": SolicitudData["Documentos"].(map[string]interface{})["IdTipoDocumento"],
-			"nombre":          SolicitudData["Documentos"].(map[string]interface{})["nombre"],
-			"metadatos":       SolicitudData["Documentos"].(map[string]interface{})["metadatos"],
-			"descripcion":     SolicitudData["Documentos"].(map[string]interface{})["descripcion"],
-			"file":            SolicitudData["Documentos"].(map[string]interface{})["file"],
+			"IdTipoDocumento": SolicitudData["comprobanteRecibo"].(map[string]interface{})["IdTipoDocumento"],
+			"nombre":          SolicitudData["comprobanteRecibo"].(map[string]interface{})["nombre"],
+			"metadatos":       SolicitudData["comprobanteRecibo"].(map[string]interface{})["metadatos"],
+			"descripcion":     SolicitudData["comprobanteRecibo"].(map[string]interface{})["descripcion"],
+			"file":            SolicitudData["comprobanteRecibo"].(map[string]interface{})["file"],
 		}
 		auxDoc = append(auxDoc, documento)
 
@@ -897,14 +901,27 @@ func (c *DerechosPecuniariosController) PostSolicitudDerechoPecuniario() {
 			resDocs = append(resDocs, docTem)
 		}
 
-		jsonCodigoDerecho, _ := json.Marshal(SolicitudData["Proyecto"])
-		jsonTerceroSolicitante, _ := json.Marshal(SolicitudData["Proyecto"])
-		jsonDerechoPecuniarioId, _ := json.Marshal(SolicitudData["Proyecto"])
-		jsonDocumento, _ := json.Marshal(resDocs)
+		var jsonTerceroSolicitante []byte
+		var jsonDerechoPecuniarioId []byte
 
-		Referencia = "{\n\"CodigoDerecho\":" + fmt.Sprintf("%v", string(jsonCodigoDerecho)) +
-			",\n\"DocSoportePago\": " + fmt.Sprintf("%v", string(jsonDocumento)) +
+		errTercero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+fmt.Sprintf("%v", SolicitudData["SolicitanteId"]), &TerceroSolicitante)
+		if errTercero == nil && TerceroSolicitante != nil {
+			if fmt.Sprintf("%v", TerceroSolicitante) != "map[]" && TerceroSolicitante["Status"] != "404" {
+				jsonTerceroSolicitante, _ = json.Marshal(TerceroSolicitante)
+			}
+		}
+
+		errDerecho := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId.CodigoAbreviacion:"+fmt.Sprintf("%v", SolicitudData["Codigo"])+",PeriodoId.Year:"+fmt.Sprintf("%v", SolicitudData["Periodo"])+",Activo:true", &Derecho)
+		if errDerecho == nil && fmt.Sprintf("%v", Derecho["Data"]) != "map[]" {
+			jsonDerechoPecuniarioId, _ = json.Marshal(Derecho["Data"].([]interface{})[0])
+		}
+
+		jsonDocumento, _ := json.Marshal(resDocs)
+		jsonCodigoEstudiante, _ := json.Marshal(SolicitudData["Codigo_estudiante"])
+
+		Referencia = "{\n\"DocSoportePago\": " + fmt.Sprintf("%v", string(jsonDocumento)) +
 			",\n\"TerceroSolicitante\": " + fmt.Sprintf("%v", string(jsonTerceroSolicitante)) +
+			",\n\"CodigoEstudiante\": " + fmt.Sprintf("%v", string(jsonCodigoEstudiante)) +
 			",\n\"DerechoPecuniarioId\": " + fmt.Sprintf("%v", string(jsonDerechoPecuniarioId)) + "\n}"
 
 		IdEstadoTipoSolicitud := 41
@@ -913,7 +930,7 @@ func (c *DerechosPecuniariosController) PostSolicitudDerechoPecuniario() {
 			"EstadoTipoSolicitudId": map[string]interface{}{"Id": IdEstadoTipoSolicitud},
 			"Referencia":            Referencia,
 			"Resultado":             "",
-			"FechaRadicacion":       time_bogota.TiempoBogotaFormato(),
+			"FechaRadicacion":       fmt.Sprintf("%v", SolicitudData["FechaCreacion"]),
 			"Activo":                true,
 			"SolicitudPadreId":      nil,
 		}
@@ -947,25 +964,20 @@ func (c *DerechosPecuniariosController) PostSolicitudDerechoPecuniario() {
 								"Id": IdEstadoTipoSolicitud,
 							},
 							"Activo":      true,
-							"FechaLimite": time_bogota.TiempoBogotaFormato(),
+							"FechaLimite": fmt.Sprintf("%v", SolicitudData["FechaCreacion"]),
 						}
 
 						errSolicitudEvolucionEstado := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado", "POST", &SolicitudEvolucionEstadoPost, SolicitudEvolucionEstado)
 						if errSolicitudEvolucionEstado == nil {
 							if SolicitudEvolucionEstadoPost != nil && fmt.Sprintf("%v", SolicitudEvolucionEstadoPost) != "map[]" {
-
-								idComplementario := SolicitudData["Documentos"].(map[string]interface{})["IdComplementario"]
+								idComplementario := SolicitudData["IdComplementario"]
 								errInfoComplementario := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+fmt.Sprintf("%v", idComplementario), &Infocomplementario)
 								if errInfoComplementario == nil && Infocomplementario != nil {
 									if fmt.Sprintf("%v", Infocomplementario) != "map[]" && Infocomplementario["Status"] != "404" {
 
 										var InfocomplementarioJson map[string]interface{}
 										if err := json.Unmarshal([]byte(Infocomplementario["Dato"].(string)), &InfocomplementarioJson); err == nil {
-											InfocomplementarioJson["Recibo"] = IdSolicitud
-
-											jsonInfocomplementario, _ := json.Marshal(InfocomplementarioJson)
-
-											Infocomplementario["Dato"] = fmt.Sprintf("%v", jsonInfocomplementario)
+											Infocomplementario["Dato"] = `{"Recibo":` + `"` + fmt.Sprintf("%v", InfocomplementarioJson["Recibo"]) + `", ` + `"CodigoAsociado": "` + fmt.Sprintf("%v", InfocomplementarioJson["CodigoAsociado"]) + `", "SolicitudId":"` + fmt.Sprintf("%v", IdSolicitud) + `"}`
 
 											errActuComplementario := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+fmt.Sprintf("%v", idComplementario), "PUT", &InfocomplementarioPut, Infocomplementario)
 											if errActuComplementario != nil {
@@ -1018,8 +1030,7 @@ func (c *DerechosPecuniariosController) PostSolicitudDerechoPecuniario() {
 				alertas = append(alertas, "No data found")
 				alerta.Code = "404"
 				alerta.Type = "error"
-				// alerta.Body = alertas
-				alerta.Body = SolicitudPracticas
+				alerta.Body = alertas
 				c.Data["json"] = map[string]interface{}{"Response": alerta}
 			}
 		} else {
@@ -1030,7 +1041,6 @@ func (c *DerechosPecuniariosController) PostSolicitudDerechoPecuniario() {
 			alerta.Body = alertas
 			c.Data["json"] = map[string]interface{}{"Response": alerta}
 		}
-
 	} else {
 		errorGetAll = true
 		alertas = append(alertas, err.Error())
@@ -1046,6 +1056,102 @@ func (c *DerechosPecuniariosController) PostSolicitudDerechoPecuniario() {
 		alerta.Type = "OK"
 		alerta.Body = alertas
 		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
+	c.ServeJSON()
+}
+
+// GetSolicitudDerechoPecuniario ...
+// @Title GetSolicitudDerechoPecuniario
+// @Description Obtener todos las solicitudes de derechos pecuniarios
+// @Success 200 {}
+// @Failure 400 body is empty
+// @router /solicitudes [get]
+func (c *DerechosPecuniariosController) GetSolicitudDerechoPecuniario() {
+
+	var Solicitudes []map[string]interface{}
+	var DatosIdentificacion []map[string]interface{}
+	resultado := make([]map[string]interface{}, 0)
+	var alerta models.Alert
+	var errorGetAll bool
+	alertas := []interface{}{}
+
+	errSolicitudes := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud?query=EstadoTipoSolicitudId.Id:41,Activo:true&limit=0", &Solicitudes)
+	if errSolicitudes == nil {
+		if Solicitudes != nil && fmt.Sprintf("%v", Solicitudes[0]) != "map[]" && Solicitudes[0]["Resultado"] != nil {
+			for _, solicitud := range Solicitudes {
+				referencia := solicitud["Referencia"].(string)
+				FechaCreacion := fmt.Sprintf("%v", solicitud["FechaCreacion"])
+
+				var referenciaJson map[string]interface{}
+				if err := json.Unmarshal([]byte(referencia), &referenciaJson); err == nil {
+					VerSoporte := fmt.Sprintf("%v", referenciaJson["DocSoportePago"].([]interface{})[0].(map[string]interface{})["Id"])
+					TerceroSolicitanteId := fmt.Sprintf("%v", referenciaJson["TerceroSolicitante"].(map[string]interface{})["Id"])
+					Nombre := fmt.Sprintf("%v", referenciaJson["TerceroSolicitante"].(map[string]interface{})["NombreCompleto"])
+					Codigo := fmt.Sprintf("%v", referenciaJson["CodigoEstudiante"])
+					DerechoPecuniarioId := referenciaJson["DerechoPecuniarioId"]
+					DerechoValor := referenciaJson["DerechoPecuniarioId"].(map[string]interface{})["Valor"].(string)
+					var valorJson map[string]interface{}
+					valor := "0"
+					if err := json.Unmarshal([]byte(DerechoValor), &valorJson); err == nil {
+						valor = fmt.Sprintf("%v", valorJson["Costo"])
+					}
+
+					errIdentificacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?limit=0&query=TerceroId.Id:"+TerceroSolicitanteId+",Activo:True", &DatosIdentificacion)
+					if errIdentificacion == nil {
+						if DatosIdentificacion != nil && fmt.Sprintf("%v", DatosIdentificacion[0]) != "map[]" {
+							NombreIdentificacion := fmt.Sprintf("%v", DatosIdentificacion[0]["TipoDocumentoId"].(map[string]interface{})["Nombre"])
+							CAIdentificacion := fmt.Sprintf("%v", DatosIdentificacion[0]["TipoDocumentoId"].(map[string]interface{})["CodigoAbreviacion"])
+							Identificacion := NombreIdentificacion + " - " + CAIdentificacion
+
+							resultadoAux := map[string]interface{}{
+								"FechaCreacion":        FechaCreacion,
+								"VerSoporte":           VerSoporte,
+								"Nombre":               Nombre,
+								"Codigo":               Codigo,
+								"DerechoPecuniarioId":  DerechoPecuniarioId,
+								"NombreIdentificacion": NombreIdentificacion,
+								"CAIdentificacion":     CAIdentificacion,
+								"Identificacion":       Identificacion,
+								"Concepto":             fmt.Sprintf("%v", DerechoPecuniarioId.(map[string]interface{})["ParametroId"].(map[string]interface{})["Nombre"]),
+								"Valor":                valor,
+								"Id":                   fmt.Sprintf("%v", solicitud["Id"]),
+								"Estado":               fmt.Sprintf("%v", solicitud["EstadoTipoSolicitudId"].(map[string]interface{})["EstadoId"].(map[string]interface{})["Nombre"]),
+							}
+
+							resultado = append(resultado, resultadoAux)
+						} else {
+							errorGetAll = true
+							c.Data["message"] = "Error service GetAll: No data found"
+							c.Abort("404")
+						}
+					} else {
+						errorGetAll = true
+						c.Data["message"] = "Error service GetAll: No data found"
+						c.Abort("404")
+					}
+				} else {
+					errorGetAll = true
+					c.Data["message"] = "Error service GetAll: No data found"
+					c.Abort("404")
+				}
+			}
+		} else {
+			errorGetAll = true
+			c.Data["message"] = "Error service GetAll: No data found"
+			c.Abort("404")
+		}
+	} else {
+		errorGetAll = true
+		alertas = append(alertas, errSolicitudes.Error())
+		alerta.Code = "400"
+		alerta.Type = "error"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
+	if !errorGetAll {
+		c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": resultado}
 	}
 
 	c.ServeJSON()
