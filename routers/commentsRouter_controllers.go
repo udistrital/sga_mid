@@ -342,6 +342,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"],
         beego.ControllerComments{
+            Method: "PostRespuestaSolicitudDerechoPecuniario",
+            Router: "/respuesta_solicitud/:id",
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DerechosPecuniariosController"],
+        beego.ControllerComments{
             Method: "PostSolicitudDerechoPecuniario",
             Router: "/solicitud",
             AllowHTTPMethods: []string{"post"},
