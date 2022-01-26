@@ -706,6 +706,24 @@ paths:
           description: '{}'
         "400":
           description: body is empty
+  /derechos_pecuniarios/respuesta_solicitud/{id}:
+    post:
+      tags:
+      - derechos_pecuniarios
+      description: Da respuesta a la solicitud de derechos pecuniarios
+      operationId: DerechosPecuniariosController.PostRespuestaSolicitudDerechoPecuniario
+      parameters:
+      - in: path
+        name: id
+        description: Id de la solicitud
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "400":
+          description: body is empty
   /derechos_pecuniarios/solicitud:
     post:
       tags:
