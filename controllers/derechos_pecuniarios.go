@@ -580,7 +580,7 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 
 			//Se consultan todos los recibos de derechos pecuniarios relacionados a ese tercero
 			errRecibo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=0&query=InfoComplementariaId.Id:307,TerceroId.Id:"+persona_id, &Recibos)
-			if errRecibo == nil {
+			if errRecibo == nil { 
 				if Recibos != nil && fmt.Sprintf("%v", Recibos[0]) != "map[]" {
 					// Ciclo for que recorre todos los recibos de derechos pecuniarios solicitados por el tercero
 					resultadoAux = make([]map[string]interface{}, len(Recibos))
@@ -629,8 +629,18 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 									//Nombre del derecho pecuniario
 									errDerecho := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId.CodigoAbreviacion:"+IdConcepto+",PeriodoId.Id:"+id_periodo+",Activo:true", &Derecho)
 									NombreConcepto := "---"
-									if errDerecho == nil && fmt.Sprintf("%v", Derecho["Data"]) != "map[]" {
-										NombreConcepto = fmt.Sprint(Derecho["Data"].([]interface{})[0].(map[string]interface{})["ParametroId"].(map[string]interface{})["Nombre"])
+									if errDerecho == nil {
+										if Derecho != nil && fmt.Sprintf("%v", Derecho["Data"]) != "map[]" {
+											NombreConcepto = fmt.Sprint(Derecho["Data"].([]interface{})[0].(map[string]interface{})["ParametroId"].(map[string]interface{})["Nombre"])
+										} else {
+											errorGetAll = true
+											alertas = append(alertas, "No data found")
+											alerta.Code = "404"
+											alerta.Type = "error"
+											alerta.Body = alertas
+											c.Data["json"] = map[string]interface{}{"Response": alerta}
+										}
+	
 									} else {
 										errorGetAll = true
 										alertas = append(alertas, "No data found")
@@ -660,7 +670,7 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 
 												var ResultadoJson map[string]interface{}
 												if err := json.Unmarshal([]byte(Resultado), &ResultadoJson); err == nil {
-													RespuestaDocID =  ResultadoJson
+													RespuestaDocID = ResultadoJson
 												}
 											} else {
 												errorGetAll = true
@@ -1255,11 +1265,12 @@ func (c *DerechosPecuniariosController) PostRespuestaSolicitudDerechoPecuniario(
 							errSolicitudEvolucionEstado := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado", "POST", &SolicitudEvolucionEstadoPost, SolicitudEvolucionEstado)
 							if errSolicitudEvolucionEstado == nil {
 								if SolicitudEvolucionEstadoPost != nil && fmt.Sprintf("%v", SolicitudEvolucionEstadoPost) != "map[]" {
-									
+
 									Solicitud["Resultado"] = Resultado
 									Solicitud["EstadoTipoSolicitudId"] = SolicitudEvolucionEstadoPost["Data"].(map[string]interface{})["EstadoTipoSolicitudId"]
+									// Solicitud["EstadoTipoSolicitudId"].(map[string]interface{})["Activo"] = true
 									Solicitud["SolicitudFinalizada"] = true
-									
+
 									errPutEstado := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+id_solicitud, "PUT", &SolicitudPut, Solicitud)
 
 									if errPutEstado == nil {
