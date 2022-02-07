@@ -2632,8 +2632,8 @@ paths:
     get:
       tags:
       - transferencia
-      description: get Transferencia_reintegro
-      operationId: Transferencia_reintegroController.GetAll
+      description: get Transferencia_reingreso
+      operationId: Transferencia_reingresoController.GetAll
       parameters:
       - in: query
         name: query
@@ -2664,34 +2664,34 @@ paths:
         "200":
           description: ""
           schema:
-            $ref: '#/definitions/models.Transferencia_reintegro'
+            $ref: '#/definitions/models.Transferencia_reingreso'
         "403":
           description: ""
     post:
       tags:
       - transferencia
-      description: create Transferencia_reintegro
-      operationId: Transferencia_reintegroController.Create
+      description: create Transferencia_reingreso
+      operationId: Transferencia_reingresoController.Create
       parameters:
       - in: body
         name: body
-        description: body for Transferencia_reintegro content
+        description: body for Transferencia_reingreso content
         required: true
         schema:
-          $ref: '#/definitions/models.Transferencia_reintegro'
+          $ref: '#/definitions/models.Transferencia_reingreso'
       responses:
         "201":
           description: ""
           schema:
-            $ref: '#/definitions/models.Transferencia_reintegro'
+            $ref: '#/definitions/models.Transferencia_reingreso'
         "403":
           description: body is empty
   /transferencia/{id}:
     get:
       tags:
       - transferencia
-      description: get Transferencia_reintegro by id
-      operationId: Transferencia_reintegroController.GetOne
+      description: get Transferencia_reingreso by id
+      operationId: Transferencia_reingresoController.GetOne
       parameters:
       - in: path
         name: id
@@ -2702,14 +2702,14 @@ paths:
         "200":
           description: ""
           schema:
-            $ref: '#/definitions/models.Transferencia_reintegro'
+            $ref: '#/definitions/models.Transferencia_reingreso'
         "403":
           description: :id is empty
     put:
       tags:
       - transferencia
-      description: update the Transferencia_reintegro
-      operationId: Transferencia_reintegroController.Put
+      description: update the Transferencia_reingreso
+      operationId: Transferencia_reingresoController.Put
       parameters:
       - in: path
         name: id
@@ -2718,22 +2718,22 @@ paths:
         type: string
       - in: body
         name: body
-        description: body for Transferencia_reintegro content
+        description: body for Transferencia_reingreso content
         required: true
         schema:
-          $ref: '#/definitions/models.Transferencia_reintegro'
+          $ref: '#/definitions/models.Transferencia_reingreso'
       responses:
         "200":
           description: ""
           schema:
-            $ref: '#/definitions/models.Transferencia_reintegro'
+            $ref: '#/definitions/models.Transferencia_reingreso'
         "400":
           description: the request contains incorrect syntax
     delete:
       tags:
       - transferencia
-      description: delete the Transferencia_reintegro
-      operationId: Transferencia_reintegroController.Delete
+      description: delete the Transferencia_reingreso
+      operationId: Transferencia_reingresoController.Delete
       parameters:
       - in: path
         name: id
@@ -2750,7 +2750,7 @@ paths:
       tags:
       - transferencia
       description: get información necesaria para crear un solicitud de transferencias
-      operationId: Transferencia_reintegroController.GetConsultarParametros
+      operationId: Transferencia_reingresoController.GetConsultarParametros
       responses:
         "200":
           description: '{}'
@@ -2761,10 +2761,38 @@ paths:
       tags:
       - transferencia
       description: get información necesaria para crear un solicitud de transferencias
-      operationId: Transferencia_reintegroController.GetConsultarPeriodo
+      operationId: Transferencia_reingresoController.GetConsultarPeriodo
       responses:
         "200":
           description: '{}'
+        "404":
+          description: not found resource
+  /transferencia/estado_recibos/{persona_id}/{id_periodo}:
+    get:
+      tags:
+      - transferencia
+      description: consultar los estados de todos los recibos generados por el tercero
+      operationId: Transferencia_reingresoController.GetEstadoInscripcion
+      parameters:
+      - in: path
+        name: persona_id
+        description: Id del tercero
+        required: true
+        type: integer
+        format: int64
+      - in: path
+        name: id_periodo
+        description: Id del ultimo periodo
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "400":
+          description: not found resource
+        "403":
+          description: body is empty
         "404":
           description: not found resource
 definitions:
@@ -2786,8 +2814,8 @@ definitions:
   models.Practicas_academicas:
     title: Practicas_academicas
     type: object
-  models.Transferencia_reintegro:
-    title: Transferencia_reintegro
+  models.Transferencia_reingreso:
+    title: Transferencia_reingreso
     type: object
   perteneciente:
     title: perteneciente
@@ -2855,4 +2883,4 @@ tags:
     SolicitudProduccionController ...
 - name: transferencia
   description: |
-    Transferencia_reintegroController operations for Transferencia_reintegro
+    Transferencia_reingresoController operations for Transferencia_reingreso

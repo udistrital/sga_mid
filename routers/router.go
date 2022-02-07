@@ -153,7 +153,7 @@ func init() {
 		),
 		beego.NSNamespace("/transferencia",
 			beego.NSInclude(
-				&controllers.Transferencia_reintegroController{},
+				&controllers.Transferencia_reingresoController{},
 			),
 		),
 	)
