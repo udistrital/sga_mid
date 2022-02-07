@@ -2628,6 +2628,145 @@ paths:
           description: '{}'
         "404":
           description: not found resource
+  /transferencia/:
+    get:
+      tags:
+      - transferencia
+      description: get Transferencia_reintegro
+      operationId: Transferencia_reintegroController.GetAll
+      parameters:
+      - in: query
+        name: query
+        description: Filter. e.g. col1:v1,col2:v2 ...
+        type: string
+      - in: query
+        name: fields
+        description: Fields returned. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: sortby
+        description: Sorted-by fields. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: order
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
+        type: string
+      - in: query
+        name: limit
+        description: Limit the size of result set. Must be an integer
+        type: string
+      - in: query
+        name: offset
+        description: Start position of result set. Must be an integer
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Transferencia_reintegro'
+        "403":
+          description: ""
+    post:
+      tags:
+      - transferencia
+      description: create Transferencia_reintegro
+      operationId: Transferencia_reintegroController.Create
+      parameters:
+      - in: body
+        name: body
+        description: body for Transferencia_reintegro content
+        required: true
+        schema:
+          $ref: '#/definitions/models.Transferencia_reintegro'
+      responses:
+        "201":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Transferencia_reintegro'
+        "403":
+          description: body is empty
+  /transferencia/{id}:
+    get:
+      tags:
+      - transferencia
+      description: get Transferencia_reintegro by id
+      operationId: Transferencia_reintegroController.GetOne
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Transferencia_reintegro'
+        "403":
+          description: :id is empty
+    put:
+      tags:
+      - transferencia
+      description: update the Transferencia_reintegro
+      operationId: Transferencia_reintegroController.Put
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to update
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body for Transferencia_reintegro content
+        required: true
+        schema:
+          $ref: '#/definitions/models.Transferencia_reintegro'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Transferencia_reintegro'
+        "400":
+          description: the request contains incorrect syntax
+    delete:
+      tags:
+      - transferencia
+      description: delete the Transferencia_reintegro
+      operationId: Transferencia_reintegroController.Delete
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to delete
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{string} delete success!'
+        "404":
+          description: not found resource
+  /transferencia/consultar_parametros/{id_calendario}/{persona_id}:
+    get:
+      tags:
+      - transferencia
+      description: get información necesaria para crear un solicitud de transferencias
+      operationId: Transferencia_reintegroController.GetConsultarParametros
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+  /transferencia/consultar_periodo/:
+    get:
+      tags:
+      - transferencia
+      description: get información necesaria para crear un solicitud de transferencias
+      operationId: Transferencia_reintegroController.GetConsultarPeriodo
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
 definitions:
   '{}':
     title: '{}'
@@ -2646,6 +2785,9 @@ definitions:
     type: object
   models.Practicas_academicas:
     title: Practicas_academicas
+    type: object
+  models.Transferencia_reintegro:
+    title: Transferencia_reintegro
     type: object
   perteneciente:
     title: perteneciente
@@ -2711,3 +2853,6 @@ tags:
 - name: solicitud_produccion
   description: |
     SolicitudProduccionController ...
+- name: transferencia
+  description: |
+    Transferencia_reintegroController operations for Transferencia_reintegro
