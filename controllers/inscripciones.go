@@ -51,12 +51,11 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 	var Inscripciones []map[string]interface{}
 	var ReciboXML map[string]interface{}
 	var resultadoAux []map[string]interface{}
-	var resultado map[string]interface{}
-	resultado = make(map[string]interface{})
+	var resultado = make(map[string]interface{})
 	var Estado string
 	var alerta models.Alert
 	var errorGetAll bool
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 
 	//Se consultan todas las inscripciones relacionadas a ese tercero
 	errInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion?query=PersonaId:"+persona_id+",PeriodoId:"+id_periodo, &Inscripciones)
@@ -97,7 +96,7 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 									fmt.Println(err)
 									Estado = "Vencido"
 								} else {
-									if FechaActualFormato.Before(FechaLimiteFormato) == true {
+									if FechaActualFormato.Before(FechaLimiteFormato) {
 										Estado = "Pendiente pago"
 									} else {
 										Estado = "Vencido"
@@ -177,7 +176,7 @@ func (c *InscripcionesController) PostInformacionFamiliar() {
 	var FamiliarParentescoPost map[string]interface{}
 	var InfoContactoPost map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &InformacionFamiliar); err == nil {
 		InfoFamiliarAux := InformacionFamiliar["Familiares"].([]interface{})
 		//InfoTercero := InformacionFamiliar["Tercero_Familiar"]
@@ -286,7 +285,7 @@ func (c *InscripcionesController) PostReintegro() {
 
 	var Reintegro map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &Reintegro); err == nil {
 
 		var resultadoReintegro map[string]interface{}
@@ -326,7 +325,7 @@ func (c *InscripcionesController) PostTransferencia() {
 
 	var Transferencia map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &Transferencia); err == nil {
 
 		var resultadoTransferencia map[string]interface{}
@@ -366,7 +365,7 @@ func (c *InscripcionesController) PostInfoIcfesColegio() {
 
 	var InfoIcfesColegio map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &InfoIcfesColegio); err == nil {
 
 		var InscripcionPregrado = InfoIcfesColegio["InscripcionPregrado"].(map[string]interface{})
@@ -455,7 +454,7 @@ func (c *InscripcionesController) PostPreinscripcion() {
 
 	var Infopreinscripcion map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &Infopreinscripcion); err == nil {
 
 		var InfoPreinscripcionTodas = Infopreinscripcion["DatosPreinscripcion"].([]interface{})
@@ -502,7 +501,7 @@ func (c *InscripcionesController) PostInfoIcfesColegioNuevo() {
 	var InfoIcfesColegio map[string]interface{}
 	var alerta models.Alert
 	var IdColegio float64
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &InfoIcfesColegio); err == nil {
 
 		var InscripcionPregrado = InfoIcfesColegio["InscripcionPregrado"].(map[string]interface{})
@@ -687,7 +686,7 @@ func (c *InscripcionesController) PostInfoComplementariaUniversidad() {
 
 	var InfoComplementariaUniversidad map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &InfoComplementariaUniversidad); err == nil {
 
 		var InfoComplementariaTercero = InfoComplementariaUniversidad["InfoComplementariaTercero"].([]interface{})
@@ -814,7 +813,7 @@ func (c *InscripcionesController) PostInfoComplementariaTercero() {
 
 	var InfoComplementaria map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &InfoComplementaria); err == nil {
 
 		var InfoComplementariaTercero = InfoComplementaria["InfoComplementariaTercero"].([]interface{})
@@ -1049,8 +1048,7 @@ func (c *InscripcionesController) GetInfoComplementariaTercero() {
 // @router /info_contacto [put]
 func (c *InscripcionesController) ActualizarInfoContacto() {
 	var InfoContacto map[string]interface{}
-	var resultado map[string]interface{}
-	resultado = make(map[string]interface{})
+	var resultado = make(map[string]interface{})
 	var persona []map[string]interface{}
 	var EstratoAux []map[string]interface{}
 	var EstratoPut map[string]interface{}
@@ -1062,7 +1060,7 @@ func (c *InscripcionesController) ActualizarInfoContacto() {
 	var DireccionPut map[string]interface{}
 	var alerta models.Alert
 	var errorGetAll bool
-	alertas := append([]interface{}{"Data:"})
+	alertas := []interface{}{"Data:"}
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &InfoContacto); err == nil {
 		//Se verifica si existe el tercero

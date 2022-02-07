@@ -3,19 +3,23 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
+	"github.com/udistrital/sga_mid/models"
 	"github.com/udistrital/utils_oas/request"
+	"github.com/udistrital/utils_oas/time_bogota"
 )
 
-// Transferencia_reintegroController operations for Transferencia_reintegro
-type Transferencia_reintegroController struct {
+// Transferencia_reingresoController operations for Transferencia_reingreso
+type Transferencia_reingresoController struct {
 	beego.Controller
 }
 
 // URLMapping ...
-func (c *Transferencia_reintegroController) URLMapping() {
+func (c *Transferencia_reingresoController) URLMapping() {
 	c.Mapping("Post", c.Post)
 	c.Mapping("GetOne", c.GetOne)
 	c.Mapping("GetAll", c.GetAll)
@@ -27,62 +31,62 @@ func (c *Transferencia_reintegroController) URLMapping() {
 
 // Post ...
 // @Title Create
-// @Description create Transferencia_reintegro
-// @Param	body		body 	models.Transferencia_reintegro	true		"body for Transferencia_reintegro content"
-// @Success 201 {object} models.Transferencia_reintegro
+// @Description create Transferencia_reingreso
+// @Param	body		body 	models.Transferencia_reingreso	true		"body for Transferencia_reingreso content"
+// @Success 201 {object} models.Transferencia_reingreso
 // @Failure 403 body is empty
 // @router / [post]
-func (c *Transferencia_reintegroController) Post() {
+func (c *Transferencia_reingresoController) Post() {
 
 }
 
 // GetOne ...
 // @Title GetOne
-// @Description get Transferencia_reintegro by id
+// @Description get Transferencia_reingreso by id
 // @Param	id		path 	string	true		"The key for staticblock"
-// @Success 200 {object} models.Transferencia_reintegro
+// @Success 200 {object} models.Transferencia_reingreso
 // @Failure 403 :id is empty
 // @router /:id [get]
-func (c *Transferencia_reintegroController) GetOne() {
+func (c *Transferencia_reingresoController) GetOne() {
 
 }
 
 // GetAll ...
 // @Title GetAll
-// @Description get Transferencia_reintegro
+// @Description get Transferencia_reingreso
 // @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
 // @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
 // @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
 // @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
 // @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
 // @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.Transferencia_reintegro
+// @Success 200 {object} models.Transferencia_reingreso
 // @Failure 403
 // @router / [get]
-func (c *Transferencia_reintegroController) GetAll() {
+func (c *Transferencia_reingresoController) GetAll() {
 
 }
 
 // Put ...
 // @Title Put
-// @Description update the Transferencia_reintegro
+// @Description update the Transferencia_reingreso
 // @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.Transferencia_reintegro	true		"body for Transferencia_reintegro content"
-// @Success 200 {object} models.Transferencia_reintegro
+// @Param	body		body 	models.Transferencia_reingreso	true		"body for Transferencia_reingreso content"
+// @Success 200 {object} models.Transferencia_reingreso
 // @Failure 400 the request contains incorrect syntax
 // @router /:id [put]
-func (c *Transferencia_reintegroController) Put() {
+func (c *Transferencia_reingresoController) Put() {
 
 }
 
 // Delete ...
 // @Title Delete
-// @Description delete the Transferencia_reintegro
+// @Description delete the Transferencia_reingreso
 // @Param	id		path 	string	true		"The id you want to delete"
 // @Success 200 {string} delete success!
 // @Failure 404 not found resource
 // @router /:id [delete]
-func (c *Transferencia_reintegroController) Delete() {
+func (c *Transferencia_reingresoController) Delete() {
 
 }
 
@@ -92,7 +96,7 @@ func (c *Transferencia_reintegroController) Delete() {
 // @Success 200 {}
 // @Failure 404 not found resource
 // @router /consultar_periodo/ [get]
-func (c *Transferencia_reintegroController) GetConsultarPeriodo() {
+func (c *Transferencia_reingresoController) GetConsultarPeriodo() {
 	//resultado informacion basica persona
 	var resultado map[string]interface{}
 	var calendarioGet []map[string]interface{}
@@ -164,7 +168,7 @@ func (c *Transferencia_reintegroController) GetConsultarPeriodo() {
 // @Success 200 {}
 // @Failure 404 not found resource
 // @router /consultar_parametros/:id_calendario/:persona_id [get]
-func (c *Transferencia_reintegroController) GetConsultarParametros() {
+func (c *Transferencia_reingresoController) GetConsultarParametros() {
 	//resultado informacion basica persona
 	var resultado map[string]interface{}
 	var calendario map[string]interface{}
@@ -286,6 +290,147 @@ func (c *Transferencia_reintegroController) GetConsultarParametros() {
 	}
 
 	c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": resultado}
+
+	c.ServeJSON()
+}
+
+// GetEstadoInscripcion ...
+// @Title GetEstadoInscripcion
+// @Description consultar los estados de todos los recibos generados por el tercero
+// @Param	persona_id	path	int	true	"Id del tercero"
+// @Param	id_periodo	path	int	true	"Id del ultimo periodo"
+// @Success 200 {}
+// @Failure 403 body is empty
+// @Failure 404 not found resource
+// @Failure 400 not found resource
+// @router /estado_recibos/:persona_id/:id_periodo [get]
+func (c *Transferencia_reingresoController) GetEstadoInscripcion() {
+
+	persona_id := c.Ctx.Input.Param(":persona_id")
+	id_periodo := c.Ctx.Input.Param(":id_periodo")
+	var InternaGet []map[string]interface{}
+	var ExternaGet []map[string]interface{}
+	var reingresoGet []map[string]interface{}
+	var nivelGet map[string]interface{}
+	var Inscripciones []map[string]interface{}
+	var ReciboXML map[string]interface{}
+	var resultadoAux []map[string]interface{}
+	var resultado []map[string]interface{}
+	var Estado string
+	var alerta models.Alert
+	var errorGetAll bool
+	alertas := []interface{}{"Response:"}
+
+	//Se consultan todas las inscripciones relacionadas a ese tercero
+	// Tranferencia interna
+	errInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion?query=PersonaId:"+persona_id+",PeriodoId:"+id_periodo+",TipoInscripcionId.CodigoAbreviacion:TRANSINT&limit=0", &InternaGet)
+	if errInscripcion == nil {
+		if InternaGet != nil && fmt.Sprintf("%v", InternaGet[0]) != "map[]" {
+			Inscripciones = append(Inscripciones, InternaGet...)
+		}
+	}
+
+	// Tranferencia externa
+	errExterna := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion?query=PersonaId:"+persona_id+",PeriodoId:"+id_periodo+",TipoInscripcionId.CodigoAbreviacion:TRANSEXT&limit=0", &ExternaGet)
+	if errExterna == nil {
+		if ExternaGet != nil && fmt.Sprintf("%v", ExternaGet[0]) != "map[]" {
+			Inscripciones = append(Inscripciones, ExternaGet...)
+		}
+	}
+
+	// Reingreso
+	errReingreso := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion?query=PersonaId:"+persona_id+",PeriodoId:"+id_periodo+",TipoInscripcionId.CodigoAbreviacion:REING&limit=0", &reingresoGet)
+	if errReingreso == nil {
+		if reingresoGet != nil && fmt.Sprintf("%v", reingresoGet[0]) != "map[]" {
+			Inscripciones = append(Inscripciones, reingresoGet...)
+		}
+	}
+	// Ciclo for que recorre todas las inscripciones del tercero
+	resultadoAux = make([]map[string]interface{}, len(Inscripciones))
+	for i := 0; i < len(Inscripciones); i++ {
+		ReciboInscripcion := fmt.Sprintf("%v", Inscripciones[i]["ReciboInscripcion"])
+		errRecibo := request.GetJsonWSO2("http://"+beego.AppConfig.String("ConsultarReciboJbpmService")+"consulta_recibo/"+ReciboInscripcion, &ReciboXML)
+		if errRecibo == nil {
+			if ReciboXML != nil && fmt.Sprintf("%v", ReciboXML) != "map[reciboCollection:map[]]" && fmt.Sprintf("%v", ReciboXML) != "map[]" {
+				//Fecha límite de pago extraordinario
+				FechaLimite := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["fecha_extraordinario"]
+				EstadoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["estado"]
+				PagoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["pago"]
+				//Verificación si el recibo de pago se encuentra activo y pago
+				if EstadoRecibo == "A" && PagoRecibo == "S" {
+					Estado = "Pago"
+				} else {
+					//Verifica si el recibo está vencido o no
+					FechaActual := time_bogota.TiempoBogotaFormato() //time.Now()
+					layout := "2006-01-02T15:04:05.000-05:00"
+					FechaLimite = strings.Replace(fmt.Sprintf("%v", FechaLimite), "+", "-", -1)
+					FechaLimiteFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaLimite))
+					if err != nil {
+						fmt.Println(err)
+						Estado = "Vencido"
+					} else {
+						layout := "2006-01-02T15:04:05.000000000-05:00"
+						if len(FechaActual) < len(layout) {
+							n := len(FechaActual) - 26
+							s := strings.Repeat("0", n)
+							layout = strings.ReplaceAll(layout, "000000000", s)
+						}
+						FechaActualFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaActual))
+						if err != nil {
+							fmt.Println(err)
+							Estado = "Vencido"
+						} else {
+							if FechaActualFormato.Before(FechaLimiteFormato) {
+								Estado = "Pendiente pago"
+							} else {
+								Estado = "Vencido"
+							}
+						}
+					}
+				}
+
+				errNivel := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"nivel_formacion/"+fmt.Sprintf("%v", Inscripciones[i]["TipoInscripcionId"].(map[string]interface{})["NivelId"]), &nivelGet)
+				if errNivel == nil {
+					resultadoAux[i] = map[string]interface{}{
+						"Id":              Inscripciones[i]["Id"],
+						"Programa":        Inscripciones[i]["ProgramaAcademicoId"],
+						"Concepto":        Inscripciones[i]["TipoInscripcionId"].(map[string]interface{})["Nombre"],
+						"Recibo":          ReciboInscripcion,
+						"FechaGeneracion": Inscripciones[i]["FechaCreacion"],
+						"Estado":          Estado,
+						"Nivel":           nivelGet["Nombre"],
+					}
+				}
+			} else {
+				if fmt.Sprintf("%v", resultadoAux) != "map[]" {
+					resultado = resultadoAux
+				} else {
+					errorGetAll = true
+					alertas = append(alertas, "No data found")
+					alerta.Code = "404"
+					alerta.Type = "error"
+					alerta.Body = alertas
+					c.Data["json"] = map[string]interface{}{"Response": alerta}
+				}
+			}
+		} else {
+			errorGetAll = true
+			alertas = append(alertas, errRecibo.Error())
+			alerta.Code = "400"
+			alerta.Type = "error"
+			alerta.Body = alertas
+			c.Data["json"] = map[string]interface{}{"Response": alerta}
+		}
+	}
+
+	resultado = resultadoAux
+
+	if !errorGetAll {
+		alerta.Code = "200"
+		alerta.Type = "OK"
+		alerta.Body = resultado
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
 
 	c.ServeJSON()
 }
