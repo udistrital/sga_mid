@@ -1222,7 +1222,7 @@ func init() {
             Filters: nil,
             Params: nil})
 
-    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reintegroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reintegroController"],
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reingresoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reingresoController"],
         beego.ControllerComments{
             Method: "Post",
             Router: "/",
@@ -1231,7 +1231,7 @@ func init() {
             Filters: nil,
             Params: nil})
 
-    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reintegroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reintegroController"],
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reingresoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reingresoController"],
         beego.ControllerComments{
             Method: "GetAll",
             Router: "/",
@@ -1240,7 +1240,7 @@ func init() {
             Filters: nil,
             Params: nil})
 
-    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reintegroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reintegroController"],
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reingresoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reingresoController"],
         beego.ControllerComments{
             Method: "GetOne",
             Router: "/:id",
@@ -1249,7 +1249,7 @@ func init() {
             Filters: nil,
             Params: nil})
 
-    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reintegroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reintegroController"],
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reingresoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reingresoController"],
         beego.ControllerComments{
             Method: "Put",
             Router: "/:id",
@@ -1258,7 +1258,7 @@ func init() {
             Filters: nil,
             Params: nil})
 
-    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reintegroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reintegroController"],
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reingresoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reingresoController"],
         beego.ControllerComments{
             Method: "Delete",
             Router: "/:id",
@@ -1267,7 +1267,7 @@ func init() {
             Filters: nil,
             Params: nil})
 
-    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reintegroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reintegroController"],
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reingresoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reingresoController"],
         beego.ControllerComments{
             Method: "GetConsultarParametros",
             Router: "/consultar_parametros/:id_calendario/:persona_id",
@@ -1276,10 +1276,19 @@ func init() {
             Filters: nil,
             Params: nil})
 
-    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reintegroController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reintegroController"],
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reingresoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reingresoController"],
         beego.ControllerComments{
             Method: "GetConsultarPeriodo",
             Router: "/consultar_periodo/",
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reingresoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reingresoController"],
+        beego.ControllerComments{
+            Method: "GetEstadoInscripcion",
+            Router: "/estado_recibos/:persona_id/:id_periodo",
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,

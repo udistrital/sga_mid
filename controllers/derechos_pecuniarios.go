@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"strconv"
 	"strings"
 	"time"
@@ -580,7 +581,7 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 
 			//Se consultan todos los recibos de derechos pecuniarios relacionados a ese tercero
 			errRecibo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=0&query=InfoComplementariaId.Id:307,TerceroId.Id:"+persona_id, &Recibos)
-			if errRecibo == nil { 
+			if errRecibo == nil {
 				if Recibos != nil && fmt.Sprintf("%v", Recibos[0]) != "map[]" {
 					// Ciclo for que recorre todos los recibos de derechos pecuniarios solicitados por el tercero
 					resultadoAux = make([]map[string]interface{}, len(Recibos))
@@ -624,6 +625,11 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 										IdConcepto = "49"
 									case "CARNET ESTUDIANTIL":
 										IdConcepto = "42"
+									case "Inscripcion Virtual":
+										conceptos := make([]string, 0)
+										conceptos = append(conceptos, "40", "50", "51", "44", "31", "41", "49", "42")
+										rand.Seed(time.Now().Unix())
+										IdConcepto = conceptos[rand.Intn(len(conceptos))]
 									}
 
 									//Nombre del derecho pecuniario
@@ -631,6 +637,14 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 									NombreConcepto := "---"
 									if errDerecho == nil {
 										if Derecho != nil && fmt.Sprintf("%v", Derecho["Data"]) != "map[]" {
+											/////////////////////////////////////////////////////////////
+											Resultado := Derecho["Data"].([]interface{})[0].(map[string]interface{})["Valor"].(string)
+
+											var ResultadoJson map[string]interface{}
+											if err := json.Unmarshal([]byte(Resultado), &ResultadoJson); err == nil {
+												Valor = ResultadoJson["Costo"]
+											}
+											////////////////////////////////////////////////////////////
 											NombreConcepto = fmt.Sprint(Derecho["Data"].([]interface{})[0].(map[string]interface{})["ParametroId"].(map[string]interface{})["Nombre"])
 										} else {
 											errorGetAll = true
@@ -640,7 +654,7 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 											alerta.Body = alertas
 											c.Data["json"] = map[string]interface{}{"Response": alerta}
 										}
-	
+
 									} else {
 										errorGetAll = true
 										alertas = append(alertas, "No data found")
