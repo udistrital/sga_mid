@@ -21,8 +21,7 @@ type Transferencia_reingresoController struct {
 // URLMapping ...
 func (c *Transferencia_reingresoController) URLMapping() {
 	c.Mapping("Post", c.Post)
-	c.Mapping("GetOne", c.GetOne)
-	c.Mapping("GetAll", c.GetAll)
+	c.Mapping("GetInscripcion", c.GetInscripcion)
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
 	c.Mapping("GetConsultarPeriodo", c.GetConsultarPeriodo)
@@ -40,31 +39,167 @@ func (c *Transferencia_reingresoController) Post() {
 
 }
 
-// GetOne ...
-// @Title GetOne
+// GetInscripcion ...
+// @Title GetInscripcion
 // @Description get Transferencia_reingreso by id
 // @Param	id		path 	string	true		"The key for staticblock"
 // @Success 200 {object} models.Transferencia_reingreso
 // @Failure 403 :id is empty
-// @router /:id [get]
-func (c *Transferencia_reingresoController) GetOne() {
+// @router /inscripcion/:id [get]
+func (c *Transferencia_reingresoController) GetInscripcion() {
+	//resultado informacion basica persona
+	var resultado map[string]interface{}
+	var calendarioGet []map[string]interface{}
+	var inscripcionGet []map[string]interface{}
+	var codigosGet []map[string]interface{}
+	var proyectoGet []map[string]interface{}
+	var periodoGet map[string]interface{}
+	var nivelGet []map[string]interface{}
+	var codigosRes []map[string]interface{}
+	var proyectos []map[string]interface{}
+	var proyectosCodigos []map[string]interface{}
+	var jsondata map[string]interface{}
 
-}
+	idInscripcion := c.Ctx.Input.Param(":id")
+	errInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"/inscripcion?query=Id:"+fmt.Sprintf("%v", idInscripcion), &inscripcionGet)
+	if errInscripcion == nil && fmt.Sprintf("%v", inscripcionGet[0]) != "map[]" {
 
-// GetAll ...
-// @Title GetAll
-// @Description get Transferencia_reingreso
-// @Param	query	query	string	false	"Filter. e.g. col1:v1,col2:v2 ..."
-// @Param	fields	query	string	false	"Fields returned. e.g. col1,col2 ..."
-// @Param	sortby	query	string	false	"Sorted-by fields. e.g. col1,col2 ..."
-// @Param	order	query	string	false	"Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ..."
-// @Param	limit	query	string	false	"Limit the size of result set. Must be an integer"
-// @Param	offset	query	string	false	"Start position of result set. Must be an integer"
-// @Success 200 {object} models.Transferencia_reingreso
-// @Failure 403
-// @router / [get]
-func (c *Transferencia_reingresoController) GetAll() {
+		resultado = map[string]interface{}{
+			"TipoInscripcion": map[string]interface{}{
+				"Nombre": inscripcionGet[0]["TipoInscripcionId"].(map[string]interface{})["Nombre"],
+				"Id":     inscripcionGet[0]["TipoInscripcionId"].(map[string]interface{})["Id"],
+			},
+		}
 
+		errPeriodo := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"periodo/"+fmt.Sprintf("%v", inscripcionGet[0]["PeriodoId"]), &periodoGet)
+		if errPeriodo == nil && fmt.Sprintf("%v", periodoGet["Data"]) != "[map[]]" {
+			if periodoGet["Status"] != "404" {
+				resultado["Periodo"] = map[string]interface{}{
+					"Nombre": periodoGet["Data"].(map[string]interface{})["Nombre"],
+					"Id":     periodoGet["Data"].(map[string]interface{})["Id"],
+					"Year":   periodoGet["Data"].(map[string]interface{})["Year"],
+				}
+
+			} else {
+				logs.Error(periodoGet)
+				c.Data["Message"] = errPeriodo
+				c.Abort("404")
+			}
+		} else {
+			logs.Error(periodoGet)
+			c.Data["Message"] = errPeriodo
+			c.Abort("404")
+		}
+
+		errNivel := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"nivel_formacion?query=Id:"+fmt.Sprintf("%v", inscripcionGet[0]["TipoInscripcionId"].(map[string]interface{})["NivelId"]), &nivelGet)
+		if errNivel == nil && fmt.Sprintf("%v", nivelGet[0]) != "[map[]]" {
+			resultado["Nivel"] = map[string]interface{}{
+				"Id":     nivelGet[0]["Id"],
+				"Nombre": nivelGet[0]["Nombre"],
+			}
+		} else {
+			logs.Error(nivelGet)
+			c.Data["Message"] = errNivel
+			c.Abort("404")
+		}
+
+		errCalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=periodo_id:"+fmt.Sprintf("%v", inscripcionGet[0]["PeriodoId"]), &calendarioGet)
+		if errCalendario == nil {
+			if fmt.Sprintf("%v", calendarioGet) != "[map[]]" {
+				if err := json.Unmarshal([]byte(calendarioGet[0]["DependenciaId"].(string)), &jsondata); err == nil {
+					calendarioGet[0]["DependenciaId"] = jsondata["proyectos"]
+				}
+				errCodigoEst := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+
+					fmt.Sprintf("%v", inscripcionGet[0]["PersonaId"])+",InfoComplementariaId.Id:93&limit=0", &codigosGet)
+				if errCodigoEst == nil && fmt.Sprintf("%v", codigosGet) != "[map[]]" {
+
+					for _, codigo := range codigosGet {
+						errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Codigo:"+codigo["Dato"].(string)[5:8], &proyectoGet)
+						if errProyecto == nil && fmt.Sprintf("%v", proyectoGet) != "[map[]]" {
+							for _, proyectoCalendario := range calendarioGet[0]["DependenciaId"].([]interface{}) {
+								if proyectoGet[0]["Id"] == proyectoCalendario {
+
+									codigoAux := map[string]interface{}{
+										"Nombre":         codigo["Dato"].(string) + " Proyecto: " + codigo["Dato"].(string)[5:8] + " - " + proyectoGet[0]["Nombre"].(string),
+										"IdProyecto":     proyectoGet[0]["Id"],
+										"NombreProyecto": proyectoGet[0]["Nombre"],
+										"Codigo":         codigo["Dato"].(string),
+									}
+
+									codigosRes = append(codigosRes, codigoAux)
+								}
+							}
+						}
+					}
+
+					resultado["CodigoEstudiante"] = codigosRes
+
+					errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=NivelFormacionId.Id:"+fmt.Sprintf("%v", calendarioGet[0]["Nivel"]), &proyectoGet)
+					if errProyecto == nil && fmt.Sprintf("%v", proyectoGet[0]) != "map[]" {
+						for _, proyectoAux := range proyectoGet {
+							for _, proyectoCalendario := range calendarioGet[0]["DependenciaId"].([]interface{}) {
+								if proyectoAux["Id"] == proyectoCalendario {
+									proyecto := map[string]interface{}{
+										"Id":          proyectoAux["Id"],
+										"Nombre":      proyectoAux["Nombre"],
+										"Codigo":      proyectoAux["Codigo"],
+										"CodigoSnies": proyectoAux["CodigoSnies"],
+									}
+
+									proyectos = append(proyectos, proyecto)
+								}
+							}
+
+							for _, codigo := range codigosRes {
+								if proyectoAux["Id"] == codigo["IdProyecto"] {
+									proyectoCodigo := map[string]interface{}{
+										"Id":          proyectoAux["Id"],
+										"Nombre":      proyectoAux["Nombre"],
+										"Codigo":      proyectoAux["Codigo"],
+										"CodigoSnies": proyectoAux["CodigoSnies"],
+									}
+									proyectosCodigos = append(proyectosCodigos, proyectoCodigo)
+								}
+							}
+
+							if proyectoAux["Id"] == inscripcionGet[0]["ProgramaAcademicoId"] {
+								resultado["ProgramaDestino"] = map[string]interface{}{
+									"Id":          proyectoAux["Id"],
+									"Nombre":      proyectoAux["Nombre"],
+									"Codigo":      proyectoAux["Codigo"],
+									"CodigoSnies": proyectoAux["CodigoSnies"],
+								}
+							}
+						}
+					}
+					resultado["ProyectoCurricular"] = proyectos
+					resultado["ProyectoCodigo"] = proyectosCodigos
+
+					c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": resultado}
+				} else {
+					logs.Error(codigosGet)
+					c.Data["Message"] = errCodigoEst
+					c.Abort("404")
+				}
+
+			} else {
+				logs.Error(calendarioGet)
+				c.Data["Message"] = errCalendario
+				c.Abort("404")
+			}
+		} else {
+			logs.Error(calendarioGet)
+			c.Data["Message"] = errCalendario
+			c.Abort("404")
+		}
+
+	} else {
+		logs.Error(periodoGet)
+		c.Data["Message"] = errInscripcion
+		c.Abort("404")
+	}
+
+	c.ServeJSON()
 }
 
 // Put ...
@@ -366,7 +501,6 @@ func (c *Transferencia_reingresoController) GetEstadoInscripcion() {
 					FechaLimite = strings.Replace(fmt.Sprintf("%v", FechaLimite), "+", "-", -1)
 					FechaLimiteFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaLimite))
 					if err != nil {
-						fmt.Println(err)
 						Estado = "Vencido"
 					} else {
 						layout := "2006-01-02T15:04:05.000000000-05:00"
@@ -377,7 +511,6 @@ func (c *Transferencia_reingresoController) GetEstadoInscripcion() {
 						}
 						FechaActualFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaActual))
 						if err != nil {
-							fmt.Println(err)
 							Estado = "Vencido"
 						} else {
 							if FechaActualFormato.Before(FechaLimiteFormato) {
@@ -398,9 +531,10 @@ func (c *Transferencia_reingresoController) GetEstadoInscripcion() {
 						"Recibo":          ReciboInscripcion,
 						"FechaGeneracion": Inscripciones[i]["FechaCreacion"],
 						"Estado":          Estado,
-						"Nivel":           nivelGet["Nombre"],
+						"NivelNombre":     nivelGet["Nombre"],
+						"Nivel":           nivelGet["Id"],
 					}
-				}
+				}			
 			} else {
 				if fmt.Sprintf("%v", resultadoAux) != "map[]" {
 					resultado = resultadoAux
