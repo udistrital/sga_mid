@@ -1224,7 +1224,7 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reingresoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Transferencia_reingresoController"],
         beego.ControllerComments{
-            Method: "Post",
+            Method: "PostSolicitud",
             Router: "/",
             AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
