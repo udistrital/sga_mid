@@ -313,6 +313,7 @@ func (c *PracticasAcademicasController) GetAll() {
 	var query string
 	var fields string
 	var Solicitudes []map[string]interface{}
+	var TipoEstado map[string]interface{}
 	resultado := []interface{}{}
 	var errorGetAll bool
 
@@ -325,12 +326,20 @@ func (c *PracticasAcademicasController) GetAll() {
 		fields = "&fields=" + fields
 	}
 
-	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud?limit=0"+query+fields, &Solicitudes)
+	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante?limit=0"+query+"&fields=SolicitudId", &Solicitudes)
 
 	if errSolicitud == nil {
 		if Solicitudes != nil && fmt.Sprintf("%v", Solicitudes[0]) != "map[]" {
 			for _, solicitud := range Solicitudes {
-				resultado = append(resultado, solicitud)
+				errTipoEstado := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"estado_tipo_solicitud?query=Id:"+fmt.Sprintf("%v", solicitud["SolicitudId"].(map[string]interface{})["EstadoTipoSolicitudId"].(map[string]interface{})["Id"]), &TipoEstado)
+
+				if errTipoEstado == nil {
+					resultado = append(resultado, map[string]interface{}{
+						"Id":                    solicitud["SolicitudId"].(map[string]interface{})["Id"],
+						"FechaRadicacion":       solicitud["SolicitudId"].(map[string]interface{})["FechaRadicacion"],
+						"EstadoTipoSolicitudId": TipoEstado["Data"].([]interface{})[0],
+					})
+				}
 			}
 		} else {
 			errorGetAll = true
