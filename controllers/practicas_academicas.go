@@ -500,7 +500,7 @@ func (c *PracticasAcademicasController) Put() {
 											}
 
 											// Si la practica es ejecutada, se da por finalizada la solicitud
-											if idEstado == "23" { 
+											if idEstado == "23" {
 												Solicitud["SolicitudFinalizada"] = true
 											}
 
@@ -1285,6 +1285,8 @@ func (c *PracticasAcademicasController) EnviarInvitaciones() {
 								"NombreDocente":    ReferenciaJson["DocenteSolicitante"].(map[string]interface{})["Nombre"],
 							},
 						}
+
+						fmt.Println("http://" + beego.AppConfig.String("GOOGLE_MID") + "notificacion")
 
 						errEnvioCorreos := request.SendJson("http://"+beego.AppConfig.String("GOOGLE_MID")+"notificacion", "POST", &CorreoPost, correo)
 						if errEnvioCorreos == nil {
