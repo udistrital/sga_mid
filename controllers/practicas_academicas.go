@@ -1303,6 +1303,8 @@ func (c *PracticasAcademicasController) EnviarInvitaciones() {
 							},
 						}
 
+						fmt.Println("http://" + beego.AppConfig.String("GOOGLE_MID") + "notificacion")
+
 						errEnvioCorreos := request.SendJson("http://"+beego.AppConfig.String("GOOGLE_MID")+"notificacion", "POST", &CorreoPost, correo)
 						if errEnvioCorreos == nil {
 							if CorreoPost == nil || fmt.Sprintf("%v", CorreoPost) == "400" {
