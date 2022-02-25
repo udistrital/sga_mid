@@ -2816,13 +2816,13 @@
                 }
             }
         },
-        "/practicas_academicas/consultar_estados/": {
+        "/practicas_academicas/consultar_espacios_academicos/{id}": {
             "get": {
                 "tags": [
                     "practicas_academicas"
                 ],
                 "description": "get estados de practica academica",
-                "operationId": "PracticasAcademicasController.ConsultarEstados",
+                "operationId": "PracticasAcademicasController.ConsultarEspaciosAcademicos",
                 "responses": {
                     "200": {
                         "description": "",
