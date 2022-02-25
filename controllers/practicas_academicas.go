@@ -27,6 +27,7 @@ func (c *PracticasAcademicasController) URLMapping() {
 	c.Mapping("ConsultarInfoSolicitante", c.ConsultarInfoSolicitante)
 	c.Mapping("ConsultarInfoColaborador", c.ConsultarInfoColaborador)
 	c.Mapping("ConsultarParametros", c.ConsultarParametros)
+	c.Mapping("ConsultarEspaciosAcademicos", c.ConsultarEspaciosAcademicos)
 	c.Mapping("EnviarInvitaciones", c.EnviarInvitaciones)
 }
 
@@ -1209,26 +1210,33 @@ func (c *PracticasAcademicasController) ConsultarParametros() {
 	c.ServeJSON()
 }
 
-// ConsultarEstados ...
-// @Title ConsultarEstados
+// ConsultarEspaciosAcademicos ...
+// @Title ConsultarEspaciosAcademicos
 // @Description get estados de practica academica
 // @Success 200 {object} models.Practicas_academicas
 // @Failure 404 not found resource
-// @router /consultar_estados/ [get]
-func (c *PracticasAcademicasController) ConsultarEstados() {
+// @router /consultar_espacios_academicos/:id [get]
+func (c *PracticasAcademicasController) ConsultarEspaciosAcademicos() {
 	resultado := []interface{}{}
-	var tipoEstados map[string]interface{}
+	var espaciosAcademicos map[string]interface{}
+	idStr := c.Ctx.Input.Param(":id")
 
-	errTipoEstados := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"estado_tipo_solicitud?query=TipoSolicitud.Id:23", &tipoEstados)
-	if errTipoEstados == nil && fmt.Sprintf("%v", tipoEstados["Data"]) != "[map[]]" {
-		if tipoEstados["Status"] != "404" {
-			for _, estado := range tipoEstados["Data"].([]interface{}) {
-				resultado = append(resultado, estado.(map[string]interface{})["EstadoId"])
+	errEspaciosAcademicos := request.GetJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico?query=activo:true,docente_id:"+fmt.Sprintf("%v", idStr), &espaciosAcademicos)
+	if errEspaciosAcademicos == nil && fmt.Sprintf("%v", espaciosAcademicos["Data"]) != "[map[]]" {
+		if espaciosAcademicos["Status"] != "404" {
+
+			for _, espacioAcademico := range espaciosAcademicos["Data"].([]interface{}) {
+
+				resultado = append(resultado, map[string]interface{}{
+					"Nombre": fmt.Sprintf("%v", espacioAcademico.(map[string]interface{})["nombre"]) + " - " + fmt.Sprintf("%v", espacioAcademico.(map[string]interface{})["grupo"]),
+					"Id":     espacioAcademico.(map[string]interface{})["_id"],
+				})
 			}
 		}
 	} else {
-		logs.Error(tipoEstados)
-		c.Data["system"] = errTipoEstados
+		resultado = nil
+		logs.Error(espaciosAcademicos)
+		c.Data["system"] = errEspaciosAcademicos
 		c.Abort("404")
 	}
 

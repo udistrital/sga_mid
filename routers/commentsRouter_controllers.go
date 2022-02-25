@@ -918,8 +918,8 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PracticasAcademicasController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PracticasAcademicasController"],
         beego.ControllerComments{
-            Method: "ConsultarEstados",
-            Router: "/consultar_estados/",
+            Method: "ConsultarEspaciosAcademicos",
+            Router: "/consultar_espacios_academicos/:id",
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
