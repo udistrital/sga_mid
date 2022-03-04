@@ -609,7 +609,7 @@ paths:
           description: '{}'
         "403":
           description: :id is empty
-  /derechos_pecuniarios/ActualizarValor/:
+  /derechos_pecuniarios/actualizar_valor:
     post:
       tags:
       - derechos_pecuniarios
@@ -627,7 +627,7 @@ paths:
           description: '{}'
         "403":
           description: :body is empty
-  /derechos_pecuniarios/clonar/:
+  /derechos_pecuniarios/clonar:
     post:
       tags:
       - derechos_pecuniarios
@@ -645,6 +645,24 @@ paths:
           description: '{}'
         "400":
           description: body is empty
+  /derechos_pecuniarios/consultar_persona/{persona_id}:
+    get:
+      tags:
+      - derechos_pecuniarios
+      description: get información del estudainte por el id de tercero
+      operationId: DerechosPecuniariosController.GetConsultarPersona
+      parameters:
+      - in: path
+        name: persona_id
+        description: Id del tercero
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
   /derechos_pecuniarios/estado_recibos/{persona_id}/{id_periodo}:
     get:
       tags:
@@ -670,7 +688,7 @@ paths:
           description: '{}'
         "404":
           description: not found resource
-  /derechos_pecuniarios/generar_derecho/:
+  /derechos_pecuniarios/generar_derecho:
     post:
       tags:
       - derechos_pecuniarios
@@ -683,6 +701,53 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "400":
+          description: body is empty
+  /derechos_pecuniarios/respuesta_solicitud/{id}:
+    post:
+      tags:
+      - derechos_pecuniarios
+      description: Da respuesta a la solicitud de derechos pecuniarios
+      operationId: DerechosPecuniariosController.PostRespuestaSolicitudDerechoPecuniario
+      parameters:
+      - in: path
+        name: id
+        description: Id de la solicitud
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "400":
+          description: body is empty
+  /derechos_pecuniarios/solicitud:
+    post:
+      tags:
+      - derechos_pecuniarios
+      description: Crear una solicitud de derecho pecuniario
+      operationId: DerechosPecuniariosController.PostSolicitudDerechoPecuniario
+      parameters:
+      - in: body
+        name: body
+        description: body Agregar Concepto content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "400":
+          description: body is empty
+  /derechos_pecuniarios/solicitudes:
+    get:
+      tags:
+      - derechos_pecuniarios
+      description: Obtener todos las solicitudes de derechos pecuniarios
+      operationId: DerechosPecuniariosController.GetSolicitudDerechoPecuniario
       responses:
         "200":
           description: '{}'
@@ -1817,22 +1882,6 @@ paths:
             $ref: '#/definitions/models.Practicas_academicas'
         "403":
           description: :id is not int
-    delete:
-      tags:
-      - practicas_academicas
-      description: delete the Practicas_academicas
-      operationId: PracticasAcademicasController.Delete
-      parameters:
-      - in: path
-        name: id
-        description: The id you want to delete
-        required: true
-        type: string
-      responses:
-        "200":
-          description: '{string} delete success!'
-        "403":
-          description: id is empty
   /practicas_academicas/consultar_colaborador/{id}:
     get:
       tags:
@@ -1852,12 +1901,12 @@ paths:
             $ref: '#/definitions/models.Practicas_academicas'
         "404":
           description: not found resource
-  /practicas_academicas/consultar_estados/:
+  /practicas_academicas/consultar_espacios_academicos/{id}:
     get:
       tags:
       - practicas_academicas
       description: get estados de practica academica
-      operationId: PracticasAcademicasController.ConsultarEstados
+      operationId: PracticasAcademicasController.ConsultarEspaciosAcademicos
       responses:
         "200":
           description: ""
@@ -1897,6 +1946,26 @@ paths:
             $ref: '#/definitions/models.Practicas_academicas'
         "404":
           description: not found resource
+  /practicas_academicas/enviar_invitacion/:
+    post:
+      tags:
+      - practicas_academicas
+      description: enviar invitaciones al correo de los estudiantes
+      operationId: PracticasAcademicasController.EnviarInvitaciones
+      parameters:
+      - in: body
+        name: body
+        description: body for Practicas_academicas content
+        required: true
+        schema:
+          $ref: '#/definitions/models.Practicas_academicas'
+      responses:
+        "201":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Practicas_academicas'
+        "400":
+          description: the request contains incorrect syntaxis
   /produccion_academica/:
     get:
       tags:
@@ -2559,6 +2628,136 @@ paths:
           description: '{}'
         "404":
           description: not found resource
+  /transferencia/:
+    post:
+      tags:
+      - transferencia
+      description: create Transferencia_reingreso
+      operationId: Transferencia_reingresoController.Create
+      parameters:
+      - in: body
+        name: body
+        description: body for Transferencia_reingreso content
+        required: true
+        schema:
+          $ref: '#/definitions/models.Transferencia_reingreso'
+      responses:
+        "201":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Transferencia_reingreso'
+        "403":
+          description: body is empty
+  /transferencia/{id}:
+    put:
+      tags:
+      - transferencia
+      description: update the Transferencia_reingreso
+      operationId: Transferencia_reingresoController.Put
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to update
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body for Transferencia_reingreso content
+        required: true
+        schema:
+          $ref: '#/definitions/models.Transferencia_reingreso'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Transferencia_reingreso'
+        "400":
+          description: the request contains incorrect syntax
+    delete:
+      tags:
+      - transferencia
+      description: delete the Transferencia_reingreso
+      operationId: Transferencia_reingresoController.Delete
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to delete
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{string} delete success!'
+        "404":
+          description: not found resource
+  /transferencia/consultar_parametros/{id_calendario}/{persona_id}:
+    get:
+      tags:
+      - transferencia
+      description: get información necesaria para crear un solicitud de transferencias
+      operationId: Transferencia_reingresoController.GetConsultarParametros
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+  /transferencia/consultar_periodo/:
+    get:
+      tags:
+      - transferencia
+      description: get información necesaria para crear un solicitud de transferencias
+      operationId: Transferencia_reingresoController.GetConsultarPeriodo
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+  /transferencia/estado_recibos/{persona_id}/{id_periodo}:
+    get:
+      tags:
+      - transferencia
+      description: consultar los estados de todos los recibos generados por el tercero
+      operationId: Transferencia_reingresoController.GetEstadoInscripcion
+      parameters:
+      - in: path
+        name: persona_id
+        description: Id del tercero
+        required: true
+        type: integer
+        format: int64
+      - in: path
+        name: id_periodo
+        description: Id del ultimo periodo
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "400":
+          description: not found resource
+        "403":
+          description: body is empty
+        "404":
+          description: not found resource
+  /transferencia/inscripcion/{id}:
+    get:
+      tags:
+      - transferencia
+      description: get Transferencia_reingreso by id
+      operationId: Transferencia_reingresoController.GetInscripcion
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Transferencia_reingreso'
+        "403":
+          description: :id is empty
 definitions:
   '{}':
     title: '{}'
@@ -2577,6 +2776,9 @@ definitions:
     type: object
   models.Practicas_academicas:
     title: Practicas_academicas
+    type: object
+  models.Transferencia_reingreso:
+    title: Transferencia_reingreso
     type: object
   perteneciente:
     title: perteneciente
@@ -2642,3 +2844,6 @@ tags:
 - name: solicitud_produccion
   description: |
     SolicitudProduccionController ...
+- name: transferencia
+  description: |
+    Transferencia_reingresoController operations for Transferencia_reingreso

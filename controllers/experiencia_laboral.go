@@ -3,7 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
+	"strings"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
@@ -57,17 +57,17 @@ func (c *ExperienciaLaboralController) PostExperienciaLaboral() {
 		ExperienciaLaboralData := map[string]interface{}{
 			"TerceroId":            map[string]interface{}{"Id": Experiencia["Persona"].(float64)},
 			"InfoComplementariaId": map[string]interface{}{"Id": 312},
-			"Dato":                 "{\n    " +
-									"\"Nit\": " + dato["NumeroIdentificacion"].(string) + ",    " +
-									"\"FechaInicio\": \"" + Experiencia["FechaInicio"].(string) + "\",    " +
-									"\"FechaFinalizacion\": \"" + Experiencia["FechaFinalizacion"].(string) + "\",    " +
-									"\"TipoDedicacion\": { \"Id\": \"" + fmt.Sprintf("%v", Dedicacion) + "\", \"Nombre\": \"" + NombreDedicacion +  "\"},    " +
-									"\"TipoVinculacion\": { \"Id\": \"" + fmt.Sprintf("%v", Vinculacion) + "\", \"Nombre\": \"" + NombreVinculacion +  "\"},    " +
-									"\"Cargo\": { \"Id\": \"" + fmt.Sprintf("%v", CargoID) + "\", \"Nombre\": \"" + NombreCargo +  "\"},    " +
-									"\"Actividades\": \"" + Experiencia["Actividades"].(string) + "\",    " +
-									"\"Soporte\": \"" + fmt.Sprintf("%v", Experiencia["DocumentoId"]) + "\"" +
-									"\n }",
-			"Activo":               true,
+			"Dato": "{\n    " +
+				"\"Nit\": \"" + fmt.Sprintf("%v", dato["NumeroIdentificacion"]) + "\",    " +
+				"\"FechaInicio\": \"" + Experiencia["FechaInicio"].(string) + "\",    " +
+				"\"FechaFinalizacion\": \"" + Experiencia["FechaFinalizacion"].(string) + "\",    " +
+				"\"TipoDedicacion\": { \"Id\": \"" + fmt.Sprintf("%v", Dedicacion) + "\", \"Nombre\": \"" + NombreDedicacion + "\"},    " +
+				"\"TipoVinculacion\": { \"Id\": \"" + fmt.Sprintf("%v", Vinculacion) + "\", \"Nombre\": \"" + NombreVinculacion + "\"},    " +
+				"\"Cargo\": { \"Id\": \"" + fmt.Sprintf("%v", CargoID) + "\", \"Nombre\": \"" + NombreCargo + "\"},    " +
+				"\"Actividades\": \"" + Experiencia["Actividades"].(string) + "\",    " +
+				"\"Soporte\": \"" + fmt.Sprintf("%v", Experiencia["DocumentoId"]) + "\"" +
+				"\n }",
+			"Activo": true,
 		}
 
 		errExperiencia := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/", "POST", &ExperienciaLaboralPost, ExperienciaLaboralData)
@@ -110,8 +110,16 @@ func (c *ExperienciaLaboralController) GetInformacionEmpresa() {
 	var empresaTercero map[string]interface{}
 	var respuesta map[string]interface{}
 	respuesta = make(map[string]interface{})
+
+	endpoit := "datos_identificacion?query=TipoDocumentoId__Id:7,Numero:" + idStr
+
+	if strings.Contains(idStr, "-") {
+		var auxId = strings.Split(idStr, "-")
+		endpoit = "datos_identificacion?query=TipoDocumentoId__Id:7,Numero:" + auxId[0] + ",DigitoVerificacion:" + auxId[1]
+	}
+
 	//GET que asocia el nit con la empresa
-	errNit := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=TipoDocumentoId__Id:7,Numero:"+idStr, &empresa)
+	errNit := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+endpoit, &empresa)
 	if errNit == nil {
 		beego.Info(empresa)
 		if empresa != nil && len(empresa[0]) > 0 {
@@ -298,7 +306,7 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 
 	errData := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+fmt.Sprintf("%v", TerceroID)+",InfoComplementariaId__Id:312,Activo:true&limit=0&sortby=Id&order=asc", &Data)
 	if errData == nil {
-		if Data != nil && fmt.Sprintf("%v", Data) != "[map[]]"{
+		if Data != nil && fmt.Sprintf("%v", Data) != "[map[]]" {
 			var experiencia map[string]interface{}
 			for i := 0; i < len(Data); i++ {
 				resultadoAux := make(map[string]interface{})
@@ -311,17 +319,15 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 					resultadoAux["TipoDedicacion"] = experiencia["TipoDedicacion"]
 					resultadoAux["FechaFinalizacion"] = experiencia["FechaFinalizacion"]
 					resultadoAux["FechaInicio"] = experiencia["FechaInicio"]
-					
-					AuxNit := fmt.Sprintf("%v", experiencia["Nit"])
-					//Conversion de notación científica a un valor entero
-					f, _ := strconv.ParseFloat(AuxNit, 64)
-					j, _ := strconv.Atoi(fmt.Sprintf("%.f", f))
-					AuxNit = fmt.Sprintf("%v", j)
-					
-					resultadoAux["Nit"] = AuxNit
-					idEmpresa := AuxNit
 
-					errDatosIdentificacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=TipoDocumentoId__Id:7,Numero:"+fmt.Sprintf("%v", idEmpresa), &empresa)
+					endpoit := "datos_identificacion?query=TipoDocumentoId__Id:7,Numero:" + fmt.Sprintf("%v", experiencia["Nit"])
+
+					if strings.Contains(fmt.Sprintf("%v", experiencia["Nit"]), "-") {
+						var auxNit = strings.Split(fmt.Sprintf("%v", experiencia["Nit"]), "-")
+						endpoit = "datos_identificacion?query=TipoDocumentoId__Id:7,Numero:" + auxNit[0] + ",DigitoVerificacion:" + auxNit[1]
+					}
+
+					errDatosIdentificacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+endpoit, &empresa)
 					if errDatosIdentificacion == nil {
 						if empresa != nil && len(empresa[0]) > 0 {
 							idEmpresa := empresa[0]["TerceroId"].(map[string]interface{})["Id"]
@@ -539,7 +545,7 @@ func (c *ExperienciaLaboralController) PutExperienciaLaboral() {
 	var alerta models.Alert
 	var errorGetAll bool
 	alertas := append([]interface{}{"Data:"})
-	
+
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &Experiencia); err == nil {
 		InfoComplementariaTercero := Experiencia["InfoComplementariaTercero"].([]interface{})[0]
 		ExperienciaLaboral = Experiencia["Experiencia"]
@@ -557,19 +563,19 @@ func (c *ExperienciaLaboralController) PutExperienciaLaboral() {
 		if errData == nil {
 			if Data != nil {
 				Data[0]["Dato"] = "{\n    " +
-									"\"Nit\": " + dato["NumeroIdentificacion"].(string) + ",    " +
-									"\"FechaInicio\": \"" + ExperienciaLaboral.(map[string]interface{})["FechaInicio"].(string) + "\",    " +
-									"\"FechaFinalizacion\": \"" + ExperienciaLaboral.(map[string]interface{})["FechaFinalizacion"].(string) + "\",    " +
-									"\"TipoDedicacion\": { \"Id\": \"" + fmt.Sprintf("%v", Dedicacion) + "\", \"Nombre\": \"" + NombreDedicacion +  "\"},    " +
-									"\"TipoVinculacion\": { \"Id\": \"" + fmt.Sprintf("%v", Vinculacion) + "\", \"Nombre\": \"" + NombreVinculacion +  "\"},    " +
-									"\"Cargo\": { \"Id\": \"" + fmt.Sprintf("%v", CargoID) + "\", \"Nombre\": \"" + NombreCargo +  "\"},    " +
-									"\"Actividades\": \"" + ExperienciaLaboral.(map[string]interface{})["Actividades"].(string) + "\",    " +
-									"\"Soporte\": \"" + fmt.Sprintf("%v", ExperienciaLaboral.(map[string]interface{})["DocumentoId"]) + "\"" +
-									"\n }"
+					"\"Nit\": " + dato["NumeroIdentificacion"].(string) + ",    " +
+					"\"FechaInicio\": \"" + ExperienciaLaboral.(map[string]interface{})["FechaInicio"].(string) + "\",    " +
+					"\"FechaFinalizacion\": \"" + ExperienciaLaboral.(map[string]interface{})["FechaFinalizacion"].(string) + "\",    " +
+					"\"TipoDedicacion\": { \"Id\": \"" + fmt.Sprintf("%v", Dedicacion) + "\", \"Nombre\": \"" + NombreDedicacion + "\"},    " +
+					"\"TipoVinculacion\": { \"Id\": \"" + fmt.Sprintf("%v", Vinculacion) + "\", \"Nombre\": \"" + NombreVinculacion + "\"},    " +
+					"\"Cargo\": { \"Id\": \"" + fmt.Sprintf("%v", CargoID) + "\", \"Nombre\": \"" + NombreCargo + "\"},    " +
+					"\"Actividades\": \"" + ExperienciaLaboral.(map[string]interface{})["Actividades"].(string) + "\",    " +
+					"\"Soporte\": \"" + fmt.Sprintf("%v", ExperienciaLaboral.(map[string]interface{})["DocumentoId"]) + "\"" +
+					"\n }"
 			}
 		}
 
-		errPut := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+ Id, "PUT", &Put, Data[0])
+		errPut := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+Id, "PUT", &Put, Data[0])
 		if errPut == nil {
 			if Put != nil {
 				resultado = Put
@@ -588,7 +594,7 @@ func (c *ExperienciaLaboralController) PutExperienciaLaboral() {
 			alerta.Type = "error"
 			alerta.Body = alertas
 			c.Data["json"] = map[string]interface{}{"Response": alerta}
-					
+
 		}
 
 	} else {
@@ -707,7 +713,6 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboral() {
 	c.ServeJSON()
 }
 
-
 // DeleteExperienciaLaboral ...
 // @Title DeleteExperienciaLaboral
 // @Description eliminar Experiencia Laboral por id
@@ -729,8 +734,8 @@ func (c *ExperienciaLaboralController) DeleteExperienciaLaboral() {
 	if errData == nil {
 		if Data != nil {
 			Data[0]["Activo"] = false
-			
-			errPut := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+ Id, "PUT", &Put, Data[0])
+
+			errPut := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+Id, "PUT", &Put, Data[0])
 			if errPut == nil {
 				if Put != nil {
 					resultado = Put
@@ -749,7 +754,7 @@ func (c *ExperienciaLaboralController) DeleteExperienciaLaboral() {
 				alerta.Type = "error"
 				alerta.Body = alertas
 				c.Data["json"] = map[string]interface{}{"Response": alerta}
-				
+
 			}
 		}
 	} else {

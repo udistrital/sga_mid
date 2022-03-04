@@ -151,6 +151,11 @@ func init() {
 				&controllers.GenerarReciboController{},
 			),
 		),
+		beego.NSNamespace("/transferencia",
+			beego.NSInclude(
+				&controllers.Transferencia_reingresoController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
