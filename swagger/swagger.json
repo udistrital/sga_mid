@@ -4007,6 +4007,44 @@
                 }
             }
         },
+        "/transferencia/actualizar_estado/{id}": {
+            "put": {
+                "tags": [
+                    "transferencia"
+                ],
+                "description": "crear la inscripción y actualizar solicitud",
+                "operationId": "Transferencia_reingresoController.PutInscripcion",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "The id you want to update",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Transferencia_reingreso content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Transferencia_reingreso"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Transferencia_reingreso"
+                        }
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
         "/transferencia/consultar_parametros/{id_calendario}/{persona_id}": {
             "get": {
                 "tags": [
@@ -4107,68 +4145,6 @@
                     },
                     "403": {
                         "description": ":id is empty"
-                    }
-                }
-            }
-        },
-        "/transferencia/{id}": {
-            "put": {
-                "tags": [
-                    "transferencia"
-                ],
-                "description": "update the Transferencia_reingreso",
-                "operationId": "Transferencia_reingresoController.Put",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "description": "The id you want to update",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "in": "body",
-                        "name": "body",
-                        "description": "body for Transferencia_reingreso content",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.Transferencia_reingreso"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/models.Transferencia_reingreso"
-                        }
-                    },
-                    "400": {
-                        "description": "the request contains incorrect syntax"
-                    }
-                }
-            },
-            "delete": {
-                "tags": [
-                    "transferencia"
-                ],
-                "description": "delete the Transferencia_reingreso",
-                "operationId": "Transferencia_reingresoController.Delete",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "description": "The id you want to delete",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{string} delete success!"
-                    },
-                    "404": {
-                        "description": "not found resource"
                     }
                 }
             }
