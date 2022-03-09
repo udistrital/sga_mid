@@ -4120,6 +4120,35 @@
                 }
             }
         },
+        "/transferencia/estados": {
+            "get": {
+                "tags": [
+                    "transferencia"
+                ],
+                "description": "get Transferencia_reingreso by id",
+                "operationId": "Transferencia_reingresoController.GetEstados",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "The key for staticblock",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Transferencia_reingreso"
+                        }
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
+            }
+        },
         "/transferencia/inscripcion/{id}": {
             "get": {
                 "tags": [
@@ -4145,6 +4174,23 @@
                     },
                     "403": {
                         "description": ":id is empty"
+                    }
+                }
+            }
+        },
+        "/transferencia/solicitudes/": {
+            "get": {
+                "tags": [
+                    "transferencia"
+                ],
+                "description": "get Transferencia_reingreso by id",
+                "operationId": "Transferencia_reingresoController.GetSolicitudesInscripcion",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Transferencia_reingreso"
+                        }
                     }
                 }
             }
