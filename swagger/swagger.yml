@@ -2723,6 +2723,25 @@ paths:
           description: body is empty
         "404":
           description: not found resource
+  /transferencia/estados:
+    get:
+      tags:
+      - transferencia
+      description: get Transferencia_reingreso by id
+      operationId: Transferencia_reingresoController.GetEstados
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Transferencia_reingreso'
+        "403":
+          description: :id is empty
   /transferencia/inscripcion/{id}:
     get:
       tags:
@@ -2742,6 +2761,17 @@ paths:
             $ref: '#/definitions/models.Transferencia_reingreso'
         "403":
           description: :id is empty
+  /transferencia/solicitudes/:
+    get:
+      tags:
+      - transferencia
+      description: get Transferencia_reingreso by id
+      operationId: Transferencia_reingresoController.GetSolicitudesInscripcion
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Transferencia_reingreso'
 definitions:
   '{}':
     title: '{}'
