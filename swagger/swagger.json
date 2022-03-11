@@ -4079,7 +4079,7 @@
                 }
             }
         },
-        "/transferencia/estado_recibos/{persona_id}/{id_periodo}": {
+        "/transferencia/estado_recibos/{persona_id}": {
             "get": {
                 "tags": [
                     "transferencia"
@@ -4091,14 +4091,6 @@
                         "in": "path",
                         "name": "persona_id",
                         "description": "Id del tercero",
-                        "required": true,
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    {
-                        "in": "path",
-                        "name": "id_periodo",
-                        "description": "Id del ultimo periodo",
                         "required": true,
                         "type": "integer",
                         "format": "int64"
@@ -4174,6 +4166,44 @@
                     },
                     "403": {
                         "description": ":id is empty"
+                    }
+                }
+            }
+        },
+        "/transferencia/respuesta_solicitud/{id}": {
+            "put": {
+                "tags": [
+                    "transferencia"
+                ],
+                "description": "crear la inscripción y actualizar solicitud",
+                "operationId": "Transferencia_reingresoController.PutSolicitud",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "The id you want to update",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Transferencia_reingreso content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Transferencia_reingreso"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Transferencia_reingreso"
+                        }
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
                     }
                 }
             }

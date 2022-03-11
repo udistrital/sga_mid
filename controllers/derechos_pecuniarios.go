@@ -570,7 +570,6 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 	var Solicitudes []map[string]interface{}
 	var Estado string
 	var PeriodoConsulta string
-	var alerta models.Alert
 	var errorGetAll bool
 	alertas := []interface{}{}
 
@@ -649,19 +648,13 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 										} else {
 											errorGetAll = true
 											alertas = append(alertas, "No data found")
-											alerta.Code = "404"
-											alerta.Type = "error"
-											alerta.Body = alertas
-											c.Data["json"] = map[string]interface{}{"Response": alerta}
+											c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": alertas, "Data": nil}
 										}
 
 									} else {
 										errorGetAll = true
 										alertas = append(alertas, "No data found")
-										alerta.Code = "404"
-										alerta.Type = "error"
-										alerta.Body = alertas
-										c.Data["json"] = map[string]interface{}{"Response": alerta}
+										c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": alertas, "Data": nil}
 									}
 
 									valorPagado := ""
@@ -752,19 +745,13 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 									} else {
 										errorGetAll = true
 										alertas = []interface{}{"No data found"}
-										alerta.Code = "404"
-										alerta.Type = "error"
-										alerta.Body = alertas
-										c.Data["json"] = map[string]interface{}{"Response": alerta}
+										c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": alertas, "Data": nil}
 									}
 								}
 							} else {
 								errorGetAll = true
 								alertas = append(alertas, errRecibo.Error())
-								alerta.Code = "400"
-								alerta.Type = "error"
-								alerta.Body = alertas
-								c.Data["json"] = map[string]interface{}{"Response": alerta}
+								c.Data["json"] = map[string]interface{}{"Success": false, "Status": "400", "Message": alertas, "Data": nil}
 							}
 						}
 						if fmt.Sprintf("%v", resultadoAux[i]) != "map[]" {
@@ -775,18 +762,11 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 				} else {
 					errorGetAll = true
 					alertas = append(alertas, "No data found")
-					alerta.Code = "404"
-					alerta.Type = "error"
-					alerta.Body = alertas
-					c.Data["json"] = map[string]interface{}{"Response": alerta}
+					c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": alertas, "Data": nil}
 				}
 			} else {
 				errorGetAll = true
-				alertas = append(alertas, errRecibo.Error())
-				alerta.Code = "400"
-				alerta.Type = "error"
-				alerta.Body = alertas
-				c.Data["json"] = map[string]interface{}{"Response": alerta}
+				c.Data["json"] = map[string]interface{}{"Success": false, "Status": "400", "Message": errRecibo.Error(), "Data": nil}
 			}
 		}
 	}
