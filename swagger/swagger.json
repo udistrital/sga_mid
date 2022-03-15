@@ -4224,6 +4224,40 @@
                     }
                 }
             }
+        },
+        "/transferencia/{id}": {
+            "put": {
+                "tags": [
+                    "transferencia"
+                ],
+                "description": "create Transferencia_reingreso",
+                "operationId": "Transferencia_reingresoController.Create",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Transferencia_reingreso content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Transferencia_reingreso"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Transferencia_reingreso"
+                        }
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
         }
     },
     "definitions": {
