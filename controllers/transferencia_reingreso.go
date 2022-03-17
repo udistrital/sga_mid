@@ -1334,6 +1334,10 @@ func (c *Transferencia_reingresoController) GetInscripcion() {
 
 												resultado["DatosRespuesta"] = datosRespuesta
 											}
+										} else {
+											resultado["Estado"] = map[string]interface{}{
+												"Nombre": "Pago",
+											}
 										}
 									}
 
