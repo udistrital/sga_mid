@@ -156,6 +156,11 @@ func init() {
 				&controllers.Transferencia_reingresoController{},
 			),
 		),
+		beego.NSNamespace("/notas",
+			beego.NSInclude(
+				&controllers.NotasController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
