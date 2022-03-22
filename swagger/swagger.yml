@@ -2131,7 +2131,7 @@ paths:
           description: '{}'
         "403":
           description: body is empty
-  /proyecto_academico/coordinador/{id}:
+  /proyecto_academico/coordinador:
     post:
       tags:
       - proyecto_academico
@@ -2183,7 +2183,7 @@ paths:
             $ref: '#/definitions/models.ConsultaProyectoAcademico'
         "403":
           description: :id is empty
-  /proyecto_academico/registro_calificado/{id}:
+  /proyecto_academico/registro_calificado/:
     post:
       tags:
       - proyecto_academico
@@ -2191,11 +2191,6 @@ paths:
         a false a los registro anteriores y crea el nuevo
       operationId: CrearProyectoAcademicoController.PostRegistroCalificadoById
       parameters:
-      - in: path
-        name: id
-        description: The key for staticblock
-        required: true
-        type: string
       - in: body
         name: body
         description: body Agregar Registro content
@@ -2207,8 +2202,6 @@ paths:
           description: ""
           schema:
             $ref: '#/definitions/models.ConsultaProyectoAcademico'
-        "403":
-          description: :id is empty
   /solicitud_docente/:
     get:
       tags:

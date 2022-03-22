@@ -435,7 +435,7 @@ func (c *DerechosPecuniariosController) PostGenerarDerechoPecuniarioEstudiante()
 			"nombre":              SolicitudDerechoPecuniario["Nombre"].(string),
 			"apellido":            SolicitudDerechoPecuniario["Apellido"].(string),
 			"correo":              SolicitudDerechoPecuniario["Correo"].(string),
-			"proyecto":            SolicitudDerechoPecuniario["ProgramaAcademicoId"].(float64),
+			"proyecto":            SolicitudDerechoPecuniario["ProgramaAcademicoId"].(string),
 			"tiporecibo":          0,
 			"concepto":            "-------",
 			"valorordinario":      0,
@@ -817,7 +817,7 @@ func (c *DerechosPecuniariosController) GetConsultarPersona() {
 							errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Codigo:"+codigo["Dato"].(string)[5:8], &proyecto)
 							if errProyecto == nil && fmt.Sprintf("%v", proyecto[0]) != "map[]" {
 								codigo["Proyecto"] = codigo["Dato"].(string) + " Proyecto: " + codigo["Dato"].(string)[5:8] + " - " + proyecto[0]["Nombre"].(string)
-								codigo["IdProyecto"] = proyecto[0]["Id"]
+								codigo["IdProyecto"] = proyecto[0]["Codigo"]
 							}
 						}
 
