@@ -101,7 +101,7 @@ func init() {
 				&controllers.AdmisionController{},
 			),
 		),
-		beego.NSNamespace("/consulta_calendario_academico",
+		beego.NSNamespace("/calendario_academico",
 			beego.NSInclude(
 				&controllers.ConsultaCalendarioAcademicoController{},
 			),
