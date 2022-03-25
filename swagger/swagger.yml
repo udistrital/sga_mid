@@ -1507,8 +1507,26 @@ paths:
       responses:
         "200":
           description: '{}'
-        "403":
-          description: :id_asignatura is empty
+        "404":
+          description: not found resource
+  /notas/EspaciosAcademicos/{id_docente}:
+    get:
+      tags:
+      - notas
+      description: search
+      operationId: NotasController.GetEspaciosAcademicosDocente
+      parameters:
+      - in: path
+        name: id_docente
+        description: Id docente
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
   /notas/PorcentajeAsignatura/{id_asignatura}:
     get:
       tags:
@@ -1524,8 +1542,8 @@ paths:
       responses:
         "200":
           description: '{}'
-        "403":
-          description: :id_asignatura is empty
+        "404":
+          description: not found resource
   /notas/PorcentajeAsignatura/{id}:
     put:
       tags:
@@ -1549,24 +1567,6 @@ paths:
           description: '{}'
         "400":
           description: the request contains incorrect syntax
-  /notas/listaEspaciosAcademicos/{id_docente}:
-    get:
-      tags:
-      - notas
-      description: search
-      operationId: NotasController.GetEspaciosAcademicosDocente
-      parameters:
-      - in: path
-        name: id_docente
-        description: Id docente
-        required: true
-        type: integer
-        format: int64
-      responses:
-        "200":
-          description: '{}'
-        "403":
-          description: :id_docente is empty
   /paquete_solicitud/:
     post:
       tags:

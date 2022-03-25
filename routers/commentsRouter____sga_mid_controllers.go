@@ -738,15 +738,6 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:NotasController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:NotasController"],
         beego.ControllerComments{
-            Method: "GetEspaciosAcademicosDocente",
-            Router: "/EspaciosAcademicos/:id_docente",
-            AllowHTTPMethods: []string{"get"},
-            MethodParams: param.Make(),
-            Filters: nil,
-            Params: nil})
-
-    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:NotasController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:NotasController"],
-        beego.ControllerComments{
             Method: "PutPorcentajesAsignatura",
             Router: "/PorcentajeAsignatura/:id",
             AllowHTTPMethods: []string{"put"},
@@ -758,6 +749,15 @@ func init() {
         beego.ControllerComments{
             Method: "GetPorcentajesAsignatura",
             Router: "/PorcentajeAsignatura/:id_asignatura",
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:NotasController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:NotasController"],
+        beego.ControllerComments{
+            Method: "GetEspaciosAcademicosDocente",
+            Router: "/listaEspaciosAcademicos/:id_docente",
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
