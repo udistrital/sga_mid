@@ -2257,6 +2257,120 @@
                 }
             }
         },
+        "/notas/DocenteAsignatura/{id_asignatura}": {
+            "get": {
+                "tags": [
+                    "notas"
+                ],
+                "description": "search",
+                "operationId": "NotasController.GetDatosDocenteAsignatura",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id_asignatura",
+                        "description": "Id asignatura",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/notas/EspaciosAcademicos/{id_docente}": {
+            "get": {
+                "tags": [
+                    "notas"
+                ],
+                "description": "search",
+                "operationId": "NotasController.GetEspaciosAcademicosDocente",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id_docente",
+                        "description": "Id docente",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/notas/PorcentajeAsignatura/{id_asignatura}": {
+            "get": {
+                "tags": [
+                    "notas"
+                ],
+                "description": "search",
+                "operationId": "NotasController.GetPorcentajesAsignatura",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id_asignatura",
+                        "description": "Id asignatura",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/notas/PorcentajeAsignatura/{id}": {
+            "put": {
+                "tags": [
+                    "notas"
+                ],
+                "description": "Modificar Estado de Autor de Producción Academica",
+                "operationId": "NotasController.PutPorcentajesAsignatura",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "el id del registro Asignatura a modificar",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Modificar registro Asignatura content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
         "/paquete_solicitud/": {
             "post": {
                 "tags": [
@@ -4368,6 +4482,10 @@
         {
             "name": "transferencia",
             "description": "Transferencia_reingresoController operations for Transferencia_reingreso\n"
+        },
+        {
+            "name": "notas",
+            "description": "NotasController operations for Notas\n"
         }
     ]
 }
