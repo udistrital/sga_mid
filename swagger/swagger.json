@@ -288,6 +288,153 @@
                 }
             }
         },
+        "/calendario_academico/": {
+            "get": {
+                "tags": [
+                    "calendario_academico"
+                ],
+                "description": "get todos los calendarios académicos junto a sus periodos correspondientes",
+                "operationId": "ConsultaCalendarioAcademicoController.GetAll",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "query",
+                        "description": "Filter. e.g. col1:v1,col2:v2 ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "fields",
+                        "description": "Fields returned. e.g. col1,col2 ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "sortby",
+                        "description": "Sorted-by fields. e.g. col1,col2 ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "order",
+                        "description": "Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "limit",
+                        "description": "Limit the size of result set. Must be an integer",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "offset",
+                        "description": "Start position of result set. Must be an integer",
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.ConsultaCalendarioAcademico"
+                        }
+                    },
+                    "404": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/calendario_academico/calendario_padre": {
+            "post": {
+                "tags": [
+                    "calendario_academico"
+                ],
+                "description": "Proyecto obtener el Id de calendario padre, crear el nuevo calendario (hijo) e inactivar el calendario padre",
+                "operationId": "ConsultaCalendarioAcademicoController.PostCalendarioHijo",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body crear calendario hijo content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": ":body is empty"
+                    }
+                }
+            }
+        },
+        "/calendario_academico/inhabilitar_calendario/{id}": {
+            "put": {
+                "tags": [
+                    "calendario_academico"
+                ],
+                "description": "Inhabilitar Calendario",
+                "operationId": "ConsultaCalendarioAcademicoController.PutInhabilitarClendario",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "el id del calendario a inhabilitar",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Inhabilitar calendario content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
+            }
+        },
+        "/calendario_academico/{id}": {
+            "get": {
+                "tags": [
+                    "calendario_academico"
+                ],
+                "description": "get obtener calendario académico por id",
+                "operationId": "ConsultaCalendarioAcademicoController.GetOnePorId",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "The key for staticblock",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
+            }
+        },
         "/clonar_calendario/": {
             "post": {
                 "tags": [
@@ -424,153 +571,6 @@
                         "schema": {
                             "$ref": "#/definitions/models.ConsultaOfertaAcademica"
                         }
-                    },
-                    "403": {
-                        "description": ":id is empty"
-                    }
-                }
-            }
-        },
-        "/consulta_calendario_academico/": {
-            "get": {
-                "tags": [
-                    "consulta_calendario_academico"
-                ],
-                "description": "get ConsultaCalendarioAcademico",
-                "operationId": "ConsultaCalendarioAcademicoController.GetAll",
-                "parameters": [
-                    {
-                        "in": "query",
-                        "name": "query",
-                        "description": "Filter. e.g. col1:v1,col2:v2 ...",
-                        "type": "string"
-                    },
-                    {
-                        "in": "query",
-                        "name": "fields",
-                        "description": "Fields returned. e.g. col1,col2 ...",
-                        "type": "string"
-                    },
-                    {
-                        "in": "query",
-                        "name": "sortby",
-                        "description": "Sorted-by fields. e.g. col1,col2 ...",
-                        "type": "string"
-                    },
-                    {
-                        "in": "query",
-                        "name": "order",
-                        "description": "Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ...",
-                        "type": "string"
-                    },
-                    {
-                        "in": "query",
-                        "name": "limit",
-                        "description": "Limit the size of result set. Must be an integer",
-                        "type": "string"
-                    },
-                    {
-                        "in": "query",
-                        "name": "offset",
-                        "description": "Start position of result set. Must be an integer",
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/models.ConsultaCalendarioAcademico"
-                        }
-                    },
-                    "404": {
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/consulta_calendario_academico/calendario_padre": {
-            "post": {
-                "tags": [
-                    "consulta_calendario_academico"
-                ],
-                "description": "Proyecto obtener el Id de calendario padre, crear el nuevo calendario (hijo) e inactivar el calendario padre",
-                "operationId": "ConsultaCalendarioAcademicoController.PostCalendarioHijo",
-                "parameters": [
-                    {
-                        "in": "body",
-                        "name": "body",
-                        "description": "body crear calendario hijo content",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/{}"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{}"
-                    },
-                    "403": {
-                        "description": ":body is empty"
-                    }
-                }
-            }
-        },
-        "/consulta_calendario_academico/inhabilitar_calendario/{id}": {
-            "put": {
-                "tags": [
-                    "consulta_calendario_academico"
-                ],
-                "description": "Inhabilitar Calendario",
-                "operationId": "ConsultaCalendarioAcademicoController.PutInhabilitarClendario",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "description": "el id del calendario a inhabilitar",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "in": "body",
-                        "name": "body",
-                        "description": "body Inhabilitar calendario content",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/{}"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{}"
-                    },
-                    "403": {
-                        "description": ":id is empty"
-                    }
-                }
-            }
-        },
-        "/consulta_calendario_academico/{id}": {
-            "get": {
-                "tags": [
-                    "consulta_calendario_academico"
-                ],
-                "description": "get ConsultaCalendarioAcademico by id",
-                "operationId": "ConsultaCalendarioAcademicoController.GetOnePorId",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "description": "The key for staticblock",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{}"
                     },
                     "403": {
                         "description": ":id is empty"
@@ -2257,6 +2257,120 @@
                 }
             }
         },
+        "/notas/DocenteAsignatura/{id_asignatura}": {
+            "get": {
+                "tags": [
+                    "notas"
+                ],
+                "description": "search",
+                "operationId": "NotasController.GetDatosDocenteAsignatura",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id_asignatura",
+                        "description": "Id asignatura",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/notas/EspaciosAcademicos/{id_docente}": {
+            "get": {
+                "tags": [
+                    "notas"
+                ],
+                "description": "search",
+                "operationId": "NotasController.GetEspaciosAcademicosDocente",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id_docente",
+                        "description": "Id docente",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/notas/PorcentajeAsignatura/{id_asignatura}": {
+            "get": {
+                "tags": [
+                    "notas"
+                ],
+                "description": "search",
+                "operationId": "NotasController.GetPorcentajesAsignatura",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id_asignatura",
+                        "description": "Id asignatura",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/notas/PorcentajeAsignatura/{id}": {
+            "put": {
+                "tags": [
+                    "notas"
+                ],
+                "description": "Modificar Estado de Autor de Producción Academica",
+                "operationId": "NotasController.PutPorcentajesAsignatura",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "el id del registro Asignatura a modificar",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Modificar registro Asignatura content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
         "/paquete_solicitud/": {
             "post": {
                 "tags": [
@@ -3231,7 +3345,7 @@
                 }
             }
         },
-        "/proyecto_academico/coordinador/{id}": {
+        "/proyecto_academico/coordinador": {
             "post": {
                 "tags": [
                     "proyecto_academico"
@@ -3307,7 +3421,7 @@
                 }
             }
         },
-        "/proyecto_academico/registro_calificado/{id}": {
+        "/proyecto_academico/registro_calificado/": {
             "post": {
                 "tags": [
                     "proyecto_academico"
@@ -3315,13 +3429,6 @@
                 "description": "Post a de un registro de un proyecto existente, cambia estado activo a false a los registro anteriores y crea el nuevo",
                 "operationId": "CrearProyectoAcademicoController.PostRegistroCalificadoById",
                 "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "description": "The key for staticblock",
-                        "required": true,
-                        "type": "string"
-                    },
                     {
                         "in": "body",
                         "name": "body",
@@ -3338,9 +3445,6 @@
                         "schema": {
                             "$ref": "#/definitions/models.ConsultaProyectoAcademico"
                         }
-                    },
-                    "403": {
-                        "description": ":id is empty"
                     }
                 }
             }
@@ -4007,6 +4111,44 @@
                 }
             }
         },
+        "/transferencia/actualizar_estado/{id}": {
+            "put": {
+                "tags": [
+                    "transferencia"
+                ],
+                "description": "crear la inscripción y actualizar solicitud",
+                "operationId": "Transferencia_reingresoController.PutInscripcion",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "The id you want to update",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Transferencia_reingreso content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Transferencia_reingreso"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Transferencia_reingreso"
+                        }
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
         "/transferencia/consultar_parametros/{id_calendario}/{persona_id}": {
             "get": {
                 "tags": [
@@ -4041,7 +4183,7 @@
                 }
             }
         },
-        "/transferencia/estado_recibos/{persona_id}/{id_periodo}": {
+        "/transferencia/estado_recibos/{persona_id}": {
             "get": {
                 "tags": [
                     "transferencia"
@@ -4053,14 +4195,6 @@
                         "in": "path",
                         "name": "persona_id",
                         "description": "Id del tercero",
-                        "required": true,
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    {
-                        "in": "path",
-                        "name": "id_periodo",
-                        "description": "Id del ultimo periodo",
                         "required": true,
                         "type": "integer",
                         "format": "int64"
@@ -4078,6 +4212,35 @@
                     },
                     "404": {
                         "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/transferencia/estados": {
+            "get": {
+                "tags": [
+                    "transferencia"
+                ],
+                "description": "get Transferencia_reingreso by id",
+                "operationId": "Transferencia_reingresoController.GetEstados",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "The key for staticblock",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Transferencia_reingreso"
+                        }
+                    },
+                    "403": {
+                        "description": ":id is empty"
                     }
                 }
             }
@@ -4111,13 +4274,13 @@
                 }
             }
         },
-        "/transferencia/{id}": {
+        "/transferencia/respuesta_solicitud/{id}": {
             "put": {
                 "tags": [
                     "transferencia"
                 ],
-                "description": "update the Transferencia_reingreso",
-                "operationId": "Transferencia_reingresoController.Put",
+                "description": "crear la inscripción y actualizar solicitud",
+                "operationId": "Transferencia_reingresoController.PutSolicitud",
                 "parameters": [
                     {
                         "in": "path",
@@ -4147,25 +4310,52 @@
                         "description": "the request contains incorrect syntax"
                     }
                 }
-            },
-            "delete": {
+            }
+        },
+        "/transferencia/solicitudes/": {
+            "get": {
                 "tags": [
                     "transferencia"
                 ],
-                "description": "delete the Transferencia_reingreso",
-                "operationId": "Transferencia_reingresoController.Delete",
+                "description": "get Transferencia_reingreso by id",
+                "operationId": "Transferencia_reingresoController.GetSolicitudesInscripcion",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Transferencia_reingreso"
+                        }
+                    }
+                }
+            }
+        },
+        "/transferencia/{id}": {
+            "put": {
+                "tags": [
+                    "transferencia"
+                ],
+                "description": "create Transferencia_reingreso",
+                "operationId": "Transferencia_reingresoController.Create",
                 "parameters": [
                     {
-                        "in": "path",
-                        "name": "id",
-                        "description": "The id you want to delete",
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Transferencia_reingreso content",
                         "required": true,
-                        "type": "string"
+                        "schema": {
+                            "$ref": "#/definitions/models.Transferencia_reingreso"
+                        }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "{string} delete success!"
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Transferencia_reingreso"
+                        }
+                    },
+                    "403": {
+                        "description": "body is empty"
                     },
                     "404": {
                         "description": "not found resource"
@@ -4270,7 +4460,7 @@
             "description": "AdmisionController ...\n"
         },
         {
-            "name": "consulta_calendario_academico",
+            "name": "calendario_academico",
             "description": "ConsultaCalendarioAcademicoController operations for Consulta_calendario_academico\n"
         },
         {
@@ -4292,6 +4482,10 @@
         {
             "name": "transferencia",
             "description": "Transferencia_reingresoController operations for Transferencia_reingreso\n"
+        },
+        {
+            "name": "notas",
+            "description": "NotasController operations for Notas\n"
         }
     ]
 }
