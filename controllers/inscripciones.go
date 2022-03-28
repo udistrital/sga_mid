@@ -69,75 +69,84 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 					i = i - 1
 				} else {
 					ReciboInscripcion := fmt.Sprintf("%v", Inscripciones[i]["ReciboInscripcion"])
-					errRecibo := request.GetJsonWSO2("http://"+beego.AppConfig.String("ConsultarReciboJbpmService")+"consulta_recibo/"+ReciboInscripcion, &ReciboXML)
-					if errRecibo == nil {
-						if ReciboXML != nil && fmt.Sprintf("%v", ReciboXML) != "map[reciboCollection:map[]]" && fmt.Sprintf("%v", ReciboXML) != "map[]" {
-							//Fecha límite de pago extraordinario
-							FechaLimite := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["fecha_extraordinario"]
-							EstadoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["estado"]
-							PagoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["pago"]
-							//Verificación si el recibo de pago se encuentra activo y pago
-							if EstadoRecibo == "A" && PagoRecibo == "S" {
-								Estado = "Pago"
-							} else {
-								//Verifica si el recibo está vencido o no
-								FechaActual := time_bogota.TiempoBogotaFormato() //time.Now()
-								layout := "2006-01-02T15:04:05.000-05:00"
-								FechaLimite = strings.Replace(fmt.Sprintf("%v", FechaLimite), "+", "-", -1)
-								FechaLimiteFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaLimite))
-								if err != nil {
-									fmt.Println(err)
-									Estado = "Vencido"
+					if ReciboInscripcion != "0/<nil>"{
+						errRecibo := request.GetJsonWSO2("http://"+beego.AppConfig.String("ConsultarReciboJbpmService")+"consulta_recibo/"+ReciboInscripcion, &ReciboXML)
+						if errRecibo == nil {
+							if ReciboXML != nil && fmt.Sprintf("%v", ReciboXML) != "map[reciboCollection:map[]]" && fmt.Sprintf("%v", ReciboXML) != "map[]" {
+								//Fecha límite de pago extraordinario
+								FechaLimite := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["fecha_extraordinario"]
+								EstadoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["estado"]
+								PagoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["pago"]
+								//Verificación si el recibo de pago se encuentra activo y pago
+								if EstadoRecibo == "A" && PagoRecibo == "S" {
+									Estado = "Pago"
 								} else {
-									layout := "2006-01-02T15:04:05.000000000-05:00"
-									if len(FechaActual) < len(layout) {
-										n := len(FechaActual) - 26
-										s := strings.Repeat("0", n)
-										layout = strings.ReplaceAll(layout, "000000000", s)
-									}
-									FechaActualFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaActual))
+									//Verifica si el recibo está vencido o no
+									FechaActual := time_bogota.TiempoBogotaFormato() //time.Now()
+									layout := "2006-01-02T15:04:05.000-05:00"
+									FechaLimite = strings.Replace(fmt.Sprintf("%v", FechaLimite), "+", "-", -1)
+									FechaLimiteFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaLimite))
 									if err != nil {
 										fmt.Println(err)
 										Estado = "Vencido"
 									} else {
-										if FechaActualFormato.Before(FechaLimiteFormato) {
-											Estado = "Pendiente pago"
-										} else {
+										layout := "2006-01-02T15:04:05.000000000-05:00"
+										if len(FechaActual) < len(layout) {
+											n := len(FechaActual) - 26
+											s := strings.Repeat("0", n)
+											layout = strings.ReplaceAll(layout, "000000000", s)
+										}
+										FechaActualFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaActual))
+										if err != nil {
+											fmt.Println(err)
 											Estado = "Vencido"
+										} else {
+											if FechaActualFormato.Before(FechaLimiteFormato) {
+												Estado = "Pendiente pago"
+											} else {
+												Estado = "Vencido"
+											}
 										}
 									}
 								}
-							}
-
-							resultadoAux[i] = map[string]interface{}{
-								"Id":                  Inscripciones[i]["Id"],
-								"ProgramaAcademicoId": Inscripciones[i]["ProgramaAcademicoId"],
-								"ReciboInscripcion":   Inscripciones[i]["ReciboInscripcion"],
-								"FechaCreacion":       Inscripciones[i]["FechaCreacion"],
-								"Estado":              Estado,
+	
+								resultadoAux[i] = map[string]interface{}{
+									"Id":                  Inscripciones[i]["Id"],
+									"ProgramaAcademicoId": Inscripciones[i]["ProgramaAcademicoId"],
+									"ReciboInscripcion":   Inscripciones[i]["ReciboInscripcion"],
+									"FechaCreacion":       Inscripciones[i]["FechaCreacion"],
+									"Estado":              Estado,
+								}
+							} else {
+								if fmt.Sprintf("%v", resultadoAux) != "map[]" {
+									resultado["Inscripciones"] = resultadoAux
+								} else {
+									errorGetAll = true
+									alertas = append(alertas, "No data found")
+									alerta.Code = "404"
+									alerta.Type = "error"
+									alerta.Body = alertas
+									c.Data["json"] = map[string]interface{}{"Response": alerta}
+								}
 							}
 						} else {
-							if fmt.Sprintf("%v", resultadoAux) != "map[]" {
-								resultado["Inscripciones"] = resultadoAux
-							} else {
-								errorGetAll = true
-								alertas = append(alertas, "No data found")
-								alerta.Code = "404"
-								alerta.Type = "error"
-								alerta.Body = alertas
-								c.Data["json"] = map[string]interface{}{"Response": alerta}
-							}
+							errorGetAll = true
+							alertas = append(alertas, errRecibo.Error())
+							alerta.Code = "400"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
 						}
-					} else {
-						errorGetAll = true
-						alertas = append(alertas, errRecibo.Error())
-						alerta.Code = "400"
-						alerta.Type = "error"
-						alerta.Body = alertas
-						c.Data["json"] = map[string]interface{}{"Response": alerta}
 					}
 				}
 			}
+
+			for i := 0; i < len(resultadoAux); i++ {
+				if resultadoAux[i] == nil{
+					resultadoAux = append(resultadoAux[:i], resultadoAux[i+1:]...)
+				}
+			}
+
 			resultado["Inscripciones"] = resultadoAux
 		} else {
 			errorGetAll = true
