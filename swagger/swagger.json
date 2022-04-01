@@ -887,7 +887,7 @@
                     "200": {
                         "description": "{}"
                     },
-                    "403": {
+                    "400": {
                         "description": ":body is empty"
                     }
                 }
@@ -1007,6 +1007,9 @@
                     },
                     "400": {
                         "description": "body is empty"
+                    },
+                    "404": {
+                        "description": "not found resource"
                     }
                 }
             }
@@ -1107,6 +1110,12 @@
                     },
                     "400": {
                         "description": "body is empty"
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    },
+                    "404": {
+                        "description": "no data found"
                     }
                 }
             }
@@ -1122,9 +1131,10 @@
                     {
                         "in": "path",
                         "name": "id",
-                        "description": "The key for staticblock",
+                        "description": "Id de la vigencia correspondiente",
                         "required": true,
-                        "type": "string"
+                        "type": "integer",
+                        "format": "int64"
                     }
                 ],
                 "responses": {
@@ -1133,6 +1143,9 @@
                     },
                     "403": {
                         "description": ":id is empty"
+                    },
+                    "404": {
+                        "description": "no data found"
                     }
                 }
             },
