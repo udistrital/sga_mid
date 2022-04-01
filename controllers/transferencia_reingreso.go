@@ -1613,33 +1613,29 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 										}
 									}
 								}
+							}
 
-								resultado["CodigoEstudiante"] = codigosRes
-
-								errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=NivelFormacionId.Id:"+fmt.Sprintf("%v", calendario["Nivel"]), &proyectoGet)
-								if errProyecto == nil && fmt.Sprintf("%v", proyectoGet[0]) != "map[]" {
-									for _, proyectoAux := range proyectoGet {
-										for _, proyectoCalendario := range calendario["DependenciaId"].([]interface{}) {
-											if proyectoAux["Id"] == proyectoCalendario {
-												proyecto := map[string]interface{}{
-													"Id":          proyectoAux["Id"],
-													"Nombre":      proyectoAux["Nombre"],
-													"Codigo":      proyectoAux["Codigo"],
-													"CodigoSnies": proyectoAux["CodigoSnies"],
-												}
-
-												proyectos = append(proyectos, proyecto)
+							errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=NivelFormacionId.Id:"+fmt.Sprintf("%v", calendario["Nivel"]), &proyectoGet)
+							if errProyecto == nil && fmt.Sprintf("%v", proyectoGet[0]) != "map[]" {
+								for _, proyectoAux := range proyectoGet {
+									for _, proyectoCalendario := range calendario["DependenciaId"].([]interface{}) {
+										if proyectoAux["Id"] == proyectoCalendario {
+											proyecto := map[string]interface{}{
+												"Id":          proyectoAux["Id"],
+												"Nombre":      proyectoAux["Nombre"],
+												"Codigo":      proyectoAux["Codigo"],
+												"CodigoSnies": proyectoAux["CodigoSnies"],
 											}
+
+											proyectos = append(proyectos, proyecto)
 										}
 									}
 								}
-								resultado["ProyectoCurricular"] = proyectos
-
-							} else {
-								logs.Error(codigos)
-								c.Data["Message"] = errCodigoEst
-								c.Abort("404")
 							}
+
+							resultado["CodigoEstudiante"] = codigosRes
+
+							resultado["ProyectoCurricular"] = proyectos
 
 						} else {
 							if identificacion[0]["Message"] == "Not found resource" {
@@ -1655,6 +1651,26 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 						c.Data["Message"] = errIdentificacion
 						c.Abort("404")
 					}
+
+					if codigosRes == nil {
+						i := 0
+						for i < len(tipoRes) {
+							if tipoRes[i]["CodigoAbreviacion"] != "TRANSEXT" {
+								tipoRes = append(tipoRes[:i], tipoRes[i+1:]...)
+								i++
+							}
+						}
+					} else {
+
+						for i := 0; i < len(tipoRes); i++ {
+							if tipoRes[i]["CodigoAbreviacion"] == "TRANSEXT" {
+								tipoRes = append(tipoRes[:i], tipoRes[i+1:]...)
+							}
+						}
+					}
+
+					resultado["TipoInscripcion"] = tipoRes
+
 				} else {
 					logs.Error(tipoInscripcion)
 					c.Data["Message"] = errTipoInscripcion
@@ -1811,6 +1827,15 @@ func (c *Transferencia_reingresoController) GetEstadoInscripcion() {
 			alerta.Type = "error"
 			alerta.Body = alertas
 			c.Data["json"] = map[string]interface{}{"Response": alerta}
+		}
+	}
+
+	i := 0
+	for i < len(resultadoAux) {
+		if fmt.Sprintf("%v", resultadoAux[i]) == "map[]" {
+			resultadoAux = append(resultadoAux[:i], resultadoAux[i+1:]...)
+		} else {
+			i++
 		}
 	}
 
