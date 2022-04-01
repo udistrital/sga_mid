@@ -585,14 +585,17 @@ paths:
       parameters:
       - in: path
         name: id
-        description: The key for staticblock
+        description: Id de la vigencia correspondiente
         required: true
-        type: string
+        type: integer
+        format: int64
       responses:
         "200":
           description: '{}'
         "403":
           description: :id is empty
+        "404":
+          description: no data found
     delete:
       tags:
       - derechos_pecuniarios
@@ -625,7 +628,7 @@ paths:
       responses:
         "200":
           description: '{}'
-        "403":
+        "400":
           description: :body is empty
   /derechos_pecuniarios/clonar:
     post:
@@ -706,6 +709,8 @@ paths:
           description: '{}'
         "400":
           description: body is empty
+        "404":
+          description: not found resource
   /derechos_pecuniarios/respuesta_solicitud/{id}:
     post:
       tags:
@@ -771,6 +776,10 @@ paths:
           description: '{}'
         "400":
           description: body is empty
+        "403":
+          description: :id is empty
+        "404":
+          description: no data found
   /descuento_academico/:
     get:
       tags:
