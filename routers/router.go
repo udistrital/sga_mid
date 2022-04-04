@@ -14,6 +14,8 @@ import (
 )
 
 func init() {
+	beego.ErrorController(&controllers.ErrorController{})
+
 	ns := beego.NewNamespace("/v1",
 		beego.NSNamespace("/archivo_icfes",
 			beego.NSInclude(
