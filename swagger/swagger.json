@@ -2257,13 +2257,13 @@
                 }
             }
         },
-        "/notas/DocenteAsignatura/{id_asignatura}": {
+        "/notas/CapturaNotas/{id_asignatura}/{id_periodo}": {
             "get": {
                 "tags": [
                     "notas"
                 ],
-                "description": "search",
-                "operationId": "NotasController.GetDatosDocenteAsignatura",
+                "description": "Obtener lista de estudiantes con los registros de notas para determinada asignatura",
+                "operationId": "NotasController.GetCapturaNotas",
                 "parameters": [
                     {
                         "in": "path",
@@ -2271,6 +2271,14 @@
                         "description": "Id asignatura",
                         "required": true,
                         "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "id_periodo",
+                        "description": "Id periodo",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
                     }
                 ],
                 "responses": {
@@ -2288,7 +2296,7 @@
                 "tags": [
                     "notas"
                 ],
-                "description": "search",
+                "description": "Listar la carga academica relacionada a determinado docente",
                 "operationId": "NotasController.GetEspaciosAcademicosDocente",
                 "parameters": [
                     {
@@ -2310,13 +2318,13 @@
                 }
             }
         },
-        "/notas/PorcentajeAsignatura/{id_asignatura}": {
+        "/notas/InfoDocenteAsignatura/{id_asignatura}": {
             "get": {
                 "tags": [
                     "notas"
                 ],
-                "description": "search",
-                "operationId": "NotasController.GetPorcentajesAsignatura",
+                "description": "Obtener la informacion de docente y asingnatura solicitada",
+                "operationId": "NotasController.GetDatosDocenteAsignatura",
                 "parameters": [
                     {
                         "in": "path",
@@ -2336,21 +2344,14 @@
                 }
             }
         },
-        "/notas/PorcentajeAsignatura/{id}": {
+        "/notas/PorcentajeAsignatura": {
             "put": {
                 "tags": [
                     "notas"
                 ],
-                "description": "Modificar Estado de Autor de Producción Academica",
+                "description": "Modificar los porcentajes de la asignatura solicitada",
                 "operationId": "NotasController.PutPorcentajesAsignatura",
                 "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "description": "el id del registro Asignatura a modificar",
-                        "required": true,
-                        "type": "string"
-                    },
                     {
                         "in": "body",
                         "name": "body",
@@ -2367,6 +2368,40 @@
                     },
                     "400": {
                         "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
+        "/notas/PorcentajeAsignatura/{id_asignatura}/{id_periodo}": {
+            "get": {
+                "tags": [
+                    "notas"
+                ],
+                "description": "Obtener los porcentajes de la asignatura solicitada",
+                "operationId": "NotasController.GetPorcentajesAsignatura",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id_asignatura",
+                        "description": "Id asignatura",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "id_periodo",
+                        "description": "Id periodo",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
                     }
                 }
             }
