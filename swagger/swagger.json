@@ -2270,6 +2270,36 @@
                 }
             }
         },
+
+        "/notas/CapturaNotas": {
+            "put": {
+                "tags": [
+                    "notas"
+                ],
+                "description": "Modificar registro de notas para estudiantes de determinada asignatura",
+                "operationId": "NotasController.PutCapturaNotas",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Notas Estudiantes",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
+
         "/notas/CapturaNotas/{id_asignatura}/{id_periodo}": {
             "get": {
                 "tags": [
@@ -2357,6 +2387,33 @@
                 }
             }
         },
+
+        "/notas/ModificacionExtemporanea/{id_asignatura}": {
+            "get": {
+                "tags": [
+                    "notas"
+                ],
+                "description": "Chequear si hay modificacion extemporanea para la asignatura",
+                "operationId": "NotasController.GetModificacionExtemporanea",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id_asignatura",
+                        "description": "Id asignatura",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
         "/notas/PorcentajeAsignatura": {
             "put": {
                 "tags": [
@@ -2366,6 +2423,7 @@
                 "operationId": "NotasController.PutPorcentajesAsignatura",
                 "parameters": [
                     {
+
                         "in": "body",
                         "name": "body",
                         "description": "body Modificar registro Asignatura content",

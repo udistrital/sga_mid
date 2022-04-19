@@ -21,10 +21,12 @@ type NotasController struct {
 // URLMapping ...
 func (c *NotasController) URLMapping() {
 	c.Mapping("GetEspaciosAcademicosDocente", c.GetEspaciosAcademicosDocente)
+	c.Mapping("GetModificacionExtemporanea", c.GetModificacionExtemporanea)
 	c.Mapping("GetDatosDocenteAsignatura", c.GetDatosDocenteAsignatura)
 	c.Mapping("GetPorcentajesAsignatura", c.GetPorcentajesAsignatura)
 	c.Mapping("PutPorcentajesAsignatura", c.PutPorcentajesAsignatura)
 	c.Mapping("GetCapturaNotas", c.GetCapturaNotas)
+	c.Mapping("PutCapturaNotas", c.PutCapturaNotas)
 }
 
 func findNamebyId(list []interface{}, id string) string {
@@ -145,6 +147,33 @@ func (c *NotasController) GetEspaciosAcademicosDocente() {
 	}
 
 	c.ServeJSON()
+}
+
+// GetModificacionExtemporanea ...
+// @Title GetModificacionExtemporanea
+// @Description Chequear si hay modificacion extemporanea para la asignatura
+// @Param	id_asignatura		path 	string	true		"Id asignatura"
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router /ModificacionExtemporanea/:id_asignatura [get]
+func (c *NotasController) GetModificacionExtemporanea() {
+	id_asignatura := c.Ctx.Input.Param(":id_asignatura")
+
+	var RegistroAsignatura map[string]interface{}
+	errRegistroAsignatura := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"registro?query=activo:true,espacio_academico_id:"+fmt.Sprintf("%v", id_asignatura)+"&fields=estado_registro_id,modificacion_extemporanea&limit=0", &RegistroAsignatura)
+	if errRegistroAsignatura == nil && fmt.Sprintf("%v", RegistroAsignatura["Status"]) == "200" {
+
+		c.Ctx.Output.SetStatus(200)
+		c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Query successful", "Data": RegistroAsignatura["Data"]}
+
+	} else {
+		logs.Error(errRegistroAsignatura)
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": "Error service GetModificacionExtemporanea: The request contains an incorrect parameter or no record exist", "Data": nil}
+	}
+
+	c.ServeJSON()
+
 }
 
 // GetDatosDocenteAsignatura ...
@@ -282,10 +311,12 @@ func (c *NotasController) GetPorcentajesAsignatura() {
 				}
 				if InfoPorcentajes.Corte2.IdEstado == IdEstado {
 					InfoPorcentajes.Corte2.Existe = true
+
 				}
 				if InfoPorcentajes.Examen.IdEstado == IdEstado {
 					InfoPorcentajes.Examen.Existe = true
 				}
+
 				if InfoPorcentajes.Habilit.IdEstado == IdEstado {
 					InfoPorcentajes.Habilit.Existe = true
 				}
@@ -623,6 +654,399 @@ func (c *NotasController) GetCapturaNotas() {
 	c.ServeJSON()
 }
 
+
+// PutCapturaNotas ...
+// @Title PutCapturaNotas
+// @Description Modificar registro de notas para estudiantes de determinada asignatura
+// @Param   body        body    {}  true        "body Notas Estudiantes"
+// @Success 200 {}
+// @Failure 400 the request contains incorrect syntax
+// @router /CapturaNotas [put]
+func (c *NotasController) PutCapturaNotas() {
+
+	var inputData map[string]interface{}
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &inputData); err == nil {
+
+		valido := validatePutNotasEstudiantes(inputData)
+
+		if valido {
+
+			InfoCalificaciones := EstadosRegistroIDs()
+
+			espacioAcademico := inputData["Espacio_academico"]
+			periodo := inputData["Periodo"]
+
+			var InfoRegistro map[string]interface{}
+			errInfoRegistro := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"registro?query=activo:true,periodo_id:"+fmt.Sprintf("%v", periodo)+",espacio_academico_id:"+fmt.Sprintf("%v", espacioAcademico), &InfoRegistro)
+			if errInfoRegistro == nil && fmt.Sprintf("%v", InfoRegistro["Status"]) == "200" {
+
+				for _, registro := range InfoRegistro["Data"].([]interface{}) {
+
+					IdEstado := fmt.Sprintf("%v", registro.(map[string]interface{})["estado_registro_id"])
+					reg := fmt.Sprintf("%v", registro.(map[string]interface{})["_id"])
+					finalizado := fmt.Sprintf("%v", registro.(map[string]interface{})["finalizado"]) == "true"
+					extemporaneo := fmt.Sprintf("%v", registro.(map[string]interface{})["modificacion_extemporanea"]) == "true"
+
+					if InfoCalificaciones.Corte1.IdEstado == IdEstado {
+						InfoCalificaciones.Corte1.IdRegistroNota = reg
+						InfoCalificaciones.Corte1.Finalizado = finalizado
+						InfoCalificaciones.Corte1.EditExtemporaneo = extemporaneo
+					}
+					if InfoCalificaciones.Corte2.IdEstado == IdEstado {
+						InfoCalificaciones.Corte2.IdRegistroNota = reg
+						InfoCalificaciones.Corte2.Finalizado = finalizado
+						InfoCalificaciones.Corte2.EditExtemporaneo = extemporaneo
+					}
+					if InfoCalificaciones.Examen.IdEstado == IdEstado {
+						InfoCalificaciones.Examen.IdRegistroNota = reg
+						InfoCalificaciones.Examen.Finalizado = finalizado
+						InfoCalificaciones.Examen.EditExtemporaneo = extemporaneo
+					}
+					if InfoCalificaciones.Habilit.IdEstado == IdEstado {
+						InfoCalificaciones.Habilit.IdRegistroNota = reg
+						InfoCalificaciones.Habilit.Finalizado = finalizado
+						InfoCalificaciones.Habilit.EditExtemporaneo = extemporaneo
+					}
+					if InfoCalificaciones.Definitiva.IdEstado == IdEstado {
+						InfoCalificaciones.Definitiva.IdRegistroNota = reg
+						InfoCalificaciones.Definitiva.Finalizado = finalizado
+						InfoCalificaciones.Definitiva.EditExtemporaneo = extemporaneo
+					}
+				}
+
+				crearRegistros := fmt.Sprintf("%v", inputData["Accion"]) == "Crear"
+				guardarRegistros := fmt.Sprintf("%v", inputData["Accion"]) == "Guardar" || fmt.Sprintf("%v", inputData["Accion"]) == "Cerrar"
+
+				var crearNotasReporte []interface{}
+				var crearSalioMal = false
+
+				var respaldoNotas []interface{}
+				var guardarNotasReporte []interface{}
+				var guardarSalioMal = false
+
+				for _, CalificacionEstudiante := range inputData["CalificacionesEstudiantes"].([]interface{}) {
+
+					if crearRegistros || ((fmt.Sprintf("%v", inputData["Estado_registro"]) == InfoCalificaciones.Corte1.IdEstado) && (!InfoCalificaciones.Corte1.Finalizado || InfoCalificaciones.Corte1.EditExtemporaneo)) {
+
+						idnota := CalificacionEstudiante.(map[string]interface{})["Corte1"].(map[string]interface{})["id"]
+						nota_json := CalificacionEstudiante.(map[string]interface{})["Corte1"].(map[string]interface{})["data"]
+
+						if fmt.Sprintf("%v", idnota) == "" {
+							nota_json.(map[string]interface{})["nombre"] = inputData["Nombre"]
+							nota_json.(map[string]interface{})["descripcion"] = " "
+							nota_json.(map[string]interface{})["estudiante_id"] = CalificacionEstudiante.(map[string]interface{})["Id"]
+							nota_json.(map[string]interface{})["registro_id"] = InfoCalificaciones.Corte1.IdRegistroNota
+							nota_json.(map[string]interface{})["aprobado"] = false
+							nota_json.(map[string]interface{})["homologado"] = false
+							nota_json.(map[string]interface{})["activo"] = true
+							var NotaNew map[string]interface{}
+							errNotaNew := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota", "POST", &NotaNew, nota_json)
+							if errNotaNew == nil && fmt.Sprintf("%v", NotaNew["Status"]) == "201" {
+								crearNotasReporte = append(crearNotasReporte, NotaNew["Data"])
+							} else {
+								logs.Error(errNotaNew)
+								crearSalioMal = true
+							}
+						} else if guardarRegistros {
+
+							var respaldo map[string]interface{}
+							errrespaldo := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), &respaldo)
+							if errrespaldo == nil && fmt.Sprintf("%v", respaldo["Status"]) == "200" {
+								respaldoNotas = append(respaldoNotas, respaldo["Data"])
+							} else {
+								guardarSalioMal = true
+							}
+
+							var Nota map[string]interface{}
+							errNota := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), "PUT", &Nota, nota_json)
+							if errNota == nil && fmt.Sprintf("%v", Nota["Status"]) == "200" {
+								guardarNotasReporte = append(guardarNotasReporte, Nota["Data"])
+							} else {
+								logs.Error(errNota)
+								guardarSalioMal = true
+							}
+						}
+					}
+
+					if crearRegistros || ((fmt.Sprintf("%v", inputData["Estado_registro"]) == InfoCalificaciones.Corte2.IdEstado) && (!InfoCalificaciones.Corte2.Finalizado || InfoCalificaciones.Corte2.EditExtemporaneo)) {
+
+						idnota := CalificacionEstudiante.(map[string]interface{})["Corte2"].(map[string]interface{})["id"]
+						nota_json := CalificacionEstudiante.(map[string]interface{})["Corte2"].(map[string]interface{})["data"]
+
+						if fmt.Sprintf("%v", idnota) == "" {
+							nota_json.(map[string]interface{})["nombre"] = inputData["Nombre"]
+							nota_json.(map[string]interface{})["descripcion"] = " "
+							nota_json.(map[string]interface{})["estudiante_id"] = CalificacionEstudiante.(map[string]interface{})["Id"]
+							nota_json.(map[string]interface{})["registro_id"] = InfoCalificaciones.Corte2.IdRegistroNota
+							nota_json.(map[string]interface{})["aprobado"] = false
+							nota_json.(map[string]interface{})["homologado"] = false
+							nota_json.(map[string]interface{})["activo"] = true
+							var NotaNew map[string]interface{}
+							errNotaNew := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota", "POST", &NotaNew, nota_json)
+							if errNotaNew == nil && fmt.Sprintf("%v", NotaNew["Status"]) == "201" {
+								crearNotasReporte = append(crearNotasReporte, NotaNew["Data"])
+							} else {
+								logs.Error(errNotaNew)
+								crearSalioMal = true
+							}
+						} else if guardarRegistros {
+
+							var respaldo map[string]interface{}
+							errrespaldo := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), &respaldo)
+							if errrespaldo == nil && fmt.Sprintf("%v", respaldo["Status"]) == "200" {
+								respaldoNotas = append(respaldoNotas, respaldo["Data"])
+							} else {
+								guardarSalioMal = true
+							}
+
+							var Nota map[string]interface{}
+							errNota := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), "PUT", &Nota, nota_json)
+							if errNota == nil && fmt.Sprintf("%v", Nota["Status"]) == "200" {
+								guardarNotasReporte = append(guardarNotasReporte, Nota["Data"])
+							} else {
+								logs.Error(errNota)
+								guardarSalioMal = true
+							}
+						}
+					}
+
+					if crearRegistros || ((fmt.Sprintf("%v", inputData["Estado_registro"]) == InfoCalificaciones.Examen.IdEstado) && (!InfoCalificaciones.Examen.Finalizado || InfoCalificaciones.Examen.EditExtemporaneo)) {
+
+						idnota := CalificacionEstudiante.(map[string]interface{})["Examen"].(map[string]interface{})["id"]
+						nota_json := CalificacionEstudiante.(map[string]interface{})["Examen"].(map[string]interface{})["data"]
+
+						if fmt.Sprintf("%v", idnota) == "" {
+							nota_json.(map[string]interface{})["nombre"] = inputData["Nombre"]
+							nota_json.(map[string]interface{})["descripcion"] = " "
+							nota_json.(map[string]interface{})["estudiante_id"] = CalificacionEstudiante.(map[string]interface{})["Id"]
+							nota_json.(map[string]interface{})["registro_id"] = InfoCalificaciones.Examen.IdRegistroNota
+							nota_json.(map[string]interface{})["aprobado"] = false
+							nota_json.(map[string]interface{})["homologado"] = false
+							nota_json.(map[string]interface{})["activo"] = true
+							var NotaNew map[string]interface{}
+							errNotaNew := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota", "POST", &NotaNew, nota_json)
+							if errNotaNew == nil && fmt.Sprintf("%v", NotaNew["Status"]) == "201" {
+								crearNotasReporte = append(crearNotasReporte, NotaNew["Data"])
+							} else {
+								logs.Error(errNotaNew)
+								crearSalioMal = true
+							}
+						} else if guardarRegistros {
+
+							var respaldo map[string]interface{}
+							errrespaldo := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), &respaldo)
+							if errrespaldo == nil && fmt.Sprintf("%v", respaldo["Status"]) == "200" {
+								respaldoNotas = append(respaldoNotas, respaldo["Data"])
+							} else {
+								guardarSalioMal = true
+							}
+
+							var Nota map[string]interface{}
+							errNota := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), "PUT", &Nota, nota_json)
+							if errNota == nil && fmt.Sprintf("%v", Nota["Status"]) == "200" {
+								guardarNotasReporte = append(guardarNotasReporte, Nota["Data"])
+							} else {
+								logs.Error(errNota)
+								guardarSalioMal = true
+							}
+						}
+					}
+
+					if crearRegistros || ((fmt.Sprintf("%v", inputData["Estado_registro"]) == InfoCalificaciones.Habilit.IdEstado) && (!InfoCalificaciones.Habilit.Finalizado || InfoCalificaciones.Habilit.EditExtemporaneo)) {
+
+						idnota := CalificacionEstudiante.(map[string]interface{})["Habilit"].(map[string]interface{})["id"]
+						nota_json := CalificacionEstudiante.(map[string]interface{})["Habilit"].(map[string]interface{})["data"]
+
+						if fmt.Sprintf("%v", idnota) == "" {
+							nota_json.(map[string]interface{})["nombre"] = inputData["Nombre"]
+							nota_json.(map[string]interface{})["descripcion"] = " "
+							nota_json.(map[string]interface{})["estudiante_id"] = CalificacionEstudiante.(map[string]interface{})["Id"]
+							nota_json.(map[string]interface{})["registro_id"] = InfoCalificaciones.Habilit.IdRegistroNota
+							nota_json.(map[string]interface{})["aprobado"] = false
+							nota_json.(map[string]interface{})["homologado"] = false
+							nota_json.(map[string]interface{})["activo"] = true
+							var NotaNew map[string]interface{}
+							errNotaNew := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota", "POST", &NotaNew, nota_json)
+							if errNotaNew == nil && fmt.Sprintf("%v", NotaNew["Status"]) == "201" {
+								crearNotasReporte = append(crearNotasReporte, NotaNew["Data"])
+							} else {
+								logs.Error(errNotaNew)
+								crearSalioMal = true
+							}
+						} else if guardarRegistros {
+
+							var respaldo map[string]interface{}
+							errrespaldo := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), &respaldo)
+							if errrespaldo == nil && fmt.Sprintf("%v", respaldo["Status"]) == "200" {
+								respaldoNotas = append(respaldoNotas, respaldo["Data"])
+							} else {
+								guardarSalioMal = true
+							}
+
+							var Nota map[string]interface{}
+							errNota := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), "PUT", &Nota, nota_json)
+							if errNota == nil && fmt.Sprintf("%v", Nota["Status"]) == "200" {
+								guardarNotasReporte = append(guardarNotasReporte, Nota["Data"])
+							} else {
+								logs.Error(errNota)
+								guardarSalioMal = true
+							}
+						}
+					}
+
+					if crearRegistros || ((fmt.Sprintf("%v", inputData["Estado_registro"]) == InfoCalificaciones.Definitiva.IdEstado) && (!InfoCalificaciones.Definitiva.Finalizado || InfoCalificaciones.Definitiva.EditExtemporaneo)) {
+
+						idnota := CalificacionEstudiante.(map[string]interface{})["Definitiva"].(map[string]interface{})["id"]
+						nota_json := CalificacionEstudiante.(map[string]interface{})["Definitiva"].(map[string]interface{})["data"]
+
+						if fmt.Sprintf("%v", idnota) == "" {
+							nota_json.(map[string]interface{})["nombre"] = inputData["Nombre"]
+							nota_json.(map[string]interface{})["descripcion"] = " "
+							nota_json.(map[string]interface{})["estudiante_id"] = CalificacionEstudiante.(map[string]interface{})["Id"]
+							nota_json.(map[string]interface{})["registro_id"] = InfoCalificaciones.Definitiva.IdRegistroNota
+							nota_json.(map[string]interface{})["aprobado"] = false
+							nota_json.(map[string]interface{})["homologado"] = false
+							nota_json.(map[string]interface{})["activo"] = true
+							var NotaNew map[string]interface{}
+							errNotaNew := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota", "POST", &NotaNew, nota_json)
+							if errNotaNew == nil && fmt.Sprintf("%v", NotaNew["Status"]) == "201" {
+								crearNotasReporte = append(crearNotasReporte, NotaNew["Data"])
+							} else {
+								logs.Error(errNotaNew)
+								crearSalioMal = true
+							}
+						} else if guardarRegistros {
+
+							var respaldo map[string]interface{}
+							errrespaldo := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), &respaldo)
+							if errrespaldo == nil && fmt.Sprintf("%v", respaldo["Status"]) == "200" {
+								respaldoNotas = append(respaldoNotas, respaldo["Data"])
+							} else {
+								guardarSalioMal = true
+							}
+
+							var Nota map[string]interface{}
+							errNota := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), "PUT", &Nota, nota_json)
+							if errNota == nil && fmt.Sprintf("%v", Nota["Status"]) == "200" {
+								guardarNotasReporte = append(guardarNotasReporte, Nota["Data"])
+							} else {
+								logs.Error(errNota)
+								guardarSalioMal = true
+							}
+						}
+					}
+				}
+
+				if crearRegistros {
+					if crearSalioMal {
+						for _, reporte := range crearNotasReporte {
+							id := fmt.Sprintf("%v", reporte.(map[string]interface{})["_id"])
+							var NotaEstudianteDel map[string]interface{}
+							errNotaEstudianteDel := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+id, "DELETE", &NotaEstudianteDel, nil)
+							if errNotaEstudianteDel == nil && fmt.Sprintf("%v", NotaEstudianteDel["Status"]) == "200" {
+								//logs.Error(errNotaEstudianteDel)
+							} else {
+								logs.Error(errNotaEstudianteDel)
+							}
+						}
+						c.Ctx.Output.SetStatus(400)
+						c.Data["json"] = map[string]interface{}{"Success": false, "Status": "400", "Message": "Error service PutCapturaNotas: The request contains an incorrect data type or an invalid parameter"}
+					} else {
+						c.Ctx.Output.SetStatus(200)
+						c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Query successful", "Data:": crearNotasReporte}
+					}
+				} else if guardarRegistros {
+
+					if !guardarSalioMal {
+
+						var cambiarRegistro struct {
+							modificar bool
+							campos    map[string]interface{}
+						}
+						cambiarRegistro.modificar = false
+
+						if fmt.Sprintf("%v", inputData["Accion"]) == "Guardar" {
+							if InfoCalificaciones.Corte1.EditExtemporaneo || InfoCalificaciones.Corte2.EditExtemporaneo || InfoCalificaciones.Examen.EditExtemporaneo || InfoCalificaciones.Habilit.EditExtemporaneo || InfoCalificaciones.Definitiva.EditExtemporaneo {
+								cambiarRegistro.campos = map[string]interface{}{"finalizado": true, "modificacion_extemporanea": false}
+								cambiarRegistro.modificar = true
+							}
+						}
+
+						if fmt.Sprintf("%v", inputData["Accion"]) == "Cerrar" {
+							cambiarRegistro.campos = map[string]interface{}{"finalizado": true, "modificacion_extemporanea": false}
+							cambiarRegistro.modificar = true
+						}
+
+						if cambiarRegistro.modificar {
+
+							idReg := ""
+							if InfoCalificaciones.Corte1.IdEstado == fmt.Sprintf("%v", inputData["Estado_registro"]) {
+								idReg = InfoCalificaciones.Corte1.IdRegistroNota
+							}
+							if InfoCalificaciones.Corte2.IdEstado == fmt.Sprintf("%v", inputData["Estado_registro"]) {
+								idReg = InfoCalificaciones.Corte2.IdRegistroNota
+							}
+							if InfoCalificaciones.Examen.IdEstado == fmt.Sprintf("%v", inputData["Estado_registro"]) {
+								idReg = InfoCalificaciones.Examen.IdRegistroNota
+							}
+							if InfoCalificaciones.Habilit.IdEstado == fmt.Sprintf("%v", inputData["Estado_registro"]) {
+								idReg = InfoCalificaciones.Habilit.IdRegistroNota
+							}
+							if InfoCalificaciones.Definitiva.IdEstado == fmt.Sprintf("%v", inputData["Estado_registro"]) {
+								idReg = InfoCalificaciones.Definitiva.IdRegistroNota
+							}
+
+							var RegistroCerrado map[string]interface{}
+							errRegistroCerrado := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"registro/"+fmt.Sprintf("%v", idReg), "PUT", &RegistroCerrado, cambiarRegistro.campos)
+							if errRegistroCerrado == nil && fmt.Sprintf("%v", RegistroCerrado["Status"]) == "200" {
+								guardarNotasReporte = append(guardarNotasReporte, RegistroCerrado["Data"])
+							} else {
+								logs.Error(errRegistroCerrado)
+								guardarSalioMal = true
+							}
+						}
+
+					}
+
+					if guardarSalioMal {
+						for _, respaldo := range respaldoNotas {
+							id := fmt.Sprintf("%v", respaldo.(map[string]interface{})["_id"])
+							respaldo.(map[string]interface{})["registro_id"] = respaldo.(map[string]interface{})["registro_id"].(map[string]interface{})["_id"]
+							var NotaEstudianteRespaldo map[string]interface{}
+							errNotaEstudianteRespaldo := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+id, "PUT", &NotaEstudianteRespaldo, respaldo)
+							if errNotaEstudianteRespaldo == nil && fmt.Sprintf("%v", NotaEstudianteRespaldo["Status"]) == "200" {
+								//logs.Error(errNotaEstudianteRespaldo)
+							} else {
+								logs.Error(errNotaEstudianteRespaldo)
+							}
+						}
+						c.Ctx.Output.SetStatus(400)
+						c.Data["json"] = map[string]interface{}{"Success": false, "Status": "400", "Message": "Error service PutCapturaNotas: The request contains an incorrect data type or an invalid parameter"}
+					} else {
+						c.Ctx.Output.SetStatus(200)
+						c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Query successful", "Data:": guardarNotasReporte}
+					}
+				}
+			} else {
+				logs.Error(errInfoRegistro)
+				c.Ctx.Output.SetStatus(400)
+				c.Data["json"] = map[string]interface{}{"Success": false, "Status": "400", "Message": "Error service PutCapturaNotas: The request contains an incorrect data type or an invalid parameter"}
+			}
+		} else {
+			c.Ctx.Output.SetStatus(400)
+			c.Data["json"] = map[string]interface{}{"Success": false, "Status": "400", "Message": "Error service PutCapturaNotas: The request contains an incorrect data type or an invalid parameter"}
+		}
+	} else {
+		logs.Error(err)
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = map[string]interface{}{"Success": false, "Status": "400", "Message": "Error service PutCapturaNotas: The request contains an incorrect data type or an invalid parameter"}
+	}
+
+	c.ServeJSON()
+}
+
+
 type TipoEstado struct {
 	IdEstado         string
 	Existe           bool
@@ -837,3 +1261,216 @@ func validatePutPorcentajes(p map[string]interface{}) bool {
 
 	return valid
 }
+
+
+func validatePutNotasEstudiantes(n map[string]interface{}) bool {
+	valid := false
+
+	if Accion, ok := n["Accion"]; ok {
+		if reflect.TypeOf(Accion).Kind() == reflect.String {
+			if Estado_registro, ok := n["Estado_registro"]; ok {
+				if reflect.TypeOf(Estado_registro).Kind() == reflect.Float64 {
+					if Espacio_academico, ok := n["Espacio_academico"]; ok {
+						if reflect.TypeOf(Espacio_academico).Kind() == reflect.String {
+							if Nombre, ok := n["Nombre"]; ok {
+								if reflect.TypeOf(Nombre).Kind() == reflect.String {
+									if Periodo, ok := n["Periodo"]; ok {
+										if reflect.TypeOf(Periodo).Kind() == reflect.Float64 {
+											if CalificacionesEstudiantes, ok := n["CalificacionesEstudiantes"]; ok {
+												if reflect.TypeOf(CalificacionesEstudiantes).Kind() == reflect.Slice {
+													for _, e := range CalificacionesEstudiantes.([]interface{}) {
+														if Id, ok := e.(map[string]interface{})["Id"]; ok {
+															if reflect.TypeOf(Id).Kind() == reflect.Float64 {
+																if Corte1, ok := e.(map[string]interface{})["Corte1"]; ok {
+																	if reflect.TypeOf(Corte1).Kind() == reflect.Map {
+																		if id, ok := Corte1.(map[string]interface{})["id"]; ok {
+																			if reflect.TypeOf(id).Kind() == reflect.String {
+																				if data, ok := Corte1.(map[string]interface{})["data"]; ok {
+																					if reflect.TypeOf(data).Kind() == reflect.Map {
+																						valid = true
+																					} else {
+																						valid = false
+																						break
+																					}
+																				} else {
+																					valid = false
+																					break
+																				}
+																			} else {
+																				valid = false
+																				break
+																			}
+																		} else {
+																			valid = false
+																			break
+																		}
+																	} else {
+																		valid = false
+																		break
+																	}
+																}
+																if Corte2, ok := e.(map[string]interface{})["Corte2"]; ok {
+																	if reflect.TypeOf(Corte2).Kind() == reflect.Map {
+																		if id, ok := Corte2.(map[string]interface{})["id"]; ok {
+																			if reflect.TypeOf(id).Kind() == reflect.String {
+																				if data, ok := Corte2.(map[string]interface{})["data"]; ok {
+																					if reflect.TypeOf(data).Kind() == reflect.Map {
+																						valid = true
+																					} else {
+																						valid = false
+																						break
+																					}
+																				} else {
+																					valid = false
+																					break
+																				}
+																			} else {
+																				valid = false
+																				break
+																			}
+																		} else {
+																			valid = false
+																			break
+																		}
+																	} else {
+																		valid = false
+																		break
+																	}
+																}
+
+																if Examen, ok := e.(map[string]interface{})["Examen"]; ok {
+																	if reflect.TypeOf(Examen).Kind() == reflect.Map {
+																		if id, ok := Examen.(map[string]interface{})["id"]; ok {
+																			if reflect.TypeOf(id).Kind() == reflect.String {
+																				if data, ok := Examen.(map[string]interface{})["data"]; ok {
+																					if reflect.TypeOf(data).Kind() == reflect.Map {
+																						valid = true
+																					} else {
+																						valid = false
+																						break
+																					}
+																				} else {
+																					valid = false
+																					break
+																				}
+																			} else {
+																				valid = false
+																				break
+																			}
+																		} else {
+																			valid = false
+																			break
+																		}
+																	} else {
+																		valid = false
+																		break
+																	}
+																}
+
+																if Habilit, ok := e.(map[string]interface{})["Habilit"]; ok {
+																	if reflect.TypeOf(Habilit).Kind() == reflect.Map {
+																		if id, ok := Habilit.(map[string]interface{})["id"]; ok {
+																			if reflect.TypeOf(id).Kind() == reflect.String {
+																				if data, ok := Habilit.(map[string]interface{})["data"]; ok {
+																					if reflect.TypeOf(data).Kind() == reflect.Map {
+																						valid = true
+																					} else {
+																						valid = false
+																						break
+																					}
+																				} else {
+																					valid = false
+																					break
+																				}
+																			} else {
+																				valid = false
+																				break
+																			}
+																		} else {
+																			valid = false
+																			break
+																		}
+																	} else {
+																		valid = false
+																		break
+																	}
+																}
+
+																if Definitiva, ok := e.(map[string]interface{})["Definitiva"]; ok {
+																	if reflect.TypeOf(Definitiva).Kind() == reflect.Map {
+																		if id, ok := Definitiva.(map[string]interface{})["id"]; ok {
+																			if reflect.TypeOf(id).Kind() == reflect.String {
+																				if data, ok := Definitiva.(map[string]interface{})["data"]; ok {
+																					if reflect.TypeOf(data).Kind() == reflect.Map {
+																						valid = true
+																					} else {
+																						valid = false
+																						break
+																					}
+																				} else {
+																					valid = false
+																					break
+																				}
+																			} else {
+																				valid = false
+																				break
+																			}
+																		} else {
+																			valid = false
+																			break
+																		}
+																	} else {
+																		valid = false
+																		break
+																	}
+																}
+
+															} else {
+																valid = false
+																break
+															}
+														} else {
+															valid = false
+															break
+														}
+													}
+												} else {
+													valid = false
+												}
+											} else {
+												valid = false
+											}
+										} else {
+											valid = false
+										}
+									} else {
+										valid = false
+									}
+								} else {
+									valid = false
+								}
+							} else {
+								valid = false
+							}
+						} else {
+							valid = false
+						}
+					} else {
+						valid = false
+					}
+				} else {
+					valid = false
+				}
+			} else {
+				valid = false
+			}
+		} else {
+			valid = false
+		}
+	} else {
+		valid = false
+	}
+
+	return valid
+}
+
