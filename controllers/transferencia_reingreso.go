@@ -1251,9 +1251,9 @@ func (c *Transferencia_reingresoController) GetInscripcion() {
 				errTipoSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"tipo_solicitud?query=CodigoAbreviacion:TrnRe", &tipoSolicitud)
 				if errTipoSolicitud == nil && fmt.Sprintf("%v", tipoSolicitud["Data"].([]interface{})[0]) != "map[]" {
 					var id = fmt.Sprintf("%v", tipoSolicitud["Data"].([]interface{})[0].(map[string]interface{})["Id"])
-					
+
 					errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=TerceroId:"+fmt.Sprintf("%v", inscripcionGet[0]["PersonaId"])+",SolicitudId.EstadoTipoSolicitudId.TipoSolicitud.Id:"+id, &Solicitudes)
-					
+
 					if errSolicitud == nil {
 						if fmt.Sprintf("%v", Solicitudes) != "[map[]]" {
 
@@ -1519,27 +1519,23 @@ func (c *Transferencia_reingresoController) GetConsultarPeriodo() {
 					c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": resultado}
 				} else {
 					logs.Error(calendarioGet)
-					c.Data["Message"] = errCalendario
-					c.Abort("404")
+					c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": errCalendario, "Data": nil}
 				}
 			} else {
 				logs.Error(calendarioGet)
-				c.Data["Message"] = errCalendario
-				c.Abort("404")
+				c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": errCalendario, "Data": nil}
 			}
 		} else {
 			if periodoGet["Message"] == "Not found resource" {
-				c.Data["json"] = nil
+				c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": "Not found resource", "Data": nil}
 			} else {
 				logs.Error(periodoGet)
-				c.Data["Message"] = errPeriodo
-				c.Abort("404")
+				c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": errPeriodo, "Data": nil}
 			}
 		}
 	} else {
 		logs.Error(periodoGet)
-		c.Data["Message"] = errPeriodo
-		c.Abort("404")
+		c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": errPeriodo, "Data": nil}
 	}
 
 	c.ServeJSON()
