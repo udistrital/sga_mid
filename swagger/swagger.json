@@ -2270,6 +2270,7 @@
                 }
             }
         },
+
         "/notas/CapturaNotas": {
             "put": {
                 "tags": [
@@ -2298,6 +2299,7 @@
                 }
             }
         },
+
         "/notas/CapturaNotas/{id_asignatura}/{id_periodo}": {
             "get": {
                 "tags": [
@@ -2385,6 +2387,7 @@
                 }
             }
         },
+
         "/notas/ModificacionExtemporanea/{id_asignatura}": {
             "get": {
                 "tags": [
@@ -2420,6 +2423,7 @@
                 "operationId": "NotasController.PutPorcentajesAsignatura",
                 "parameters": [
                     {
+
                         "in": "body",
                         "name": "body",
                         "description": "body Modificar registro Asignatura content",

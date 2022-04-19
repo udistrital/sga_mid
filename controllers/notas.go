@@ -311,10 +311,12 @@ func (c *NotasController) GetPorcentajesAsignatura() {
 				}
 				if InfoPorcentajes.Corte2.IdEstado == IdEstado {
 					InfoPorcentajes.Corte2.Existe = true
+
 				}
 				if InfoPorcentajes.Examen.IdEstado == IdEstado {
 					InfoPorcentajes.Examen.Existe = true
 				}
+
 				if InfoPorcentajes.Habilit.IdEstado == IdEstado {
 					InfoPorcentajes.Habilit.Existe = true
 				}
@@ -651,6 +653,7 @@ func (c *NotasController) GetCapturaNotas() {
 
 	c.ServeJSON()
 }
+
 
 // PutCapturaNotas ...
 // @Title PutCapturaNotas
@@ -1043,6 +1046,7 @@ func (c *NotasController) PutCapturaNotas() {
 	c.ServeJSON()
 }
 
+
 type TipoEstado struct {
 	IdEstado         string
 	Existe           bool
@@ -1258,6 +1262,7 @@ func validatePutPorcentajes(p map[string]interface{}) bool {
 	return valid
 }
 
+
 func validatePutNotasEstudiantes(n map[string]interface{}) bool {
 	valid := false
 
@@ -1468,3 +1473,4 @@ func validatePutNotasEstudiantes(n map[string]interface{}) bool {
 
 	return valid
 }
+
