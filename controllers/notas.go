@@ -631,6 +631,7 @@ func (c *NotasController) GetCapturaNotas() {
 	c.ServeJSON()
 }
 
+
 // PutCapturaNotas ...
 // @Title PutCapturaNotas
 // @Description Modificar registro de notas para estudiantes de determinada asignatura
@@ -1403,6 +1404,7 @@ func validatePutPorcentajes(p map[string]interface{}) bool {
 	return valid
 }
 
+
 func validatePutNotasEstudiantes(n map[string]interface{}) bool {
 	valid := false
 
@@ -1613,3 +1615,4 @@ func validatePutNotasEstudiantes(n map[string]interface{}) bool {
 
 	return valid
 }
+
