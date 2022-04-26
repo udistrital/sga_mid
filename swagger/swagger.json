@@ -2359,6 +2359,33 @@
                 }
             }
         },
+        "/notas/EstadosRegistros/{id_periodo}": {
+            "get": {
+                "tags": [
+                    "notas"
+                ],
+                "description": "Listar asignaturas docentes  junto estado registro",
+                "operationId": "NotasController.GetEstadosRegistros",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id_periodo",
+                        "description": "Id periodo",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
         "/notas/InfoDocenteAsignatura/{id_asignatura}": {
             "get": {
                 "tags": [
