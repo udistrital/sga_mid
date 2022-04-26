@@ -1608,19 +1608,26 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 
 							errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=NivelFormacionId.Id:"+fmt.Sprintf("%v", calendario["Nivel"]), &proyectoGet)
 							if errProyecto == nil && fmt.Sprintf("%v", proyectoGet[0]) != "map[]" {
-								for _, proyectoAux := range proyectoGet {
-									for _, proyectoCalendario := range calendario["DependenciaId"].([]interface{}) {
-										if proyectoAux["Id"] == proyectoCalendario {
-											proyecto := map[string]interface{}{
-												"Id":          proyectoAux["Id"],
-												"Nombre":      proyectoAux["Nombre"],
-												"Codigo":      proyectoAux["Codigo"],
-												"CodigoSnies": proyectoAux["CodigoSnies"],
+								if calendario["DependenciaId"] != nil{
+									for _, proyectoAux := range proyectoGet {
+										for _, proyectoCalendario := range calendario["DependenciaId"].([]interface{}) {
+											if proyectoAux["Id"] == proyectoCalendario {
+												proyecto := map[string]interface{}{
+													"Id":          proyectoAux["Id"],
+													"Nombre":      proyectoAux["Nombre"],
+													"Codigo":      proyectoAux["Codigo"],
+													"CodigoSnies": proyectoAux["CodigoSnies"],
+												}
+	
+												proyectos = append(proyectos, proyecto)
 											}
-
-											proyectos = append(proyectos, proyecto)
 										}
 									}
+								} else {
+									logs.Error(calendario)
+									c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": "No se encuentran proyectos", "Data": nil}
+
+									c.ServeJSON()
 								}
 							}
 

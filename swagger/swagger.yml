@@ -1501,7 +1501,6 @@ paths:
           description: '{}'
         "403":
           description: body is empty
-
   /notas/CapturaNotas:
     put:
       tags:
@@ -1520,7 +1519,6 @@ paths:
           description: '{}'
         "400":
           description: the request contains incorrect syntax
-
   /notas/CapturaNotas/{id_asignatura}/{id_periodo}:
     get:
       tags:
@@ -1580,7 +1578,6 @@ paths:
           description: '{}'
         "404":
           description: not found resource
-
   /notas/ModificacionExtemporanea/{id_asignatura}:
     get:
       tags:
