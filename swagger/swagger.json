@@ -2412,6 +2412,41 @@
                 }
             }
         },
+        "/notas/InfoEstudianteNotas/{id_estudiante}/{id_proyecto}": {
+            "get": {
+                "tags": [
+                    "notas"
+                ],
+                "description": "Obtener la informacion de estudiante y notas asignaturas",
+                "operationId": "NotasController.GetDatosEstudianteNotas",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id_estudiante",
+                        "description": "Id estudiante",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "path",
+                        "name": "id_proyecto",
+                        "description": "Id proyecto",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
         "/notas/ModificacionExtemporanea/{id_asignatura}": {
             "get": {
                 "tags": [
