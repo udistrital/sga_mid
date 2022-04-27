@@ -1501,7 +1501,6 @@ paths:
           description: '{}'
         "403":
           description: body is empty
-
   /notas/CapturaNotas:
     put:
       tags:
@@ -1520,7 +1519,6 @@ paths:
           description: '{}'
         "400":
           description: the request contains incorrect syntax
-
   /notas/CapturaNotas/{id_asignatura}/{id_periodo}:
     get:
       tags:
@@ -1598,7 +1596,30 @@ paths:
           description: '{}'
         "404":
           description: not found resource
-
+  /notas/InfoEstudianteNotas/{id_estudiante}/{id_proyecto}:
+    get:
+      tags:
+      - notas
+      description: Obtener la informacion de estudiante y notas asignaturas
+      operationId: NotasController.GetDatosEstudianteNotas
+      parameters:
+      - in: path
+        name: id_estudiante
+        description: Id estudiante
+        required: true
+        type: integer
+        format: int64
+      - in: path
+        name: id_proyecto
+        description: Id proyecto
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
   /notas/ModificacionExtemporanea/{id_asignatura}:
     get:
       tags:
