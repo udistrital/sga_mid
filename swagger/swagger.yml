@@ -1596,7 +1596,7 @@ paths:
           description: '{}'
         "404":
           description: not found resource
-  /notas/InfoEstudianteNotas/{id_estudiante}/{id_proyecto}:
+  /notas/InfoEstudianteNotas/{id_estudiante}:
     get:
       tags:
       - notas
@@ -1606,12 +1606,6 @@ paths:
       - in: path
         name: id_estudiante
         description: Id estudiante
-        required: true
-        type: integer
-        format: int64
-      - in: path
-        name: id_proyecto
-        description: Id proyecto
         required: true
         type: integer
         format: int64
