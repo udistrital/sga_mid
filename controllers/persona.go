@@ -309,6 +309,87 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 													if errDiscapacidadPost == nil && fmt.Sprintf("%v", discapacidadPost) != "map[]" && discapacidadPost["Id"] != nil {
 														if discapacidadPost["Status"] != 400 {
 
+															// Registro de EPS
+															if (tercero["EPS"] != nil) && (tercero["FechaVinculacionEPS"] != nil) {
+																var postEPS map[string]interface{}
+
+																nuevaEPS := map[string]interface{}{
+																	"TerceroId":              map[string]interface{}{"Id": tercero["Tercero"].(float64)},
+																	"TerceroEntidadId":       map[string]interface{}{"Id": tercero["EPS"].(map[string]interface{})["Id"].(float64)},
+																	"FechaInicioVinculacion": tercero["FechaVinculacionEPS"].(string),
+																	"Activo":                 true,
+																}
+
+																errNuevaEPS := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"seguridad_social_tercero", "POST", &postEPS, nuevaEPS)
+																if errNuevaEPS == nil && fmt.Sprintf("%v", postEPS) != "map[]" && postEPS["Id"] != nil {
+																	if postEPS["Status"] == 400 {
+																		logs.Error(errNuevaEPS)
+																		c.Data["system"] = postEPS
+																		c.Abort("400")
+																	}
+																} else {
+																	logs.Error(errNuevaEPS)
+																	c.Data["system"] = postEPS
+																	c.Abort("400")
+																}
+
+															}
+
+															// Registro de Grupo de sisben
+															if tercero["GrupoSisben"] != nil {
+																var postGrupoSisben map[string]interface{}
+
+
+																grSisben := map[string]interface{}{
+																	"value": fmt.Sprintf("%v", tercero["GrupoSisben"]),
+																}
+																jsonGrupoSisben, _ := json.Marshal(grSisben)
+
+																nuevoGrupoSisben := map[string]interface{}{
+																	"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
+																	"InfoComplementariaId": map[string]interface{}{"Id": 42},
+																	"Activo":               true,
+																	"Dato":                 string(jsonGrupoSisben),
+																}
+
+																errGrupoSisbenPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &postGrupoSisben, nuevoGrupoSisben)
+																if errGrupoSisbenPost == nil && fmt.Sprintf("%v", postGrupoSisben) != "map[]" && postGrupoSisben["Id"] != nil {
+																	if postGrupoSisben["Status"] == 400 {
+																		logs.Error(errGrupoSisbenPost)
+																		c.Data["system"] = postGrupoSisben
+																		c.Abort("400")
+																	}
+																} else {
+																	logs.Error(errGrupoSisbenPost)
+																	c.Data["system"] = postGrupoSisben
+																	c.Abort("400")
+																}
+															}
+
+															// Registro de Número de hermanos
+															if tercero["NumeroHermanos"] != nil {
+																var postNumeroHermanos map[string]interface{}
+
+																nuevoGrupoSisben := map[string]interface{}{
+																	"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
+																	"InfoComplementariaId": map[string]interface{}{"Id": 319},
+																	"Activo":               true,
+																	"Dato":                 fmt.Sprintf("%v", tercero["NumeroHermanos"]),
+																}
+																errGrupoSisbenPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &postNumeroHermanos, nuevoGrupoSisben)
+
+																if errGrupoSisbenPost == nil && fmt.Sprintf("%v", postNumeroHermanos) != "map[]" && postNumeroHermanos["Id"] != nil {
+																	if postNumeroHermanos["Status"] == 400 {
+																		logs.Error(errGrupoSisbenPost)
+																		c.Data["system"] = postNumeroHermanos
+																		c.Abort("400")
+																	}
+																} else {
+																	logs.Error(errGrupoSisbenPost)
+																	c.Data["system"] = postNumeroHermanos
+																	c.Abort("400")
+																}
+															}
 														} else {
 															logs.Error(errDiscapacidadPost)
 															c.Data["system"] = discapacidadPost
@@ -588,6 +669,7 @@ func (c *PersonaController) ActualizarDatosComplementarios() {
 	var idpersona_grupo_sanguineo []map[string]interface{}
 	var postEPS map[string]interface{}
 	var postGrupoSisben map[string]interface{}
+	var postNumeroHermanos map[string]interface{}
 	//Resultado de agregar grupo sanguineo y discapacidades
 	var resultado2 map[string]interface{}
 	//Resultado de agregar grupo sanguineo y discapacidades
@@ -828,14 +910,19 @@ func (c *PersonaController) ActualizarDatosComplementarios() {
 					}
 				}
 
+				grSisben := map[string]interface{}{
+					"value": fmt.Sprintf("%v", persona["GrupoSisben"]),
+				}
+				jsonGrupoSisben, _ := json.Marshal(grSisben)
+
 				nuevoGrupoSisben := map[string]interface{}{
 					"TerceroId":            map[string]interface{}{"Id": idPersona.(float64)},
 					"InfoComplementariaId": map[string]interface{}{"Id": 42},
 					"Activo":               true,
-					"Dato":                 fmt.Sprintf("%v", persona["GrupoSisben"]),
+					"Dato":                 string(jsonGrupoSisben),
 				}
-				errGrupoSisbenPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &postGrupoSisben, nuevoGrupoSisben)
 
+				errGrupoSisbenPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &postGrupoSisben, nuevoGrupoSisben)
 				if errGrupoSisbenPost == nil && fmt.Sprintf("%v", postGrupoSisben) != "map[]" && postGrupoSisben["Id"] != nil {
 					if postGrupoSisben["Status"] == 400 {
 						logs.Error(errGrupoSisbenPost)
@@ -868,17 +955,17 @@ func (c *PersonaController) ActualizarDatosComplementarios() {
 					"Activo":               true,
 					"Dato":                 fmt.Sprintf("%v", persona["NumeroHermanos"]),
 				}
-				errGrupoSisbenPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &postGrupoSisben, nuevoGrupoSisben)
+				errGrupoSisbenPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &postNumeroHermanos, nuevoGrupoSisben)
 
-				if errGrupoSisbenPost == nil && fmt.Sprintf("%v", postGrupoSisben) != "map[]" && postGrupoSisben["Id"] != nil {
-					if postGrupoSisben["Status"] == 400 {
+				if errGrupoSisbenPost == nil && fmt.Sprintf("%v", postNumeroHermanos) != "map[]" && postNumeroHermanos["Id"] != nil {
+					if postNumeroHermanos["Status"] == 400 {
 						logs.Error(errGrupoSisbenPost)
-						c.Data["system"] = postGrupoSisben
+						c.Data["system"] = postNumeroHermanos
 						c.Abort("400")
 					}
 				} else {
 					logs.Error(errGrupoSisbenPost)
-					c.Data["system"] = postGrupoSisben
+					c.Data["system"] = postNumeroHermanos
 					c.Abort("400")
 				}
 			}
@@ -1330,8 +1417,9 @@ func (c *PersonaController) ConsultarDatosComplementarios() {
 								if err := json.Unmarshal([]byte(poblaciones[i]["Dato"].(string)), &documento); err == nil {
 									resultado["IdDocumentoPoblacion"] = documento["value"]
 								}
+							} else {
+								tipoPoblacion = append(tipoPoblacion, poblacion)
 							}
-							tipoPoblacion = append(tipoPoblacion, poblacion)
 						}
 					}
 					resultado["TipoPoblacion"] = tipoPoblacion
@@ -1365,8 +1453,9 @@ func (c *PersonaController) ConsultarDatosComplementarios() {
 														if err := json.Unmarshal([]byte(discapacidades[i]["Dato"].(string)), &documento); err == nil {
 															resultado["IdDocumentoDiscapacidad"] = documento["value"]
 														}
+													} else {
+														tipoDiscapacidad = append(tipoDiscapacidad, discapacidad)
 													}
-													tipoDiscapacidad = append(tipoDiscapacidad, discapacidad)
 												}
 											}
 											resultado["TipoDiscapacidad"] = tipoDiscapacidad
@@ -1389,7 +1478,12 @@ func (c *PersonaController) ConsultarDatosComplementarios() {
 
 															errGrupoSisben := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+idStr+",InfoComplementariaId.Id:42,Activo:True&sortby=Id&order=desc&limit=1", &grupoSisben)
 															if errGrupoSisben == nil && fmt.Sprintf("%v", grupoSisben) != "[map[]]" {
-																resultado["GrupoSisben"] = grupoSisben[0]["Dato"]
+																var grSisben map[string]interface{}
+
+																if err := json.Unmarshal([]byte(grupoSisben[0]["Dato"].(string)), &grSisben); err == nil {
+																	resultado["GrupoSisben"] = grSisben["value"]
+																}
+
 															}
 
 															var EPS []map[string]interface{}
@@ -1861,173 +1955,182 @@ func (c *PersonaController) ConsultarDatosFamiliar() {
 	errTercero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero_familiar/?query=TerceroId__Id:"+idStr+"&sortby=Id&order=asc&limit=0", &terceros)
 	if errTercero == nil {
 		if terceros != nil {
-			resultado["NombreFamiliarPrincipal"] = terceros[0]["TerceroFamiliarId"].(map[string]interface{})["NombreCompleto"]
-			resultado["NombreFamiliarAlterno"] = terceros[1]["TerceroFamiliarId"].(map[string]interface{})["NombreCompleto"]
+			if fmt.Sprintf("%v", terceros[0]) != "map[]" {
+				resultado["NombreFamiliarPrincipal"] = terceros[0]["TerceroFamiliarId"].(map[string]interface{})["NombreCompleto"]
+				resultado["NombreFamiliarAlterno"] = terceros[1]["TerceroFamiliarId"].(map[string]interface{})["NombreCompleto"]
 
-			idPrincipal := fmt.Sprintf("%.f", terceros[0]["TerceroFamiliarId"].(map[string]interface{})["Id"])
-			idAlterno := fmt.Sprintf("%.f", terceros[1]["TerceroFamiliarId"].(map[string]interface{})["Id"])
+				idPrincipal := fmt.Sprintf("%.f", terceros[0]["TerceroFamiliarId"].(map[string]interface{})["Id"])
+				idAlterno := fmt.Sprintf("%.f", terceros[1]["TerceroFamiliarId"].(map[string]interface{})["Id"])
 
-			// GET de correos
-			//Correo principal
-			errCorreo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+idPrincipal+",InfoComplementariaId__Id:53", &correos)
-			if errCorreo == nil {
-				if correos != nil {
-					var CorreoJson map[string]interface{}
-					if err := json.Unmarshal([]byte(correos[0]["Dato"].(string)), &CorreoJson); err != nil {
-						resultado["CorreoElectronico"] = nil
-					} else {
-						resultado["CorreoElectronico"] = CorreoJson["value"]
-						//Correo alterno
-						errCorreo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+idAlterno+",InfoComplementariaId__Id:53", &correos)
-						if errCorreo == nil {
-							if correos != nil {
-								if err := json.Unmarshal([]byte(correos[0]["Dato"].(string)), &CorreoJson); err != nil {
-									resultado["CorreoElectronicoAlterno"] = nil
-								} else {
-									resultado["CorreoElectronicoAlterno"] = CorreoJson["value"]
+				// GET de correos
+				//Correo principal
+				errCorreo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+idPrincipal+",InfoComplementariaId__Id:53", &correos)
+				if errCorreo == nil {
+					if correos != nil {
+						var CorreoJson map[string]interface{}
+						if err := json.Unmarshal([]byte(correos[0]["Dato"].(string)), &CorreoJson); err != nil {
+							resultado["CorreoElectronico"] = nil
+						} else {
+							resultado["CorreoElectronico"] = CorreoJson["value"]
+							//Correo alterno
+							errCorreo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+idAlterno+",InfoComplementariaId__Id:53", &correos)
+							if errCorreo == nil {
+								if correos != nil {
+									if err := json.Unmarshal([]byte(correos[0]["Dato"].(string)), &CorreoJson); err != nil {
+										resultado["CorreoElectronicoAlterno"] = nil
+									} else {
+										resultado["CorreoElectronicoAlterno"] = CorreoJson["value"]
 
-									//GET Telefono
-									//Telefono principal
-									errTelefono := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+idPrincipal+",InfoComplementariaId__Id:51", &telefonos)
-									if errTelefono == nil {
-										if telefonos != nil {
-											var TelefonoJson map[string]interface{}
-											if err := json.Unmarshal([]byte(telefonos[0]["Dato"].(string)), &TelefonoJson); err != nil {
-												resultado["Telefono"] = nil
-											} else {
-												resultado["Telefono"] = TelefonoJson["value"]
-												//Telefono alterno
-												errTelefono := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+idAlterno+",InfoComplementariaId__Id:51", &telefonos)
-												if errTelefono == nil {
-													if telefonos != nil {
-														if err := json.Unmarshal([]byte(telefonos[0]["Dato"].(string)), &TelefonoJson); err != nil {
-															resultado["TelefonoAlterno"] = nil
-														} else {
-															resultado["TelefonoAlterno"] = TelefonoJson["value"]
+										//GET Telefono
+										//Telefono principal
+										errTelefono := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+idPrincipal+",InfoComplementariaId__Id:51", &telefonos)
+										if errTelefono == nil {
+											if telefonos != nil {
+												var TelefonoJson map[string]interface{}
+												if err := json.Unmarshal([]byte(telefonos[0]["Dato"].(string)), &TelefonoJson); err != nil {
+													resultado["Telefono"] = nil
+												} else {
+													resultado["Telefono"] = TelefonoJson["value"]
+													//Telefono alterno
+													errTelefono := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+idAlterno+",InfoComplementariaId__Id:51", &telefonos)
+													if errTelefono == nil {
+														if telefonos != nil {
+															if err := json.Unmarshal([]byte(telefonos[0]["Dato"].(string)), &TelefonoJson); err != nil {
+																resultado["TelefonoAlterno"] = nil
+															} else {
+																resultado["TelefonoAlterno"] = TelefonoJson["value"]
 
-															//GET Direcciones
-															//Direccion principal
-															errDireccion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+idPrincipal+",InfoComplementariaId__Id:54", &direcciones)
-															if errDireccion == nil {
-																if direcciones != nil {
-																	var DireccionJson map[string]interface{}
-																	if err := json.Unmarshal([]byte(direcciones[0]["Dato"].(string)), &DireccionJson); err != nil {
-																		resultado["DireccionResidencia"] = nil
-																	} else {
-																		resultado["DireccionResidencia"] = DireccionJson["value"]
-																		errDireccion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+idAlterno+",InfoComplementariaId__Id:54", &direcciones)
-																		if errDireccion == nil {
-																			if direcciones != nil {
-																				if err := json.Unmarshal([]byte(direcciones[0]["Dato"].(string)), &DireccionJson); err != nil {
-																					resultado["DireccionResidenciaAlterno"] = nil
+																//GET Direcciones
+																//Direccion principal
+																errDireccion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+idPrincipal+",InfoComplementariaId__Id:54", &direcciones)
+																if errDireccion == nil {
+																	if direcciones != nil {
+																		var DireccionJson map[string]interface{}
+																		if err := json.Unmarshal([]byte(direcciones[0]["Dato"].(string)), &DireccionJson); err != nil {
+																			resultado["DireccionResidencia"] = nil
+																		} else {
+																			resultado["DireccionResidencia"] = DireccionJson["value"]
+																			errDireccion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+idAlterno+",InfoComplementariaId__Id:54", &direcciones)
+																			if errDireccion == nil {
+																				if direcciones != nil {
+																					if err := json.Unmarshal([]byte(direcciones[0]["Dato"].(string)), &DireccionJson); err != nil {
+																						resultado["DireccionResidenciaAlterno"] = nil
+																					} else {
+																						resultado["DireccionResidenciaAlterno"] = DireccionJson["value"]
+																						resultado["Parentesco"] = map[string]interface{}{
+																							"Id":     terceros[0]["TipoParentescoId"].(map[string]interface{})["Id"].(float64),
+																							"Nombre": terceros[0]["TipoParentescoId"].(map[string]interface{})["Nombre"],
+																						}
+																						resultado["ParentescoAlterno"] = map[string]interface{}{
+																							"Id":     terceros[1]["TipoParentescoId"].(map[string]interface{})["Id"].(float64),
+																							"Nombre": terceros[1]["TipoParentescoId"].(map[string]interface{})["Nombre"],
+																						}
+																					}
 																				} else {
-																					resultado["DireccionResidenciaAlterno"] = DireccionJson["value"]
-																					resultado["Parentesco"] = map[string]interface{}{
-																						"Id":     terceros[0]["TipoParentescoId"].(map[string]interface{})["Id"].(float64),
-																						"Nombre": terceros[0]["TipoParentescoId"].(map[string]interface{})["Nombre"],
-																					}
-																					resultado["ParentescoAlterno"] = map[string]interface{}{
-																						"Id":     terceros[1]["TipoParentescoId"].(map[string]interface{})["Id"].(float64),
-																						"Nombre": terceros[1]["TipoParentescoId"].(map[string]interface{})["Nombre"],
-																					}
+																					errorGetAll = true
+																					alertas = append(alertas, "No data found")
+																					alerta.Code = "404"
+																					alerta.Type = "error"
+																					alerta.Body = alertas
+																					c.Data["json"] = map[string]interface{}{"Response": alerta}
 																				}
 																			} else {
 																				errorGetAll = true
-																				alertas = append(alertas, "No data found")
-																				alerta.Code = "404"
+																				alertas = append(alertas, errDireccion.Error())
+																				alerta.Code = "400"
 																				alerta.Type = "error"
 																				alerta.Body = alertas
 																				c.Data["json"] = map[string]interface{}{"Response": alerta}
 																			}
-																		} else {
-																			errorGetAll = true
-																			alertas = append(alertas, errDireccion.Error())
-																			alerta.Code = "400"
-																			alerta.Type = "error"
-																			alerta.Body = alertas
-																			c.Data["json"] = map[string]interface{}{"Response": alerta}
 																		}
+																	} else {
+																		errorGetAll = true
+																		alertas = append(alertas, "No data found")
+																		alerta.Code = "404"
+																		alerta.Type = "error"
+																		alerta.Body = alertas
+																		c.Data["json"] = map[string]interface{}{"Response": alerta}
 																	}
 																} else {
 																	errorGetAll = true
-																	alertas = append(alertas, "No data found")
-																	alerta.Code = "404"
+																	alertas = append(alertas, errDireccion.Error())
+																	alerta.Code = "400"
 																	alerta.Type = "error"
 																	alerta.Body = alertas
 																	c.Data["json"] = map[string]interface{}{"Response": alerta}
 																}
-															} else {
-																errorGetAll = true
-																alertas = append(alertas, errDireccion.Error())
-																alerta.Code = "400"
-																alerta.Type = "error"
-																alerta.Body = alertas
-																c.Data["json"] = map[string]interface{}{"Response": alerta}
 															}
+														} else {
+															errorGetAll = true
+															alertas = append(alertas, "No data found")
+															alerta.Code = "404"
+															alerta.Type = "error"
+															alerta.Body = alertas
+															c.Data["json"] = map[string]interface{}{"Response": alerta}
 														}
 													} else {
 														errorGetAll = true
-														alertas = append(alertas, "No data found")
-														alerta.Code = "404"
+														alertas = append(alertas, errTelefono.Error())
+														alerta.Code = "400"
 														alerta.Type = "error"
 														alerta.Body = alertas
 														c.Data["json"] = map[string]interface{}{"Response": alerta}
 													}
-												} else {
-													errorGetAll = true
-													alertas = append(alertas, errTelefono.Error())
-													alerta.Code = "400"
-													alerta.Type = "error"
-													alerta.Body = alertas
-													c.Data["json"] = map[string]interface{}{"Response": alerta}
 												}
+											} else {
+												errorGetAll = true
+												alertas = append(alertas, "No data found")
+												alerta.Code = "404"
+												alerta.Type = "error"
+												alerta.Body = alertas
+												c.Data["json"] = map[string]interface{}{"Response": alerta}
 											}
 										} else {
 											errorGetAll = true
-											alertas = append(alertas, "No data found")
-											alerta.Code = "404"
+											alertas = append(alertas, errTelefono.Error())
+											alerta.Code = "400"
 											alerta.Type = "error"
 											alerta.Body = alertas
 											c.Data["json"] = map[string]interface{}{"Response": alerta}
 										}
-									} else {
-										errorGetAll = true
-										alertas = append(alertas, errTelefono.Error())
-										alerta.Code = "400"
-										alerta.Type = "error"
-										alerta.Body = alertas
-										c.Data["json"] = map[string]interface{}{"Response": alerta}
 									}
+								} else {
+									errorGetAll = true
+									alertas = append(alertas, "No data found")
+									alerta.Code = "404"
+									alerta.Type = "error"
+									alerta.Body = alertas
+									c.Data["json"] = map[string]interface{}{"Response": alerta}
 								}
 							} else {
 								errorGetAll = true
-								alertas = append(alertas, "No data found")
-								alerta.Code = "404"
+								alertas = append(alertas, errCorreo.Error())
+								alerta.Code = "400"
 								alerta.Type = "error"
 								alerta.Body = alertas
 								c.Data["json"] = map[string]interface{}{"Response": alerta}
 							}
-						} else {
-							errorGetAll = true
-							alertas = append(alertas, errCorreo.Error())
-							alerta.Code = "400"
-							alerta.Type = "error"
-							alerta.Body = alertas
-							c.Data["json"] = map[string]interface{}{"Response": alerta}
 						}
+					} else {
+						errorGetAll = true
+						alertas = append(alertas, "No data found")
+						alerta.Code = "404"
+						alerta.Type = "error"
+						alerta.Body = alertas
+						c.Data["json"] = map[string]interface{}{"Response": alerta}
 					}
 				} else {
 					errorGetAll = true
-					alertas = append(alertas, "No data found")
-					alerta.Code = "404"
+					alertas = append(alertas, errCorreo.Error())
+					alerta.Code = "400"
 					alerta.Type = "error"
 					alerta.Body = alertas
 					c.Data["json"] = map[string]interface{}{"Response": alerta}
 				}
 			} else {
 				errorGetAll = true
-				alertas = append(alertas, errCorreo.Error())
-				alerta.Code = "400"
+				alertas = append(alertas, "No data found")
+				alerta.Code = "404"
 				alerta.Type = "error"
 				alerta.Body = alertas
 				c.Data["json"] = map[string]interface{}{"Response": alerta}
@@ -2306,9 +2409,9 @@ func (c *PersonaController) ConsultarDatosFormacionPregrado() {
 	}
 
 	if !errorGetAll {
-		c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message":"Request successful", "Data": resultado}
+		c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": resultado}
 	}
-	
+
 	c.ServeJSON()
 }
 
