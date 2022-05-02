@@ -775,7 +775,7 @@ func init() {
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:NotasController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:NotasController"],
         beego.ControllerComments{
             Method: "GetDatosEstudianteNotas",
-            Router: "/InfoEstudianteNotas/:id_estudiante/:id_proyecto",
+            Router: "/InfoEstudianteNotas/:id_estudiante",
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
