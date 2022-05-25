@@ -69,7 +69,7 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 					i = i - 1
 				} else {
 					ReciboInscripcion := fmt.Sprintf("%v", Inscripciones[i]["ReciboInscripcion"])
-					if ReciboInscripcion != "0/<nil>"{
+					if ReciboInscripcion != "0/<nil>" {
 						errRecibo := request.GetJsonWSO2("http://"+beego.AppConfig.String("ConsultarReciboJbpmService")+"consulta_recibo/"+ReciboInscripcion, &ReciboXML)
 						if errRecibo == nil {
 							if ReciboXML != nil && fmt.Sprintf("%v", ReciboXML) != "map[reciboCollection:map[]]" && fmt.Sprintf("%v", ReciboXML) != "map[]" {
@@ -109,7 +109,7 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 										}
 									}
 								}
-	
+
 								resultadoAux[i] = map[string]interface{}{
 									"Id":                  Inscripciones[i]["Id"],
 									"ProgramaAcademicoId": Inscripciones[i]["ProgramaAcademicoId"],
@@ -142,7 +142,7 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 			}
 
 			for i := 0; i < len(resultadoAux); i++ {
-				if resultadoAux[i] == nil{
+				if resultadoAux[i] == nil {
 					resultadoAux = append(resultadoAux[:i], resultadoAux[i+1:]...)
 				}
 			}
@@ -1341,8 +1341,8 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 			"apellido":            SolicitudInscripcion["Apellido"].(string),
 			"correo":              SolicitudInscripcion["Correo"].(string),
 			"proyecto":            SolicitudInscripcion["ProgramaAcademicoId"].(float64),
-			"tiporecibo":          15,
-			"concepto":            "Inscripcion Virtual",
+			"tiporecibo":          0,
+			"concepto":            "",
 			"valorordinario":      0,
 			"valorextraordinario": 0,
 			"cuota":               1,
@@ -1369,14 +1369,17 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 		} else if SolicitudInscripcion["Nivel"].(float64) == 2 {
 			TipoParametro = "12"
 		}
+
 		errInscripcion := request.SendJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion", "POST", &inscripcionRealizada, inscripcion)
 		if errInscripcion == nil && inscripcionRealizada["Status"] != "400" {
-			errParam := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId.TipoParametroId.Id:2,ParametroId.CodigoAbreviacion:"+TipoParametro+",PeriodoId.Id:3", &parametro)
+			errParam := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId.TipoParametroId.Id:2,ParametroId.CodigoAbreviacion:"+TipoParametro+",PeriodoId.Year:"+fmt.Sprintf("%v", objTransaccion["aniopago"])+",PeriodoId.CodigoAbreviacion:VG", &parametro)
 			if errParam == nil && fmt.Sprintf("%v", parametro["Data"].([]interface{})[0]) != "map[]" {
 				Dato := parametro["Data"].([]interface{})[0]
 				if errJson := json.Unmarshal([]byte(Dato.(map[string]interface{})["Valor"].(string)), &Valor); errJson == nil {
 					objTransaccion["valorordinario"] = Valor["Costo"].(float64)
 					objTransaccion["valorextraordinario"] = Valor["Costo"].(float64)
+					objTransaccion["tiporecibo"] = Dato.(map[string]interface{})["ParametroId"].(map[string]interface{})["CodigoAbreviacion"].(string)
+					objTransaccion["concepto"] = Dato.(map[string]interface{})["ParametroId"].(map[string]interface{})["Nombre"].(string)
 
 					SolicitudRecibo := objTransaccion
 
