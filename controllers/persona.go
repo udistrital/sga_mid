@@ -339,7 +339,6 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 															if tercero["GrupoSisben"] != nil {
 																var postGrupoSisben map[string]interface{}
 
-
 																grSisben := map[string]interface{}{
 																	"value": fmt.Sprintf("%v", tercero["GrupoSisben"]),
 																}
@@ -1014,7 +1013,7 @@ func (c *PersonaController) ConsultarPersona() {
 	errPersona := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero?query=Id:"+idStr, &persona)
 	if errPersona == nil && fmt.Sprintf("%v", persona[0]) != "map[]" {
 		if persona[0]["Status"] != 404 {
-			// formatdata.JsonPrint(persona)
+			formatdata.JsonPrint(persona)
 
 			var identificacion []map[string]interface{}
 
