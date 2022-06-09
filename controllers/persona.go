@@ -1057,6 +1057,9 @@ func (c *PersonaController) ConsultarPersona() {
 					}
 					fmt.Println("ojoooooo paso estado")
 					fmt.Print(persona[0]["Id"])
+					fmt.Print("http://" + beego.AppConfig.String("TercerosService") + "info_complementaria_tercero?query=TerceroId.Id:" +
+						fmt.Sprintf("%v", persona[0]["Id"]) + ",InfoComplementariaId.GrupoInfoComplementariaId.Id:6")
+					formatdata.JsonPrint(genero)
 
 					errGenero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+
 						fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:6", &genero)
