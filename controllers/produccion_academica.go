@@ -325,7 +325,7 @@ func (c *ProduccionAcademicaController) GetIdProduccionAcademica() {
 	var errorGetAll bool
 	alertas := append([]interface{}{})
 
-	errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idTercero, &producciones)
+	errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"tr_produccion_academica/"+idTercero, &producciones)
 	fmt.Println("//////////// ProduccionAcademicaService() Err: ", errProduccion, "Resp: ", producciones)
 	if fmt.Sprintf("%v", producciones) != "" || fmt.Sprintf("%v", producciones) != "[map[]]" {
 		if errProduccion == nil && fmt.Sprintf("%v", producciones[0]["System"]) != "map[]" {
