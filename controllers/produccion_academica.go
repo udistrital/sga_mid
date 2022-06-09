@@ -324,55 +324,66 @@ func (c *ProduccionAcademicaController) GetIdProduccionAcademica() {
 	var alerta models.Alert
 	var errorGetAll bool
 	alertas := append([]interface{}{})
-	errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idTercero, &producciones)
-	if errProduccion == nil && fmt.Sprintf("%v", producciones[0]["System"]) != "map[]" {
-		if producciones[0]["Status"] != 404 && producciones[0]["Id"] != nil {
-			for _, produccion := range producciones {
-				autores := produccion["Autores"].([]interface{})
-				for _, autorTemp := range autores {
-					autor := autorTemp.(map[string]interface{})
-					if fmt.Sprintf("%v", autor["Persona"]) == fmt.Sprintf("%v", idTercero) {
-						produccion["EstadoEnteAutorId"] = autor
-					}
-					//cargar nombre del autor
-					var autorProduccion map[string]interface{}
 
-					errAutor := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%v", autor["Persona"]), &autorProduccion)
-					if errAutor == nil && fmt.Sprintf("%v", autorProduccion["System"]) != "map[]" {
-						if autorProduccion["Status"] != 404 {
-							autor["Nombre"] = autorProduccion["NombreCompleto"].(string)
+	errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idTercero, &producciones)
+	fmt.Println("//////////// ProduccionAcademicaService() Err: ", errProduccion, "Resp: ", producciones)
+	if fmt.Sprintf("%v", producciones) != "" || fmt.Sprintf("%v", producciones) != "[map[]]" {
+		if errProduccion == nil && fmt.Sprintf("%v", producciones[0]["System"]) != "map[]" {
+			if producciones[0]["Status"] != 404 && producciones[0]["Id"] != nil {
+				for _, produccion := range producciones {
+					autores := produccion["Autores"].([]interface{})
+					for _, autorTemp := range autores {
+						autor := autorTemp.(map[string]interface{})
+						if fmt.Sprintf("%v", autor["Persona"]) == fmt.Sprintf("%v", idTercero) {
+							produccion["EstadoEnteAutorId"] = autor
+						}
+						//cargar nombre del autor
+						var autorProduccion map[string]interface{}
+
+						errAutor := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%v", autor["Persona"]), &autorProduccion)
+						fmt.Println("//////////// TercerosService() Err: ", errAutor, "Resp: ", autorProduccion)
+						if errAutor == nil && fmt.Sprintf("%v", autorProduccion["System"]) != "map[]" {
+							if autorProduccion["Status"] != 404 {
+								autor["Nombre"] = autorProduccion["NombreCompleto"].(string)
+							} else {
+								errorGetAll = true
+								alertas = append(alertas, "No data found")
+								alerta.Code = "404"
+								alerta.Type = "error"
+								alerta.Body = alertas
+								c.Data["json"] = map[string]interface{}{"Response": alerta}
+							}
 						} else {
 							errorGetAll = true
-							alertas = append(alertas, "No data found")
-							alerta.Code = "404"
+							alertas = append(alertas, errAutor.Error())
+							alerta.Code = "400"
 							alerta.Type = "error"
 							alerta.Body = alertas
 							c.Data["json"] = map[string]interface{}{"Response": alerta}
 						}
-					} else {
-						errorGetAll = true
-						alertas = append(alertas, errAutor.Error())
-						alerta.Code = "400"
-						alerta.Type = "error"
-						alerta.Body = alertas
-						c.Data["json"] = map[string]interface{}{"Response": alerta}
 					}
 				}
+				resultado = producciones
+			} else {
+				errorGetAll = true
+				alertas = append(alertas, "No data found")
+				alerta.Code = "404"
+				alerta.Type = "error"
+				alerta.Body = alertas
+				c.Data["json"] = map[string]interface{}{"Response": alerta}
 			}
-			resultado = producciones
 		} else {
 			errorGetAll = true
-			alertas = append(alertas, "No data found")
-			alerta.Code = "404"
+			alertas = append(alertas, errProduccion.Error())
+			alerta.Code = "400"
 			alerta.Type = "error"
 			alerta.Body = alertas
 			c.Data["json"] = map[string]interface{}{"Response": alerta}
 		}
 	} else {
-		errorGetAll = true
-		alertas = append(alertas, errProduccion.Error())
-		alerta.Code = "400"
-		alerta.Type = "error"
+		alertas = append(alertas, resultado)
+		alerta.Code = "200"
+		alerta.Type = "OK"
 		alerta.Body = alertas
 		c.Data["json"] = map[string]interface{}{"Response": alerta}
 	}
