@@ -1006,6 +1006,7 @@ func (c *PersonaController) ActualizarDatosComplementarios() {
 func (c *PersonaController) ConsultarPersona() {
 	//Id del tercero
 	idStr := c.Ctx.Input.Param(":tercero_id")
+	fmt.Println(idStr)
 	//resultado informacion basica persona
 	var resultado map[string]interface{}
 	var persona []map[string]interface{}
