@@ -1055,6 +1055,8 @@ func (c *PersonaController) ConsultarPersona() {
 						c.Data["system"] = errEstado
 						c.Abort("404")
 					}
+					fmt.Println("ojoooooo paso estado")
+					fmt.Print(persona[0]["Id"])
 
 					errGenero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+
 						fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:6", &genero)
