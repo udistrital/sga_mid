@@ -1006,7 +1006,7 @@ func (c *PersonaController) ActualizarDatosComplementarios() {
 func (c *PersonaController) ConsultarPersona() {
 	//Id del tercero
 	idStr := c.Ctx.Input.Param(":tercero_id")
-	fmt.Println(idStr)
+	//fmt.Println(idStr)
 	//resultado informacion basica persona
 	var resultado map[string]interface{}
 	var persona []map[string]interface{}
@@ -1014,7 +1014,7 @@ func (c *PersonaController) ConsultarPersona() {
 	errPersona := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero?query=Id:"+idStr, &persona)
 	if errPersona == nil && fmt.Sprintf("%v", persona[0]) != "map[]" {
 		if persona[0]["Status"] != 404 {
-			formatdata.JsonPrint(persona)
+			//formatdata.JsonPrint(persona)
 
 			var identificacion []map[string]interface{}
 
@@ -1029,16 +1029,16 @@ func (c *PersonaController) ConsultarPersona() {
 					resultado["TipoIdentificacion"] = identificacion[0]["TipoDocumentoId"]
 					resultado["FechaExpedicion"] = identificacion[0]["FechaExpedicion"]
 					resultado["SoporteDocumento"] = identificacion[0]["DocumentoSoporte"]
-					fmt.Println("Resultado identificacion")
-					formatdata.JsonPrint(resultado)
+					//fmt.Println("Resultado identificacion")
+					//formatdata.JsonPrint(resultado)
 
 					errEstado := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+
 						fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:2", &estado)
 					if errEstado == nil && fmt.Sprintf("%v", estado[0]) != "map[]" {
 						if estado[0]["Status"] != 404 {
 							resultado["EstadoCivil"] = estado[0]["InfoComplementariaId"]
-							fmt.Println("Resultado estado civil")
-							formatdata.JsonPrint(resultado)
+							//fmt.Println("Resultado estado civil")
+							//formatdata.JsonPrint(resultado)
 						} else {
 							if estado[0]["Message"] == "Not found resource" {
 								c.Data["json"] = nil
@@ -1055,19 +1055,19 @@ func (c *PersonaController) ConsultarPersona() {
 						c.Data["system"] = errEstado
 						c.Abort("404")
 					}
-					fmt.Println("ojoooooo paso estado")
-					fmt.Print(persona[0]["Id"])
-					fmt.Print("http://" + beego.AppConfig.String("TercerosService") + "info_complementaria_tercero?query=TerceroId.Id:" +
-						fmt.Sprintf("%v", persona[0]["Id"]) + ",InfoComplementariaId.GrupoInfoComplementariaId.Id:6")
-					formatdata.JsonPrint(genero)
+					//fmt.Println("ojoooooo paso estado")
+					//fmt.Print(persona[0]["Id"])
+					//fmt.Print("http://" + beego.AppConfig.String("TercerosService") + "info_complementaria_tercero?query=TerceroId.Id:" +
+					//fmt.Sprintf("%v", persona[0]["Id"]) + ",InfoComplementariaId.GrupoInfoComplementariaId.Id:6")
+					//formatdata.JsonPrint(genero)
 
 					errGenero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+
 						fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:6", &genero)
 					if errGenero == nil && fmt.Sprintf("%v", genero[0]) != "map[]" {
 						if genero[0]["Status"] != 404 {
 							resultado["Genero"] = genero[0]["InfoComplementariaId"]
-							fmt.Println("Resultado genero")
-							formatdata.JsonPrint(resultado)
+							//fmt.Println("Resultado genero")
+							//formatdata.JsonPrint(resultado)
 						} else {
 							if genero[0]["Message"] == "Not found resource" {
 								c.Data["json"] = nil
