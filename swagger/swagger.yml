@@ -288,6 +288,23 @@ paths:
           description: '{}'
         "403":
           description: :id is empty
+  /calendario_academico/v2/{id}:
+    get:
+      tags:
+      - calendario_academico
+      description: get obtener información calendario académico por id
+      operationId: ConsultaCalendarioAcademicoController.GetCalendarInfo
+      parameters:
+      - in: path
+        name: id
+        description: Id de calendario
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
   /clonar_calendario/:
     post:
       tags:
@@ -306,6 +323,26 @@ paths:
       responses:
         "201":
           description: '{int}'
+        "400":
+          description: the request contains incorrect syntax
+  /clonar_calendario/calendario_extension:
+    post:
+      tags:
+      - clonar_calendario
+      description: Clona calendario para extension, crea tipo_evento si lo tiene,
+        crea calendario_evento si tiene, crea calendario_evento_tipo_publico si tiene,
+        crea tipo_publico si lo tiene
+      operationId: CalendarioController.PostCalendarioExtension
+      parameters:
+      - in: body
+        name: body
+        description: body id calendario content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
         "400":
           description: the request contains incorrect syntax
   /clonar_calendario/calendario_padre:
