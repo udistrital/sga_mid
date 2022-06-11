@@ -22,6 +22,7 @@ func (c *ConsultaCalendarioAcademicoController) URLMapping() {
 	c.Mapping("GetOnePorId", c.GetOnePorId)
 	c.Mapping("Put", c.PutInhabilitarClendario)
 	c.Mapping("PostCalendarioHijo", c.PostCalendarioHijo)
+	c.Mapping("GetCalendarInfo", c.GetCalendarInfo)
 }
 
 // GetAll ...
@@ -608,4 +609,348 @@ func (c *ConsultaCalendarioAcademicoController) PostCalendarioHijo() {
 		}
 	}
 	c.ServeJSON()
+}
+
+// GetCalendarInfo ...
+// @Title GetCalendarInfo
+// @Description get obtener información calendario académico por id
+// @Param	id		path 	string	true		"Id de calendario"
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router /v2/:id [get]
+func (c *ConsultaCalendarioAcademicoController) GetCalendarInfo() {
+
+	var resultado map[string]interface{}
+	var resultados []map[string]interface{}
+	var actividadResultado []map[string]interface{}
+	var versionCalendario map[string]interface{}
+	var versionCalendarioResultado []map[string]interface{}
+	var calendarioPadreID map[string]interface{}
+	var documento map[string]interface{}
+	var resolucion map[string]interface{}
+	var procesoArr []string
+	var proceso map[string]interface{}
+	var procesoResultado []map[string]interface{}
+	var actividad map[string]interface{}
+	var procesoAdd map[string]interface{}
+	var responsableTipoP map[string]interface{}
+	var responsableList []map[string]interface{}
+	var calendariosExtlist []map[string]interface{}
+	var resolucionExt map[string]interface{}
+
+	//var resolucion_ext map[string]interface{}
+	idStr := c.Ctx.Input.Param(":id")
+
+	if resultado["Type"] != "error" {
+		// consultar calendario evento por tipo evento
+		var calendarios []map[string]interface{}
+		errcalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento?query=TipoEventoId__Id.CalendarioID__Id:"+idStr, &calendarios)
+		if errcalendario == nil {
+			if calendarios[0]["Id"] != nil {
+
+				// ver si el calendario esta ligado a un padre
+				if calendarios[0]["TipoEventoId"].(map[string]interface{})["CalendarioID"].(map[string]interface{})["CalendarioPadreId"] != nil {
+
+					calendarioPadreID = calendarios[0]["TipoEventoId"].(map[string]interface{})["CalendarioID"].(map[string]interface{})["CalendarioPadreId"].(map[string]interface{})
+					padreID := fmt.Sprintf("%.f", calendarioPadreID["Id"].(float64))
+
+					// obtener informacion calendario padre si existe
+					if padreID != "" {
+
+						versionCalendario = map[string]interface{}{
+							"Id":     padreID,
+							"Nombre": calendarios[0]["TipoEventoId"].(map[string]interface{})["CalendarioID"].(map[string]interface{})["CalendarioPadreId"].(map[string]interface{})["Nombre"],
+						}
+						versionCalendarioResultado = append(versionCalendarioResultado, versionCalendario)
+
+					} else {
+						versionCalendario = map[string]interface{}{
+							"Id":     "",
+							"Nombre": "",
+						}
+						versionCalendarioResultado = append(versionCalendarioResultado, versionCalendario)
+					}
+				}
+
+				documento = calendarios[0]["TipoEventoId"].(map[string]interface{})["CalendarioID"].(map[string]interface{})
+				documentoID := fmt.Sprintf("%.f", documento["DocumentoId"].(float64))
+
+				var documentos map[string]interface{}
+				errdocumento := request.GetJson("http://"+beego.AppConfig.String("DocumentosService")+"documento/"+documentoID, &documentos)
+
+				if errdocumento == nil {
+					if documentos != nil {
+						metadatoJSON := documentos["Metadatos"].(string)
+						var metadato models.Metadatos
+						json.Unmarshal([]byte(metadatoJSON), &metadato)
+
+						resolucion = map[string]interface{}{
+							"Id":         documentos["Id"],
+							"Enlace":     documentos["Enlace"],
+							"Resolucion": metadato.Resolucion,
+							"Anno":       metadato.Anno,
+							"Nombre":     documentos["Nombre"],
+						}
+					} else {
+						c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": documentos}
+					}
+
+				} else {
+					c.Data["json"] = map[string]interface{}{"Success": false, "Status": "400", "Message": errdocumento.Error(), "Data": nil}
+				}
+
+				documentoExtID, ok := documento["DocumentoExtensionId"].(float64)
+
+				if documentoExtID != 0 && ok {
+					var documentosExt map[string]interface{}
+					errdocumentoExt := request.GetJson("http://"+beego.AppConfig.String("DocumentosService")+"documento/"+fmt.Sprintf("%.f", documentoExtID), &documentosExt)
+
+					if errdocumentoExt == nil {
+						if documentosExt != nil {
+							metadatoJSON := documentosExt["Metadatos"].(string)
+							var metadato models.Metadatos
+							json.Unmarshal([]byte(metadatoJSON), &metadato)
+
+							resolucionExt = map[string]interface{}{
+								"Id":         documentosExt["Id"],
+								"Enlace":     documentosExt["Enlace"],
+								"Resolucion": metadato.Resolucion,
+								"Anno":       metadato.Anno,
+								"Nombre":     documentosExt["Nombre"],
+							}
+						} else {
+							c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": documentosExt}
+						}
+
+					} else {
+						c.Data["json"] = map[string]interface{}{"Success": false, "Status": "400", "Message": errdocumentoExt.Error(), "Data": nil}
+					}
+				}
+
+				// recorrer el calendario para agrupar las actividades por proceso
+				for _, calendario := range calendarios {
+					proceso = nil
+					proceso = map[string]interface{}{
+						"NombreProceso": calendario["TipoEventoId"].(map[string]interface{})["Id"].(float64),
+					}
+
+					procesoResultado = append(procesoResultado, proceso)
+				}
+
+				for _, procesoList := range procesoResultado {
+
+					procesoArr = append(procesoArr, fmt.Sprintf("%.f", procesoList["NombreProceso"].(float64)))
+
+				}
+
+				procesoResultado = nil
+
+				m := make(map[string]bool)
+				arr := make([]string, 0)
+
+				// eliminar procesos duplicados
+				for curIndex := 0; curIndex < len((*&procesoArr)); curIndex++ {
+					curValue := (*&procesoArr)[curIndex]
+					if has := m[curValue]; !has {
+						m[curValue] = true
+						arr = append(arr, curValue)
+					}
+				}
+				*&procesoArr = arr
+
+				for _, procesoList := range arr {
+
+					var procesos []map[string]interface{}
+					errproceso := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento?query=TipoEventoId.Id:"+procesoList+"&TipoEventoId__Id.CalendarioID__Id:"+idStr, &procesos)
+
+					if errproceso == nil {
+						if procesos != nil {
+							for _, proceso := range procesos {
+
+								// consultar responsables
+								// var responsableString = ""
+								responsableTipoP = nil
+								for _, responsable := range procesos {
+
+									calendarioResponsableID := fmt.Sprintf("%.f", responsable["Id"].(float64))
+									var responsables []map[string]interface{}
+									errresponsable := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento_tipo_publico?query=CalendarioEventoId__Id:"+calendarioResponsableID, &responsables)
+
+									if errresponsable == nil {
+										if responsables != nil {
+											responsableList = nil
+											for _, listRresponsable := range responsables {
+												var responsablesID map[string]interface{} = listRresponsable["TipoPublicoId"].(map[string]interface{})
+												// responsableID := fmt.Sprintf(responsablesID["Nombre"].(string))
+												// responsableString = responsableID + ", " + responsableString
+
+												responsableTipoP = map[string]interface{}{
+													"responsableID": responsablesID["Id"].(float64),
+													"Nombre":        fmt.Sprintf(responsablesID["Nombre"].(string)),
+												}
+												responsableList = append(responsableList, responsableTipoP)
+											}
+										}
+									} else {
+										c.Data["json"] = map[string]interface{}{"Success": false, "Status": "400", "Message": errresponsable.Error(), "Data": nil}
+									}
+								}
+
+								actividad = nil
+								actividad = map[string]interface{}{
+									"actividadId":   proceso["Id"].(float64),
+									"Nombre":        proceso["Nombre"].(string),
+									"Descripcion":   proceso["Descripcion"].(string),
+									"FechaInicio":   proceso["FechaInicio"].(string),
+									"FechaFin":      proceso["FechaFin"].(string),
+									"Activo":        proceso["Activo"].(bool),
+									"TipoEventoId":  proceso["TipoEventoId"].(map[string]interface{}),
+									"EventoPadreId": proceso["EventoPadreId"],
+									"Responsable":   responsableList,
+									"DependenciaId": proceso["DependenciaId"].(string),
+								}
+								actividadResultado = append(actividadResultado, actividad)
+
+							}
+
+							procesoAdd = nil
+							procesoAdd = map[string]interface{}{
+								"Proceso":     procesos[0]["TipoEventoId"].(map[string]interface{})["Nombre"].(string),
+								"Actividades": actividadResultado,
+							}
+
+							procesoResultado = append(procesoResultado, procesoAdd)
+							actividadResultado = nil
+
+						} else {
+							c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": procesos}
+						}
+
+					} else {
+						c.Data["json"] = map[string]interface{}{"Success": false, "Status": "400", "Message": errproceso.Error(), "Data": nil}
+					}
+				}
+				calendarioAux := calendarios[0]["TipoEventoId"].(map[string]interface{})["CalendarioID"].(map[string]interface{})
+
+				var calendariosExt []map[string]interface{}
+				errcalendariosExt := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Activo:true,AplicaExtension:true,CalendarioPadreId.Id:"+idStr+"&limit=0", &calendariosExt)
+				if errcalendariosExt == nil {
+					fmt.Println("list: ", calendariosExt)
+					if calendariosExt != nil && fmt.Sprintf("%v", calendariosExt) != "[map[]]" {
+						calendariosExtlist = nil
+						for _, calExt := range calendariosExt {
+							Ext := map[string]interface{}{
+								"Id":     calExt["Id"].(float64),
+								"Nombre": calExt["Nombre"].(string),
+							}
+							calendariosExtlist = append(calendariosExtlist, Ext)
+						}
+					}
+				} else {
+					fmt.Println("error calen ext list", errcalendariosExt)
+				}
+
+				var ExisteExtension = false
+				if calendariosExtlist != nil {
+					ExisteExtension = true
+				}
+
+				resultado = map[string]interface{}{
+					"Id":                      idStr,
+					"Nombre":                  calendarioAux["Nombre"].(string),
+					"PeriodoId":               calendarioAux["PeriodoId"].(float64),
+					"Activo":                  calendarioAux["Activo"].(bool),
+					"Nivel":                   calendarioAux["Nivel"].(float64),
+					"ListaCalendario":         versionCalendarioResultado,
+					"resolucion":              resolucion,
+					"DependenciaId":           calendarioAux["DependenciaId"].(string),
+					"proceso":                 procesoResultado,
+					"AplicaExtension":         ExisteExtension,
+					"ListaExtension":          calendariosExtlist,
+					"extension":               resolucionExt,
+					"DependenciaParticularId": calendarioAux["DependenciaParticularId"].(string),
+				}
+				resultados = append(resultados, resultado)
+
+				c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": resultados}
+
+			} else {
+				var calendario map[string]interface{}
+				errcalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario/"+idStr, &calendario)
+				if errcalendario == nil {
+					if calendario["Id"] != nil {
+
+						if calendario["CalendarioPadreId"] != nil {
+							padreID := fmt.Sprintf("%.f", calendario["CalendarioPadreId"].(map[string]interface{})["Id"].(float64))
+							versionCalendario = map[string]interface{}{
+								"Id":     padreID,
+								"Nombre": calendario["CalendarioPadreId"].(map[string]interface{})["Nombre"],
+							}
+							versionCalendarioResultado = append(versionCalendarioResultado, versionCalendario)
+						}
+
+						documentoID := fmt.Sprintf("%.f", calendario["DocumentoId"].(float64))
+						var documentos map[string]interface{}
+						errdocumento := request.GetJson("http://"+beego.AppConfig.String("DocumentosService")+"documento/"+documentoID, &documentos)
+
+						if errdocumento == nil {
+
+							if documentos != nil {
+
+								metadatoJSON := documentos["Metadatos"].(string)
+								var metadato models.Metadatos
+								json.Unmarshal([]byte(metadatoJSON), &metadato)
+
+								resolucion = map[string]interface{}{
+									"Id":         documentos["Id"],
+									"Enlace":     documentos["Enlace"],
+									"Resolucion": metadato.Resolucion,
+									"Anno":       metadato.Anno,
+									"Nombre":     documentos["Nombre"],
+								}
+							} else {
+								c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": documentos}
+							}
+
+						} else {
+							c.Data["json"] = map[string]interface{}{"Success": false, "Status": "400", "Message": errdocumento.Error(), "Data": nil}
+						}
+
+						resultado = map[string]interface{}{
+							"Id":              idStr,
+							"Nombre":          calendario["Nombre"].(string),
+							"PeriodoId":       calendario["PeriodoId"].(float64),
+							"Activo":          calendario["Activo"].(bool),
+							"Nivel":           calendario["Nivel"].(float64),
+							"ListaCalendario": versionCalendarioResultado,
+							"resolucion":      resolucion,
+							"proceso":         procesoResultado,
+						}
+						resultados = append(resultados, resultado)
+
+						c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": resultados}
+					} else {
+						c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": "No data found", "Data": nil}
+					}
+
+				} else {
+					c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": calendarios}
+				}
+
+			}
+
+		} else {
+			c.Data["json"] = map[string]interface{}{"Success": false, "Status": "400", "Message": errcalendario.Error(), "Data": nil}
+		}
+
+	} else {
+		if resultado["Body"] == "<QuerySeter> no row found" {
+			c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": "No row found", "Data": nil}
+		} else {
+			c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": "No data found", "Data": nil}
+		}
+	}
+
+	c.ServeJSON()
+
 }
