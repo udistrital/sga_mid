@@ -3,12 +3,12 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
-	"github.com/udistrital/utils_oas/formatdata"
 	"github.com/udistrital/utils_oas/request"
 )
 
@@ -36,6 +36,7 @@ func (c *ExperienciaLaboralController) URLMapping() {
 // @router / [post]
 func (c *ExperienciaLaboralController) PostExperienciaLaboral() {
 	var ExperienciaLaboral map[string]interface{}
+	var idInfoExperencia string
 	var respuesta map[string]interface{}
 	respuesta = make(map[string]interface{})
 
@@ -54,9 +55,32 @@ func (c *ExperienciaLaboralController) PostExperienciaLaboral() {
 		CargoID := Experiencia["Cargo"].(map[string]interface{})["Id"].(float64)
 		NombreCargo := Experiencia["Cargo"].(map[string]interface{})["Nombre"].(string)
 
+		// GET para traer el id de experencia_labora info complementaria
+		var resultadoInfoComplementaria []map[string]interface{}
+		errIdInfo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria?query=GrupoInfoComplementariaId__Id:19,CodigoAbreviacion:EXP_LABORAL,Activo:true&limit=0", &resultadoInfoComplementaria)
+		if errIdInfo == nil && fmt.Sprintf("%v", resultadoInfoComplementaria[0]["System"]) != "map[]" {
+			if resultadoInfoComplementaria[0]["Status"] != 404 && resultadoInfoComplementaria[0]["Id"] != nil {
+
+				idInfoExperencia = fmt.Sprintf("%v", resultadoInfoComplementaria[0]["Id"])
+			} else {
+				if resultadoInfoComplementaria[0]["Message"] == "Not found resource" {
+					c.Data["json"] = nil
+				} else {
+					logs.Error(resultadoInfoComplementaria)
+					c.Data["system"] = resultadoInfoComplementaria
+					c.Abort("404")
+				}
+			}
+		} else {
+			logs.Error(errIdInfo)
+			c.Data["system"] = errIdInfo
+			c.Abort("404")
+		}
+		intVar, _ := strconv.Atoi(idInfoExperencia)
+
 		ExperienciaLaboralData := map[string]interface{}{
 			"TerceroId":            map[string]interface{}{"Id": Experiencia["Persona"].(float64)},
-			"InfoComplementariaId": map[string]interface{}{"Id": 312},
+			"InfoComplementariaId": map[string]interface{}{"Id": intVar},
 			"Dato": "{\n    " +
 				"\"Nit\": \"" + fmt.Sprintf("%v", dato["NumeroIdentificacion"]) + "\",    " +
 				"\"FechaInicio\": \"" + Experiencia["FechaInicio"].(string) + "\",    " +
@@ -69,12 +93,13 @@ func (c *ExperienciaLaboralController) PostExperienciaLaboral() {
 				"\n }",
 			"Activo": true,
 		}
+		//formatdata.JsonPrint(ExperienciaLaboralData)
 
-		errExperiencia := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/", "POST", &ExperienciaLaboralPost, ExperienciaLaboralData)
+		errExperiencia := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero", "POST", &ExperienciaLaboralPost, ExperienciaLaboralData)
 		if errExperiencia == nil && fmt.Sprintf("%v", ExperienciaLaboralPost["System"]) != "map[]" && ExperienciaLaboralPost["Id"] != nil {
 			if ExperienciaLaboralPost["Status"] != 400 {
 				respuesta["FormacionAcademica"] = ExperienciaLaboralPost
-				formatdata.JsonPrint(respuesta)
+				//formatdata.JsonPrint(respuesta)
 				c.Data["json"] = respuesta
 			} else {
 				logs.Error(ExperienciaLaboralPost)

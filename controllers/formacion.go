@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/astaxie/beego"
@@ -38,6 +39,7 @@ func (c *FormacionController) URLMapping() {
 // @router / [post]
 func (c *FormacionController) PostFormacionAcademica() {
 	var FormacionAcademica map[string]interface{}
+	var idInfoFormacion string
 	var respuesta map[string]interface{}
 	respuesta = make(map[string]interface{})
 
@@ -53,9 +55,32 @@ func (c *FormacionController) PostFormacionAcademica() {
 		NitU := fmt.Sprintf("%q", FormacionAcademica["NitUniversidad"])
 		// NivelFormacion := fmt.Sprintf("%v", FormacionAcademica["NivelFormacion"])
 
+		// GET para traer el id de experencia_labora info complementaria
+		var resultadoInfoComplementaria []map[string]interface{}
+		errIdInfo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria?query=GrupoInfoComplementariaId__Id:18,CodigoAbreviacion:FORM_ACADEMICA,Activo:true&limit=0", &resultadoInfoComplementaria)
+		if errIdInfo == nil && fmt.Sprintf("%v", resultadoInfoComplementaria[0]["System"]) != "map[]" {
+			if resultadoInfoComplementaria[0]["Status"] != 404 && resultadoInfoComplementaria[0]["Id"] != nil {
+
+				idInfoFormacion = fmt.Sprintf("%v", resultadoInfoComplementaria[0]["Id"])
+			} else {
+				if resultadoInfoComplementaria[0]["Message"] == "Not found resource" {
+					c.Data["json"] = nil
+				} else {
+					logs.Error(resultadoInfoComplementaria)
+					c.Data["system"] = resultadoInfoComplementaria
+					c.Abort("404")
+				}
+			}
+		} else {
+			logs.Error(errIdInfo)
+			c.Data["system"] = errIdInfo
+			c.Abort("404")
+		}
+		intVar, _ := strconv.Atoi(idInfoFormacion)
+
 		FormacionAcademicaData := map[string]interface{}{
 			"TerceroId":            map[string]interface{}{"Id": FormacionAcademica["TerceroId"].(float64)},
-			"InfoComplementariaId": map[string]interface{}{"Id": 313},
+			"InfoComplementariaId": map[string]interface{}{"Id": intVar},
 			"Dato": "{\n    " +
 				"\"ProgramaAcademico\": " + NombrePrograma + ",    " +
 				"\"FechaInicio\": " + FechaI + ",    " +
