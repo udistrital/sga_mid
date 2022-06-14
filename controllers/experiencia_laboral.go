@@ -329,7 +329,7 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 
 	var Data []map[string]interface{}
 
-	errData := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+fmt.Sprintf("%v", TerceroID)+",InfoComplementariaId__Id:312,Activo:true&limit=0&sortby=Id&order=asc", &Data)
+	errData := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+fmt.Sprintf("%v", TerceroID)+",InfoComplementariaId__CodigoAbreviacion:EXP_LABORAL,Activo:true&limit=0&sortby=Id&order=asc", &Data)
 	if errData == nil {
 		if Data != nil && fmt.Sprintf("%v", Data) != "[map[]]" {
 			var experiencia map[string]interface{}

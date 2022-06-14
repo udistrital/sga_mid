@@ -510,7 +510,7 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 	var errorGetAll bool
 	alertas := append([]interface{}{})
 
-	errData := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+TerceroId+",InfoComplementariaId__Id:313,Activo:true&limit=0&sortby=Id&order=asc", &Data)
+	errData := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+TerceroId+",InfoComplementariaId__CodigoAbreviacion:FORM_ACADEMICA,Activo:true&limit=0&sortby=Id&order=asc", &Data)
 	if errData == nil {
 		if Data != nil && fmt.Sprintf("%v", Data) != "[map[]]" {
 			var formacion map[string]interface{}
