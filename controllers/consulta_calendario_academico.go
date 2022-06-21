@@ -45,28 +45,43 @@ func (c *ConsultaCalendarioAcademicoController) GetAll() {
 	var errorGetAll bool
 	alertas := []interface{}{"Response:"}
 
-	errCalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?limit=0", &calendarios)
+	errCalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?limit=0&sortby=Id&order=desc", &calendarios)
 	if errCalendario == nil {
 		if len(calendarios[0]) > 0 && fmt.Sprintf("%v", calendarios[0]["Nombre"]) != "map[]" {
 			for _, calendario := range calendarios {
-				periodoID := fmt.Sprintf("%.f", calendario["PeriodoId"].(float64))
-				errPeriodo := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"periodo/"+periodoID, &periodo)
-				if errPeriodo == nil {
-					resultado := map[string]interface{}{
-						"Id":      calendario["Id"].(float64),
-						"Nombre":  calendario["Nombre"].(string),
-						"Nivel":   calendario["Nivel"].(float64),
-						"Activo":  calendario["Activo"].(bool),
-						"Periodo": periodo["Data"].(map[string]interface{})["Nombre"].(string),
+				if calendario["AplicaExtension"].(bool) == false {
+
+					var ListarCalendario bool = false
+					if calendario["CalendarioPadreId"] == nil {
+						ListarCalendario = true
+					} else if calendario["Activo"].(bool) == true && calendario["CalendarioPadreId"].(map[string]interface{})["Activo"].(bool) == false {
+						ListarCalendario = true
+					} else {
+						ListarCalendario = false
 					}
-					resultados = append(resultados, resultado)
-				} else {
-					errorGetAll = true
-					alertas = append(alertas, errPeriodo.Error())
-					alerta.Code = "400"
-					alerta.Type = "error"
-					alerta.Body = alertas
-					c.Data["json"] = map[string]interface{}{"Response": alerta}
+
+					if ListarCalendario {
+						periodoID := fmt.Sprintf("%.f", calendario["PeriodoId"].(float64))
+						errPeriodo := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"periodo/"+periodoID, &periodo)
+						if errPeriodo == nil {
+							resultado := map[string]interface{}{
+								"Id":      calendario["Id"].(float64),
+								"Nombre":  calendario["Nombre"].(string),
+								"Nivel":   calendario["Nivel"].(float64),
+								"Activo":  calendario["Activo"].(bool),
+								"Periodo": periodo["Data"].(map[string]interface{})["Nombre"].(string),
+							}
+							resultados = append(resultados, resultado)
+						} else {
+							errorGetAll = true
+							alertas = append(alertas, errPeriodo.Error())
+							alerta.Code = "400"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
+						}
+					}
+
 				}
 			}
 		} else {
@@ -417,6 +432,9 @@ func (c *ConsultaCalendarioAcademicoController) PutInhabilitarClendario() {
 		if errCalendario == nil {
 			if calendario != nil {
 
+				if fmt.Sprintf("%v", calendario["DependenciaParticularId"]) == "" {
+					calendario["DependenciaParticularId"] = "{}"
+				}
 				calendario["Activo"] = false
 
 				errCalendario := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"calendario/"+idCalendario, "PUT", &resultado, calendario)
@@ -553,16 +571,17 @@ func (c *ConsultaCalendarioAcademicoController) PostCalendarioHijo() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &AuxCalendarioHijo); err == nil {
 
 		CalendarioHijo := map[string]interface{}{
-			"Nombre":            AuxCalendarioHijo["Nombre"],
-			"DependenciaId":     AuxCalendarioHijo["DependenciaId"],
-			"DocumentoId":       AuxCalendarioHijo["DocumentoId"],
-			"PeriodoId":         AuxCalendarioHijo["PeriodoId"],
-			"AplicacionId":      0,
-			"Nivel":             AuxCalendarioHijo["Nivel"],
-			"Activo":            AuxCalendarioHijo["Activo"],
-			"FechaCreacion":     time_bogota.TiempoBogotaFormato(),
-			"FechaModificacion": time_bogota.TiempoBogotaFormato(),
-			"CalendarioPadreId": map[string]interface{}{"Id": AuxCalendarioHijo["CalendarioPadreId"].(map[string]interface{})["Id"].(float64)},
+			"Nombre":                  AuxCalendarioHijo["Nombre"],
+			"DependenciaId":           AuxCalendarioHijo["DependenciaId"],
+			"DocumentoId":             AuxCalendarioHijo["DocumentoId"],
+			"PeriodoId":               AuxCalendarioHijo["PeriodoId"],
+			"AplicacionId":            0,
+			"Nivel":                   AuxCalendarioHijo["Nivel"],
+			"Activo":                  AuxCalendarioHijo["Activo"],
+			"FechaCreacion":           time_bogota.TiempoBogotaFormato(),
+			"FechaModificacion":       time_bogota.TiempoBogotaFormato(),
+			"CalendarioPadreId":       map[string]interface{}{"Id": AuxCalendarioHijo["CalendarioPadreId"].(map[string]interface{})["Id"].(float64)},
+			"DependenciaParticularId": "{}",
 		}
 		fmt.Println(AuxCalendarioHijo["CalendarioPadreId"].(map[string]interface{})["Id"])
 		errCalendarioHijo := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"calendario", "POST", &calendarioHijoPost, CalendarioHijo)
@@ -579,6 +598,9 @@ func (c *ConsultaCalendarioAcademicoController) PostCalendarioHijo() {
 
 						//Se cambia el estado del calendario Padre a inactivo
 						CalendarioPadre[0]["Activo"] = false
+						if fmt.Sprintf("%v", CalendarioPadre[0]["DependenciaParticularId"]) == "" {
+							CalendarioPadre[0]["DependenciaParticularId"] = "{}"
+						}
 						CalendarioPadreAux := CalendarioPadre[0]
 						errCalendarioPadre := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"calendario/"+IdPadre, "PUT", &CalendarioPadrePut, CalendarioPadreAux)
 						if errCalendarioPadre == nil && fmt.Sprintf("%v", CalendarioPadrePut["System"]) != "map[]" && CalendarioPadrePut["Id"] != nil {
@@ -657,11 +679,19 @@ func (c *ConsultaCalendarioAcademicoController) GetCalendarInfo() {
 					// obtener informacion calendario padre si existe
 					if padreID != "" {
 
-						versionCalendario = map[string]interface{}{
-							"Id":     padreID,
-							"Nombre": calendarios[0]["TipoEventoId"].(map[string]interface{})["CalendarioID"].(map[string]interface{})["CalendarioPadreId"].(map[string]interface{})["Nombre"],
+						var calendariosPadre map[string]interface{}
+						errcalendarioPadre := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario/"+padreID, &calendariosPadre)
+						if calendariosPadre != nil {
+							if errcalendarioPadre == nil {
+								versionCalendario = map[string]interface{}{
+									"Id":     padreID,
+									"Nombre": calendariosPadre["Nombre"],
+								}
+								versionCalendarioResultado = append(versionCalendarioResultado, versionCalendario)
+							} else {
+								c.Data["json"] = map[string]interface{}{"Success": false, "Status": "400", "Message": errcalendarioPadre.Error(), "Data": nil}
+							}
 						}
-						versionCalendarioResultado = append(versionCalendarioResultado, versionCalendario)
 
 					} else {
 						versionCalendario = map[string]interface{}{
@@ -833,7 +863,7 @@ func (c *ConsultaCalendarioAcademicoController) GetCalendarInfo() {
 				calendarioAux := calendarios[0]["TipoEventoId"].(map[string]interface{})["CalendarioID"].(map[string]interface{})
 
 				var calendariosExt []map[string]interface{}
-				errcalendariosExt := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Activo:true,AplicaExtension:true,CalendarioPadreId.Id:"+idStr+"&limit=0", &calendariosExt)
+				errcalendariosExt := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=AplicaExtension:true,CalendarioPadreId.Id:"+idStr+"&limit=0", &calendariosExt)
 				if errcalendariosExt == nil {
 					fmt.Println("list: ", calendariosExt)
 					if calendariosExt != nil && fmt.Sprintf("%v", calendariosExt) != "[map[]]" {
@@ -842,6 +872,7 @@ func (c *ConsultaCalendarioAcademicoController) GetCalendarInfo() {
 							Ext := map[string]interface{}{
 								"Id":     calExt["Id"].(float64),
 								"Nombre": calExt["Nombre"].(string),
+								"Activo": calExt["Activo"].(bool),
 							}
 							calendariosExtlist = append(calendariosExtlist, Ext)
 						}
@@ -865,9 +896,10 @@ func (c *ConsultaCalendarioAcademicoController) GetCalendarInfo() {
 					"resolucion":              resolucion,
 					"DependenciaId":           calendarioAux["DependenciaId"].(string),
 					"proceso":                 procesoResultado,
-					"AplicaExtension":         ExisteExtension,
+					"ExistenExtensiones":      ExisteExtension,
 					"ListaExtension":          calendariosExtlist,
-					"extension":               resolucionExt,
+					"resolucionExt":           resolucionExt,
+					"AplicaExtension":         calendarioAux["AplicaExtension"].(bool),
 					"DependenciaParticularId": calendarioAux["DependenciaParticularId"].(string),
 				}
 				resultados = append(resultados, resultado)
@@ -875,6 +907,7 @@ func (c *ConsultaCalendarioAcademicoController) GetCalendarInfo() {
 				c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": resultados}
 
 			} else {
+				///////////////////////// sin eventos //////////////////////
 				var calendario map[string]interface{}
 				errcalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario/"+idStr, &calendario)
 				if errcalendario == nil {
@@ -916,15 +949,73 @@ func (c *ConsultaCalendarioAcademicoController) GetCalendarInfo() {
 							c.Data["json"] = map[string]interface{}{"Success": false, "Status": "400", "Message": errdocumento.Error(), "Data": nil}
 						}
 
+						documentoExtID, ok := calendario["DocumentoExtensionId"].(float64)
+
+						if documentoExtID != 0 && ok {
+							var documentosExt map[string]interface{}
+							errdocumentoExt := request.GetJson("http://"+beego.AppConfig.String("DocumentosService")+"documento/"+fmt.Sprintf("%.f", documentoExtID), &documentosExt)
+
+							if errdocumentoExt == nil {
+								if documentosExt != nil {
+									metadatoJSON := documentosExt["Metadatos"].(string)
+									var metadato models.Metadatos
+									json.Unmarshal([]byte(metadatoJSON), &metadato)
+
+									resolucionExt = map[string]interface{}{
+										"Id":         documentosExt["Id"],
+										"Enlace":     documentosExt["Enlace"],
+										"Resolucion": metadato.Resolucion,
+										"Anno":       metadato.Anno,
+										"Nombre":     documentosExt["Nombre"],
+									}
+								} else {
+									c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": documentosExt}
+								}
+
+							} else {
+								c.Data["json"] = map[string]interface{}{"Success": false, "Status": "400", "Message": errdocumentoExt.Error(), "Data": nil}
+							}
+						}
+
+						var calendariosExt []map[string]interface{}
+						errcalendariosExt := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=AplicaExtension:true,CalendarioPadreId.Id:"+idStr+"&limit=0", &calendariosExt)
+						if errcalendariosExt == nil {
+							fmt.Println("list: ", calendariosExt)
+							if calendariosExt != nil && fmt.Sprintf("%v", calendariosExt) != "[map[]]" {
+								calendariosExtlist = nil
+								for _, calExt := range calendariosExt {
+									Ext := map[string]interface{}{
+										"Id":     calExt["Id"].(float64),
+										"Nombre": calExt["Nombre"].(string),
+										"Activo": calExt["Activo"].(bool),
+									}
+									calendariosExtlist = append(calendariosExtlist, Ext)
+								}
+							}
+						} else {
+							fmt.Println("error calen ext list", errcalendariosExt)
+						}
+
+						var ExisteExtension = false
+						if calendariosExtlist != nil {
+							ExisteExtension = true
+						}
+
 						resultado = map[string]interface{}{
-							"Id":              idStr,
-							"Nombre":          calendario["Nombre"].(string),
-							"PeriodoId":       calendario["PeriodoId"].(float64),
-							"Activo":          calendario["Activo"].(bool),
-							"Nivel":           calendario["Nivel"].(float64),
-							"ListaCalendario": versionCalendarioResultado,
-							"resolucion":      resolucion,
-							"proceso":         procesoResultado,
+							"Id":                      idStr,
+							"Nombre":                  calendario["Nombre"].(string),
+							"PeriodoId":               calendario["PeriodoId"].(float64),
+							"Activo":                  calendario["Activo"].(bool),
+							"Nivel":                   calendario["Nivel"].(float64),
+							"ListaCalendario":         versionCalendarioResultado,
+							"resolucion":              resolucion,
+							"DependenciaId":           calendario["DependenciaId"].(string),
+							"proceso":                 procesoResultado,
+							"ExistenExtensiones":      ExisteExtension,
+							"ListaExtension":          calendariosExtlist,
+							"resolucionExt":           resolucionExt,
+							"AplicaExtension":         calendario["AplicaExtension"].(bool),
+							"DependenciaParticularId": calendario["DependenciaParticularId"].(string),
 						}
 						resultados = append(resultados, resultado)
 
