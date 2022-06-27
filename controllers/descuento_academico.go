@@ -57,7 +57,7 @@ func (c *DescuentoController) PostDescuentoAcademico() {
 			// }
 
 			solicituddescuento := map[string]interface{}{
-				"Id":                      0,
+				//"Id":                      0,
 				"TerceroId":               solicitud["PersonaId"],
 				"Estado":                  "Por aprobar",
 				"PeriodoId":               solicitud["PeriodoId"],
