@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	_ "github.com/udistrital/sga_mid/routers"
 	apistatus "github.com/udistrital/utils_oas/apiStatusLib"
 
@@ -37,4 +39,5 @@ func main() {
 	apistatus.Init()
 	auditoria.InitMiddleware()
 	beego.Run()
+	fmt.Println("Print Inicial")
 }
