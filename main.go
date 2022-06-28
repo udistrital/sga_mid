@@ -36,6 +36,7 @@ func main() {
 	logs.SetLogger(logs.AdapterFile, logPath)*/
 
 	// notificacionlib.InitMiddleware()
+	fmt.Println("Print Inicial")
 	apistatus.Init()
 	auditoria.InitMiddleware()
 	beego.Run()
