@@ -632,7 +632,7 @@
                 }
             }
         },
-        "/consulta_calendario_proyecto/nivel/{id}": {
+        "/consulta_calendario_proyecto/nivel/{idNiv}/periodo/{idPer}": {
             "get": {
                 "tags": [
                     "consulta_calendario_proyecto"
@@ -642,10 +642,19 @@
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "string",
-                        "description": "The key for staticblock",
+                        "name": "idNiv",
+                        "description": "Id nivel",
                         "required": true,
-                        "type": "string"
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "path",
+                        "name": ":idNiv",
+                        "description": "Id periodo",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
                     }
                 ],
                 "responses": {
