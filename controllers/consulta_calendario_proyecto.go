@@ -37,17 +37,32 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarByProjectId() {
 	alertas := append([]interface{}{"Response:"})
 	idStr, _ := strconv.Atoi(c.Ctx.Input.Param(":id"))
 
-	errCalendarios := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Activo:true&limit=0", &calendarios)
+	errCalendarios := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Activo:true&limit=0&sortby=Id&order=desc", &calendarios)
 	if errCalendarios == nil && fmt.Sprintf("%v", calendarios[0]["Nombre"]) != "map[]" {
 		for _, calendario := range calendarios {
-			DependenciaId := calendario["DependenciaId"].(string)
-			if DependenciaId != "{}" {
-				var listaProyectos map[string][]int
-				json.Unmarshal([]byte(DependenciaId), &listaProyectos)
-				for _, Id := range listaProyectos["proyectos"] {
-					if Id == idStr {
-						CalendarioId = strconv.FormatFloat(calendario["Id"].(float64), 'f', 0, 64)
-						break
+			AplicaExtension := calendario["AplicaExtension"].(bool)
+			if AplicaExtension {
+				DependenciaParticularId := calendario["DependenciaParticularId"].(string)
+				if DependenciaParticularId != "{}" || DependenciaParticularId != "" {
+					var listaProyectos map[string][]int
+					json.Unmarshal([]byte(DependenciaParticularId), &listaProyectos)
+					for _, Id := range listaProyectos["proyectos"] {
+						if Id == idStr {
+							CalendarioId = strconv.FormatFloat(calendario["Id"].(float64), 'f', 0, 64)
+							break
+						}
+					}
+				}
+			} else {
+				DependenciaId := calendario["DependenciaId"].(string)
+				if DependenciaId != "{}" {
+					var listaProyectos map[string][]int
+					json.Unmarshal([]byte(DependenciaId), &listaProyectos)
+					for _, Id := range listaProyectos["proyectos"] {
+						if Id == idStr {
+							CalendarioId = strconv.FormatFloat(calendario["Id"].(float64), 'f', 0, 64)
+							break
+						}
 					}
 				}
 			}
@@ -73,129 +88,143 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarByProjectId() {
 // GetCalendarProject ...
 // @Title GetCalendarProject
 // @Description get ConsultaCalendarioAcademico & id y Project By Id
-// @Param	string		path 	string	true		"The key for staticblock"
+// @Param	idNiv	path	int	true		"Id nivel"
+// @Param	:idNiv	path	int	true	"Id periodo"
 // @Success 200
 // @Failure 403 :id is empty
-// @router /nivel/:id [get]
+// @router /nivel/:idNiv/periodo/:idPer [get]
 func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 
 	var calendarios []map[string]interface{}
 	var calendarioEventos []map[string]interface{}
 	var proyectos []map[string]interface{}
-	var calendarioID string = "0"
-	var calendario map[string]interface{}
+	var proyectosP []map[string]interface{}
+	var proyectosH []map[string]interface{}
+	var CalendarioId string = "0"
+	/*var calendario map[string]interface{}
 	var proyecto map[string]interface{}
-	var proyectoRetorno []map[string]interface{}
+	var proyectoRetorno []map[string]interface{} */
 	var alerta models.Alert
-	var procesoArr []string
-	var calendariosArrMap []map[string]interface{}
 	var proyectosArrMap []map[string]interface{}
+	/* var procesoArr []string
+	var calendariosArrMap []map[string]interface{}
+
 	var calendariosFilter []map[string]interface{}
 	var proyectosFilter []map[string]interface{}
 	var proyectosArr map[string]interface{}
-	var salidaFilter []map[string]interface{}
+	var salidaFilter []map[string]interface{} */
 	alertas := append([]interface{}{"Response:"})
-	idStr := c.Ctx.Input.Param(":id")
+	idNiv := c.Ctx.Input.Param(":idNiv")
+	idPer := c.Ctx.Input.Param(":idPer")
 
-	errProyectos := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?limit=0", &proyectos)
-	if errProyectos == nil && fmt.Sprintf("%v", proyectos[0]["Id"]) != "map[]" {
+	// list proyectos padres
+	errProyectosP := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Activo:true,NivelFormacionId.Id:"+fmt.Sprintf("%v", idNiv)+"&sortby=Nombre&order=asc&limit=0&fields=Id,Nombre", &proyectosP)
+	if errProyectosP == nil {
+		if fmt.Sprintf("%v", proyectosP) != "[map[]]" {
+			proyectos = append(proyectos, proyectosP...)
+		}
+		// list proyectos hijos
+		errProyectosH := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Activo:true,NivelFormacionId.NivelFormacionPadreId.Id:"+fmt.Sprintf("%v", idNiv)+"&sortby=Nombre&order=asc&limit=0&fields=Id,Nombre", &proyectosH)
+		if errProyectosH == nil {
+			if fmt.Sprintf("%v", proyectosH) != "[map[]]" {
+				proyectos = append(proyectos, proyectosH...)
+			}
 
-		errCalendarios := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Activo:true&limit=0", &calendarios)
-		if errCalendarios == nil && fmt.Sprintf("%v", calendarios[0]["Nombre"]) != "map[]" {
-			for _, proyecto := range proyectos {
-				for _, calendario := range calendarios {
-					DependenciaID := calendario["DependenciaId"].(string)
-					if DependenciaID != "{}" {
-						var listaProyectos map[string][]int
-						json.Unmarshal([]byte(DependenciaID), &listaProyectos)
-						for _, id := range listaProyectos["proyectos"] {
-							if id == int(proyecto["Id"].(float64)) {
-								if proyecto["NivelFormacionId"].(map[string]interface{})["NivelFormacionPadreId"] != nil {
-									idNivel := fmt.Sprint(proyecto["NivelFormacionId"].(map[string]interface{})["NivelFormacionPadreId"].(map[string]interface{})["Id"] )
-									if idNivel == idStr{
-										calendarioID = strconv.FormatFloat(calendario["Id"].(float64), 'f', 0, 64)
-										break
+			if len(proyectos) > 0 {
+				errCalendarios := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Activo:true,Nivel:"+fmt.Sprintf("%v", idNiv)+",PeriodoId:"+fmt.Sprintf("%v", idPer)+"&limit=0&sortby=Id&order=desc", &calendarios)
+				if errCalendarios == nil && fmt.Sprintf("%v", calendarios) != "[map[]]" {
+
+					for _, proyecto := range proyectos {
+						IdPro := int(proyecto["Id"].(float64))
+						CalendarioId = "0"
+						for _, calendario := range calendarios {
+							AplicaExtension := calendario["AplicaExtension"].(bool)
+							if AplicaExtension {
+								DependenciaParticularId := calendario["DependenciaParticularId"].(string)
+								if DependenciaParticularId != "{}" || DependenciaParticularId != "" {
+									var listaProyectos map[string][]int
+									json.Unmarshal([]byte(DependenciaParticularId), &listaProyectos)
+									for _, Id := range listaProyectos["proyectos"] {
+										if Id == IdPro {
+											CalendarioId = strconv.FormatFloat(calendario["Id"].(float64), 'f', 0, 64)
+											break
+										}
 									}
-								} else {
-									idNivel := fmt.Sprint(proyecto["NivelFormacionId"].(map[string]interface{})["Id"])
-									if idNivel == idStr {
-										calendarioID = strconv.FormatFloat(calendario["Id"].(float64), 'f', 0, 64)
-										break
+								}
+							} else {
+								DependenciaId := calendario["DependenciaId"].(string)
+								if DependenciaId != "{}" {
+									var listaProyectos map[string][]int
+									json.Unmarshal([]byte(DependenciaId), &listaProyectos)
+									for _, Id := range listaProyectos["proyectos"] {
+										if Id == IdPro {
+											CalendarioId = strconv.FormatFloat(calendario["Id"].(float64), 'f', 0, 64)
+											break
+										}
 									}
 								}
 							}
-						}
-					}
-					if calendarioID != "0" {
-						proyectosArr = map[string]interface{}{
-							"ProyectoId":   int(proyecto["Id"].(float64)),
-							"Nombre":       proyecto["Nombre"],
-							"CalendarioID": calendarioID,
-						}
-						proyectosArrMap = append(proyectosArrMap, proyectosArr)
-						
-						procesoArr = append(procesoArr, calendarioID)
-						calendarioID = "0"
-						break
-					}
-				}
-				
-			}
-			
-			m := make(map[string]bool)
-			// eliminar calendarios duplicados
-			for curIndex := 0; curIndex < len((*&proyectosArrMap)); curIndex++ {
-				curValue := proyectosArrMap[curIndex]["CalendarioID"].(string)
-				if has := m[curValue]; !has {
-					m[curValue] = true
-					calendariosFilter = append(calendariosFilter, proyectosArrMap[curIndex])
-				}
-			}
-			
-			*&calendariosArrMap = calendariosFilter
-			
-			m1 := make(map[int]bool)
-			// eliminar proyectos duplicados
-			for curIndex := 0; curIndex < len((*&proyectosArrMap)); curIndex++ {
-				curValue := proyectosArrMap[curIndex]["ProyectoId"].(int)
-				if has := m1[curValue]; !has {
-					m1[curValue] = true
-					proyectosFilter = append(proyectosFilter, proyectosArrMap[curIndex])
-				}
-			} 
-
-			*&proyectosArrMap = proyectosFilter
-
-			for _, calendarioArrMap := range calendariosArrMap {
-
-				errEvento := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento/?query=TipoEventoId__CalendarioID__Id:"+calendarioArrMap["CalendarioID"].(string)+",Activo:true&limit=0", &calendarioEventos)
-				if errEvento == nil && fmt.Sprintf("%v", calendarioEventos[0]["Nombre"]) != "map[]" {
-
-					for _, proyectoArrMap := range proyectosArrMap {
-						if calendarioArrMap["CalendarioID"].(string) == proyectoArrMap["CalendarioID"].(string) {
-
-							var calendarioRetorno []map[string]interface{}
-							for _, calendarioEvento := range calendarioEventos {
-								nombreEvento := strings.ToUpper(fmt.Sprintf(calendarioEvento["Nombre"].(string)))
-
-								if strings.Contains(nombreEvento, "INSCRIPCI") && strings.Contains(nombreEvento, "ASPIRANTE") && strings.Contains(nombreEvento, "PAGO") {
-									calendario = map[string]interface{}{
-										"NombreEvento":      calendarioEvento["Nombre"],
-										"FechaInicioEvento": calendarioEvento["FechaInicio"],
-										"FechaFinEvento":    calendarioEvento["FechaFin"],
-									}
-									calendarioRetorno = append(calendarioRetorno, calendario)
+							if CalendarioId != "0" {
+								proyectoInfo := map[string]interface{}{
+									"ProyectoId":          IdPro,
+									"NombreProyecto":      proyecto["Nombre"],
+									"CalendarioID":        CalendarioId,
+									"CalendarioExtension": AplicaExtension,
+									"Evento":              nil,
 								}
-							}
-							proyecto = map[string]interface{}{
-								"ProyectoId":     proyectoArrMap["ProyectoId"].(int),
-								"NombreProyecto": proyectoArrMap["Nombre"].(string),
-								"CalendarioId":   calendarioArrMap["CalendarioID"].(string),
-								"Evento":         calendarioRetorno,
+								proyectosArrMap = append(proyectosArrMap, proyectoInfo)
+								break
 							}
 						}
-						proyectoRetorno = append(proyectoRetorno, proyecto)
 					}
+
+					if len(proyectosArrMap) > 0 {
+						for i := range proyectosArrMap {
+							errEvento := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento/?query=TipoEventoId__CalendarioID__Id:"+proyectosArrMap[i]["CalendarioID"].(string)+",Activo:true&limit=0", &calendarioEventos)
+							if errEvento == nil && fmt.Sprintf("%v", calendarioEventos) != "[map[]]" {
+
+								for _, Evento := range calendarioEventos {
+									nombreEvento := strings.ToUpper(fmt.Sprintf(Evento["Nombre"].(string)))
+									if strings.Contains(nombreEvento, "INSCRIPCI") && strings.Contains(nombreEvento, "ASPIRANTE") && strings.Contains(nombreEvento, "PAGO") {
+
+										var aplicaParticular bool = false
+										if fmt.Sprintf("%v", Evento["DependenciaId"]) != "" || fmt.Sprintf("%v", Evento["DependenciaId"]) != "{}" {
+											var listaProyectos map[string]interface{}
+											json.Unmarshal([]byte(Evento["DependenciaId"].(string)), &listaProyectos)
+											for _, project := range listaProyectos["fechas"].([]interface{}) {
+												if int(project.(map[string]interface{})["Id"].(float64)) == proyectosArrMap[i]["ProyectoId"].(int) {
+													if project.(map[string]interface{})["Activo"].(bool) {
+														proyectosArrMap[i]["Evento"] = map[string]interface{}{
+															"ActividadParticular": true,
+															"NombreEvento":        Evento["Nombre"],
+															"FechaInicioEvento":   project.(map[string]interface{})["Inicio"],
+															"FechaFinEvento":      project.(map[string]interface{})["Fin"],
+														}
+													}
+													aplicaParticular = true
+													break
+												}
+											}
+										}
+										if !aplicaParticular {
+											proyectosArrMap[i]["Evento"] = map[string]interface{}{
+												"ActividadParticular": false,
+												"NombreEvento":        Evento["Nombre"],
+												"FechaInicioEvento":   Evento["FechaInicio"],
+												"FechaFinEvento":      Evento["FechaFin"],
+											}
+										}
+
+										break
+									}
+								}
+
+							}
+						}
+					}
+
+					c.Data["json"] = proyectosArrMap
+
 				} else {
 					alertas = append(alertas, errCalendarios.Error())
 					alerta.Code = "400"
@@ -203,33 +232,21 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 					alerta.Body = alertas
 					c.Data["json"] = alerta
 				}
-			}
 
-			if proyectoRetorno != nil {
-				m1 := make(map[int]bool)
-				// eliminar duplicados
-				for curIndex := 0; curIndex < len((*&proyectoRetorno)); curIndex++ {
-					curValue := proyectoRetorno[curIndex]["ProyectoId"].(int)
-					if has := m1[curValue]; !has {
-						m1[curValue] = true
-						salidaFilter = append(salidaFilter, proyectoRetorno[curIndex])
-					}
-				}
-				c.Data["json"] = salidaFilter
 			} else {
-				c.Data["json"] = "{}"
+				proyectos = []map[string]interface{}{}
+				c.Data["json"] = proyectos
 			}
 
 		} else {
-			alertas = append(alertas, errCalendarios.Error())
+			alertas = append(alertas, errProyectosH.Error())
 			alerta.Code = "400"
 			alerta.Type = "error"
 			alerta.Body = alertas
 			c.Data["json"] = alerta
 		}
-
 	} else {
-		alertas = append(alertas, errProyectos.Error())
+		alertas = append(alertas, errProyectosP.Error())
 		alerta.Code = "400"
 		alerta.Type = "error"
 		alerta.Body = alertas
