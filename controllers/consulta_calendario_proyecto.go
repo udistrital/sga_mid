@@ -188,7 +188,7 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 									if strings.Contains(nombreEvento, "INSCRIPCI") && strings.Contains(nombreEvento, "ASPIRANTE") && strings.Contains(nombreEvento, "PAGO") {
 
 										var aplicaParticular bool = false
-										if fmt.Sprintf("%v", Evento["DependenciaId"]) != "" || fmt.Sprintf("%v", Evento["DependenciaId"]) != "{}" {
+										if fmt.Sprintf("%v", Evento["DependenciaId"]) != "" && fmt.Sprintf("%v", Evento["DependenciaId"]) != "{}" {
 											var listaProyectos map[string]interface{}
 											json.Unmarshal([]byte(Evento["DependenciaId"].(string)), &listaProyectos)
 											for _, project := range listaProyectos["fechas"].([]interface{}) {
