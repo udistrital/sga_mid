@@ -101,7 +101,6 @@ func (c *PersonaController) GuardarPersona() {
 						errEstado := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero", "POST", &estado, estadociviltercero)
 						if errEstado == nil && fmt.Sprintf("%v", estado) != "map[]" && estado["Id"] != nil {
 							if estado["Status"] != 400 {
-								c.Data["json"] = estado
 								var genero map[string]interface{}
 								InfoComplementariaId2 := map[string]interface{}{
 									"Id": tercero["Genero"].(map[string]interface{})["Id"],
@@ -114,13 +113,73 @@ func (c *PersonaController) GuardarPersona() {
 								errGenero := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero", "POST", &genero, generotercero)
 								if errGenero == nil && fmt.Sprintf("%v", genero) != "map[]" && genero["Id"] != nil {
 									if genero["Status"] != 400 {
-										resultado = terceroPost
-										resultado["NumeroIdentificacion"] = identificacion["Numero"]
-										resultado["TipoIdentificacionId"] = identificacion["TipoDocumentoId"].(map[string]interface{})["Id"]
-										resultado["FechaExpedicion"] = identificacion["FechaExpedicion"]
-										resultado["EstadoCivilId"] = estado["Id"]
-										resultado["GeneroId"] = genero["Id"]
-										c.Data["json"] = resultado
+										var orientacionSexual map[string]interface{}
+										InfoComplementariaId3 := map[string]interface{}{
+											"Id": tercero["OrientacionSexual"].(map[string]interface{})["Id"],
+										}
+										orientacionSexualtercero := map[string]interface{}{
+											"TerceroId":            TerceroId,
+											"InfoComplementariaId": InfoComplementariaId3,
+											"Activo":               true,
+										}
+										errOrientacionSexual := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero", "POST", &orientacionSexual, orientacionSexualtercero)
+										if errOrientacionSexual == nil && fmt.Sprintf("%v", orientacionSexual) != "map[]" && orientacionSexual["Id"] != nil {
+											if orientacionSexual["Status"] != 400 {
+												var identidadGenero map[string]interface{}
+												InfoComplementariaId4 := map[string]interface{}{
+													"Id": tercero["IdentidadGenero"].(map[string]interface{})["Id"],
+												}
+												identidadGenerotercero := map[string]interface{}{
+													"TerceroId":            TerceroId,
+													"InfoComplementariaId": InfoComplementariaId4,
+													"Activo":               true,
+												}
+												errIdentidadGenero := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero", "POST", &identidadGenero, identidadGenerotercero)
+												if errIdentidadGenero == nil && fmt.Sprintf("%v", identidadGenero) != "map[]" && identidadGenero["Id"] != nil {
+													if identidadGenero["Status"] != 400 {
+
+														resultado = terceroPost
+														resultado["NumeroIdentificacion"] = identificacion["Numero"]
+														resultado["TipoIdentificacionId"] = identificacion["TipoDocumentoId"].(map[string]interface{})["Id"]
+														resultado["FechaExpedicion"] = identificacion["FechaExpedicion"]
+														resultado["EstadoCivilId"] = estado["Id"]
+														resultado["GeneroId"] = genero["Id"]
+														resultado["OrientacionSexualId"] = orientacionSexual["Id"]
+														resultado["IdentidadGeneroId"] = identidadGenero["Id"]
+														c.Data["json"] = resultado
+
+													} else {
+														var resultado2 map[string]interface{}
+														request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/%.f", identidadGenero["Id"]), "DELETE", &resultado2, nil)
+														request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/%.f", orientacionSexual["Id"]), "DELETE", &resultado2, nil)
+														request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/%.f", estado["Id"]), "DELETE", &resultado2, nil)
+														request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion/%.f", identificacion["Id"]), "DELETE", &resultado2, nil)
+														request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"tercero/%.f", terceroPost["Id"]), "DELETE", &resultado2, nil)
+														logs.Error(errIdentidadGenero)
+														c.Data["system"] = identidadGenero
+														c.Abort("400")
+													}
+												} else {
+													logs.Error(errIdentidadGenero)
+													c.Data["system"] = identidadGenero
+													c.Abort("400")
+												}
+
+											} else {
+												var resultado2 map[string]interface{}
+												request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/%.f", orientacionSexual["Id"]), "DELETE", &resultado2, nil)
+												request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/%.f", estado["Id"]), "DELETE", &resultado2, nil)
+												request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion/%.f", identificacion["Id"]), "DELETE", &resultado2, nil)
+												request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("TercerosService")+"tercero/%.f", terceroPost["Id"]), "DELETE", &resultado2, nil)
+												logs.Error(errOrientacionSexual)
+												c.Data["system"] = orientacionSexual
+												c.Abort("400")
+											}
+										} else {
+											logs.Error(errOrientacionSexual)
+											c.Data["system"] = orientacionSexual
+											c.Abort("400")
+										}
 
 									} else {
 										var resultado2 map[string]interface{}
@@ -165,6 +224,7 @@ func (c *PersonaController) GuardarPersona() {
 				}
 			} else {
 				logs.Error(errPersona)
+				fmt.Println("errPersona")
 				c.Data["system"] = terceroPost
 				c.Abort("400")
 			}
@@ -1082,6 +1142,8 @@ func (c *PersonaController) ConsultarPersona() {
 				if identificacion[0]["Status"] != 404 {
 					var estado []map[string]interface{}
 					var genero []map[string]interface{}
+					var orientacionSexual []map[string]interface{}
+					var identidadGenero []map[string]interface{}
 
 					resultado = persona[0]
 					resultado["NumeroIdentificacion"] = identificacion[0]["Numero"]
@@ -1141,6 +1203,50 @@ func (c *PersonaController) ConsultarPersona() {
 						logs.Error(genero)
 						//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 						c.Data["system"] = errGenero
+						c.Abort("404")
+					}
+
+					errOrientacionSexual := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+
+						fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:1636", &orientacionSexual)
+					if errOrientacionSexual == nil && fmt.Sprintf("%v", orientacionSexual[0]) != "map[]" {
+						if orientacionSexual[0]["Status"] != 404 {
+							resultado["OrientacionSexual"] = orientacionSexual[0]["InfoComplementariaId"]
+						} else {
+							if orientacionSexual[0]["Message"] == "Not found resource" {
+								c.Data["json"] = nil
+							} else {
+								logs.Error(orientacionSexual)
+								//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+								c.Data["system"] = errOrientacionSexual
+								c.Abort("404")
+							}
+						}
+					} else {
+						logs.Error(orientacionSexual)
+						//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+						c.Data["system"] = errOrientacionSexual
+						c.Abort("404")
+					}
+
+					errIdentidadGenero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+
+						fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.GrupoInfoComplementariaId.Id:1637", &identidadGenero)
+					if errIdentidadGenero == nil && fmt.Sprintf("%v", identidadGenero[0]) != "map[]" {
+						if identidadGenero[0]["Status"] != 404 {
+							resultado["IdentidadGenero"] = identidadGenero[0]["InfoComplementariaId"]
+						} else {
+							if identidadGenero[0]["Message"] == "Not found resource" {
+								c.Data["json"] = nil
+							} else {
+								logs.Error(identidadGenero)
+								//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+								c.Data["system"] = errIdentidadGenero
+								c.Abort("404")
+							}
+						}
+					} else {
+						logs.Error(identidadGenero)
+						//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+						c.Data["system"] = errIdentidadGenero
 						c.Abort("404")
 					}
 
