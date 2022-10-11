@@ -348,9 +348,9 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 					var endpoit string
 					if strings.Contains(fmt.Sprintf("%v", experiencia["Nit"]), "-") {
 						var auxNit = strings.Split(fmt.Sprintf("%v", experiencia["Nit"]), "-")
-						endpoit = "datos_identificacion?query=TipoDocumentoId__Id:7,Numero:" + auxNit[0] + ",DigitoVerificacion:" + auxNit[1]
+						endpoit = "datos_identificacion?query=Activo:true,TipoDocumentoId__Id:7,Numero:" + auxNit[0] + ",DigitoVerificacion:" + auxNit[1]
 					} else {
-						endpoit = "datos_identificacion?query=TipoDocumentoId__Id:7,Numero:" + fmt.Sprintf("%v", experiencia["Nit"])
+						endpoit = "datos_identificacion?query=Activo:true,TipoDocumentoId__Id:7,Numero:" + fmt.Sprintf("%v", experiencia["Nit"])
 					}
 
 					errDatosIdentificacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+endpoit, &empresa)
@@ -447,7 +447,7 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 
 											// GET para traer la organizacion de la empresa (info_complementaria 110)
 											var resultadoOrganizacion []map[string]interface{}
-											errorganizacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero_tipo_tercero/?limit=1&query=TerceroId__Id:"+fmt.Sprintf("%.f", idEmpresa), &resultadoOrganizacion)
+											errorganizacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero_tipo_tercero/?limit=1&query=Activo:true,TerceroId__Id:"+fmt.Sprintf("%.f", idEmpresa), &resultadoOrganizacion)
 											if errorganizacion == nil && fmt.Sprintf("%v", resultadoOrganizacion[0]["System"]) != "map[]" {
 												if resultadoOrganizacion[0]["Status"] != 404 && resultadoOrganizacion[0]["Id"] != nil {
 

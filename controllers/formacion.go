@@ -524,11 +524,11 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 						resultadoAux["FechaInicio"] = formacion["FechaInicio"]
 						resultadoAux["FechaFinalizacion"] = formacion["FechaFin"]
 
-						endpoit := "datos_identificacion?query=TipoDocumentoId__Id:7,Numero:" + fmt.Sprintf("%v", formacion["NitUniversidad"])
+						endpoit := "datos_identificacion?query=Activo:true,TipoDocumentoId__Id:7,Numero:" + fmt.Sprintf("%v", formacion["NitUniversidad"])
 
 						if strings.Contains(fmt.Sprintf("%v", formacion["NitUniversidad"]), "-") {
 							var auxId = strings.Split(fmt.Sprintf("%v", formacion["NitUniversidad"]), "-")
-							endpoit = "datos_identificacion?query=TipoDocumentoId__Id:7,Numero:" + auxId[0] + ",DigitoVerificacion:" + auxId[1]
+							endpoit = "datos_identificacion?query=Activo:true,TipoDocumentoId__Id:7,Numero:" + auxId[0] + ",DigitoVerificacion:" + auxId[1]
 						}
 
 						//GET para obtener el ID que relaciona las tablas tipo_documento y tercero
@@ -540,7 +540,7 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 
 								// GET para traer el nombre de la universidad y el país
 								var Tercero []map[string]interface{}
-								errTercero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero?query=Id:"+fmt.Sprintf("%v", IdTerceroAux), &Tercero)
+								errTercero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero?query=Activo:true,Id:"+fmt.Sprintf("%v", IdTerceroAux), &Tercero)
 								if errTercero == nil && fmt.Sprintf("%v", Tercero[0]) != "map[]" && Tercero[0]["Id"] != nil {
 									if Tercero[0]["Status"] != 404 {
 										formatdata.JsonPrint(Tercero)
