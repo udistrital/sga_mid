@@ -475,23 +475,17 @@ func (c *ProduccionAcademicaController) GetProduccionAcademica() {
 // @router /:id [delete]
 func (c *ProduccionAcademicaController) DeleteProduccionAcademica() {
 	idStr := c.Ctx.Input.Param(":id")
-	fmt.Println(idStr)
 	//resultados eliminacion
-	var borrado map[string]interface{}
+	//var borrado map[string]interface{}
 
-	errDelete := request.SendJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idStr, "DELETE", &borrado, nil)
-	fmt.Println(borrado)
-	if errDelete == nil && fmt.Sprintf("%v", borrado["System"]) != "map[]" {
-		if borrado["Status"] != 404 {
-			c.Data["json"] = map[string]interface{}{"ProduccionAcademica": borrado["Id"]}
-		} else {
-			logs.Error(borrado)
-			c.Data["system"] = errDelete
-			c.Abort("404")
-		}
+	//errDelete := request.SendJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idStr, "DELETE", &borrado, nil)
+	borradoOk := models.SetInactivo("http://" + beego.AppConfig.String("ProduccionAcademicaService") + "/tr_produccion_academica/" + idStr)
+
+	if borradoOk {
+		c.Data["json"] = map[string]interface{}{"ProduccionAcademica": idStr}
 	} else {
-		logs.Error(borrado)
-		c.Data["system"] = errDelete
+		logs.Error("Failed deleting tr_produccion_academica/" + idStr)
+		c.Data["system"] = "Failed deleting tr_produccion_academica/" + idStr
 		c.Abort("404")
 	}
 	c.ServeJSON()
