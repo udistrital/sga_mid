@@ -1773,6 +1773,24 @@ paths:
           description: '{}'
         "403":
           description: body is empty
+  /persona/actualizar_persona:
+    put:
+      tags:
+      - persona
+      description: Actualizar datos de persona
+      operationId: PersonaController.ActualizarPersona
+      parameters:
+      - in: body
+        name: body
+        description: body for Actualizar datos de persona content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: body is empty
   /persona/consultar_complementarios/{tercero_id}:
     get:
       tags:
@@ -1873,6 +1891,24 @@ paths:
       - in: path
         name: tercero_id
         description: Id del tercero
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+  /persona/existe_persona/{numeroDocumento}:
+    get:
+      tags:
+      - persona
+      description: get ConsultarExistenciaPersona by NumeroIdentificacion
+      operationId: PersonaController.ConsultarExistenciaPersona
+      parameters:
+      - in: path
+        name: numeroDocumento
+        description: numero documento del tercero
         required: true
         type: integer
         format: int64
