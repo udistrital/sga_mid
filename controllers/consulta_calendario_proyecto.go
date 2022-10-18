@@ -15,7 +15,7 @@ type ConsultaCalendarioProyectoController struct {
 	beego.Controller
 }
 
-//URLMapping
+// URLMapping
 func (c *ConsultaCalendarioProyectoController) URLMapping() {
 	c.Mapping("GetCalendarByProjectId", c.GetCalendarByProjectId)
 	c.Mapping("GetCalendarProject", c.GetCalendarProject)
@@ -171,6 +171,7 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 									"CalendarioID":        CalendarioId,
 									"CalendarioExtension": AplicaExtension,
 									"Evento":              nil,
+									"EventoInscripcion":   nil,
 								}
 								proyectosArrMap = append(proyectosArrMap, proyectoInfo)
 								break
@@ -208,6 +209,42 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 										}
 										if !aplicaParticular {
 											proyectosArrMap[i]["Evento"] = map[string]interface{}{
+												"ActividadParticular": false,
+												"NombreEvento":        Evento["Nombre"],
+												"FechaInicioEvento":   Evento["FechaInicio"],
+												"FechaFinEvento":      Evento["FechaFin"],
+											}
+										}
+
+										break
+									}
+								}
+
+								for _, Evento := range calendarioEventos {
+									nombreEvento := strings.ToUpper(fmt.Sprintf(Evento["Nombre"].(string)))
+									if strings.Contains(nombreEvento, "INSCRIPCI") && strings.Contains(nombreEvento, "ASPIRANTE") && !strings.Contains(nombreEvento, "PAGO") {
+
+										var aplicaParticular bool = false
+										if fmt.Sprintf("%v", Evento["DependenciaId"]) != "" && fmt.Sprintf("%v", Evento["DependenciaId"]) != "{}" {
+											var listaProyectos map[string]interface{}
+											json.Unmarshal([]byte(Evento["DependenciaId"].(string)), &listaProyectos)
+											for _, project := range listaProyectos["fechas"].([]interface{}) {
+												if int(project.(map[string]interface{})["Id"].(float64)) == proyectosArrMap[i]["ProyectoId"].(int) {
+													if project.(map[string]interface{})["Activo"].(bool) {
+														proyectosArrMap[i]["EventoInscripcion"] = map[string]interface{}{
+															"ActividadParticular": true,
+															"NombreEvento":        Evento["Nombre"],
+															"FechaInicioEvento":   project.(map[string]interface{})["Inicio"],
+															"FechaFinEvento":      project.(map[string]interface{})["Fin"],
+														}
+													}
+													aplicaParticular = true
+													break
+												}
+											}
+										}
+										if !aplicaParticular {
+											proyectosArrMap[i]["EventoInscripcion"] = map[string]interface{}{
 												"ActividadParticular": false,
 												"NombreEvento":        Evento["Nombre"],
 												"FechaInicioEvento":   Evento["FechaInicio"],
