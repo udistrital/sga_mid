@@ -502,34 +502,6 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 					if poblacionPost1["Status"] != 400 {
 						//Ok POST select Poblacion
 						resultado = append(resultado, poblacionPost1)
-
-						if fmt.Sprintf("%v", reflect.TypeOf(tercero["ComprobantePoblacion"])) == "map[string]interface {}" {
-							var poblacionPost2 map[string]interface{}
-							comprobantePoblacion := map[string]interface{}{
-								"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
-								"InfoComplementariaId": map[string]interface{}{"Id": 315},
-								"Activo":               true,
-								"Dato":                 `{"value":` + fmt.Sprintf("%v", tercero["ComprobantePoblacion"].(map[string]interface{})["Id"]) + `}`,
-							}
-							errPoblacionPost2 := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &poblacionPost2, comprobantePoblacion)
-							if errPoblacionPost2 == nil && fmt.Sprintf("%v", poblacionPost2) != "map[]" && poblacionPost2["Id"] != nil {
-								if poblacionPost2["Status"] != 400 {
-									//Ok POST comp pobl
-									resultado = append(resultado, poblacionPost2)
-
-								} else {
-									HayError = true
-									logs.Error(errPoblacionPost2)
-									c.Data["system"] = poblacionPost2
-									c.Abort("400")
-								}
-							} else {
-								HayError = true
-								logs.Error(errPoblacionPost2)
-								c.Data["system"] = poblacionPost2
-								c.Abort("400")
-							}
-						}
 					} else {
 						HayError = true
 						logs.Error(errPoblacionPost1)
@@ -542,6 +514,33 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 					logs.Error(errPoblacionPost1)
 					//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 					c.Data["system"] = poblacionPost1
+					c.Abort("400")
+				}
+			}
+			if fmt.Sprintf("%v", reflect.TypeOf(tercero["ComprobantePoblacion"])) == "map[string]interface {}" {
+				var poblacionPost2 map[string]interface{}
+				comprobantePoblacion := map[string]interface{}{
+					"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
+					"InfoComplementariaId": map[string]interface{}{"Id": 315},
+					"Activo":               true,
+					"Dato":                 `{"value":` + fmt.Sprintf("%v", tercero["ComprobantePoblacion"].(map[string]interface{})["Id"]) + `}`,
+				}
+				errPoblacionPost2 := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &poblacionPost2, comprobantePoblacion)
+				if errPoblacionPost2 == nil && fmt.Sprintf("%v", poblacionPost2) != "map[]" && poblacionPost2["Id"] != nil {
+					if poblacionPost2["Status"] != 400 {
+						//Ok POST comp pobl
+						resultado = append(resultado, poblacionPost2)
+
+					} else {
+						HayError = true
+						logs.Error(errPoblacionPost2)
+						c.Data["system"] = poblacionPost2
+						c.Abort("400")
+					}
+				} else {
+					HayError = true
+					logs.Error(errPoblacionPost2)
+					c.Data["system"] = poblacionPost2
 					c.Abort("400")
 				}
 			}
@@ -586,34 +585,6 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 					if discapacidadPost1["Status"] != 400 {
 						//Ok POST select discapacidad
 						resultado = append(resultado, discapacidadPost1)
-
-						if fmt.Sprintf("%v", reflect.TypeOf(tercero["ComprobanteDiscapacidad"])) == "map[string]interface {}" {
-							var discapacidadPost2 map[string]interface{}
-							comprobanteDiscapacidad := map[string]interface{}{
-								"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
-								"InfoComplementariaId": map[string]interface{}{"Id": 310},
-								"Activo":               true,
-								"Dato":                 `{"value":` + fmt.Sprintf("%v", tercero["ComprobanteDiscapacidad"].(map[string]interface{})["Id"]) + `}`,
-							}
-							errDiscapacidadPost2 := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &discapacidadPost2, comprobanteDiscapacidad)
-							if errDiscapacidadPost2 == nil && fmt.Sprintf("%v", discapacidadPost2) != "map[]" && discapacidadPost2["Id"] != nil {
-								if discapacidadPost2["Status"] != 400 {
-									//Ok POST comp disca
-									resultado = append(resultado, discapacidadPost2)
-
-								} else {
-									HayError = true
-									logs.Error(errDiscapacidadPost2)
-									c.Data["system"] = discapacidadPost2
-									c.Abort("400")
-								}
-							} else {
-								HayError = true
-								logs.Error(errDiscapacidadPost2)
-								c.Data["system"] = discapacidadPost2
-								c.Abort("400")
-							}
-						}
 					} else {
 						HayError = true
 						logs.Error(errDiscapacidadPost1)
@@ -626,6 +597,33 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 					logs.Error(errDiscapacidadPost1)
 					//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 					c.Data["system"] = discapacidadPost1
+					c.Abort("400")
+				}
+			}
+			if fmt.Sprintf("%v", reflect.TypeOf(tercero["ComprobanteDiscapacidad"])) == "map[string]interface {}" {
+				var discapacidadPost2 map[string]interface{}
+				comprobanteDiscapacidad := map[string]interface{}{
+					"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
+					"InfoComplementariaId": map[string]interface{}{"Id": 310},
+					"Activo":               true,
+					"Dato":                 `{"value":` + fmt.Sprintf("%v", tercero["ComprobanteDiscapacidad"].(map[string]interface{})["Id"]) + `}`,
+				}
+				errDiscapacidadPost2 := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &discapacidadPost2, comprobanteDiscapacidad)
+				if errDiscapacidadPost2 == nil && fmt.Sprintf("%v", discapacidadPost2) != "map[]" && discapacidadPost2["Id"] != nil {
+					if discapacidadPost2["Status"] != 400 {
+						//Ok POST comp disca
+						resultado = append(resultado, discapacidadPost2)
+
+					} else {
+						HayError = true
+						logs.Error(errDiscapacidadPost2)
+						c.Data["system"] = discapacidadPost2
+						c.Abort("400")
+					}
+				} else {
+					HayError = true
+					logs.Error(errDiscapacidadPost2)
+					c.Data["system"] = discapacidadPost2
 					c.Abort("400")
 				}
 			}
@@ -1022,6 +1020,7 @@ func (c *PersonaController) ActualizarDatosComplementarios() {
 				request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria?query=Id:"+fmt.Sprintf("%.f", persona["Rh"]), &GrupoSanguineoAux)
 				GrupoRh["InfoComplementariaId"] = GrupoSanguineoAux[0]
 				GrupoRh["TerceroId"] = resultado[0]
+				GrupoRh["Activo"] = true
 				idRh := GrupoRh["InfoComplementariaId"].(map[string]interface{})["GrupoInfoComplementariaId"].(map[string]interface{})["Id"]
 				request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+fmt.Sprintf("%.f", idPersona)+",InfoComplementariaId__GrupoInfoComplementariaId__Id:"+fmt.Sprintf("%.f", idRh)+"&sortby=Id&order=desc&limit=1", &idpersona_rh)
 				//PUT RH
@@ -1035,6 +1034,7 @@ func (c *PersonaController) ActualizarDatosComplementarios() {
 				request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria?query=Id:"+fmt.Sprintf("%.f", persona["GrupoSanguineo"]), &GrupoSAux)
 				GrupoSanguineo["TerceroId"] = resultado[0]
 				GrupoSanguineo["InfoComplementariaId"] = GrupoSAux[0]
+				GrupoSanguineo["Activo"] = true
 				idGrupoSan := GrupoSanguineo["InfoComplementariaId"].(map[string]interface{})["GrupoInfoComplementariaId"].(map[string]interface{})["Id"]
 				request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+fmt.Sprintf("%.f", idPersona)+",InfoComplementariaId__GrupoInfoComplementariaId__Id:"+fmt.Sprintf("%.f", idGrupoSan)+"&sortby=Id&order=desc&limit=1", &idpersona_grupo_sanguineo)
 				errGrupoSanguineo := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+fmt.Sprintf("%.f", idpersona_grupo_sanguineo[0]["Id"]), "PUT", &resultado4, GrupoSanguineo)
