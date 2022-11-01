@@ -116,6 +116,7 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 									"ReciboInscripcion":   Inscripciones[i]["ReciboInscripcion"],
 									"FechaCreacion":       Inscripciones[i]["FechaCreacion"],
 									"Estado":              Estado,
+									"EstadoInscripcion":   Inscripciones[i]["EstadoInscripcionId"].(map[string]interface{})["Nombre"],
 								}
 							} else {
 								if fmt.Sprintf("%v", resultadoAux) != "map[]" {
