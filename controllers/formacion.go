@@ -519,11 +519,11 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 						resultadoAux["FechaInicio"] = formacion["FechaInicio"]
 						resultadoAux["FechaFinalizacion"] = formacion["FechaFin"]
 
-						endpoit := "datos_identificacion?query=Activo:true,TipoDocumentoId__Id:7,Numero:" + fmt.Sprintf("%v", formacion["NitUniversidad"])
+						endpoit := "datos_identificacion?query=TipoDocumentoId__Id:7,Numero:" + fmt.Sprintf("%v", formacion["NitUniversidad"])
 
 						if strings.Contains(fmt.Sprintf("%v", formacion["NitUniversidad"]), "-") {
 							var auxId = strings.Split(fmt.Sprintf("%v", formacion["NitUniversidad"]), "-")
-							endpoit = "datos_identificacion?query=Activo:true,TipoDocumentoId__Id:7,Numero:" + auxId[0] + ",DigitoVerificacion:" + auxId[1]
+							endpoit = "datos_identificacion?query=TipoDocumentoId__Id:7,Numero:" + auxId[0] + ",DigitoVerificacion:" + auxId[1]
 						}
 
 						//GET para obtener el ID que relaciona las tablas tipo_documento y tercero
