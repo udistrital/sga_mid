@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -345,12 +346,16 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 					resultadoAux["FechaFinalizacion"] = experiencia["FechaFinalizacion"]
 					resultadoAux["FechaInicio"] = experiencia["FechaInicio"]
 
+					if reflect.TypeOf(experiencia["Nit"]).Kind() == reflect.Float64 {
+						experiencia["Nit"] = fmt.Sprintf("%.f", experiencia["Nit"])
+					}
+
 					var endpoit string
 					if strings.Contains(fmt.Sprintf("%v", experiencia["Nit"]), "-") {
-						var auxNit = strings.Split(fmt.Sprintf("%0.f", experiencia["Nit"]), "-")
+						var auxNit = strings.Split(fmt.Sprintf("%v", experiencia["Nit"]), "-")
 						endpoit = "datos_identificacion?query=Activo:true,TipoDocumentoId__Id:7,Numero:" + auxNit[0] + ",DigitoVerificacion:" + auxNit[1]
 					} else {
-						endpoit = "datos_identificacion?query=Activo:true,TipoDocumentoId__Id:7,Numero:" + fmt.Sprintf("%.0f", experiencia["Nit"])
+						endpoit = "datos_identificacion?query=Activo:true,TipoDocumentoId__Id:7,Numero:" + fmt.Sprintf("%v", experiencia["Nit"])
 					}
 
 					errDatosIdentificacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+endpoit, &empresa)
