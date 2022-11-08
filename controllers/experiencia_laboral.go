@@ -353,9 +353,9 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 					var endpoit string
 					if strings.Contains(fmt.Sprintf("%v", experiencia["Nit"]), "-") {
 						var auxNit = strings.Split(fmt.Sprintf("%v", experiencia["Nit"]), "-")
-						endpoit = "datos_identificacion?query=Activo:true,TipoDocumentoId__Id:7,Numero:" + auxNit[0] + ",DigitoVerificacion:" + auxNit[1]
+						endpoit = "datos_identificacion?query=TipoDocumentoId__Id:7,Numero:" + auxNit[0] + ",DigitoVerificacion:" + auxNit[1]
 					} else {
-						endpoit = "datos_identificacion?query=Activo:true,TipoDocumentoId__Id:7,Numero:" + fmt.Sprintf("%v", experiencia["Nit"])
+						endpoit = "datos_identificacion?query=TipoDocumentoId__Id:7,Numero:" + fmt.Sprintf("%v", experiencia["Nit"])
 					}
 
 					errDatosIdentificacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+endpoit, &empresa)
