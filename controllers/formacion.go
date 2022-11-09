@@ -444,26 +444,36 @@ func (c *FormacionController) GetFormacionAcademica() {
 				resultadoAux["TituloTrabajoGrado"] = formacion["TituloTrabajoGrado"]
 				NumProyecto := fmt.Sprintf("%v", formacion["ProgramaAcademico"])
 				//GET para consultar el proyecto curricular
-				var Proyecto []map[string]interface{}
-				errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Id:"+fmt.Sprintf("%v", NumProyecto)+"&limit=0", &Proyecto)
-				if errProyecto == nil && fmt.Sprintf("%v", Proyecto[0]) != "map[]" && Proyecto[0]["Id"] != nil {
-					if Proyecto[0]["Status"] != 404 {
-						resultadoAux["ProgramaAcademico"] = Proyecto[0]
+
+				var ProyectoV2 map[string]interface{}
+				errProyectoV2 := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro?query=TipoParametroId__Id:60,Id:"+fmt.Sprintf("%v", NumProyecto)+"&limit=0", &ProyectoV2)
+				if errProyectoV2 == nil && ProyectoV2["Status"] == "200" && fmt.Sprintf("%v", ProyectoV2["Data"]) != "[map[]]" {
+					resultadoAux["ProgramaAcademico"] = map[string]interface{}{
+						"Id":     NumProyecto,
+						"Nombre": ProyectoV2["Data"].([]interface{})[0].(map[string]interface{})["Nombre"],
+					}
+				} else {
+					var Proyecto []map[string]interface{}
+					errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Id:"+fmt.Sprintf("%v", NumProyecto)+"&limit=0", &Proyecto)
+					if errProyecto == nil && fmt.Sprintf("%v", Proyecto[0]) != "map[]" && Proyecto[0]["Id"] != nil {
+						if Proyecto[0]["Status"] != 404 {
+							resultadoAux["ProgramaAcademico"] = Proyecto[0]
+						} else {
+							errorGetAll = true
+							alertas = append(alertas, errProyecto.Error())
+							alerta.Code = "400"
+							alerta.Type = "error"
+							alerta.Body = alertas
+							c.Data["json"] = map[string]interface{}{"Response": alerta}
+						}
 					} else {
 						errorGetAll = true
-						alertas = append(alertas, errProyecto.Error())
-						alerta.Code = "400"
+						alertas = append(alertas, "No data found")
+						alerta.Code = "404"
 						alerta.Type = "error"
 						alerta.Body = alertas
 						c.Data["json"] = map[string]interface{}{"Response": alerta}
 					}
-				} else {
-					errorGetAll = true
-					alertas = append(alertas, "No data found")
-					alerta.Code = "404"
-					alerta.Type = "error"
-					alerta.Body = alertas
-					c.Data["json"] = map[string]interface{}{"Response": alerta}
 				}
 
 				resultado = resultadoAux
