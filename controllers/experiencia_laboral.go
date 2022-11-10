@@ -147,144 +147,158 @@ func (c *ExperienciaLaboralController) GetInformacionEmpresa() {
 	//GET que asocia el nit con la empresa
 	errNit := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+endpoit, &empresa)
 	if errNit == nil {
-		beego.Info(empresa)
 		if empresa != nil && len(empresa[0]) > 0 {
 			respuesta["NumeroIdentificacion"] = idStr
 			idEmpresa := empresa[0]["TerceroId"].(map[string]interface{})["Id"]
 			//GET que trae la información de la empresa
 			errUniversidad := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+fmt.Sprintf("%.f", idEmpresa), &empresaTercero)
 			if errUniversidad == nil && fmt.Sprintf("%v", empresaTercero["System"]) != "map[]" && empresaTercero["Id"] != nil {
-				if empresaTercero["Status"] != 400 {
+				if empresaTercero["Status"] != "400" {
 					respuesta["NombreCompleto"] = map[string]interface{}{
 						"Id":             idEmpresa,
 						"NombreCompleto": empresaTercero["NombreCompleto"],
 					}
-					var lugar map[string]interface{}
+
 					//GET para traer los datos de la ubicación
+					var lugar map[string]interface{}
 					errLugar := request.GetJson("http://"+beego.AppConfig.String("UbicacionesService")+"/relacion_lugares/jerarquia_lugar/"+fmt.Sprintf("%v", empresaTercero["LugarOrigen"]), &lugar)
 					if errLugar == nil && fmt.Sprintf("%v", lugar) != "map[]" {
-						if lugar["Status"] != 404 {
+						if lugar["Status"] != "404" {
 							respuesta["Ubicacion"] = map[string]interface{}{
 								"Id":     lugar["PAIS"].(map[string]interface{})["Id"],
 								"Nombre": lugar["PAIS"].(map[string]interface{})["Nombre"],
 							}
-
-							//GET para traer la dirección de la empresa (info_complementaria 54)
-							var resultadoDireccion []map[string]interface{}
-							errDireccion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=1&query=Activo:true,InfoComplementariaId__Id:54,TerceroId:"+fmt.Sprintf("%.f", idEmpresa), &resultadoDireccion)
-							if errDireccion == nil && fmt.Sprintf("%v", resultadoDireccion[0]["System"]) != "map[]" {
-								if resultadoDireccion[0]["Status"] != 404 && resultadoDireccion[0]["Id"] != nil {
-									var direccionJSON map[string]interface{}
-									if err := json.Unmarshal([]byte(resultadoDireccion[0]["Dato"].(string)), &direccionJSON); err != nil {
-										respuesta["Direccion"] = nil
-									} else {
-										respuesta["Direccion"] = direccionJSON["address"]
-									}
-								} else {
-									if resultadoDireccion[0]["Message"] == "Not found resource" {
-										c.Data["json"] = nil
-									} else {
-										logs.Error(resultadoDireccion)
-										c.Data["system"] = resultadoDireccion
-										c.Abort("404")
-									}
-								}
-							} else {
-								logs.Error(errDireccion)
-								c.Data["system"] = errDireccion
-								c.Abort("404")
-							}
-
-							// GET para traer el telefono de la empresa (info_complementaria 51)
-							var resultadoTelefono []map[string]interface{}
-							errTelefono := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=1&query=Activo:true,InfoComplementariaId__Id:51,TerceroId:"+fmt.Sprintf("%.f", idEmpresa), &resultadoTelefono)
-							if errTelefono == nil && fmt.Sprintf("%v", resultadoTelefono[0]["System"]) != "map[]" {
-								if resultadoTelefono[0]["Status"] != 404 && resultadoTelefono[0]["Id"] != nil {
-									var telefonoJSON map[string]interface{}
-									if err := json.Unmarshal([]byte(resultadoTelefono[0]["Dato"].(string)), &telefonoJSON); err != nil {
-										respuesta["Telefono"] = nil
-									} else {
-										respuesta["Telefono"] = telefonoJSON["telefono"]
-									}
-								} else {
-									if resultadoTelefono[0]["Message"] == "Not found resource" {
-										c.Data["json"] = nil
-									} else {
-										logs.Error(resultadoTelefono)
-										c.Data["system"] = resultadoTelefono
-										c.Abort("404")
-									}
-								}
-							} else {
-								logs.Error(errTelefono)
-								c.Data["system"] = errTelefono
-								c.Abort("404")
-							}
-
-							// GET para traer el correo de la empresa (info_complementaria 53)
-							var resultadoCorreo []map[string]interface{}
-							errCorreo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=1&query=Activo:true,InfoComplementariaId__Id:53,TerceroId:"+fmt.Sprintf("%.f", idEmpresa), &resultadoCorreo)
-							if errCorreo == nil && fmt.Sprintf("%v", resultadoCorreo[0]["System"]) != "map[]" {
-								if resultadoCorreo[0]["Status"] != 404 && resultadoCorreo[0]["Id"] != nil {
-									var correoJSON map[string]interface{}
-									if err := json.Unmarshal([]byte(resultadoCorreo[0]["Dato"].(string)), &correoJSON); err != nil {
-										respuesta["Correo"] = nil
-									} else {
-										respuesta["Correo"] = correoJSON["email"]
-									}
-								} else {
-									if resultadoCorreo[0]["Message"] == "Not found resource" {
-										c.Data["json"] = nil
-									} else {
-										logs.Error(resultadoCorreo)
-										c.Data["system"] = resultadoCorreo
-										c.Abort("404")
-									}
-								}
-							} else {
-								logs.Error(errCorreo)
-								c.Data["system"] = errCorreo
-								c.Abort("404")
-							}
-
-							// GET para traer la organizacion de la empresa (info_complementaria 110)
-							var resultadoOrganizacion []map[string]interface{}
-							errorganizacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero_tipo_tercero/?limit=1&query=TerceroId__Id:"+fmt.Sprintf("%.f", idEmpresa), &resultadoOrganizacion)
-							if errorganizacion == nil && fmt.Sprintf("%v", resultadoOrganizacion[0]["System"]) != "map[]" {
-								if resultadoOrganizacion[0]["Status"] != 404 && resultadoOrganizacion[0]["Id"] != nil {
-
-									respuesta["TipoTerceroId"] = map[string]interface{}{
-										"Id":     resultadoOrganizacion[0]["TipoTerceroId"].(map[string]interface{})["Id"],
-										"Nombre": resultadoOrganizacion[0]["TipoTerceroId"].(map[string]interface{})["Nombre"],
-									}
-								} else {
-									if resultadoOrganizacion[0]["Message"] == "Not found resource" {
-										c.Data["json"] = nil
-									} else {
-										logs.Error(resultadoOrganizacion)
-										c.Data["system"] = resultadoOrganizacion
-										c.Abort("404")
-									}
-								}
-							} else {
-								logs.Error(resultadoOrganizacion)
-								c.Data["system"] = resultadoOrganizacion
-								c.Abort("404")
-							}
-
-							c.Data["json"] = respuesta
 						} else {
 							logs.Error(lugar["Status"])
-							c.Data["json"] = map[string]interface{}{"Code": "400", "Body": lugar["Status"], "Type": "error"}
-							c.Data["system"] = lugar
-							c.Abort("404")
+							respuesta["Ubicacion"] = nil
+							//c.Data["json"] = map[string]interface{}{"Code": "400", "Body": lugar["Status"], "Type": "error"}
+							//c.Data["system"] = lugar
+							//c.Abort("404")
 						}
 					} else {
 						logs.Error(errLugar)
-						c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errLugar.Error(), "Type": "error"}
-						c.Data["system"] = lugar
-						c.Abort("404")
+						respuesta["Ubicacion"] = nil
+						//c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errLugar.Error(), "Type": "error"}
+						//c.Data["system"] = lugar
+						//c.Abort("404")
 					}
+
+					//GET para traer la dirección de la empresa (info_complementaria 54)
+					var resultadoDireccion []map[string]interface{}
+					errDireccion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=1&query=Activo:true,InfoComplementariaId__Id:54,TerceroId:"+fmt.Sprintf("%.f", idEmpresa), &resultadoDireccion)
+					if errDireccion == nil && fmt.Sprintf("%v", resultadoDireccion[0]["System"]) != "map[]" {
+						if resultadoDireccion[0]["Status"] != "404" && resultadoDireccion[0]["Id"] != nil {
+							var direccionJSON map[string]interface{}
+							if err := json.Unmarshal([]byte(resultadoDireccion[0]["Dato"].(string)), &direccionJSON); err != nil {
+								respuesta["Direccion"] = nil
+							} else {
+								respuesta["Direccion"] = direccionJSON["address"]
+							}
+						} else {
+							if resultadoDireccion[0]["Message"] == "Not found resource" {
+								respuesta["Direccion"] = nil
+								//c.Data["json"] = nil
+							} else {
+								logs.Error(resultadoDireccion)
+								respuesta["Direccion"] = nil
+								//c.Data["system"] = resultadoDireccion
+								//c.Abort("404")
+							}
+						}
+					} else {
+						logs.Error(errDireccion)
+						respuesta["Direccion"] = nil
+						//c.Data["system"] = errDireccion
+						//c.Abort("404")
+					}
+
+					// GET para traer el telefono de la empresa (info_complementaria 51)
+					var resultadoTelefono []map[string]interface{}
+					errTelefono := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=1&query=Activo:true,InfoComplementariaId__Id:51,TerceroId:"+fmt.Sprintf("%.f", idEmpresa), &resultadoTelefono)
+					if errTelefono == nil && fmt.Sprintf("%v", resultadoTelefono[0]["System"]) != "map[]" {
+						if resultadoTelefono[0]["Status"] != "404" && resultadoTelefono[0]["Id"] != nil {
+							var telefonoJSON map[string]interface{}
+							if err := json.Unmarshal([]byte(resultadoTelefono[0]["Dato"].(string)), &telefonoJSON); err != nil {
+								respuesta["Telefono"] = nil
+							} else {
+								respuesta["Telefono"] = telefonoJSON["telefono"]
+							}
+						} else {
+							if resultadoTelefono[0]["Message"] == "Not found resource" {
+								respuesta["Telefono"] = nil
+								//c.Data["json"] = nil
+							} else {
+								logs.Error(resultadoTelefono)
+								respuesta["Telefono"] = nil
+								//c.Data["system"] = resultadoTelefono
+								//c.Abort("404")
+							}
+						}
+					} else {
+						logs.Error(errTelefono)
+						respuesta["Telefono"] = nil
+						//c.Data["system"] = errTelefono
+						//c.Abort("404")
+					}
+
+					// GET para traer el correo de la empresa (info_complementaria 53)
+					var resultadoCorreo []map[string]interface{}
+					errCorreo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=1&query=Activo:true,InfoComplementariaId__Id:53,TerceroId:"+fmt.Sprintf("%.f", idEmpresa), &resultadoCorreo)
+					if errCorreo == nil && fmt.Sprintf("%v", resultadoCorreo[0]["System"]) != "map[]" {
+						if resultadoCorreo[0]["Status"] != "404" && resultadoCorreo[0]["Id"] != nil {
+							var correoJSON map[string]interface{}
+							if err := json.Unmarshal([]byte(resultadoCorreo[0]["Dato"].(string)), &correoJSON); err != nil {
+								respuesta["Correo"] = nil
+							} else {
+								respuesta["Correo"] = correoJSON["email"]
+							}
+						} else {
+							if resultadoCorreo[0]["Message"] == "Not found resource" {
+								respuesta["Correo"] = nil
+								//c.Data["json"] = nil
+							} else {
+								logs.Error(resultadoCorreo)
+								respuesta["Correo"] = nil
+								//c.Data["system"] = resultadoCorreo
+								//c.Abort("404")
+							}
+						}
+					} else {
+						logs.Error(errCorreo)
+						respuesta["Correo"] = nil
+						//c.Data["system"] = errCorreo
+						//c.Abort("404")
+					}
+
+					// GET para traer la organizacion de la empresa (info_complementaria 110)
+					var resultadoOrganizacion []map[string]interface{}
+					errorganizacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero_tipo_tercero/?limit=1&query=TerceroId__Id:"+fmt.Sprintf("%.f", idEmpresa), &resultadoOrganizacion)
+					if errorganizacion == nil && fmt.Sprintf("%v", resultadoOrganizacion[0]["System"]) != "map[]" {
+						if resultadoOrganizacion[0]["Status"] != "404" && resultadoOrganizacion[0]["Id"] != nil {
+							respuesta["TipoTerceroId"] = map[string]interface{}{
+								"Id":     resultadoOrganizacion[0]["TipoTerceroId"].(map[string]interface{})["Id"],
+								"Nombre": resultadoOrganizacion[0]["TipoTerceroId"].(map[string]interface{})["Nombre"],
+							}
+						} else {
+							if resultadoOrganizacion[0]["Message"] == "Not found resource" {
+								respuesta["TipoTerceroId"] = nil
+								//c.Data["json"] = nil
+							} else {
+								logs.Error(resultadoOrganizacion)
+								respuesta["TipoTerceroId"] = nil
+								//c.Data["system"] = resultadoOrganizacion
+								//c.Abort("404")
+							}
+						}
+					} else {
+						logs.Error(resultadoOrganizacion)
+						respuesta["TipoTerceroId"] = nil
+						//c.Data["system"] = resultadoOrganizacion
+						//c.Abort("404")
+					}
+
+					c.Data["json"] = respuesta
+
 				} else {
 					logs.Error(empresaTercero["Status"])
 					c.Data["json"] = map[string]interface{}{"Code": "400", "Body": empresaTercero["Status"], "Type": "error"}
@@ -345,6 +359,7 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 					resultadoAux["TipoDedicacion"] = experiencia["TipoDedicacion"]
 					resultadoAux["FechaFinalizacion"] = experiencia["FechaFinalizacion"]
 					resultadoAux["FechaInicio"] = experiencia["FechaInicio"]
+					resultadoAux["Nit"] = experiencia["Nit"]
 
 					if reflect.TypeOf(experiencia["Nit"]).Kind() == reflect.Float64 {
 						experiencia["Nit"] = fmt.Sprintf("%.f", experiencia["Nit"])
@@ -452,7 +467,7 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 
 											// GET para traer la organizacion de la empresa (info_complementaria 110)
 											var resultadoOrganizacion []map[string]interface{}
-											errorganizacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero_tipo_tercero/?limit=1&query=Activo:true,TerceroId__Id:"+fmt.Sprintf("%.f", idEmpresa), &resultadoOrganizacion)
+											errorganizacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero_tipo_tercero/?limit=1&query=TerceroId__Id:"+fmt.Sprintf("%.f", idEmpresa), &resultadoOrganizacion)
 											if errorganizacion == nil && fmt.Sprintf("%v", resultadoOrganizacion[0]["System"]) != "map[]" {
 												if resultadoOrganizacion[0]["Status"] != 404 && resultadoOrganizacion[0]["Id"] != nil {
 
