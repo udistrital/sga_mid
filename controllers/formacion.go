@@ -147,115 +147,128 @@ func (c *FormacionController) GetInfoUniversidad() {
 			//GET que trae la información de la universidad
 			errUniversidad := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+fmt.Sprintf("%.f", idUniversidad), &universidadTercero)
 			if errUniversidad == nil && fmt.Sprintf("%v", universidadTercero["System"]) != "map[]" && universidadTercero["Id"] != nil {
-				if universidadTercero["Status"] != 400 {
+				if universidadTercero["Status"] != "400" {
 					respuesta["NombreCompleto"] = map[string]interface{}{
 						"Id":             idUniversidad,
 						"NombreCompleto": universidadTercero["NombreCompleto"],
 					}
+
 					var lugar map[string]interface{}
 					//GET para traer los datos de la ubicación
 					errLugar := request.GetJson("http://"+beego.AppConfig.String("UbicacionesService")+"/relacion_lugares/jerarquia_lugar/"+fmt.Sprintf("%v", universidadTercero["LugarOrigen"]), &lugar)
 					if errLugar == nil && fmt.Sprintf("%v", lugar) != "map[]" {
-						if lugar["Status"] != 404 {
+						if lugar["Status"] != "404" {
 							respuesta["Ubicacion"] = map[string]interface{}{
 								"Id":     lugar["PAIS"].(map[string]interface{})["Id"],
 								"Nombre": lugar["PAIS"].(map[string]interface{})["Nombre"],
 							}
-
-							//GET para traer la dirección de la universidad (info_complementaria 54)
-							var resultadoDireccion []map[string]interface{}
-							errDireccion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=1&query=Activo:true,InfoComplementariaId__Id:54,TerceroId:"+fmt.Sprintf("%.f", idUniversidad), &resultadoDireccion)
-							if errDireccion == nil && fmt.Sprintf("%v", resultadoDireccion[0]["System"]) != "map[]" {
-								if resultadoDireccion[0]["Status"] != 404 && resultadoDireccion[0]["Id"] != nil {
-									// Unmarshall dato
-									var direccionJson map[string]interface{}
-									if err := json.Unmarshal([]byte(resultadoDireccion[0]["Dato"].(string)), &direccionJson); err != nil {
-										respuesta["Direccion"] = nil
-									} else {
-										respuesta["Direccion"] = direccionJson["address"]
-									}
-								} else {
-									if resultadoDireccion[0]["Message"] == "Not found resource" {
-										c.Data["json"] = nil
-									} else {
-										logs.Error(resultadoDireccion)
-										c.Data["system"] = errDireccion
-										c.Abort("404")
-									}
-								}
-							} else {
-								logs.Error(resultadoDireccion)
-								c.Data["system"] = resultadoDireccion
-								c.Abort("404")
-							}
-
-							// GET para traer el telefono de la universidad (info_complementaria 51)
-							var resultadoTelefono []map[string]interface{}
-							errTelefono := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=1&query=Activo:true,InfoComplementariaId__Id:51,TerceroId:"+fmt.Sprintf("%.f", idUniversidad), &resultadoTelefono)
-							if errTelefono == nil && fmt.Sprintf("%v", resultadoTelefono[0]["System"]) != "map[]" {
-								if resultadoTelefono[0]["Status"] != 404 && resultadoTelefono[0]["Id"] != nil {
-									// Unmarshall dato
-									var telefonoJson map[string]interface{}
-									if err := json.Unmarshal([]byte(resultadoTelefono[0]["Dato"].(string)), &telefonoJson); err != nil {
-										respuesta["Telefono"] = nil
-									} else {
-										respuesta["Telefono"] = telefonoJson["telefono"]
-									}
-								} else {
-									if resultadoTelefono[0]["Message"] == "Not found resource" {
-										c.Data["json"] = nil
-									} else {
-										logs.Error(resultadoTelefono)
-										c.Data["system"] = errTelefono
-										c.Abort("404")
-									}
-								}
-							} else {
-								logs.Error(resultadoTelefono)
-								c.Data["system"] = resultadoTelefono
-								c.Abort("404")
-							}
-
-							// GET para traer el correo de la universidad (info_complementaria 53)
-							var resultadoCorreo []map[string]interface{}
-							errCorreo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=1&query=Activo:true,InfoComplementariaId__Id:53,TerceroId:"+fmt.Sprintf("%.f", idUniversidad), &resultadoCorreo)
-							if errCorreo == nil && fmt.Sprintf("%v", resultadoCorreo[0]["System"]) != "map[]" {
-								if resultadoCorreo[0]["Status"] != 404 && resultadoCorreo[0]["Id"] != nil {
-									// Unmarshall dato
-									var correoJson map[string]interface{}
-									if err := json.Unmarshal([]byte(resultadoCorreo[0]["Dato"].(string)), &correoJson); err != nil {
-										respuesta["Correo"] = nil
-									} else {
-										respuesta["Correo"] = correoJson["email"]
-									}
-								} else {
-									if resultadoCorreo[0]["Message"] == "Not found resource" {
-										c.Data["json"] = nil
-									} else {
-										logs.Error(resultadoCorreo)
-										c.Data["system"] = errCorreo
-										c.Abort("404")
-									}
-								}
-							} else {
-								logs.Error(resultadoCorreo)
-								c.Data["system"] = resultadoTelefono
-								c.Abort("404")
-							}
-
-							c.Data["json"] = respuesta
 						} else {
 							logs.Error(errLugar)
-							c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errLugar.Error(), "Type": "error"}
-							c.Data["system"] = lugar
-							c.Abort("400")
+							respuesta["Ubicacion"] = nil
+							//c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errLugar.Error(), "Type": "error"}
+							//c.Data["system"] = lugar
+							//c.Abort("400")
 						}
 					} else {
 						logs.Error(errLugar)
-						c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errLugar.Error(), "Type": "error"}
-						c.Data["system"] = lugar
-						c.Abort("400")
+						respuesta["Ubicacion"] = nil
+						//c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errLugar.Error(), "Type": "error"}
+						//c.Data["system"] = lugar
+						//c.Abort("400")
 					}
+
+					//GET para traer la dirección de la universidad (info_complementaria 54)
+					var resultadoDireccion []map[string]interface{}
+					errDireccion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=1&query=Activo:true,InfoComplementariaId__Id:54,TerceroId:"+fmt.Sprintf("%.f", idUniversidad), &resultadoDireccion)
+					if errDireccion == nil && fmt.Sprintf("%v", resultadoDireccion[0]["System"]) != "map[]" {
+						if resultadoDireccion[0]["Status"] != "404" && resultadoDireccion[0]["Id"] != nil {
+							// Unmarshall dato
+							var direccionJson map[string]interface{}
+							if err := json.Unmarshal([]byte(resultadoDireccion[0]["Dato"].(string)), &direccionJson); err != nil {
+								respuesta["Direccion"] = nil
+							} else {
+								respuesta["Direccion"] = direccionJson["address"]
+							}
+						} else {
+							if resultadoDireccion[0]["Message"] == "Not found resource" {
+								respuesta["Direccion"] = nil
+								//c.Data["json"] = nil
+							} else {
+								logs.Error(resultadoDireccion)
+								respuesta["Direccion"] = nil
+								//c.Data["system"] = errDireccion
+								//c.Abort("404")
+							}
+						}
+					} else {
+						logs.Error(resultadoDireccion)
+						respuesta["Direccion"] = nil
+						//c.Data["system"] = resultadoDireccion
+						//c.Abort("404")
+					}
+
+					// GET para traer el telefono de la universidad (info_complementaria 51)
+					var resultadoTelefono []map[string]interface{}
+					errTelefono := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=1&query=Activo:true,InfoComplementariaId__Id:51,TerceroId:"+fmt.Sprintf("%.f", idUniversidad), &resultadoTelefono)
+					if errTelefono == nil && fmt.Sprintf("%v", resultadoTelefono[0]["System"]) != "map[]" {
+						if resultadoTelefono[0]["Status"] != "404" && resultadoTelefono[0]["Id"] != nil {
+							// Unmarshall dato
+							var telefonoJson map[string]interface{}
+							if err := json.Unmarshal([]byte(resultadoTelefono[0]["Dato"].(string)), &telefonoJson); err != nil {
+								respuesta["Telefono"] = nil
+							} else {
+								respuesta["Telefono"] = telefonoJson["telefono"]
+							}
+						} else {
+							if resultadoTelefono[0]["Message"] == "Not found resource" {
+								respuesta["Telefono"] = nil
+								//c.Data["json"] = nil
+							} else {
+								logs.Error(resultadoTelefono)
+								respuesta["Telefono"] = nil
+								//c.Data["system"] = errTelefono
+								//c.Abort("404")
+							}
+						}
+					} else {
+						logs.Error(resultadoTelefono)
+						respuesta["Telefono"] = nil
+						//c.Data["system"] = resultadoTelefono
+						//c.Abort("404")
+					}
+
+					// GET para traer el correo de la universidad (info_complementaria 53)
+					var resultadoCorreo []map[string]interface{}
+					errCorreo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=1&query=Activo:true,InfoComplementariaId__Id:53,TerceroId:"+fmt.Sprintf("%.f", idUniversidad), &resultadoCorreo)
+					if errCorreo == nil && fmt.Sprintf("%v", resultadoCorreo[0]["System"]) != "map[]" {
+						if resultadoCorreo[0]["Status"] != "404" && resultadoCorreo[0]["Id"] != nil {
+							// Unmarshall dato
+							var correoJson map[string]interface{}
+							if err := json.Unmarshal([]byte(resultadoCorreo[0]["Dato"].(string)), &correoJson); err != nil {
+								respuesta["Correo"] = nil
+							} else {
+								respuesta["Correo"] = correoJson["email"]
+							}
+						} else {
+							if resultadoCorreo[0]["Message"] == "Not found resource" {
+								respuesta["Correo"] = nil
+								//c.Data["json"] = nil
+							} else {
+								logs.Error(resultadoCorreo)
+								respuesta["Correo"] = nil
+								//c.Data["system"] = errCorreo
+								//c.Abort("404")
+							}
+						}
+					} else {
+						logs.Error(resultadoCorreo)
+						respuesta["Correo"] = nil
+						//c.Data["system"] = resultadoTelefono
+						//c.Abort("404")
+					}
+
+					c.Data["json"] = respuesta
+
 				} else {
 					logs.Error(errUniversidad)
 					c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errUniversidad.Error(), "Type": "error"}
