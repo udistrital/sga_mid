@@ -553,37 +553,39 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 						var IdTercero []map[string]interface{}
 						errIdTercero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+endpoit, &IdTercero)
 						if errIdTercero == nil && fmt.Sprintf("%v", IdTercero[0]) != "map[]" && IdTercero[0]["Id"] != nil {
-							if IdTercero[0]["Status"] != 404 {
+							if IdTercero[0]["Status"] != "404" {
 								IdTerceroAux := IdTercero[0]["TerceroId"].(map[string]interface{})["Id"]
 
 								// GET para traer el nombre de la universidad y el país
 								var Tercero []map[string]interface{}
 								errTercero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero?query=Id:"+fmt.Sprintf("%v", IdTerceroAux), &Tercero)
 								if errTercero == nil && fmt.Sprintf("%v", Tercero[0]) != "map[]" && Tercero[0]["Id"] != nil {
-									if Tercero[0]["Status"] != 404 {
+									if Tercero[0]["Status"] != "404" {
 										resultadoAux["NombreCompleto"] = Tercero[0]["NombreCompleto"]
 										var lugar map[string]interface{}
 
 										//GET para traer los datos de la ubicación
 										errLugar := request.GetJson("http://"+beego.AppConfig.String("UbicacionesService")+"/relacion_lugares/jerarquia_lugar/"+fmt.Sprintf("%v", Tercero[0]["LugarOrigen"]), &lugar)
 										if errLugar == nil && fmt.Sprintf("%v", lugar) != "map[]" {
-											if lugar["Status"] != 404 {
+											if lugar["Status"] != "404" {
 												resultadoAux["Ubicacion"] = lugar["PAIS"].(map[string]interface{})["Nombre"]
 											} else {
-												errorGetAll = true
+												resultadoAux["Ubicacion"] = nil
+												/* errorGetAll = true
 												alertas = append(alertas, errLugar.Error())
 												alerta.Code = "400"
 												alerta.Type = "error"
 												alerta.Body = alertas
-												c.Data["json"] = map[string]interface{}{"Response": alerta}
+												c.Data["json"] = map[string]interface{}{"Response": alerta} */
 											}
 										} else {
-											errorGetAll = true
+											resultadoAux["Ubicacion"] = nil
+											/* errorGetAll = true
 											alertas = append(alertas, "No data found")
 											alerta.Code = "404"
 											alerta.Type = "error"
 											alerta.Body = alertas
-											c.Data["json"] = map[string]interface{}{"Response": alerta}
+											c.Data["json"] = map[string]interface{}{"Response": alerta} */
 										}
 									} else {
 										errorGetAll = true
@@ -632,7 +634,7 @@ func (c *FormacionController) GetFormacionAcademicaByTercero() {
 							var Proyecto []map[string]interface{}
 							errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Id:"+fmt.Sprintf("%v", NumProyecto)+"&limit=0", &Proyecto)
 							if errProyecto == nil && fmt.Sprintf("%v", Proyecto[0]) != "map[]" && Proyecto[0]["Id"] != nil {
-								if Proyecto[0]["Status"] != 404 {
+								if Proyecto[0]["Status"] != "404" {
 									resultadoAux["ProgramaAcademico"] = map[string]interface{}{
 										"Id":     NumProyecto,
 										"Nombre": Proyecto[0]["Nombre"],
