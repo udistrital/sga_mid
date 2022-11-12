@@ -1489,7 +1489,7 @@ func (c *PersonaController) ConsultarPersona() {
 
 			var identificacion []map[string]interface{}
 
-			errIdentificacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=Activo:true,TerceroId.Id:"+idStr+"&sortby=Id&order=desc&limit=0", &identificacion)
+			errIdentificacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=Activo:true,TerceroId.Id:"+idStr+",TipoDocumentoId__Id__lt:14&sortby=Id&order=desc&limit=0", &identificacion)
 			if errIdentificacion == nil && fmt.Sprintf("%v", identificacion[0]) != "map[]" {
 				if identificacion[0]["Status"] != 404 {
 					var estado []map[string]interface{}
