@@ -344,6 +344,7 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 
 	var Data []map[string]interface{}
 
+	fmt.Println("http://" + beego.AppConfig.String("TercerosService") + "info_complementaria_tercero?query=TerceroId__Id:" + fmt.Sprintf("%v", TerceroID) + ",InfoComplementariaId__CodigoAbreviacion:EXP_LABORAL,Activo:true&limit=0&sortby=Id&order=asc")
 	errData := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId__Id:"+fmt.Sprintf("%v", TerceroID)+",InfoComplementariaId__CodigoAbreviacion:EXP_LABORAL,Activo:true&limit=0&sortby=Id&order=asc", &Data)
 	if errData == nil {
 		if Data != nil && fmt.Sprintf("%v", Data) != "[map[]]" {
@@ -381,7 +382,7 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 							//GET que trae la información de la empresa
 							errEmpresa := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+fmt.Sprintf("%v", idEmpresa), &empresaTercero)
 							if errEmpresa == nil && fmt.Sprintf("%v", empresaTercero["System"]) != "map[]" && empresaTercero["Id"] != nil {
-								if empresaTercero["Status"] != 400 {
+								if empresaTercero["Status"] != "400" {
 									resultadoAux["NombreEmpresa"] = map[string]interface{}{
 										"Id":             idEmpresa,
 										"NombreCompleto": empresaTercero["NombreCompleto"],
@@ -390,7 +391,7 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 									//GET para traer los datos de la ubicación
 									errLugar := request.GetJson("http://"+beego.AppConfig.String("UbicacionesService")+"/relacion_lugares/jerarquia_lugar/"+fmt.Sprintf("%v", empresaTercero["LugarOrigen"]), &lugar)
 									if errLugar == nil && fmt.Sprintf("%v", lugar) != "map[]" {
-										if lugar["Status"] != 404 {
+										if lugar["Status"] != "404" {
 											resultadoAux["Ubicacion"] = map[string]interface{}{
 												"Id":     lugar["PAIS"].(map[string]interface{})["Id"],
 												"Nombre": lugar["PAIS"].(map[string]interface{})["Nombre"],
@@ -400,7 +401,7 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 											var resultadoDireccion []map[string]interface{}
 											errDireccion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=1&query=Activo:true,InfoComplementariaId__Id:54,TerceroId:"+fmt.Sprintf("%.f", idEmpresa), &resultadoDireccion)
 											if errDireccion == nil && fmt.Sprintf("%v", resultadoDireccion[0]["System"]) != "map[]" {
-												if resultadoDireccion[0]["Status"] != 404 && resultadoDireccion[0]["Id"] != nil {
+												if resultadoDireccion[0]["Status"] != "404" && resultadoDireccion[0]["Id"] != nil {
 													var direccionJSON map[string]interface{}
 													if err := json.Unmarshal([]byte(resultadoDireccion[0]["Dato"].(string)), &direccionJSON); err != nil {
 														resultadoAux["Direccion"] = nil
@@ -423,7 +424,7 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 											var resultadoTelefono []map[string]interface{}
 											errTelefono := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=1&query=Activo:true,InfoComplementariaId__Id:51,TerceroId:"+fmt.Sprintf("%.f", idEmpresa), &resultadoTelefono)
 											if errTelefono == nil && fmt.Sprintf("%v", resultadoTelefono[0]["System"]) != "map[]" {
-												if resultadoTelefono[0]["Status"] != 404 && resultadoTelefono[0]["Id"] != nil {
+												if resultadoTelefono[0]["Status"] != "404" && resultadoTelefono[0]["Id"] != nil {
 													var telefonoJSON map[string]interface{}
 													if err := json.Unmarshal([]byte(resultadoTelefono[0]["Dato"].(string)), &telefonoJSON); err != nil {
 														resultadoAux["Telefono"] = nil
@@ -446,7 +447,7 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 											var resultadoCorreo []map[string]interface{}
 											errCorreo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=1&query=Activo:true,InfoComplementariaId__Id:53,TerceroId:"+fmt.Sprintf("%.f", idEmpresa), &resultadoCorreo)
 											if errCorreo == nil && fmt.Sprintf("%v", resultadoCorreo[0]["System"]) != "map[]" {
-												if resultadoCorreo[0]["Status"] != 404 && resultadoCorreo[0]["Id"] != nil {
+												if resultadoCorreo[0]["Status"] != "404" && resultadoCorreo[0]["Id"] != nil {
 													var correoJSON map[string]interface{}
 													if err := json.Unmarshal([]byte(resultadoCorreo[0]["Dato"].(string)), &correoJSON); err != nil {
 														resultadoAux["Correo"] = nil
@@ -469,7 +470,7 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 											var resultadoOrganizacion []map[string]interface{}
 											errorganizacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero_tipo_tercero/?limit=1&query=TerceroId__Id:"+fmt.Sprintf("%.f", idEmpresa), &resultadoOrganizacion)
 											if errorganizacion == nil && fmt.Sprintf("%v", resultadoOrganizacion[0]["System"]) != "map[]" {
-												if resultadoOrganizacion[0]["Status"] != 404 && resultadoOrganizacion[0]["Id"] != nil {
+												if resultadoOrganizacion[0]["Status"] != "404" && resultadoOrganizacion[0]["Id"] != nil {
 
 													resultadoAux["TipoTerceroId"] = map[string]interface{}{
 														"Id":     resultadoOrganizacion[0]["TipoTerceroId"].(map[string]interface{})["Id"],
