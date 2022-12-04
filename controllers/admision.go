@@ -1223,7 +1223,7 @@ func (c *AdmisionController) GetListaAspirantesPor() {
 		switch params[tipo_lista].valor {
 		case 1:
 			var inscripcion1 []map[string]interface{}
-			errInscripcion1 := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+fmt.Sprintf("inscripcion?query=EstadoInscripcionId__Id:5,ProgramaAcademicoId:%v,PeriodoId:%v&sortby=Id&order=asc", params[id_proyecto].valor, params[id_periodo].valor), &inscripcion1)
+			errInscripcion1 := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+fmt.Sprintf("inscripcion?query=EstadoInscripcionId__Id:5,ProgramaAcademicoId:%v,PeriodoId:%v&sortby=Id&order=asc&limit=0", params[id_proyecto].valor, params[id_periodo].valor), &inscripcion1)
 			if errInscripcion1 == nil && fmt.Sprintf("%v", inscripcion1) != "[map[]]" {
 				for _, inscrip1 := range inscripcion1 {
 					var datoIdentif1 []map[string]interface{}
@@ -1239,7 +1239,7 @@ func (c *AdmisionController) GetListaAspirantesPor() {
 				}
 			}
 			var inscripcion2 []map[string]interface{}
-			errInscripcion2 := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+fmt.Sprintf("inscripcion?query=EstadoInscripcionId__Id:2,ProgramaAcademicoId:%v,PeriodoId:%v&sortby=Id&order=asc", params[id_proyecto].valor, params[id_periodo].valor), &inscripcion2)
+			errInscripcion2 := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+fmt.Sprintf("inscripcion?query=EstadoInscripcionId__Id:2,ProgramaAcademicoId:%v,PeriodoId:%v&sortby=Id&order=asc&limit=0", params[id_proyecto].valor, params[id_periodo].valor), &inscripcion2)
 			if errInscripcion2 == nil && fmt.Sprintf("%v", inscripcion2) != "[map[]]" {
 				for _, inscrip2 := range inscripcion2 {
 					var datoIdentif2 []map[string]interface{}
@@ -1257,7 +1257,7 @@ func (c *AdmisionController) GetListaAspirantesPor() {
 
 		case 2:
 			var inscripcion1 []map[string]interface{}
-			errInscripcion1 := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+fmt.Sprintf("inscripcion?query=EstadoInscripcionId__Id:5,ProgramaAcademicoId:%v,PeriodoId:%v&sortby=Id&order=asc", params[id_proyecto].valor, params[id_periodo].valor), &inscripcion1)
+			errInscripcion1 := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+fmt.Sprintf("inscripcion?query=EstadoInscripcionId__Id:5,ProgramaAcademicoId:%v,PeriodoId:%v&sortby=Id&order=asc&limit=0", params[id_proyecto].valor, params[id_periodo].valor), &inscripcion1)
 			if errInscripcion1 == nil && fmt.Sprintf("%v", inscripcion1) != "[map[]]" {
 				for _, inscrip1 := range inscripcion1 {
 					var datoIdentif1 []map[string]interface{}
@@ -1271,7 +1271,7 @@ func (c *AdmisionController) GetListaAspirantesPor() {
 				}
 			}
 			var inscripcion2 []map[string]interface{}
-			errInscripcion2 := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+fmt.Sprintf("inscripcion?query=EstadoInscripcionId__Id:2,ProgramaAcademicoId:%v,PeriodoId:%v&sortby=Id&order=asc", params[id_proyecto].valor, params[id_periodo].valor), &inscripcion2)
+			errInscripcion2 := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+fmt.Sprintf("inscripcion?query=EstadoInscripcionId__Id:2,ProgramaAcademicoId:%v,PeriodoId:%v&sortby=Id&order=asc&limit=0", params[id_proyecto].valor, params[id_periodo].valor), &inscripcion2)
 			if errInscripcion2 == nil && fmt.Sprintf("%v", inscripcion2) != "[map[]]" {
 				for _, inscrip2 := range inscripcion2 {
 					var datoIdentif2 []map[string]interface{}

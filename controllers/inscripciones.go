@@ -74,38 +74,31 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 						if errRecibo == nil {
 							if ReciboXML != nil && fmt.Sprintf("%v", ReciboXML) != "map[reciboCollection:map[]]" && fmt.Sprintf("%v", ReciboXML) != "map[]" {
 								//Fecha límite de pago extraordinario
-								FechaLimite := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["fecha_extraordinario"]
-								EstadoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["estado"]
-								PagoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["pago"]
+								FechaLimite := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["fecha_extraordinario"].(string)
+								EstadoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["estado"].(string)
+								PagoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["pago"].(string)
 								//Verificación si el recibo de pago se encuentra activo y pago
 								if EstadoRecibo == "A" && PagoRecibo == "S" {
 									Estado = "Pago"
 								} else {
 									//Verifica si el recibo está vencido o no
-									FechaActual := time_bogota.TiempoBogotaFormato() //time.Now()
-									layout := "2006-01-02T15:04:05.000-05:00"
+									FechaActual := time_bogota.Tiempo_bogota().Format(time.RFC3339)
+									FechaActual = strings.Replace(fmt.Sprintf("%v", FechaActual), "+", "-", -1)
+									layoutActual := "2006-01-02T15:04:05-05:00"
+									FechaActualFormato, errFA := time.Parse(layoutActual, FechaActual)
+
 									FechaLimite = strings.Replace(fmt.Sprintf("%v", FechaLimite), "+", "-", -1)
-									FechaLimiteFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaLimite))
-									if err != nil {
-										fmt.Println(err)
+									layoutLimite := "2006-01-02T15:04:05.000-05:00"
+									FechaLimiteFormato, errFL := time.Parse(layoutLimite, FechaLimite)
+									if errFA != nil && errFL != nil {
+										fmt.Println(errFA, errFL)
 										Estado = "Vencido"
 									} else {
-										layout := "2006-01-02T15:04:05.000000000-05:00"
-										if len(FechaActual) < len(layout) {
-											n := len(FechaActual) - 26
-											s := strings.Repeat("0", n)
-											layout = strings.ReplaceAll(layout, "000000000", s)
-										}
-										FechaActualFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaActual))
-										if err != nil {
-											fmt.Println(err)
-											Estado = "Vencido"
+										FechaLimiteMas23h59m59s := FechaLimiteFormato.AddDate(0, 0, 1)
+										if FechaActualFormato.Before(FechaLimiteMas23h59m59s) {
+											Estado = "Pendiente pago"
 										} else {
-											if FechaActualFormato.Before(FechaLimiteFormato) {
-												Estado = "Pendiente pago"
-											} else {
-												Estado = "Vencido"
-											}
+											Estado = "Vencido"
 										}
 									}
 								}
