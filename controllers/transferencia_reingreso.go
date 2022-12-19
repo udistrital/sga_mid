@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
-	"time"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
@@ -1608,7 +1606,7 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 
 							errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=NivelFormacionId.Id:"+fmt.Sprintf("%v", calendario["Nivel"]), &proyectoGet)
 							if errProyecto == nil && fmt.Sprintf("%v", proyectoGet[0]) != "map[]" {
-								if calendario["DependenciaId"] != nil{
+								if calendario["DependenciaId"] != nil {
 									for _, proyectoAux := range proyectoGet {
 										for _, proyectoCalendario := range calendario["DependenciaId"].([]interface{}) {
 											if proyectoAux["Id"] == proyectoCalendario {
@@ -1618,7 +1616,7 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 													"Codigo":      proyectoAux["Codigo"],
 													"CodigoSnies": proyectoAux["CodigoSnies"],
 												}
-	
+
 												proyectos = append(proyectos, proyecto)
 											}
 										}
@@ -1756,37 +1754,23 @@ func (c *Transferencia_reingresoController) GetEstadoInscripcion() {
 		if errRecibo == nil {
 			if ReciboXML != nil && fmt.Sprintf("%v", ReciboXML) != "map[reciboCollection:map[]]" && fmt.Sprintf("%v", ReciboXML) != "map[]" {
 				//Fecha límite de pago extraordinario
-				FechaLimite := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["fecha_extraordinario"]
-				EstadoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["estado"]
-				PagoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["pago"]
+				FechaLimite := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["fecha_extraordinario"].(string)
+				EstadoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["estado"].(string)
+				PagoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["pago"].(string)
 				//Verificación si el recibo de pago se encuentra activo y pago
 				if EstadoRecibo == "A" && PagoRecibo == "S" {
 					Estado = "Pago"
 				} else {
 					//Verifica si el recibo está vencido o no
-					FechaActual := time_bogota.TiempoBogotaFormato() //time.Now()
-					layout := "2006-01-02T15:04:05.000-05:00"
-					FechaLimite = strings.Replace(fmt.Sprintf("%v", FechaLimite), "+", "-", -1)
-					FechaLimiteFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaLimite))
-					if err != nil {
-						Estado = "Vencido"
-					} else {
-						layout := "2006-01-02T15:04:05.000000000-05:00"
-						if len(FechaActual) < len(layout) {
-							n := len(FechaActual) - 26
-							s := strings.Repeat("0", n)
-							layout = strings.ReplaceAll(layout, "000000000", s)
-						}
-						FechaActualFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaActual))
-						if err != nil {
-							Estado = "Vencido"
+					ATiempo, err := models.VerificarFechaLimite(FechaLimite)
+					if err == nil {
+						if ATiempo {
+							Estado = "Pendiente pago"
 						} else {
-							if FechaActualFormato.Before(FechaLimiteFormato) {
-								Estado = "Pendiente pago"
-							} else {
-								Estado = "Vencido"
-							}
+							Estado = "Vencido"
 						}
+					} else {
+						Estado = "Vencido"
 					}
 				}
 
