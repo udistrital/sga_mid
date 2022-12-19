@@ -13,7 +13,6 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/models"
 	"github.com/udistrital/utils_oas/request"
-	"github.com/udistrital/utils_oas/time_bogota"
 )
 
 type DerechosPecuniariosController struct {
@@ -626,7 +625,7 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 							if errRecibo == nil {
 								if ReciboXML != nil && fmt.Sprintf("%v", ReciboXML) != "map[reciboCollection:map[]]" && fmt.Sprintf("%v", ReciboXML) != "map[]" {
 									//Fecha límite de pago extraordinario
-									Fecha := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["fecha_extraordinario"]
+									Fecha := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["fecha_extraordinario"].(string)
 									EstadoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["estado"]
 									PagoRecibo := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["pago"]
 									Valor := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["valor_ordinario"]
@@ -716,29 +715,15 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 
 									} else {
 										//Verifica si el recibo está vencido o no
-										FechaActual := time_bogota.TiempoBogotaFormato() //time.Now()
-										layout := "2006-01-02T15:04:05.000-05:00"
-										Fecha = strings.Replace(fmt.Sprintf("%v", Fecha), "+", "-", -1)
-										FechaLimiteFormato, err := time.Parse(layout, fmt.Sprintf("%v", Fecha))
-										if err != nil {
-											Estado = "Vencido"
-										} else {
-											layout := "2006-01-02T15:04:05.000000000-05:00"
-											if len(FechaActual) < len(layout) {
-												n := len(FechaActual) - 26
-												s := strings.Repeat("0", n)
-												layout = strings.ReplaceAll(layout, "000000000", s)
-											}
-											FechaActualFormato, err := time.Parse(layout, fmt.Sprintf("%v", FechaActual))
-											if err != nil {
-												Estado = "Vencido"
+										ATiempo, err := models.VerificarFechaLimite(Fecha)
+										if err == nil {
+											if ATiempo {
+												Estado = "Pendiente pago"
 											} else {
-												if FechaActualFormato.Before(FechaLimiteFormato) {
-													Estado = "Pendiente pago"
-												} else {
-													Estado = "Vencido"
-												}
+												Estado = "Vencido"
 											}
+										} else {
+											Estado = "Vencido"
 										}
 									}
 

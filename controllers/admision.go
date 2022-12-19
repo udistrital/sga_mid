@@ -1313,6 +1313,37 @@ func (c *AdmisionController) GetListaAspirantesPor() {
 								}
 							}
 
+							ReciboInscripcion := inscrip["ReciboInscripcion"].(string)
+							var recibo map[string]interface{}
+							var Estado string
+							if ReciboInscripcion != "0/<nil>" {
+								errRecibo := request.GetJsonWSO2("http://"+beego.AppConfig.String("ConsultarReciboJbpmService")+"consulta_recibo/"+ReciboInscripcion, &recibo)
+								if errRecibo == nil {
+									if recibo != nil && fmt.Sprintf("%v", recibo) != "map[reciboCollection:map[]]" && fmt.Sprintf("%v", recibo) != "map[]" {
+										//Fecha límite de pago extraordinario
+										FechaLimite := recibo["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["fecha_extraordinario"].(string)
+										EstadoRecibo := recibo["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["estado"].(string)
+										PagoRecibo := recibo["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["pago"].(string)
+										//Verificación si el recibo de pago se encuentra activo y pago
+										if EstadoRecibo == "A" && PagoRecibo == "S" {
+											Estado = "Pago"
+										} else {
+											//Verifica si el recibo está vencido o no
+											ATiempo, err := models.VerificarFechaLimite(FechaLimite)
+											if err == nil {
+												if ATiempo {
+													Estado = "Pendiente pago"
+												} else {
+													Estado = "Vencido"
+												}
+											} else {
+												Estado = "Vencido"
+											}
+										}
+									}
+								}
+							}
+
 							listado = append(listado, map[string]interface{}{
 								"Inscripcion":         inscrip,
 								"NumeroDocumento":     datoIdentif[0]["Numero"],
@@ -1321,8 +1352,11 @@ func (c *AdmisionController) GetListaAspirantesPor() {
 								"Email":               datoIdentif[0]["TerceroId"].(map[string]interface{})["UsuarioWSO2"],
 								"NotaFinal":           inscrip["NotaFinal"],
 								"TipoInscripcionId":   inscrip["TipoInscripcionId"],
+								"TipoInscripcion":     inscrip["TipoInscripcionId"].(map[string]interface{})["Nombre"],
 								"EstadoInscripcionId": inscrip["EstadoInscripcionId"],
+								"EstadoRecibo":        Estado,
 								"EnfasisId":           enfasis,
+								"Enfasis":             enfasis["Nombre"],
 							})
 						}
 					}
