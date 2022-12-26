@@ -237,7 +237,7 @@ func (c *PersonaController) GuardarPersona() {
 
 	var paramReq = []string{"PrimerNombre", "SegundoNombre", "PrimerApellido", "SegundoApellido", "FechaNacimiento", "Usuario",
 		"TipoIdentificacion", "NumeroIdentificacion", "FechaExpedicion", "EstadoCivil", "Genero", "OrientacionSexual",
-		"IdentidadGenero"}
+		"IdentidadGenero", "Telefono"}
 	var jsonOk bool = true
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &tercero); err == nil && fmt.Sprintf("%v", tercero) != "map[]" {
@@ -333,16 +333,30 @@ func (c *PersonaController) GuardarPersona() {
 													errIdentidadGenero := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero", "POST", &identidadGenero, identidadGenerotercero)
 													if errIdentidadGenero == nil && fmt.Sprintf("%v", identidadGenero) != "map[]" && identidadGenero["Id"] != nil {
 														if identidadGenero["Status"] != 400 {
+															IdTelefono, _ := models.IdInfoCompTercero("10", "TELEFONO")
+															ItTel, _ := strconv.ParseFloat(IdTelefono, 64)
+															newInfo := map[string]interface{}{
+																"TerceroId":            TerceroId,
+																"InfoComplementariaId": map[string]interface{}{"Id": ItTel},
+																"Dato":                 fmt.Sprintf("{\"principal\":%.0f,\"alterno\":null}", tercero["Telefono"]),
+																"Activo":               true,
+															}
+															formatdata.JsonPrint(newInfo)
+															var createinfo map[string]interface{}
+															errCreateInfo := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero", "POST", &createinfo, newInfo)
+															if errCreateInfo == nil && fmt.Sprintf("%v", createinfo) != "map[]" && createinfo["Id"] != nil {
+																resultado = terceroPost
+																resultado["NumeroIdentificacion"] = identificacion["Numero"]
+																resultado["TipoIdentificacionId"] = identificacion["TipoDocumentoId"].(map[string]interface{})["Id"]
+																resultado["FechaExpedicion"] = identificacion["FechaExpedicion"]
+																resultado["EstadoCivilId"] = estado["Id"]
+																resultado["GeneroId"] = genero["Id"]
+																resultado["OrientacionSexualId"] = orientacionSexual["Id"]
+																resultado["IdentidadGeneroId"] = identidadGenero["Id"]
+																resultado["TelefonoId"] = createinfo["Id"]
 
-															resultado = terceroPost
-															resultado["NumeroIdentificacion"] = identificacion["Numero"]
-															resultado["TipoIdentificacionId"] = identificacion["TipoDocumentoId"].(map[string]interface{})["Id"]
-															resultado["FechaExpedicion"] = identificacion["FechaExpedicion"]
-															resultado["EstadoCivilId"] = estado["Id"]
-															resultado["GeneroId"] = genero["Id"]
-															resultado["OrientacionSexualId"] = orientacionSexual["Id"]
-															resultado["IdentidadGeneroId"] = identidadGenero["Id"]
-															c.Data["json"] = resultado
+																c.Data["json"] = resultado
+															}
 
 														} else {
 															//var resultado2 map[string]interface{}
@@ -1361,6 +1375,7 @@ func (c *PersonaController) ConsultarExistenciaPersona() {
 			var genero []map[string]interface{}
 			var orientacionSexual []map[string]interface{}
 			var identidadGenero []map[string]interface{}
+			var telefono []map[string]interface{}
 
 			errEstado := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+
 				IdTercero+",InfoComplementariaId.GrupoInfoComplementariaId.Id:2", &estado)
@@ -1452,6 +1467,21 @@ func (c *PersonaController) ConsultarExistenciaPersona() {
 				//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 				c.Data["system"] = errIdentidadGenero
 				//c.Abort("404")
+			}
+
+			IdTelefono, _ := models.IdInfoCompTercero("10", "TELEFONO")
+			errTelefono := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=Activo:true,TerceroId.Id:"+
+				IdTercero+",InfoComplementariaId__Id:"+IdTelefono+"&sortby=Id&order=desc&limit=1", &telefono)
+			if errTelefono == nil && fmt.Sprintf("%v", telefono) != "[map[]]" {
+				var dataJson map[string]interface{}
+				if err := json.Unmarshal([]byte(telefono[0]["Dato"].(string)), &dataJson); err == nil {
+					preparedoc["Telefono"] = dataJson["principal"]
+					preparedoc["TelefonoAlterno"] = dataJson["alterno"]
+					preparedoc["TelefonoId"] = telefono[0]["Id"]
+				}
+			} else {
+				logs.Error(telefono)
+				c.Data["system"] = errTelefono
 			}
 
 			resultados = append(resultados, preparedoc)
