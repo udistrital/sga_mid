@@ -13,8 +13,6 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/phpdave11/gofpdf"
 	"github.com/phpdave11/gofpdf/contrib/barcode"
-	"golang.org/x/text/language"
-	"golang.org/x/text/message"
 )
 
 type GenerarReciboController struct {
@@ -270,8 +268,7 @@ func generarCodigoBarras(pdf *gofpdf.Fpdf, datos map[string]interface{}) *gofpdf
 func agregarDatosAspirante(pdf *gofpdf.Fpdf, datos map[string]interface{}) *gofpdf.Fpdf {
 	tr := pdf.UnicodeTranslatorFromDescriptor("")
 
-	p := message.NewPrinter(language.English)
-	valorDerecho := p.Sprintf("$ %.f\n     ", datos["ValorDerecho"].(float64))
+	valorDerecho := formatoDinero(int(datos["ValorDerecho"].(float64)), "$", ",") + "     "
 
 	ynow := pdf.GetY()
 	pdf.RoundedRect(7, ynow, 134, 45, 2.5, "1234", "")
@@ -373,8 +370,7 @@ func agregarDatosAspirante(pdf *gofpdf.Fpdf, datos map[string]interface{}) *gofp
 func agregarDatosEstudianteRecibo(pdf *gofpdf.Fpdf, datos map[string]interface{}) *gofpdf.Fpdf {
 	tr := pdf.UnicodeTranslatorFromDescriptor("")
 
-	p := message.NewPrinter(language.English)
-	valorDerecho := p.Sprintf("$ %.f\n     ", datos["ValorDerecho"].(float64))
+	valorDerecho := formatoDinero(int(datos["ValorDerecho"].(float64)), "$", ",") + "     "
 
 	ynow := pdf.GetY()
 	pdf.RoundedRect(7, ynow, 134, 45, 2.5, "1234", "")
@@ -478,8 +474,7 @@ func agregarDatosEstudianteRecibo(pdf *gofpdf.Fpdf, datos map[string]interface{}
 func agregarDatosCopiaBancoProyectoAspirante(pdf *gofpdf.Fpdf, datos map[string]interface{}) *gofpdf.Fpdf {
 	tr := pdf.UnicodeTranslatorFromDescriptor("")
 
-	p := message.NewPrinter(language.English)
-	valorDerecho := p.Sprintf("$ %.f\n", datos["ValorDerecho"].(float64))
+	valorDerecho := formatoDinero(int(datos["ValorDerecho"].(float64)), "$", ",")
 
 	ynow := pdf.GetY()
 	pdf.RoundedRect(7, ynow, 134, 20, 2.5, "1234", "")
@@ -598,8 +593,7 @@ func agregarDatosCopiaBancoProyectoAspirante(pdf *gofpdf.Fpdf, datos map[string]
 func agregarDatosCopiaBancoProyectoEstudianteRecibo(pdf *gofpdf.Fpdf, datos map[string]interface{}) *gofpdf.Fpdf {
 	tr := pdf.UnicodeTranslatorFromDescriptor("")
 
-	p := message.NewPrinter(language.English)
-	valorDerecho := p.Sprintf("$ %.f\n", datos["ValorDerecho"].(float64))
+	valorDerecho := formatoDinero(int(datos["ValorDerecho"].(float64)), "$", ",")
 
 	ynow := pdf.GetY()
 	pdf.RoundedRect(7, ynow, 134, 20, 2.5, "1234", "")
@@ -754,4 +748,23 @@ func dividirTexto(pdf *gofpdf.Fpdf, text string, w float64) []string {
 		lineas = append(lineas, string(lineraw))
 	}
 	return lineas
+}
+
+func formatoDinero(valor int, simbolo string, separador string) string {
+	if simbolo != "" {
+		simbolo = simbolo + " "
+	}
+	caracteres := strings.Split(fmt.Sprintf("%d", valor), "")
+
+	valorTexto := ""
+
+	for i := len(caracteres) - 1; i >= 0; i-- {
+		sep := ((i % 3) == 0) && (i > 0)
+		valorTexto += caracteres[len(caracteres)-1-i]
+		if sep {
+			valorTexto += separador
+		}
+	}
+
+	return simbolo + valorTexto
 }
