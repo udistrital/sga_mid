@@ -1996,6 +1996,34 @@
                 }
             }
         },
+        "/generar_recibo/comprobante_inscripcion/": {
+            "post": {
+                "tags": [
+                    "generar_recibo"
+                ],
+                "description": "Genera un comprobante de inscripcion",
+                "operationId": "GenerarReciboController.PostGenerarComprobanteInscripcion",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "Informacion para el comprobante",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "400": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
         "/generar_recibo/recibo_estudiante/": {
             "post": {
                 "tags": [
