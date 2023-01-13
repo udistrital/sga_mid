@@ -13,6 +13,7 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/phpdave11/gofpdf"
 	"github.com/phpdave11/gofpdf/contrib/barcode"
+	"github.com/udistrital/utils_oas/request"
 )
 
 type GenerarReciboController struct {
@@ -23,6 +24,7 @@ type GenerarReciboController struct {
 func (c *GenerarReciboController) URLMapping() {
 	c.Mapping("PostGenerarRecibo", c.PostGenerarRecibo)
 	c.Mapping("PostGenerarEstudianteRecibo", c.PostGenerarEstudianteRecibo)
+	c.Mapping("PostGenerarComprobanteInscripcion", c.PostGenerarComprobanteInscripcion)
 }
 
 // PostGenerarEstudianteRecibo ...
@@ -93,6 +95,400 @@ func (c *GenerarReciboController) PostGenerarRecibo() {
 	}
 
 	c.ServeJSON()
+}
+
+// PostGenerarComprobanteInscripcion ...
+// @Title PostGenerarComprobanteInscripcion
+// @Description Genera un comprobante de inscripcion
+// @Param	body		body 	{}	true		"Informacion para el comprobante"
+// @Success 200 {}
+// @Failure 400 body is empty
+// @router /comprobante_inscripcion/ [post]
+func (c *GenerarReciboController) PostGenerarComprobanteInscripcion() {
+
+	var data map[string]interface{}
+
+	if parseErr := json.Unmarshal(c.Ctx.Input.RequestBody, &data); parseErr == nil {
+
+		var ReciboXML map[string]interface{}
+		ReciboInscripcion := data["INSCRIPCION"].(map[string]interface{})["idRecibo"].(string)
+		if ReciboInscripcion != "0/<nil>" {
+			errRecibo := request.GetJsonWSO2("http://"+beego.AppConfig.String("ConsultarReciboJbpmService")+"consulta_recibo/"+ReciboInscripcion, &ReciboXML)
+			if errRecibo == nil {
+				if ReciboXML != nil && fmt.Sprintf("%v", ReciboXML) != "map[reciboCollection:map[]]" && fmt.Sprintf("%v", ReciboXML) != "map[]" {
+					data["PAGO"].(map[string]interface{})["valor"] = ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["valor_extraordinario"].(string)
+
+					if fecha, exist := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["fecha_pagado"].(string); exist {
+						if fecha != "" {
+							data["PAGO"].(map[string]interface{})["fechaExiste"] = true
+							data["PAGO"].(map[string]interface{})["fechaRecibo"] = fecha
+						} else {
+							data["PAGO"].(map[string]interface{})["fechaExiste"] = false
+						}
+					} else {
+						data["PAGO"].(map[string]interface{})["fechaExiste"] = false
+					}
+
+					if !data["PAGO"].(map[string]interface{})["fechaExiste"].(bool) {
+						data["PAGO"].(map[string]interface{})["fechaRecibo"] = ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["fecha"].(string)
+					}
+
+					data["PAGO"].(map[string]interface{})["comprobante"] = ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["secuencia"].(string)
+					data["PAGO"].(map[string]interface{})["estado"] = ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["pago"].(string)
+
+					pdf := generarComprobanteInscripcion(data)
+
+					if pdf.Err() {
+						logs.Error("Failed creating PDF voucher: %s\n", pdf.Error())
+						c.Data["json"] = map[string]interface{}{"Code": "400", "Body": pdf.Error(), "Type": "error"}
+					}
+
+					if pdf.Ok() {
+						encodedFile := encodePDF(pdf)
+						c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Query successful", "Data": encodedFile}
+					}
+
+				} else {
+					logs.Error("reciboCollection seems empty", ReciboXML)
+					c.Data["json"] = map[string]interface{}{"Code": "400", "Body": "reciboCollection seems empty", "Type": "error"}
+					c.Abort("400")
+				}
+			} else {
+				logs.Error(errRecibo)
+				c.Data["json"] = map[string]interface{}{"Code": "400", "Body": errRecibo.Error(), "Type": "error"}
+				c.Abort("400")
+			}
+		} else {
+			logs.Error("ReciboInscripcionId seems empty")
+			c.Data["json"] = map[string]interface{}{"Code": "400", "Body": "ReciboInscripcionId seems empty", "Type": "error"}
+			c.Abort("400")
+		}
+	} else {
+		logs.Error(parseErr)
+		c.Data["json"] = map[string]interface{}{"Code": "400", "Body": parseErr.Error(), "Type": "error"}
+		c.Abort("400")
+	}
+
+	c.ServeJSON()
+}
+
+// *** functions *** //
+type styling struct {
+	mL float64 // margen izq
+	mT float64 // margen sup
+	mR float64 // margen der
+	mB float64 // margen inf
+	wW float64 // ancho area trabajo
+	hW float64 // alto area trabajo
+	//hH    float64 // alto header
+	hF float64 // alto footer
+	//lh int     // alto linea común
+	//brdrs string  // estilo border común
+}
+
+func generarComprobanteInscripcion(data map[string]interface{}) *gofpdf.Fpdf {
+
+	// características de página
+	pdf := gofpdf.New("P", "mm", "Letter", "") //215.9 279.4
+
+	// pps page properties and styling
+	pps := styling{mL: 7, mT: 7, mR: 7, mB: 7, hF: 10}
+
+	pps.wW, pps.hW = pdf.GetPageSize()
+	pps.wW -= (pps.mL + pps.mR)
+	pps.hW -= (pps.mT + pps.mB)
+
+	pdf.SetMargins(pps.mL, pps.mT, pps.mR)
+	pdf.SetAutoPageBreak(true, pps.mB+pps.hF) // margen inferior
+
+	pdf.SetHeaderFunc(headerComprobante(pdf, data, pps))
+
+	pdf.SetFooterFunc(footerComprobante(pdf, pps))
+
+	pdf.AddPage()
+	//pdf.Rect(pps.mL, pps.mT, pps.wW, pps.hW, "")
+
+	tr := pdf.UnicodeTranslatorFromDescriptor("")
+
+	pdf.CellFormat(pps.wW*0.5, 5, tr(fmt.Sprintf("Inscripción No. %.f", data["INSCRIPCION"].(map[string]interface{})["id"].(float64))), "", 0, "C", false, 0, "")
+	pdf.CellFormat(pps.wW*0.5, 5, tr(data["INSCRIPCION"].(map[string]interface{})["fechaInsripcion"].(string)), "", 0, "C", false, 0, "")
+	pdf.Ln(9)
+
+	informacionPersonal(pdf, data, pps)
+	pdf.Ln(7)
+	informacionPago(pdf, data, pps)
+	pdf.Ln(7)
+	documentacionSuministrada(pdf, data, pps)
+
+	return pdf
+}
+
+func headerComprobante(pdf *gofpdf.Fpdf, data map[string]interface{}, pps styling) func() {
+	return func() {
+		pdf.SetHomeXY()
+		tr := pdf.UnicodeTranslatorFromDescriptor("")
+
+		path := beego.AppConfig.String("StaticPath")
+		pdf = image(pdf, path+"/img/UDEscudo2.png", pps.mL, pps.mT, 0, 17.5)
+
+		pdf.SetXY(pps.mL, pdf.GetY())
+		fontStyle(pdf, "B", 10, 0)
+		pdf.Cell(13, 10, "")
+		pdf.Cell(140, 10, "UNIVERSIDAD DISTRITAL")
+		pdf.Ln(4)
+
+		pdf.Cell(13, 10, "")
+		pdf.Cell(60, 10, tr("Francisco José de Caldas"))
+		pdf.Cell(80, 10, tr("COMPROBANTE INSCRIPCIÓN"))
+		pdf.Ln(4)
+
+		fontStyle(pdf, "", 8, 0)
+		pdf.Cell(13, 10, "")
+		pdf.Cell(50, 10, "NIT 899.999.230-7")
+		pdf.Ln(10)
+
+		idPrograma := data["INSCRIPCION"].(map[string]interface{})["programa_id"].(float64)
+		idInscrip := data["INSCRIPCION"].(map[string]interface{})["id"].(float64)
+		docAspirante := data["ASPIRANTE"].(map[string]interface{})["numeroDocId"].(string)
+		fechaInscrip := data["INSCRIPCION"].(map[string]interface{})["fechaInsripcion"].(string)
+		fechaInscrip = strings.Split(fechaInscrip, ",")[0]
+
+		codigo := fmt.Sprintf("%.f-%.f-%s-%s", idPrograma, idInscrip, docAspirante, fechaInscrip)
+		bcode := barcode.RegisterCode128(pdf, codigo)
+		barcode.Barcode(pdf, bcode, pps.mL+pps.wW-60, pps.mT+2.5, 58.5, 12, false)
+	}
+}
+
+func footerComprobante(pdf *gofpdf.Fpdf, pps styling) func() {
+	return func() {
+		pdf.SetXY(pps.mL, pps.mT+pps.hW-pps.hF)
+		path := beego.AppConfig.String("StaticPath")
+		pdf = image(pdf, path+"/img/sga_logo_name.png", pps.mL+pps.wW*0.5-17.66, pps.mT+pps.hW-pps.hF, 35.33, pps.hF)
+	}
+}
+
+func informacionPersonal(pdf *gofpdf.Fpdf, data map[string]interface{}, pps styling) *gofpdf.Fpdf {
+	tr := pdf.UnicodeTranslatorFromDescriptor("")
+
+	pdf.SetDrawColor(100, 100, 100)
+	pdf.RoundedRect(pps.mL, pdf.GetY()-1, pps.wW, 31, 2.5, "1234", "")
+	pdf.Cell(pps.wW*0.01, 8, "")
+	pdf.SetFillColor(0, 162, 255)
+	pdf.RoundedRect(pdf.GetX(), pdf.GetY()+1, pps.wW*.98, 6, 1, "1234", "F")
+	pdf.SetFontStyle("B")
+	pdf.SetTextColor(255, 255, 255)
+	pdf.CellFormat(pps.wW*0.98, 8, tr("INFORMACIÓN PERSONAL"), "", 0, "C", false, 0, "")
+	pdf.Ln(8)
+
+	pdf.SetFontStyle("")
+	pdf.SetTextColor(0, 0, 0)
+	pdf.Cell(pps.wW*0.02, 8, "")
+	pdf.RoundedRect(pdf.GetX(), pdf.GetY()+0.25, pps.wW*.46, 4.5, 1, "1234", "")
+	pdf.SetFontStyle("B")
+	pdf.CellFormat(pps.wW*0.18, 5, "Nombre:", "", 0, "L", false, 0, "")
+	pdf.SetFontStyle("")
+	pdf.CellFormat(pps.wW*0.32, 5, tr(data["ASPIRANTE"].(map[string]interface{})["nombre"].(string)), "", 0, "L", false, 0, "")
+	pdf.RoundedRect(pdf.GetX(), pdf.GetY()+0.25, pps.wW*.46, 4.5, 1, "1234", "")
+	pdf.SetFontStyle("B")
+	pdf.CellFormat(pps.wW*0.18, 5, "Tipo documento: ", "", 0, "L", false, 0, "")
+	pdf.SetFontStyle("")
+	pdf.CellFormat(pps.wW*0.28, 5, tr(data["ASPIRANTE"].(map[string]interface{})["tipoDoc"].(string)), "", 0, "L", false, 0, "")
+	pdf.Ln(5)
+	pdf.Cell(pps.wW*0.02, 8, "")
+	pdf.RoundedRect(pdf.GetX(), pdf.GetY()+0.25, pps.wW*.46, 4.5, 1, "1234", "")
+	pdf.SetFontStyle("B")
+	pdf.CellFormat(pps.wW*0.18, 5, tr("Número documento: "), "", 0, "L", false, 0, "")
+	pdf.SetFontStyle("")
+	pdf.CellFormat(pps.wW*0.32, 5, tr(data["ASPIRANTE"].(map[string]interface{})["numeroDocId"].(string)), "", 0, "L", false, 0, "")
+	pdf.RoundedRect(pdf.GetX(), pdf.GetY()+0.25, pps.wW*.46, 4.5, 1, "1234", "")
+	pdf.SetFontStyle("B")
+	pdf.CellFormat(pps.wW*0.18, 5, tr("Teléfono contacto: "), "", 0, "L", false, 0, "")
+	pdf.SetFontStyle("")
+	pdf.CellFormat(pps.wW*0.28, 5, fmt.Sprintf("%.f", data["ASPIRANTE"].(map[string]interface{})["telefono"].(float64)), "", 0, "L", false, 0, "")
+	pdf.Ln(5)
+	pdf.Cell(pps.wW*0.02, 8, "")
+	pdf.RoundedRect(pdf.GetX(), pdf.GetY()+0.25, pps.wW*.46, 4.5, 1, "1234", "")
+	pdf.SetFontStyle("B")
+	pdf.CellFormat(pps.wW*0.18, 5, "Programa inscribe: ", "", 0, "L", false, 0, "")
+	pdf.SetFontStyle("")
+	pdf.CellFormat(pps.wW*0.32, 5, tr(data["INSCRIPCION"].(map[string]interface{})["nombrePrograma"].(string)), "", 0, "L", false, 0, "")
+	pdf.RoundedRect(pdf.GetX(), pdf.GetY()+0.25, pps.wW*.46, 4.5, 1, "1234", "")
+	pdf.SetFontStyle("B")
+	pdf.CellFormat(pps.wW*0.18, 5, "Correo contacto: ", "", 0, "L", false, 0, "")
+	pdf.SetFontStyle("")
+	pdf.CellFormat(pps.wW*0.28, 5, tr(data["ASPIRANTE"].(map[string]interface{})["correo"].(string)), "", 0, "L", false, 0, "")
+	pdf.Ln(5)
+	pdf.Cell(pps.wW*0.02, 8, "")
+	pdf.RoundedRect(pdf.GetX(), pdf.GetY()+0.25, pps.wW*.46, 4.5, 1, "1234", "")
+	pdf.SetFontStyle("B")
+	pdf.CellFormat(pps.wW*0.18, 5, tr("Énfasis: "), "", 0, "L", false, 0, "")
+	pdf.SetFontStyle("")
+	pdf.CellFormat(pps.wW*0.32, 5, tr(data["INSCRIPCION"].(map[string]interface{})["enfasis"].(string)), "", 0, "L", false, 0, "")
+	pdf.RoundedRect(pdf.GetX(), pdf.GetY()+0.25, pps.wW*.46, 4.5, 1, "1234", "")
+	pdf.SetFontStyle("B")
+	pdf.CellFormat(pps.wW*0.18, 5, tr("Periodo académico: "), "", 0, "L", false, 0, "")
+	pdf.SetFontStyle("")
+	pdf.CellFormat(pps.wW*0.28, 5, tr(data["INSCRIPCION"].(map[string]interface{})["periodo"].(string)), "", 0, "L", false, 0, "")
+	pdf.Ln(5)
+	return pdf
+}
+
+func informacionPago(pdf *gofpdf.Fpdf, data map[string]interface{}, pps styling) *gofpdf.Fpdf {
+	tr := pdf.UnicodeTranslatorFromDescriptor("")
+
+	textFecha := "Fecha de pago:"
+	if !data["PAGO"].(map[string]interface{})["fechaExiste"].(bool) {
+		textFecha = "Fecha de generación:"
+		data["PAGO"].(map[string]interface{})["fechaRecibo"] = strings.Split(data["PAGO"].(map[string]interface{})["fechaRecibo"].(string), "T")[0]
+		orderFecha := strings.Split(data["PAGO"].(map[string]interface{})["fechaRecibo"].(string), "-")
+		data["PAGO"].(map[string]interface{})["fechaRecibo"] = fmt.Sprintf("%s/%s/%s", orderFecha[2], orderFecha[1], orderFecha[0])
+	}
+
+	estado := data["PAGO"].(map[string]interface{})["estado"].(string)
+	if estado == "S" {
+		estado = "Pagado"
+	} else if estado == "N" {
+		estado = "Pendiente pago"
+	} else if estado == "V" {
+		estado = "Vencido"
+	}
+	data["PAGO"].(map[string]interface{})["estado"] = estado
+
+	pdf.SetDrawColor(100, 100, 100)
+	pdf.RoundedRect(pps.mL, pdf.GetY()-1, pps.wW, 21, 2.5, "1234", "")
+	pdf.Cell(pps.wW*0.01, 8, "")
+	pdf.SetFillColor(0, 162, 255)
+	pdf.RoundedRect(pdf.GetX(), pdf.GetY()+1, pps.wW*.98, 6, 1, "1234", "F")
+	pdf.SetFontStyle("B")
+	pdf.SetTextColor(255, 255, 255)
+	pdf.CellFormat(pps.wW*0.98, 8, tr("INFORMACIÓN DE PAGO"), "", 0, "C", false, 0, "")
+	pdf.Ln(8)
+
+	pdf.SetFontStyle("")
+	pdf.SetTextColor(0, 0, 0)
+	pdf.Cell(pps.wW*0.02, 8, "")
+	pdf.RoundedRect(pdf.GetX(), pdf.GetY()+0.25, pps.wW*.46, 4.5, 1, "1234", "")
+	pdf.SetFontStyle("B")
+	pdf.CellFormat(pps.wW*0.18, 5, tr("Valor inscripción:"), "", 0, "L", false, 0, "")
+	pdf.SetFontStyle("")
+
+	pdf.CellFormat(pps.wW*0.32, 5, tr(formatoDinero(0, "$", ",", data["PAGO"].(map[string]interface{})["valor"].(string))), "", 0, "L", false, 0, "")
+	pdf.RoundedRect(pdf.GetX(), pdf.GetY()+0.25, pps.wW*.46, 4.5, 1, "1234", "")
+	pdf.SetFontStyle("B")
+	pdf.CellFormat(pps.wW*0.18, 5, tr(textFecha), "", 0, "L", false, 0, "")
+	pdf.SetFontStyle("")
+	pdf.CellFormat(pps.wW*0.28, 5, tr(data["PAGO"].(map[string]interface{})["fechaRecibo"].(string)), "", 0, "L", false, 0, "")
+	pdf.Ln(5)
+	pdf.Cell(pps.wW*0.02, 8, "")
+	pdf.RoundedRect(pdf.GetX(), pdf.GetY()+0.25, pps.wW*.46, 4.5, 1, "1234", "")
+	pdf.SetFontStyle("B")
+	pdf.CellFormat(pps.wW*0.18, 5, tr("Código comprobante:"), "", 0, "L", false, 0, "")
+	pdf.SetFontStyle("")
+	pdf.CellFormat(pps.wW*0.32, 5, tr(data["PAGO"].(map[string]interface{})["comprobante"].(string)), "", 0, "L", false, 0, "")
+	pdf.RoundedRect(pdf.GetX(), pdf.GetY()+0.25, pps.wW*.46, 4.5, 1, "1234", "")
+	pdf.SetFontStyle("B")
+	pdf.CellFormat(pps.wW*0.18, 5, tr("Estado del recibo: "), "", 0, "L", false, 0, "")
+	pdf.SetFontStyle("")
+	pdf.CellFormat(pps.wW*0.28, 5, tr(data["PAGO"].(map[string]interface{})["estado"].(string)), "", 0, "L", false, 0, "")
+	pdf.Ln(5)
+
+	return pdf
+}
+
+func documentacionSuministrada(pdf *gofpdf.Fpdf, data map[string]interface{}, pps styling) *gofpdf.Fpdf {
+	tr := pdf.UnicodeTranslatorFromDescriptor("")
+
+	ystart := pdf.GetY()
+	pdf.SetDrawColor(100, 100, 100)
+	pdf.Cell(pps.wW*0.01, 8, "")
+	pdf.SetFillColor(0, 162, 255)
+	pdf.RoundedRect(pdf.GetX(), pdf.GetY()+1, pps.wW*.98, 6, 1, "1234", "F")
+	pdf.SetFontStyle("B")
+	pdf.SetTextColor(255, 255, 255)
+	pdf.CellFormat(pps.wW*0.98, 8, tr("DOCUMENTACIÓN SUMINISTRADA"), "", 0, "C", false, 0, "")
+	pdf.Ln(8)
+
+	pdf.SetFontStyle("")
+	pdf.Cell(pps.wW*0.02, 8, "")
+	pdf.RoundedRect(pdf.GetX(), pdf.GetY(), pps.wW*.38, 5, 1, "1234", "F")
+	pdf.SetFontStyle("B")
+	pdf.CellFormat(pps.wW*0.38, 5, "Componente", "", 0, "C", false, 0, "")
+	pdf.Cell(pps.wW*0.04, 5, "")
+	pdf.RoundedRect(pdf.GetX(), pdf.GetY(), pps.wW*.54, 5, 1, "1234", "F")
+	pdf.SetFontStyle("B")
+	pdf.CellFormat(pps.wW*0.54, 5, "Documentos suministrados", "", 0, "C", false, 0, "")
+	pdf.Ln(6)
+
+	data = data["DOCUMENTACION"].(map[string]interface{})
+
+	pdf = docsCarpeta(pdf, data, "Información Básica", true, pps)
+	pdf = docsCarpeta(pdf, data, "Formación Académica", false, pps)
+	pdf = docsCarpeta(pdf, data, "Experiencia Laboral", false, pps)
+	pdf = docsCarpeta(pdf, data, "Producción Académica", true, pps)
+	pdf = docsCarpeta(pdf, data, "Documentos Solicitados", false, pps)
+	pdf = docsCarpeta(pdf, data, "Descuentos de Matrícula", false, pps)
+	pdf = docsCarpeta(pdf, data, "Propuesta de Trabajo de Grado", false, pps)
+
+	pdf.RoundedRect(pps.mL, ystart-1, pps.wW, 2+pdf.GetY()-ystart, 2.5, "1234", "")
+
+	return pdf
+}
+
+func docsCarpeta(pdf *gofpdf.Fpdf, data map[string]interface{}, tagSuite string, subCarpeta bool, pps styling) *gofpdf.Fpdf {
+	tr := pdf.UnicodeTranslatorFromDescriptor("")
+
+	var ystart float64 = pdf.GetY()
+
+	if thisTag, exist := data[tagSuite].(map[string]interface{}); exist {
+		if subCarpeta {
+			for sub, doc := range thisTag {
+				total := len(doc.([]interface{}))
+				pdf.SetX(pps.mL + pps.wW*.44)
+				fontStyle(pdf, "B", 8, 100)
+				pdf.MultiCell(pps.wW*.54, 5, tr(sub), "", "L", false)
+				concatNames := fmt.Sprintf("(total docs: %d)  ", total)
+				for _, docName := range doc.([]interface{}) {
+					concatNames += (docName.(string) + ";  ")
+				}
+				concatNames = strings.Trim(concatNames, "; ")
+
+				pdf.SetX(pps.mL + pps.wW*.44)
+				fontStyle(pdf, "", 7, 0)
+				pdf.MultiCell(pps.wW*.54, 4, tr(concatNames), "", "TL", false)
+			}
+			yend := pdf.GetY()
+			pdf.RoundedRect(pps.mL+pps.wW*.44, ystart, pps.wW*.54, yend-ystart, 1, "1234", "")
+			fontStyle(pdf, "B", 8, 0)
+			pdf.SetXY(pps.mL+pps.wW*.02, ystart)
+			pdf.CellFormat(pps.wW*0.38, yend-ystart, tr(tagSuite), "0", 0, "C", false, 0, "")
+			pdf.RoundedRect(pps.mL+pps.wW*.02, ystart, pps.wW*.38, yend-ystart, 1, "1234", "")
+			pdf.SetXY(pps.mL, yend+1)
+		} else {
+			for _, doc := range thisTag {
+				total := len(doc.([]interface{}))
+				fontStyle(pdf, "", 8, 0)
+				concatNames := fmt.Sprintf("(total docs: %d)  ", total)
+				for _, docName := range doc.([]interface{}) {
+					concatNames += (docName.(string) + ";  ")
+				}
+				concatNames = strings.Trim(concatNames, "; ")
+				pdf.SetX(pps.mL + pps.wW*.44)
+				pdf.MultiCell(pps.wW*.54, 5, tr(concatNames), "", "L", false)
+				yend := pdf.GetY()
+				if (yend - ystart) <= 5 {
+					yend += 2
+				}
+				pdf.RoundedRect(pps.mL+pps.wW*.44, ystart, pps.wW*.54, yend-ystart, 1, "1234", "")
+				fontStyle(pdf, "B", 8, 0)
+				pdf.SetXY(pps.mL+pps.wW*.02, ystart)
+				pdf.CellFormat(pps.wW*0.38, yend-ystart, tr(tagSuite), "0", 0, "C", false, 0, "")
+				pdf.RoundedRect(pps.mL+pps.wW*.02, ystart, pps.wW*.38, yend-ystart, 1, "1234", "")
+				pdf.SetXY(pps.mL, yend+1)
+				break
+			}
+		}
+	}
+	return pdf
 }
 
 // GenerarRecibo Version Aspirante
@@ -173,6 +569,8 @@ func GenerarEstudianteRecibo(datos map[string]interface{}) *gofpdf.Fpdf {
 
 // Description: genera el encabezado reutilizable del recibo de pago
 func header(pdf *gofpdf.Fpdf, comprobante string, banco bool) *gofpdf.Fpdf {
+	tr := pdf.UnicodeTranslatorFromDescriptor("")
+
 	path := beego.AppConfig.String("StaticPath")
 	pdf = image(pdf, path+"/img/UDEscudo2.png", 7, pdf.GetY(), 0, 17.5)
 
@@ -191,7 +589,7 @@ func header(pdf *gofpdf.Fpdf, comprobante string, banco bool) *gofpdf.Fpdf {
 	}
 	pdf.Ln(4)
 	pdf.Cell(13, 10, "")
-	pdf.Cell(60, 10, "Francisco Jose de Caldas")
+	pdf.Cell(60, 10, tr("Francisco José de Caldas"))
 	pdf.Cell(80, 10, "COMPROBANTE DE PAGO No "+comprobante)
 
 	if banco {
@@ -735,8 +1133,8 @@ func fechaActual() string {
 }
 
 // Estilo de fuente usando Helvetica
-func fontStyle(pdf *gofpdf.Fpdf, style string, size float64, color int) {
-	pdf.SetTextColor(color, color, color)
+func fontStyle(pdf *gofpdf.Fpdf, style string, size float64, bw int) {
+	pdf.SetTextColor(bw, bw, bw)
 	pdf.SetFont("Helvetica", style, size)
 }
 
@@ -750,11 +1148,16 @@ func dividirTexto(pdf *gofpdf.Fpdf, text string, w float64) []string {
 	return lineas
 }
 
-func formatoDinero(valor int, simbolo string, separador string) string {
+func formatoDinero(valor int, simbolo string, separador string, valorStr ...string) string {
 	if simbolo != "" {
 		simbolo = simbolo + " "
 	}
-	caracteres := strings.Split(fmt.Sprintf("%d", valor), "")
+	var caracteres []string
+	if valor > 0 {
+		caracteres = strings.Split(fmt.Sprintf("%d", valor), "")
+	} else {
+		caracteres = strings.Split(valorStr[0], "")
+	}
 
 	valorTexto := ""
 
