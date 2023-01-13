@@ -630,6 +630,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:GenerarReciboController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:GenerarReciboController"],
         beego.ControllerComments{
+            Method: "PostGenerarComprobanteInscripcion",
+            Router: "/comprobante_inscripcion/",
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:GenerarReciboController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:GenerarReciboController"],
+        beego.ControllerComments{
             Method: "PostGenerarEstudianteRecibo",
             Router: "/recibo_estudiante/",
             AllowHTTPMethods: []string{"post"},
