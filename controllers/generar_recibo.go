@@ -645,7 +645,7 @@ func generarCodigoBarras(pdf *gofpdf.Fpdf, datos map[string]interface{}) *gofpdf
 	}
 
 	costo := fmt.Sprintf("%.f", datos["ValorDerecho"].(float64))
-	for len(costo) < 12 {
+	for len(costo) < 10 {
 		costo = "0" + costo
 	}
 
