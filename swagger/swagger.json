@@ -3582,7 +3582,7 @@
             }
         },
         "/produccion_academica/{id}": {
-            "post": {
+            "put": {
                 "tags": [
                     "produccion_academica"
                 ],

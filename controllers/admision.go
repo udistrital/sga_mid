@@ -1254,6 +1254,22 @@ func (c *AdmisionController) GetListaAspirantesPor() {
 					}
 				}
 			}
+			var inscripcion3 []map[string]interface{}
+			errInscripcion3 := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+fmt.Sprintf("inscripcion?query=EstadoInscripcionId__Id:6,ProgramaAcademicoId:%v,PeriodoId:%v&sortby=Id&order=asc&limit=0", params[id_proyecto].valor, params[id_periodo].valor), &inscripcion3)
+			if errInscripcion3 == nil && fmt.Sprintf("%v", inscripcion3) != "[map[]]" {
+				for _, inscrip3 := range inscripcion3 {
+					var datoIdentif3 []map[string]interface{}
+					errDatoIdentif3 := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+fmt.Sprintf("datos_identificacion?query=TerceroId:%v", inscrip3["PersonaId"]), &datoIdentif3)
+					if errDatoIdentif3 == nil && fmt.Sprintf("%v", datoIdentif3) != "[map[]]" {
+						listado = append(listado, map[string]interface{}{
+							"Credencial":     inscrip3["Id"],
+							"Identificacion": datoIdentif3[0]["Numero"],
+							"Nombre":         datoIdentif3[0]["TerceroId"].(map[string]interface{})["NombreCompleto"],
+							"Estado":         inscrip3["EstadoInscripcionId"].(map[string]interface{})["Nombre"],
+						})
+					}
+				}
+			}
 
 		case 2:
 			var inscripcion1 []map[string]interface{}
