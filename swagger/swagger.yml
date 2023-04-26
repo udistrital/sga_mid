@@ -2293,7 +2293,7 @@ paths:
         "400":
           description: the request contains incorrect syntax
   /produccion_academica/{id}:
-    post:
+    put:
       tags:
       - produccion_academica
       description: Modificar Producción Academica
