@@ -163,6 +163,11 @@ func init() {
 				&controllers.NotasController{},
 			),
 		),
+		beego.NSNamespace("/time_bog",
+			beego.NSInclude(
+				&controllers.Time_bogController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }

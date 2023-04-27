@@ -2914,6 +2914,19 @@ paths:
           description: '{}'
         "404":
           description: not found resource
+  /time_bog/:
+    get:
+      tags:
+      - time_bog
+      description: get Time_bog
+      operationId: Time_bogController.GetTimeBog
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Time_bog'
+        "500":
+          description: something bad happened
   /transferencia/:
     post:
       tags:
@@ -3118,6 +3131,9 @@ definitions:
   models.Practicas_academicas:
     title: Practicas_academicas
     type: object
+  models.Time_bog:
+    title: Time_bog
+    type: object
   models.Transferencia_reingreso:
     title: Transferencia_reingreso
     type: object
@@ -3191,3 +3207,6 @@ tags:
 - name: notas
   description: |
     NotasController operations for Notas
+- name: time_bog
+  description: |
+    Time_bogController operations for Time_bog
