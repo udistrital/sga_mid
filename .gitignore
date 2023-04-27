@@ -15,3 +15,5 @@ swagger/images/
 swagger/lang/
 swagger/lib/
 sga_mid.exe
+go.mod
+go.sum
