@@ -1429,10 +1429,12 @@ func (c *AdmisionController) GetDependenciaPorVinculacionTercero() {
 	}
 	/*
 		consulta vinculación tercero and check resultado válido
+		DependenciaId__gt:0 -> que tenga id mayor que cero
+		CargoId__in:312|320 -> parametrosId: 312: JEFE OFICINA, 320: Asistente Dependencia
 	*/
 	var estadoVinculacion []map[string]interface{}
 	estadoVinculacionErr := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+
-		fmt.Sprintf("vinculacion?query=Activo:true,tercero_principal_id:%v", id_tercero_str), &estadoVinculacion)
+		fmt.Sprintf("vinculacion?query=Activo:true,DependenciaId__gt:0,CargoId__in:312|320,tercero_principal_id:%v", id_tercero_str), &estadoVinculacion)
 	if estadoVinculacionErr != nil || fmt.Sprintf("%v", estadoVinculacion) == "[map[]]" {
 		if estadoVinculacionErr == nil {
 			estadoVinculacionErr = fmt.Errorf("vinculacion is empty: %v", estadoVinculacion)
@@ -1445,28 +1447,18 @@ func (c *AdmisionController) GetDependenciaPorVinculacionTercero() {
 		return
 	}
 	/*
-		verificación de Ids
+		preparar lista de dependencias, normalmente será una, pero se espera soportar varias por tercero
 	*/
-	dependenciaId := int64(estadoVinculacion[0]["DependenciaId"].(float64))
-	cargoId := int64(estadoVinculacion[0]["CargoId"].(float64))
-	/*
-		parametrosId: 312: JEFE OFICINA, 320: Asistente Dependencia
-	*/
-	if dependenciaId <= 0 || cargoId <= 0 || (cargoId != 312 && cargoId != 320) {
-		idsError := fmt.Errorf("some id is not valid: d%v, c%v", dependenciaId, cargoId)
-		logs.Error(idsError.Error())
-		c.Ctx.Output.SetStatus(404)
-		failureAsn["Data"] = idsError.Error()
-		c.Data["json"] = failureAsn
-		c.ServeJSON()
-		return
+	var dependencias []int64
+	for _, vinculacion := range estadoVinculacion {
+		dependencias = append(dependencias, int64(vinculacion["DependenciaId"].(float64)))
 	}
 	/*
 		entrega de respuesta existosa :)
 	*/
 	c.Ctx.Output.SetStatus(200)
 	successAns["Data"] = map[string]interface{}{
-		"DependenciaId": estadoVinculacion[0]["DependenciaId"],
+		"DependenciaId": dependencias,
 	}
 	c.Data["json"] = successAns
 	c.ServeJSON()
