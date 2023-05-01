@@ -198,6 +198,33 @@
                 }
             }
         },
+        "/admision/dependencia_vinculacion_tercero/{id_tercero}": {
+            "get": {
+                "tags": [
+                    "admision"
+                ],
+                "description": "get DependenciaId por Vinculacion de tercero, verificando cargo",
+                "operationId": "AdmisionController.GetDependenciaPorVinculacionTercero",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id_tercero",
+                        "description": "Id del tercero",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
         "/admision/getlistaaspirantespor": {
             "get": {
                 "tags": [
@@ -3582,7 +3609,7 @@
             }
         },
         "/produccion_academica/{id}": {
-            "post": {
+            "put": {
                 "tags": [
                     "produccion_academica"
                 ],
@@ -4432,6 +4459,26 @@
                 }
             }
         },
+        "/time_bog/": {
+            "get": {
+                "tags": [
+                    "time_bog"
+                ],
+                "description": "get Time_bog",
+                "operationId": "Time_bogController.GetTimeBog",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Time_bog"
+                        }
+                    },
+                    "500": {
+                        "description": "something bad happened"
+                    }
+                }
+            }
+        },
         "/transferencia/": {
             "post": {
                 "tags": [
@@ -4737,6 +4784,10 @@
             "title": "Practicas_academicas",
             "type": "object"
         },
+        "models.Time_bog": {
+            "title": "Time_bog",
+            "type": "object"
+        },
         "models.Transferencia_reingreso": {
             "title": "Transferencia_reingreso",
             "type": "object"
@@ -4838,6 +4889,10 @@
         {
             "name": "notas",
             "description": "NotasController operations for Notas\n"
+        },
+        {
+            "name": "time_bog",
+            "description": "Time_bogController operations for Time_bog\n"
         }
     ]
 }

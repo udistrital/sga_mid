@@ -81,6 +81,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:AdmisionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:AdmisionController"],
         beego.ControllerComments{
+            Method: "GetDependenciaPorVinculacionTercero",
+            Router: "/dependencia_vinculacion_tercero/:id_tercero",
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:AdmisionController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:AdmisionController"],
+        beego.ControllerComments{
             Method: "GetListaAspirantesPor",
             Router: "/getlistaaspirantespor",
             AllowHTTPMethods: []string{"get"},
@@ -1109,7 +1118,7 @@ func init() {
         beego.ControllerComments{
             Method: "PutProduccionAcademica",
             Router: "/:id",
-            AllowHTTPMethods: []string{"post"},
+            AllowHTTPMethods: []string{"put"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
@@ -1352,6 +1361,15 @@ func init() {
         beego.ControllerComments{
             Method: "GetByIdentificacion",
             Router: "/identificacion/",
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Time_bogController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Time_bogController"],
+        beego.ControllerComments{
+            Method: "GetTimeBog",
+            Router: "/",
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,

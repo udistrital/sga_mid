@@ -162,7 +162,7 @@ func (c *ProduccionAcademicaController) PutEstadoAutorProduccionAcademica() {
 // @Param   body        body    {}  true        "body Modificar ProduccionAcademica content"
 // @Success 200 {}
 // @Failure 400 the request contains incorrect syntax
-// @router /:id [post]
+// @router /:id [put]
 func (c *ProduccionAcademicaController) PutProduccionAcademica() {
 	idStr := c.Ctx.Input.Param(":id")
 	fmt.Println("Id es: " + idStr)

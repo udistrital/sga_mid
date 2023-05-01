@@ -31,6 +31,7 @@ func (c *AdmisionController) URLMapping() {
 	c.Mapping("GetEvaluacionAspirantes", c.GetEvaluacionAspirantes)
 	c.Mapping("PutNotaFinalAspirantes", c.PutNotaFinalAspirantes)
 	c.Mapping("GetListaAspirantesPor", c.GetListaAspirantesPor)
+	c.Mapping("GetDependenciaPorVinculacionTercero", c.GetDependenciaPorVinculacionTercero)
 }
 
 // PutNotaFinalAspirantes ...
@@ -1254,6 +1255,22 @@ func (c *AdmisionController) GetListaAspirantesPor() {
 					}
 				}
 			}
+			var inscripcion3 []map[string]interface{}
+			errInscripcion3 := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+fmt.Sprintf("inscripcion?query=EstadoInscripcionId__Id:6,ProgramaAcademicoId:%v,PeriodoId:%v&sortby=Id&order=asc&limit=0", params[id_proyecto].valor, params[id_periodo].valor), &inscripcion3)
+			if errInscripcion3 == nil && fmt.Sprintf("%v", inscripcion3) != "[map[]]" {
+				for _, inscrip3 := range inscripcion3 {
+					var datoIdentif3 []map[string]interface{}
+					errDatoIdentif3 := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+fmt.Sprintf("datos_identificacion?query=TerceroId:%v", inscrip3["PersonaId"]), &datoIdentif3)
+					if errDatoIdentif3 == nil && fmt.Sprintf("%v", datoIdentif3) != "[map[]]" {
+						listado = append(listado, map[string]interface{}{
+							"Credencial":     inscrip3["Id"],
+							"Identificacion": datoIdentif3[0]["Numero"],
+							"Nombre":         datoIdentif3[0]["TerceroId"].(map[string]interface{})["NombreCompleto"],
+							"Estado":         inscrip3["EstadoInscripcionId"].(map[string]interface{})["Nombre"],
+						})
+					}
+				}
+			}
 
 		case 2:
 			var inscripcion1 []map[string]interface{}
@@ -1377,5 +1394,72 @@ func (c *AdmisionController) GetListaAspirantesPor() {
 		c.Data["json"] = outputErrorInfo
 	}
 
+	c.ServeJSON()
+}
+
+// GetDependenciaPorVinculacionTercero ...
+// @Title GetDependenciaPorVinculacionTercero
+// @Description get DependenciaId por Vinculacion de tercero, verificando cargo
+// @Param	id_tercero	path	int	true	"Id del tercero"
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router /dependencia_vinculacion_tercero/:id_tercero [get]
+func (c *AdmisionController) GetDependenciaPorVinculacionTercero() {
+	/*
+		definition de respuestas
+	*/
+	failureAsn := map[string]interface{}{"Success": false, "Status": "404",
+		"Message": "Error service GetDependenciaPorVinculacionTercero: The request contains an incorrect parameter or no record exist", "Data": nil}
+	successAns := map[string]interface{}{"Success": true, "Status": "200", "Message": "Query successful", "Data": nil}
+	/*
+		check validez de id tercero
+	*/
+	id_tercero_str := c.Ctx.Input.Param(":id_tercero")
+	id_tercero, errId := strconv.ParseInt(id_tercero_str, 10, 64)
+	if errId != nil || id_tercero <= 0 {
+		if errId == nil {
+			errId = fmt.Errorf("id_tercero: %d <= 0", id_tercero)
+		}
+		logs.Error(errId.Error())
+		c.Ctx.Output.SetStatus(404)
+		failureAsn["Data"] = errId.Error()
+		c.Data["json"] = failureAsn
+		c.ServeJSON()
+		return
+	}
+	/*
+		consulta vinculación tercero and check resultado válido
+		DependenciaId__gt:0 -> que tenga id mayor que cero
+		CargoId__in:312|320 -> parametrosId: 312: JEFE OFICINA, 320: Asistente Dependencia
+	*/
+	var estadoVinculacion []map[string]interface{}
+	estadoVinculacionErr := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+
+		fmt.Sprintf("vinculacion?query=Activo:true,DependenciaId__gt:0,CargoId__in:312|320,tercero_principal_id:%v", id_tercero_str), &estadoVinculacion)
+	if estadoVinculacionErr != nil || fmt.Sprintf("%v", estadoVinculacion) == "[map[]]" {
+		if estadoVinculacionErr == nil {
+			estadoVinculacionErr = fmt.Errorf("vinculacion is empty: %v", estadoVinculacion)
+		}
+		logs.Error(estadoVinculacionErr.Error())
+		c.Ctx.Output.SetStatus(404)
+		failureAsn["Data"] = estadoVinculacionErr.Error()
+		c.Data["json"] = failureAsn
+		c.ServeJSON()
+		return
+	}
+	/*
+		preparar lista de dependencias, normalmente será una, pero se espera soportar varias por tercero
+	*/
+	var dependencias []int64
+	for _, vinculacion := range estadoVinculacion {
+		dependencias = append(dependencias, int64(vinculacion["DependenciaId"].(float64)))
+	}
+	/*
+		entrega de respuesta existosa :)
+	*/
+	c.Ctx.Output.SetStatus(200)
+	successAns["Data"] = map[string]interface{}{
+		"DependenciaId": dependencias,
+	}
+	c.Data["json"] = successAns
 	c.ServeJSON()
 }
