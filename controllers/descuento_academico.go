@@ -19,7 +19,7 @@ type DescuentoController struct {
 // URLMapping ...
 func (c *DescuentoController) URLMapping() {
 	c.Mapping("PostDescuentoAcademico", c.PostDescuentoAcademico)
-	// c.Mapping("PutDescuentoAcademico", c.PutDescuentoAcademico)
+	c.Mapping("PutDescuentoAcademico", c.PutDescuentoAcademico)
 	c.Mapping("GetDescuentoAcademico", c.GetDescuentoAcademico)
 	c.Mapping("GetDescuentoAcademicoByPersona", c.GetDescuentoAcademicoByPersona)
 	// c.Mapping("GetDescuentoByDependenciaPeriodo", c.GetDescuentoByDependenciaPeriodo)
@@ -129,7 +129,6 @@ func (c *DescuentoController) PostDescuentoAcademico() {
 	c.ServeJSON()
 }
 
-/*
 // PutDescuentoAcademico ...
 // @Title PutDescuentoAcademico
 // @Description Modificar Descuento Academico
@@ -144,78 +143,51 @@ func (c *DescuentoController) PutDescuentoAcademico() {
 	var resultado map[string]interface{}
 	//solicitud de descuento
 	var solicitud map[string]interface{}
-	var solicitudPut map[string]interface{}
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &solicitud); err == nil {
-		solicituddescuento := map[string]interface{}{
-			"Id":                      solicitud["Id"],
-			"PersonaId":               solicitud["PersonaId"],
-			"Activo":                  true,
-			"Estado":                  solicitud["Estado"],
-			"PeriodoId":               solicitud["PeriodoId"],
-			"DescuentosDependenciaId": solicitud["DescuentosDependenciaId"],
-		}
+		//soporte de descuento
+		var soporte []map[string]interface{}
+		var soportePut map[string]interface{}
 
-		errSolicitud := request.SendJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"solicitud_descuento/"+idStr, "PUT", &solicitudPut, solicituddescuento)
-		if errSolicitud == nil && fmt.Sprintf("%v", solicitudPut["System"]) != "map[]" && solicitudPut["Id"] != nil {
-			if solicitudPut["Status"] != 400 {
-				//soporte de descuento
-				var soporte []map[string]interface{}
-				var soportePut map[string]interface{}
+		errSoporte := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"soporte_descuento/?query=Activo:true,SolicitudDescuentoId:"+idStr, &soporte)
+		if errSoporte == nil && fmt.Sprintf("%v", soporte[0]["System"]) != "map[]" {
+			if soporte[0]["Status"] != 404 {
+				soporte[0]["DocumentoId"] = solicitud["DocumentoId"]
 
-				errSoporte := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"soporte_descuento/?query=SolicitudDescuentoId:"+idStr+
-					"&fields=Id,SolicitudDescuentoId,DocumentoId", &soporte)
-				if errSoporte == nil && fmt.Sprintf("%v", soporte[0]["System"]) != "map[]" {
-					if soporte[0]["Status"] != 404 {
-						soporte[0]["DocumentoId"] = solicitud["DocumentoId"]
-
-						errSoportePut := request.SendJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"soporte_descuento/"+
-							fmt.Sprintf("%v", soporte[0]["Id"]), "PUT", &soportePut, soporte[0])
-						if errSoportePut == nil && fmt.Sprintf("%v", soportePut["System"]) != "map[]" && soportePut["Id"] != nil {
-							if soportePut["Status"] != 400 {
-								resultado = solicitud
-								c.Data["json"] = resultado
-							} else {
-								logs.Error(errSoportePut)
-								//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
-								c.Data["system"] = soportePut
-								c.Abort("400")
-							}
-						} else {
-							logs.Error(errSoportePut)
-							//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-							c.Data["system"] = soportePut
-							c.Abort("400")
-						}
-
+				errSoportePut := request.SendJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"soporte_descuento/"+
+					fmt.Sprintf("%v", soporte[0]["Id"]), "PUT", &soportePut, soporte[0])
+				if errSoportePut == nil && fmt.Sprintf("%v", soportePut["System"]) != "map[]" && soportePut["Id"] != nil {
+					if soportePut["Status"] != 400 {
+						resultado = solicitud
+						c.Data["json"] = resultado
 					} else {
-						if soporte[0]["Message"] == "Not found resource" {
-							c.Data["json"] = nil
-						} else {
-							logs.Error(soporte)
-							//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-							c.Data["system"] = errSoporte
-							c.Abort("404")
-						}
+						logs.Error(errSoportePut)
+						//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
+						c.Data["system"] = soportePut
+						c.Abort("400")
 					}
+				} else {
+					logs.Error(errSoportePut)
+					//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
+					c.Data["system"] = soportePut
+					c.Abort("400")
+				}
+
+			} else {
+				if soporte[0]["Message"] == "Not found resource" {
+					c.Data["json"] = nil
 				} else {
 					logs.Error(soporte)
 					//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
 					c.Data["system"] = errSoporte
 					c.Abort("404")
 				}
-
-			} else {
-				logs.Error(errSolicitud)
-				//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
-				c.Data["system"] = solicitudPut
-				c.Abort("400")
 			}
 		} else {
-			logs.Error(errSolicitud)
+			logs.Error(soporte)
 			//c.Data["development"] = map[string]interface{}{"Code": "404", "Body": err.Error(), "Type": "error"}
-			c.Data["system"] = solicitudPut
-			c.Abort("400")
+			c.Data["system"] = errSoporte
+			c.Abort("404")
 		}
 	} else {
 		logs.Error(err)
@@ -225,7 +197,6 @@ func (c *DescuentoController) PutDescuentoAcademico() {
 	}
 	c.ServeJSON()
 }
-*/
 
 // GetDescuentoAcademico ...
 // @Title GetDescuentoAcademico
