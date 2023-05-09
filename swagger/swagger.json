@@ -1445,6 +1445,34 @@
                 }
             }
         },
+        "/descuento_academico/v2": {
+            "post": {
+                "tags": [
+                    "descuento_academico"
+                ],
+                "description": "Modificar Descuento Academico",
+                "operationId": "DescuentoController.PostDescuentoAcademicov2",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Modificar Descuento Academico content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntax"
+                    }
+                }
+            }
+        },
         "/descuento_academico/{id}": {
             "put": {
                 "tags": [
