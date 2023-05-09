@@ -748,7 +748,7 @@ func (c *AdmisionController) PostCuposAdmision() {
 
 				// // Verificar que no exista registro del cupo a cada proyecto
 				var cupos_existente []map[string]interface{}
-				errCupoExistente := request.GetJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"cupos_por_dependencia/?query=DependenciaId:"+fmt.Sprintf("%.f", cupoProyectos["Id"].(float64)), &cupos_existente)
+				errCupoExistente := request.GetJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"cupos_por_dependencia/?query=DependenciaId:"+fmt.Sprintf("%.f", cupoProyectos["Id"].(float64))+",PeriodoId:"+fmt.Sprintf("%.f", CuposAdmision["Periodo"].(map[string]interface{})["Id"].(float64)), &cupos_existente)
 				if errCupoExistente == nil && fmt.Sprintf("%v", cupos_existente[0]) != "map[]" {
 					if cupos_existente[0]["Status"] != 404 {
 						fmt.Println("Existe cupos para el proyecto")

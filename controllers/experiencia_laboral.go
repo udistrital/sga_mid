@@ -610,7 +610,7 @@ func (c *ExperienciaLaboralController) PutExperienciaLaboral() {
 		if errData == nil {
 			if Data != nil {
 				Data[0]["Dato"] = "{\n    " +
-					"\"Nit\": " + dato["NumeroIdentificacion"].(string) + ",    " +
+					"\"Nit\": " + fmt.Sprintf("%v", dato["NumeroIdentificacion"]) + ",    " +
 					"\"FechaInicio\": \"" + ExperienciaLaboral.(map[string]interface{})["FechaInicio"].(string) + "\",    " +
 					"\"FechaFinalizacion\": \"" + ExperienciaLaboral.(map[string]interface{})["FechaFinalizacion"].(string) + "\",    " +
 					"\"TipoDedicacion\": { \"Id\": \"" + fmt.Sprintf("%v", Dedicacion) + "\", \"Nombre\": \"" + NombreDedicacion + "\"},    " +

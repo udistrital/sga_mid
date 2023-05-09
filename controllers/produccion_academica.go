@@ -476,12 +476,12 @@ func (c *ProduccionAcademicaController) GetProduccionAcademica() {
 func (c *ProduccionAcademicaController) DeleteProduccionAcademica() {
 	idStr := c.Ctx.Input.Param(":id")
 	//resultados eliminacion
-	//var borrado map[string]interface{}
+	var borrado map[string]interface{}
 
-	//errDelete := request.SendJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idStr, "DELETE", &borrado, nil)
-	borradoOk := models.SetInactivo("http://" + beego.AppConfig.String("ProduccionAcademicaService") + "/tr_produccion_academica/" + idStr)
+	errDelete := request.SendJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idStr, "DELETE", &borrado, nil)
+	//borradoOk := models.SetInactivo("http://" + beego.AppConfig.String("ProduccionAcademicaService") + "/tr_produccion_academica/" + idStr)
 
-	if borradoOk {
+	if errDelete == nil {
 		c.Data["json"] = map[string]interface{}{"ProduccionAcademica": idStr}
 	} else {
 		logs.Error("Failed deleting tr_produccion_academica/" + idStr)
