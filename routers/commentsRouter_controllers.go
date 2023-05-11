@@ -466,15 +466,6 @@ func init() {
             Filters: nil,
             Params: nil})
 
-    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DescuentoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:DescuentoController"],
-        beego.ControllerComments{
-            Method: "PostDescuentoAcademicov2",
-            Router: "/v2",
-            AllowHTTPMethods: []string{"post"},
-            MethodParams: param.Make(),
-            Filters: nil,
-            Params: nil})
-
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:EventoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:EventoController"],
         beego.ControllerComments{
             Method: "PostEvento",
