@@ -3225,6 +3225,194 @@
                 }
             }
         },
+        "/plan_trabajo_docente/aprobacion_preasignacion": {
+            "put": {
+                "tags": [
+                    "plan_trabajo_docente"
+                ],
+                "description": "Actualizar estadod de la aprobación de la preasignación",
+                "operationId": "PtdController.PutAprobacionPreasignacion",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body Actualizar preasignación plan docente",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntaxis"
+                    }
+                }
+            }
+        },
+        "/plan_trabajo_docente/docente_documento/{documento}/{vinculacion}": {
+            "get": {
+                "tags": [
+                    "plan_trabajo_docente"
+                ],
+                "description": "Listar los docentes de acuerdo a la vinculacion y su documento",
+                "operationId": "PtdController.GetDocumentoDocenteVinculacion",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "documento",
+                        "description": "Documento docente",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "vinculacion",
+                        "description": "Id tipo de vinculación",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/plan_trabajo_docente/docentes_nombre/{nombre}/{vinculacion}": {
+            "get": {
+                "tags": [
+                    "plan_trabajo_docente"
+                ],
+                "description": "Listar los docentes de acuerdo a la vinculacion y su nombre",
+                "operationId": "PtdController.GetNombreDocenteVinculacion",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "nombre",
+                        "description": "Nombre docente",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "vinculacion",
+                        "description": "Id tipo de vinculación",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/plan_trabajo_docente/grupos_espacio_academico/{padre}/{vigencia}": {
+            "get": {
+                "tags": [
+                    "plan_trabajo_docente"
+                ],
+                "description": "Listar los docentes de acuerdo a la vinculacion y su documento",
+                "operationId": "PtdController.GetGruposEspacioAcademico",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "padre",
+                        "description": "Id del espacio académico padre",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "vigencia",
+                        "description": "Vigencia del espacio académico",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/plan_trabajo_docente/preasignaciones/{vigencia}": {
+            "get": {
+                "tags": [
+                    "plan_trabajo_docente"
+                ],
+                "description": "Listar todas las preasignaciones",
+                "operationId": "PtdController.GetPreasignaciones",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "vigencia",
+                        "description": "Vigencia de las preasignaciones",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/plan_trabajo_docente/preasignaciones_docente/{docente}/{vigencia}": {
+            "get": {
+                "tags": [
+                    "plan_trabajo_docente"
+                ],
+                "description": "Listar preasignaciones de un docente",
+                "operationId": "PtdController.GetPreasignacionesDocente",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "docente",
+                        "description": "Id docente",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "vigencia",
+                        "description": "Vigencia de las preasignaciones",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
         "/practicas_academicas/": {
             "get": {
                 "tags": [
@@ -4925,6 +5113,10 @@
         {
             "name": "notas",
             "description": "NotasController operations for Notas\n"
+        },
+        {
+            "name": "plan_trabajo_docente",
+            "description": "PtdController operations for Notas\n"
         },
         {
             "name": "time_bog",
