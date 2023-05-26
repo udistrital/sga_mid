@@ -163,6 +163,11 @@ func init() {
 				&controllers.NotasController{},
 			),
 		),
+		beego.NSNamespace("/plan_trabajo_docente",
+			beego.NSInclude(
+				&controllers.PtdController{},
+			),
+		),
 		beego.NSNamespace("/time_bog",
 			beego.NSInclude(
 				&controllers.Time_bogController{},
