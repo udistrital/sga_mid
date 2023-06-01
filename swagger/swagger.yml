@@ -2138,6 +2138,45 @@ paths:
           description: '{}'
         "400":
           description: the request contains incorrect syntaxis
+  /plan_trabajo_docente/asignaciones/{vigencia}:
+    get:
+      tags:
+      - plan_trabajo_docente
+      description: Listar todas las asignaciones de la vigencia determinada
+      operationId: PtdController.GetAsignaciones
+      parameters:
+      - in: path
+        name: vigencia
+        description: Vigencia de las asignaciones
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+  /plan_trabajo_docente/asignaciones_docente/{docente}/{vigencia}:
+    get:
+      tags:
+      - plan_trabajo_docente
+      description: Listar todas las asignaciones de la vigencia determinada de un docente
+      operationId: PtdController.GetAsignacionesDocentes
+      parameters:
+      - in: path
+        name: docente
+        description: Id docente
+        required: true
+        type: string
+      - in: path
+        name: vigencia
+        description: Vigencia de las asignaciones
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
   /plan_trabajo_docente/docente_documento/{documento}/{vinculacion}:
     get:
       tags:
@@ -2199,6 +2238,44 @@ paths:
       - in: path
         name: vigencia
         description: Vigencia del espacio académico
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+  /plan_trabajo_docente/plan:
+    put:
+      tags:
+      - plan_trabajo_docente
+      description: Actualiza la información de los planes de trabajo
+      operationId: PtdController.PutPlanTrabajoDocente
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+  /plan_trabajo_docente/plan/{docente}/{vigencia}/{vinculacion}:
+    get:
+      tags:
+      - plan_trabajo_docente
+      description: Traer la información de las asignaciones de un docente en la vigencia determinada
+      operationId: PtdController.GetPlanTrabajoDocente
+      parameters:
+      - in: path
+        name: docente
+        description: Id docente
+        required: true
+        type: string
+      - in: path
+        name: vigencia
+        description: Vigencia de las asignaciones
+        required: true
+        type: string
+      - in: path
+        name: vinculacion
+        description: Id vinculacion
         required: true
         type: string
       responses:
@@ -3376,7 +3453,7 @@ tags:
     NotasController operations for Notas
 - name: plan_trabajo_docente
   description: |
-    PtdController operations for Notas
+    PtdController operations for plan trabajo docente
 - name: time_bog
   description: |
     Time_bogController operations for Time_bog
