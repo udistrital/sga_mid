@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
@@ -15,7 +16,7 @@ import (
 	request "github.com/udistrital/sga_mid/models"
 )
 
-// PtdController operations for Notas
+// PtdController operations for plan trabajo docente
 type PtdController struct {
 	beego.Controller
 }
@@ -28,6 +29,7 @@ func (c *PtdController) URLMapping() {
 	c.Mapping("PutAprobacionPreasignacion", c.PutAprobacionPreasignacion)
 	c.Mapping("GetPreasignacionesDocente", c.GetPreasignacionesDocente)
 	c.Mapping("GetPreasignaciones", c.GetPreasignaciones)
+	c.Mapping("GetAsignacionesDocente", c.GetAsignacionesDocente)
 }
 
 // GetNombreDocenteVinculacion ...
@@ -210,20 +212,36 @@ func (c *PtdController) PutAprobacionPreasignacion() {
 		for _, preasignacion := range aprobacion["preasignaciones"].([]interface{}) {
 			if errAprobacion := request.SendJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion/"+fmt.Sprintf("%v", preasignacion.(map[string]interface{})["Id"]), "PUT", &PreasignacionPut, preasignacionPut); errAprobacion == nil {
 				if aprobacion["docente"].(bool) && PreasignacionPut["Data"].(map[string]interface{})["plan_docente_id"] == nil {
-					planDocente := map[string]interface{}{
-						"docente_id":          PreasignacionPut["Data"].(map[string]interface{})["docente_id"],
-						"tipo_vinculacion_id": PreasignacionPut["Data"].(map[string]interface{})["tipo_vinculacion_id"],
-						"periodo_id":          PreasignacionPut["Data"].(map[string]interface{})["periodo_id"],
-						"activo":              true,
-						"estado_plan_id":      "Sin definir"}
 
-					var planDocentePost map[string]interface{}
-					if errPlan := request.SendJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"plan_docente", "POST", &planDocentePost, planDocente); errPlan == nil {
-						idPlanDocente := planDocentePost["Data"].(map[string]interface{})["_id"].(string)
-						preasignacionPut = map[string]interface{}{"plan_docente_id": idPlanDocente}
+					var planDocenteGet map[string]interface{}
+					if errGetPlan := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"plan_docente?query=docente_id:"+fmt.Sprintf("%v", PreasignacionPut["Data"].(map[string]interface{})["docente_id"])+",periodo_id:"+fmt.Sprintf("%v", PreasignacionPut["Data"].(map[string]interface{})["periodo_id"])+",tipo_vinculacion_id:"+fmt.Sprintf("%v", PreasignacionPut["Data"].(map[string]interface{})["tipo_vinculacion_id"]), &planDocenteGet); errGetPlan == nil {
+						if resultado != nil {
+							if fmt.Sprintf("%v", planDocenteGet["Data"]) != "[]" {
+								idPlanDocente := planDocenteGet["Data"].([]interface{})[0].(map[string]interface{})["_id"].(string)
+								preasignacionPut = map[string]interface{}{"plan_docente_id": idPlanDocente}
 
-						if errAprobacion := request.SendJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion/"+fmt.Sprintf("%v", preasignacion.(map[string]interface{})["Id"]), "PUT", &PreasignacionPut, preasignacionPut); errAprobacion == nil {
-							resultado = append(resultado, map[string]interface{}{"Id": PreasignacionPut["Data"].(map[string]interface{})["_id"], "actualizado": true, "plan_trabajo": true})
+								if errAprobacion := request.SendJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion/"+fmt.Sprintf("%v", preasignacion.(map[string]interface{})["Id"]), "PUT", &PreasignacionPut, preasignacionPut); errAprobacion == nil {
+									resultado = append(resultado, map[string]interface{}{"Id": PreasignacionPut["Data"].(map[string]interface{})["_id"], "actualizado": true, "plan_trabajo": true})
+								}
+							} else {
+								planDocente := map[string]interface{}{
+									"estado_plan_id":      "Sin definir",
+									"docente_id":          PreasignacionPut["Data"].(map[string]interface{})["docente_id"],
+									"tipo_vinculacion_id": PreasignacionPut["Data"].(map[string]interface{})["tipo_vinculacion_id"],
+									"periodo_id":          PreasignacionPut["Data"].(map[string]interface{})["periodo_id"],
+									"activo":              true,
+								}
+
+								var planDocentePost map[string]interface{}
+								if errPlan := request.SendJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"plan_docente", "POST", &planDocentePost, planDocente); errPlan == nil {
+									idPlanDocente := planDocentePost["Data"].(map[string]interface{})["_id"].(string)
+									preasignacionPut = map[string]interface{}{"plan_docente_id": idPlanDocente}
+
+									if errAprobacion := request.SendJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion/"+fmt.Sprintf("%v", preasignacion.(map[string]interface{})["Id"]), "PUT", &PreasignacionPut, preasignacionPut); errAprobacion == nil {
+										resultado = append(resultado, map[string]interface{}{"Id": PreasignacionPut["Data"].(map[string]interface{})["_id"], "actualizado": true, "plan_trabajo": true})
+									}
+								}
+							}
 						}
 					}
 				} else {
@@ -340,6 +358,184 @@ func (c *PtdController) GetPreasignaciones() {
 	c.ServeJSON()
 }
 
+// GetAsignaciones ...
+// @Title GetAsignaciones
+// @Description Listar todas las asignaciones de la vigencia determinada
+// @Param	vigencia	path 	string	true		"Vigencia de las asignaciones"
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router /asignaciones/:vigencia [get]
+func (c *PtdController) GetAsignaciones() {
+	vigencia := c.Ctx.Input.Param(":vigencia")
+
+	var resPreasignaciones map[string]interface{}
+
+	if errPreasignacion := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion?query=activo:true,aprobacion_docente:true,aprobacion_proyecto:true,periodo_id:"+vigencia+"&fields=docente_id,tipo_vinculacion_id,plan_docente_id,periodo_id", &resPreasignaciones); errPreasignacion == nil {
+		if fmt.Sprintf("%v", resPreasignaciones["Data"]) != "[]" {
+			response := consultarDetalleAsignacion(resPreasignaciones["Data"].([]interface{}))
+
+			c.Ctx.Output.SetStatus(200)
+			c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Query successful", "Data": response}
+		} else {
+			c.Ctx.Output.SetStatus(404)
+			c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": "No se encontraron registros de preasignaciones"}
+		}
+	} else {
+		logs.Error(errPreasignacion)
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": "No se encontraron registros de preasignaciones"}
+	}
+
+	c.ServeJSON()
+}
+
+// GetAsignacionesDocente ...
+// @Title GetAsignacionesDocentes	
+// @Description Listar todas las asignaciones de la vigencia determinada de un docente
+// @Param	docente		path 	string	true		"Id docente"
+// @Param	vigencia	path 	string	true		"Vigencia de las asignaciones"
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router /asignaciones_docente/:docente/:vigencia [get]
+func (c *PtdController) GetAsignacionesDocente() {
+	vigencia := c.Ctx.Input.Param(":vigencia")
+	docente := c.Ctx.Input.Param(":docente")
+
+	var resPreasignaciones map[string]interface{}
+
+	if errPreasignacion := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion?query=activo:true,aprobacion_docente:true,aprobacion_proyecto:true,docente_id:"+docente+",periodo_id:"+vigencia+"&fields=docente_id,tipo_vinculacion_id,plan_docente_id,periodo_id", &resPreasignaciones); errPreasignacion == nil {
+		if fmt.Sprintf("%v", resPreasignaciones["Data"]) != "[]" {
+			response := consultarDetalleAsignacion(resPreasignaciones["Data"].([]interface{}))
+
+			c.Ctx.Output.SetStatus(200)
+			c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Query successful", "Data": response}
+		} else {
+			c.Ctx.Output.SetStatus(404)
+			c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": "No se encontraron registros de preasignaciones"}
+		}
+	} else {
+		logs.Error(errPreasignacion)
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": "No se encontraron registros de preasignaciones"}
+	}
+
+	c.ServeJSON()
+}
+
+// GetPlanTrabajoDocente ...
+// @Title GetPlanTrabajoDocente
+// @Description Traer la información de las asignaciones de un docente en la vigencia determinada
+// @Param	docente		path 	string	true		"Id docente"
+// @Param	vigencia	path 	string	true		"Vigencia de las asignaciones"
+// @Param	vinculacion	path 	string	true		"Id vinculacion"
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router /plan/:docente/:vigencia/:vinculacion [get]
+func (c *PtdController) GetPlanTrabajoDocente() {
+	vigencia := c.Ctx.Input.Param(":vigencia")
+	docente := c.Ctx.Input.Param(":docente")
+	vinculacion := c.Ctx.Input.Param(":vinculacion")
+
+	var resPlan map[string]interface{}
+
+	if errPlan := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"plan_docente?query=activo:true,docente_id:"+docente+",periodo_id:"+vigencia+"&fields=tipo_vinculacion_id,soporte_documental,respuesta,resumen,docente_id,periodo_id,estado_plan_id", &resPlan); errPlan == nil {
+		if fmt.Sprintf("%v", resPlan["Data"]) != "[]" {
+			response := consultarDetallePlan(resPlan["Data"].([]interface{}), vinculacion)
+
+			c.Ctx.Output.SetStatus(200)
+			c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Query successful", "Data": response}
+		} else {
+			c.Ctx.Output.SetStatus(404)
+			c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": "No se encontraron registros de preasignaciones"}
+		}
+	} else {
+		logs.Error(errPlan)
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": "No se encontraron registros de preasignaciones"}
+	}
+
+	c.ServeJSON()
+}
+
+// PutPlanTrabajoDocente ...
+// @Title PutPlanTrabajoDocente
+// @Description Actualiza la información de los planes de trabajo
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router /plan [put]
+func (c *PtdController) PutPlanTrabajoDocente() {
+	resultado := map[string]interface{}{}
+	resultadoCargas := []map[string]interface{}{}
+	var alerta models.Alert
+	var errorGetAll bool
+	var resPlan map[string]interface{}
+	alertas := []interface{}{}
+
+	var plan map[string]interface{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &plan); err == nil {
+		for _, carga := range plan["carga_plan"].([]interface{}) {
+			var resCarga map[string]interface{}
+
+			if carga.(map[string]interface{})["id"] == nil {
+				if errPostCarga := request.SendJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan/", "POST", &resCarga, carga); errPostCarga == nil {
+					if resCarga["Success"].(bool) {
+						resultadoCargas = append(resultadoCargas, map[string]interface{}{"id": resCarga["Data"].(map[string]interface{})["_id"], "creado": true})
+					} else {
+						resultadoCargas = append(resultadoCargas, map[string]interface{}{"id": carga.(map[string]interface{})["espacio_academico_id"], "creado": false})
+					}
+				}
+			} else {
+				if errPutCarga := request.SendJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan/"+carga.(map[string]interface{})["id"].(string), "PUT", &resCarga, carga); errPutCarga == nil {
+					if resCarga["Success"].(bool) {
+						resultadoCargas = append(resultadoCargas, map[string]interface{}{"id": resCarga["Data"].(map[string]interface{})["_id"], "actualizado": true})
+					} else {
+						resultadoCargas = append(resultadoCargas, map[string]interface{}{"id": carga.(map[string]interface{})["espacio_academico_id"], "actualizado": false})
+					}
+				}
+			}
+		}
+
+		if plan["plan_docente"].(map[string]interface{})["estado_plan"].(string) == "Sin definir" {
+			var resEstado map[string]interface{}
+			if errEstado := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"estado_plan?query=codigo_abreviacion:DEF", &resEstado); errEstado == nil {
+				plan["plan_docente"].(map[string]interface{})["estado_plan_id"] = resEstado["Data"].([]interface{})[0].(map[string]interface{})["_id"]
+			}
+		}
+		if errPutPlan := request.SendJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"plan_docente/"+plan["plan_docente"].(map[string]interface{})["id"].(string), "PUT", &resPlan, plan["plan_docente"]); errPutPlan == nil {
+			if resPlan["Success"].(bool) {
+				resultado["plan_actualizado"] = true
+			} else {
+				resultado["plan_actualizado"] = false
+			}
+		}
+
+		resultado["carga_plan"] = resultadoCargas
+	}
+
+	if !errorGetAll {
+		alertas = append(alertas, resultado)
+		alerta.Code = "200"
+		alerta.Type = "OK"
+		alerta.Body = alertas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+	c.ServeJSON()
+}
+
+// GetVisponibilidadEspacio ...
+// @Title GetVisponibilidadEspacio
+// @Description Consulta la disponibilidad de un espacio academico
+// @Param	vigencia 	path 	string	true		"Vigencia de las asignaciones"
+// @Param	carga_plan 	path 	string	true		"Id de la carga del plan de trabajo"
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router /disponibilidad/:vigencia/:carga_plan [get]
+// func (c *PtdController) GetDisponibilidadEspacio() {
+	// vigencia := c.Ctx.Input.Param(":vigencia")
+	// docente := c.Ctx.Input.Param(":docente")
+	// vinculacion := c.Ctx.Input.Param(":vinculacion")
+// }
+
 func consultarDetallePreasignacion(preasignaciones []interface{}) []map[string]interface{} {
 	memEspacios := map[string]interface{}{}
 	memPeriodo := map[string]interface{}{}
@@ -396,5 +592,207 @@ func consultarDetallePreasignacion(preasignaciones []interface{}) []map[string]i
 			"editar":                  map[string]interface{}{"value": nil, "type": "editar", "disabled": false},
 			"enviar":                  map[string]interface{}{"value": nil, "type": "enviar", "disabled": false}})
 	}
+	return response
+}
+
+func consultarDetalleAsignacion(asignaciones []interface{}) []map[string]interface{} {
+	memEstados := map[string]interface{}{}
+	memPeriodo := map[string]interface{}{}
+	memDocente := map[string]interface{}{}
+	memDocumento := map[string]interface{}{}
+	memVinculacion := map[string]interface{}{}
+	response := []map[string]interface{}{}
+
+	var resPeriodo map[string]interface{}
+	var resDocente map[string]interface{}
+	var resDocumento []map[string]interface{}
+	var resVinculacion map[string]interface{}
+	var resEstado map[string]interface{}
+
+	for _, asignacion := range asignaciones {
+		if errDocente := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+asignacion.(map[string]interface{})["docente_id"].(string), &resDocente); errDocente == nil {
+			memDocente[asignacion.(map[string]interface{})["docente_id"].(string)] = resDocente
+			if errDocumento := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=TerceroId.Id:"+asignacion.(map[string]interface{})["docente_id"].(string)+"&fields=Numero", &resDocumento); errDocumento == nil {
+				memDocumento[asignacion.(map[string]interface{})["docente_id"].(string)] = resDocumento[0]["Numero"]
+			}
+		}
+
+		if errVinculacion := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro/"+asignacion.(map[string]interface{})["tipo_vinculacion_id"].(string), &resVinculacion); errVinculacion == nil {
+			vinculacion := resVinculacion["Data"].(map[string]interface{})["Nombre"].(string)
+			vinculacion = strings.Replace(vinculacion, "DOCENTE DE ", "", 1)
+			vinculacion = strings.ToLower(vinculacion)
+			memVinculacion[asignacion.(map[string]interface{})["tipo_vinculacion_id"].(string)] = strings.ToUpper(vinculacion[0:1]) + vinculacion[1:]
+		}
+
+		if memPeriodo[asignacion.(map[string]interface{})["periodo_id"].(string)] == nil {
+			if errPeriodo := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"periodo/"+fmt.Sprintf("%v", asignacion.(map[string]interface{})["periodo_id"]), &resPeriodo); errPeriodo == nil {
+				memPeriodo[asignacion.(map[string]interface{})["periodo_id"].(string)] = resPeriodo["Data"].(map[string]interface{})["Nombre"].(string)
+			}
+		}
+
+		var resPlan map[string]interface{}
+		var idDocumental interface{}
+		if memEstados[asignacion.(map[string]interface{})["plan_docente_id"].(string)] == nil {
+			if errPlan := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"plan_docente/"+fmt.Sprintf("%v", asignacion.(map[string]interface{})["plan_docente_id"]), &resPlan); errPlan == nil {
+				idEstado := resPlan["Data"].(map[string]interface{})["estado_plan_id"].(string)
+				if idEstado == "Sin definir" {
+					memEstados[asignacion.(map[string]interface{})["plan_docente_id"].(string)] = resPlan["Data"].(map[string]interface{})["estado_plan_id"].(string)
+					if resPlan["Data"].(map[string]interface{})["documento_id"] != nil {
+						idDocumental = resPlan["Data"].(map[string]interface{})["documento_id"]
+					}
+				} else {
+					if errEstado := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"estado_plan/"+idEstado, &resEstado); errEstado == nil {
+						memEstados[asignacion.(map[string]interface{})["plan_docente_id"].(string)] = resEstado["Data"].(map[string]interface{})["nombre"].(string)
+					}
+				}
+			}
+
+			response = append(response, map[string]interface{}{
+				"id":                  asignacion.(map[string]interface{})["_id"],
+				"docente_id":          asignacion.(map[string]interface{})["docente_id"].(string),
+				"docente":             cases.Title(language.Spanish).String(memDocente[asignacion.(map[string]interface{})["docente_id"].(string)].(map[string]interface{})["NombreCompleto"].(string)),
+				"tipo_vinculacion_id": asignacion.(map[string]interface{})["tipo_vinculacion_id"].(string),
+				"tipo_vinculacion":    memVinculacion[asignacion.(map[string]interface{})["tipo_vinculacion_id"].(string)],
+				"identificacion":      memDocumento[asignacion.(map[string]interface{})["docente_id"].(string)],
+				"periodo_academico":   memPeriodo[asignacion.(map[string]interface{})["periodo_id"].(string)],
+				"periodo_id":          asignacion.(map[string]interface{})["periodo_id"].(string),
+				"estado":              memEstados[asignacion.(map[string]interface{})["plan_docente_id"].(string)],
+				"soporte_documental":  map[string]interface{}{"value": idDocumental, "type": "ver", "disabled": idDocumental == nil},
+				"enviar":              map[string]interface{}{"value": nil, "type": "enviar", "disabled": false},
+				"gestion":             map[string]interface{}{"value": nil, "type": "editar", "disabled": false}})
+		}
+
+	}
+	return response
+}
+
+func consultarDetallePlan(planes []interface{}, idVinculacion string) map[string]interface{} {
+	memDocente := map[string]interface{}{}
+	memVinculacion := []map[string]interface{}{}
+	memResumenes := []map[string]interface{}{}
+	memEspacios := []interface{}{}
+	memEspaciosDetalle := map[string]interface{}{}
+	memCarga := []interface{}{}
+	memPlanDocente := []string{}
+	memEstadoPlan := []string{}
+	memEstados := map[string]interface{}{}
+	response := map[string]interface{}{}
+
+	var resPeriodo map[string]interface{}
+	var resDocente map[string]interface{}
+	var resDocumento []map[string]interface{}
+	var resVinculacion map[string]interface{}
+	var resCarga map[string]interface{}
+	var resEstado map[string]interface{}
+	var indexSeleccionado int
+
+	if errDocente := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+planes[0].(map[string]interface{})["docente_id"].(string), &resDocente); errDocente == nil {
+		memDocente[planes[0].(map[string]interface{})["docente_id"].(string)] = resDocente
+		if errDocumento := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=TerceroId.Id:"+planes[0].(map[string]interface{})["docente_id"].(string)+"&fields=Numero", &resDocumento); errDocumento == nil {
+			memDocente = map[string]interface{}{
+				"id":             planes[0].(map[string]interface{})["docente_id"].(string),
+				"nombre":         cases.Title(language.Spanish).String(resDocente["NombreCompleto"].(string)),
+				"identificacion": resDocumento[0]["Numero"],
+			}
+		}
+	}
+
+	if errPeriodo := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"periodo/"+fmt.Sprintf("%v", planes[0].(map[string]interface{})["periodo_id"]), &resPeriodo); errPeriodo == nil {
+		response["periodo_academico"] = resPeriodo["Data"].(map[string]interface{})["Nombre"].(string)
+	}
+
+	for index, plan := range planes {
+		var espacioPlan []interface{}
+		cargaPlan := []interface{}{}
+		if errVinculacion := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro/"+plan.(map[string]interface{})["tipo_vinculacion_id"].(string), &resVinculacion); errVinculacion == nil {
+			vinculacion := resVinculacion["Data"].(map[string]interface{})["Nombre"].(string)
+			vinculacion = strings.Replace(vinculacion, "DOCENTE DE ", "", 1)
+			vinculacion = strings.ToLower(vinculacion)
+			memVinculacion = append(memVinculacion, map[string]interface{}{"id": plan.(map[string]interface{})["tipo_vinculacion_id"].(string),
+				"nombre": strings.ToUpper(vinculacion[0:1]) + vinculacion[1:]})
+		}
+
+		if idVinculacion == plan.(map[string]interface{})["tipo_vinculacion_id"].(string) {
+			indexSeleccionado = index
+		}
+
+		if errCarga := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan?query=activo:true,plan_docente_id:"+plan.(map[string]interface{})["_id"].(string), &resCarga); errCarga == nil {
+			if fmt.Sprintf("%v", resCarga["Data"]) != "[]" {
+				for _, carga := range resCarga["Data"].([]interface{}) {
+					var horarioJSON map[string]interface{}
+					// var colocacionJSON []map[string]interface{}
+
+					json.Unmarshal([]byte(carga.(map[string]interface{})["horario"].(string)), &horarioJSON)
+					// json.Unmarshal([]byte(carga.(map[string]interface{})["colocacion"].(string)), &colocacionJSON)
+
+					cargaPlan = append(cargaPlan, map[string]interface{}{
+						"id":         carga.(map[string]interface{})["_id"].(string),
+						// "colocacion": colocacionJSON,
+						"horario":    horarioJSON,
+					})
+
+					if carga.(map[string]interface{})["actividad_id"] != nil {
+						cargaPlan[len(cargaPlan)-1].(map[string]interface{})[plan.(map[string]interface{})["_id"].(string)].(map[string]interface{})["actividad_id"] = carga.(map[string]interface{})["actividad_id"].(string)
+					} else {
+						cargaPlan[len(cargaPlan)-1].(map[string]interface{})["espacio_academico_id"] = carga.(map[string]interface{})["espacio_academico_id"].(string)
+					}
+				}
+			}
+		}
+
+		var resPreasignacion map[string]interface{}
+		if errPreasignacion := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion?query=aprobacion_docente:true,aprobacion_proyecto:true,plan_docente_id:"+plan.(map[string]interface{})["_id"].(string), &resPreasignacion); errPreasignacion == nil {
+			for _, preasignacion := range resPreasignacion["Data"].([]interface{}) {
+				var resEspacioAcademico map[string]interface{}
+				if memEspaciosDetalle[preasignacion.(map[string]interface{})["espacio_academico_id"].(string)] == nil {
+					if errEspacioAcademico := request.GetJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico/"+preasignacion.(map[string]interface{})["espacio_academico_id"].(string), &resEspacioAcademico); errEspacioAcademico == nil {
+						memEspaciosDetalle[preasignacion.(map[string]interface{})["espacio_academico_id"].(string)] = map[string]interface{}{
+							"espacio_academico": resEspacioAcademico["Data"].(map[string]interface{})["nombre"].(string),
+							"nombre":            resEspacioAcademico["Data"].(map[string]interface{})["nombre"].(string) + " - " + resEspacioAcademico["Data"].(map[string]interface{})["grupo"].(string),
+							"grupo":             resEspacioAcademico["Data"].(map[string]interface{})["grupo"],
+							"codigo":            resEspacioAcademico["Data"].(map[string]interface{})["codigo"].(string),
+							"id":                preasignacion.(map[string]interface{})["espacio_academico_id"].(string),
+							"plan_id":           plan.(map[string]interface{})["_id"].(string),
+						}
+						espacioPlan = append(espacioPlan, memEspaciosDetalle[preasignacion.(map[string]interface{})["espacio_academico_id"].(string)])
+					}
+				} else {
+					espacioPlan = append(espacioPlan, memEspaciosDetalle[preasignacion.(map[string]interface{})["espacio_academico_id"].(string)])
+				}
+
+			}
+		}
+
+		if plan.(map[string]interface{})["estado_plan_id"] != "Sin definir" {
+			if errEstado := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"estado_plan/"+plan.(map[string]interface{})["estado_plan_id"].(string), &resEstado); errEstado == nil {
+				memEstados[plan.(map[string]interface{})["estado_plan_id"].(string)] = resEstado["Data"].(map[string]interface{})["nombre"].(string)
+				memEstadoPlan = append(memEstadoPlan, memEstados[plan.(map[string]interface{})["estado_plan_id"].(string)].(string))
+			}
+		} else {
+			memEstadoPlan = append(memEstadoPlan, plan.(map[string]interface{})["estado_plan_id"].(string))
+		}
+
+		resumenJSON := map[string]interface{}{}
+		if plan.(map[string]interface{})["resumen"] != nil {
+			json.Unmarshal([]byte(plan.(map[string]interface{})["resumen"].(string)), &resumenJSON)
+		}
+
+		memResumenes = append(memResumenes, resumenJSON)
+		memEspacios = append(memEspacios, espacioPlan)
+		memCarga = append(memCarga, cargaPlan)
+		memPlanDocente = append(memPlanDocente, plan.(map[string]interface{})["_id"].(string))
+	}
+
+	response["docente"] = memDocente
+	response["tipo_vinculacion"] = memVinculacion
+	response["carga"] = memCarga
+	response["espacios_academicos"] = memEspacios
+	response["seleccion"] = indexSeleccionado
+	response["plan_docente"] = memPlanDocente
+	response["estado_plan"] = memEstadoPlan
+	response["vigencia"] = planes[0].(map[string]interface{})["periodo_id"].(string)
+	response["resumenes"] = memResumenes
+	// response["actividades"] = memActividades
+
 	return response
 }
