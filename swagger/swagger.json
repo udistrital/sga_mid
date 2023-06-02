@@ -3312,7 +3312,7 @@
                 }
             }
         },
-        "/plan_trabajo_docente/disponibilidad/{sede}/{edificio}/{salon}/{vigencia}/{carga}": {
+        "/plan_trabajo_docente/disponibilidad/{salon}/{vigencia}/{carga}": {
             "get": {
                 "tags": [
                     "plan_trabajo_docente"
@@ -3320,20 +3320,6 @@
                 "description": "Consulta la disponibilidad de un espacio fisico",
                 "operationId": "PtdController.GetVisponibilidadEspacio",
                 "parameters": [
-                    {
-                        "in": "path",
-                        "name": "sede",
-                        "description": "Sede de las asignaciones",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "in": "path",
-                        "name": "edificio",
-                        "description": "Edificio de las asignaciones",
-                        "required": true,
-                        "type": "string"
-                    },
                     {
                         "in": "path",
                         "name": "salon",

@@ -526,17 +526,13 @@ func (c *PtdController) PutPlanTrabajoDocente() {
 // GetVisponibilidadEspacio ...
 // @Title GetVisponibilidadEspacio
 // @Description Consulta la disponibilidad de un espacio fisico
-// @Param	sede 		path 	string	true		"Sede de las asignaciones"
-// @Param	edificio 	path 	string	true		"Edificio de las asignaciones"
 // @Param	salon 		path 	string	true		"Salon de las asignaciones"
 // @Param	vigencia 	path 	string	true		"Vigencia de las asignaciones"
 // @Param	carga_plan 	path 	string	true		"Id de la carga del plan de trabajo"
 // @Success 200 {}
 // @Failure 404 not found resource
-// @router /disponibilidad/:sede/:edificio/:salon/:vigencia/:carga [get]
+// @router /disponibilidad/:salon/:vigencia/:carga [get]
 func (c *PtdController) GetDisponibilidadEspacio() {
-	sede := c.Ctx.Input.Param(":sede")
-	edificio := c.Ctx.Input.Param(":edificio")
 	salon := c.Ctx.Input.Param(":salon")
 	vigencia := c.Ctx.Input.Param(":vigencia")
 	cargaId := c.Ctx.Input.Param(":carga")
@@ -552,7 +548,7 @@ func (c *PtdController) GetDisponibilidadEspacio() {
 			planes := planTrabajoDocente["Data"].([]interface{})
 
 			for _, plan := range planes {
-				if errGetCargas := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan?query=activo:true,sede_id:"+sede+",edificio_id:"+edificio+",salon_id:"+salon+",plan_docente_id:"+plan.(map[string]interface{})["_id"].(string)+"&fields=horario", &cargaPlan); errGetCargas == nil {
+				if errGetCargas := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan?query=activo:true,salon_id:"+salon+",plan_docente_id:"+plan.(map[string]interface{})["_id"].(string)+"&fields=horario", &cargaPlan); errGetCargas == nil {
 					if fmt.Sprintf("%v", cargaPlan["Data"]) != "[]" {
 						for _, carga := range cargaPlan["Data"].([]interface{}) {
 							if carga.(map[string]interface{})["_id"] != cargaId {
