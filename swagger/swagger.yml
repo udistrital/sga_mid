@@ -2177,6 +2177,43 @@ paths:
           description: '{}'
         "404":
           description: not found resource
+  /plan_trabajo_docente/disponibilidad/{sede}/{edificio}/{salon}/{vigencia}/{carga}:
+    get:
+      tags:
+      - plan_trabajo_docente
+      description: Consulta la disponibilidad de un espacio fisico
+      operationId: PtdController.GetVisponibilidadEspacio
+      parameters:
+      - in: path
+        name: sede
+        description: Sede de las asignaciones
+        required: true
+        type: string
+      - in: path
+        name: edificio
+        description: Edificio de las asignaciones
+        required: true
+        type: string
+      - in: path
+        name: salon
+        description: Salon de las asignaciones
+        required: true
+        type: string
+      - in: path
+        name: vigencia
+        description: Vigencia de las asignaciones
+        required: true
+        type: string
+      - in: path
+        name: carga_plan
+        description: Id de la carga del plan de trabajo
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
   /plan_trabajo_docente/docente_documento/{documento}/{vinculacion}:
     get:
       tags:
