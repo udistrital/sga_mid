@@ -390,7 +390,7 @@ func (c *PtdController) GetAsignaciones() {
 }
 
 // GetAsignacionesDocente ...
-// @Title GetAsignacionesDocentes	
+// @Title GetAsignacionesDocentes
 // @Description Listar todas las asignaciones de la vigencia determinada de un docente
 // @Param	docente		path 	string	true		"Id docente"
 // @Param	vigencia	path 	string	true		"Vigencia de las asignaciones"
@@ -531,9 +531,9 @@ func (c *PtdController) PutPlanTrabajoDocente() {
 // @Failure 404 not found resource
 // @router /disponibilidad/:vigencia/:carga_plan [get]
 // func (c *PtdController) GetDisponibilidadEspacio() {
-	// vigencia := c.Ctx.Input.Param(":vigencia")
-	// docente := c.Ctx.Input.Param(":docente")
-	// vinculacion := c.Ctx.Input.Param(":vinculacion")
+// vigencia := c.Ctx.Input.Param(":vigencia")
+// docente := c.Ctx.Input.Param(":docente")
+// vinculacion := c.Ctx.Input.Param(":vinculacion")
 // }
 
 func consultarDetallePreasignacion(preasignaciones []interface{}) []map[string]interface{} {
@@ -720,16 +720,41 @@ func consultarDetallePlan(planes []interface{}, idVinculacion string) map[string
 			if fmt.Sprintf("%v", resCarga["Data"]) != "[]" {
 				for _, carga := range resCarga["Data"].([]interface{}) {
 					var horarioJSON map[string]interface{}
-					// var colocacionJSON []map[string]interface{}
-
+					var sede []map[string]interface{}
+					var edificio map[string]interface{}
+					var salon map[string]interface{}
 					json.Unmarshal([]byte(carga.(map[string]interface{})["horario"].(string)), &horarioJSON)
-					// json.Unmarshal([]byte(carga.(map[string]interface{})["colocacion"].(string)), &colocacionJSON)
 
-					cargaPlan = append(cargaPlan, map[string]interface{}{
-						"id":         carga.(map[string]interface{})["_id"].(string),
-						// "colocacion": colocacionJSON,
-						"horario":    horarioJSON,
-					})
+					cargaDetalle := map[string]interface{}{
+						"id":      carga.(map[string]interface{})["_id"].(string),
+						"horario": horarioJSON,
+					}
+					if carga.(map[string]interface{})["sede_id"].(string) != "-" {
+						if errSede := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"espacio_fisico?query=Id:"+carga.(map[string]interface{})["sede_id"].(string)+"&fields=Id,Nombre,CodigoAbreviacion", &sede); errSede == nil {
+							cargaDetalle["sede"] = sede[0]
+						}
+					} else {
+						cargaDetalle["sede"] = "-"
+
+					}
+
+					if carga.(map[string]interface{})["edificio_id"].(string) != "-" {
+						if errEdificio := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"espacio_fisico/"+carga.(map[string]interface{})["edificio_id"].(string), &edificio); errEdificio == nil {
+							cargaDetalle["edificio"] = edificio
+						}
+					} else {
+						cargaDetalle["edificio"] = "-"
+					}
+
+					if carga.(map[string]interface{})["salon_id"].(string) != "-" {
+						if errSalon := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"espacio_fisico/"+carga.(map[string]interface{})["salon_id"].(string), &salon); errSalon == nil {
+							cargaDetalle["salon"] = salon
+						}
+					} else {
+						cargaDetalle["salon"] = "-"
+					}
+
+					cargaPlan = append(cargaPlan, cargaDetalle)
 
 					if carga.(map[string]interface{})["actividad_id"] != nil {
 						cargaPlan[len(cargaPlan)-1].(map[string]interface{})[plan.(map[string]interface{})["_id"].(string)].(map[string]interface{})["actividad_id"] = carga.(map[string]interface{})["actividad_id"].(string)
