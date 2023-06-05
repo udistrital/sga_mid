@@ -30,6 +30,7 @@ func (c *PtdController) URLMapping() {
 	c.Mapping("GetPreasignacionesDocente", c.GetPreasignacionesDocente)
 	c.Mapping("GetPreasignaciones", c.GetPreasignaciones)
 	c.Mapping("GetAsignacionesDocente", c.GetAsignacionesDocente)
+	c.Mapping("GetDisponibilidadEspacio", c.GetDisponibilidadEspacio)
 }
 
 // GetNombreDocenteVinculacion ...
@@ -524,17 +525,64 @@ func (c *PtdController) PutPlanTrabajoDocente() {
 
 // GetVisponibilidadEspacio ...
 // @Title GetVisponibilidadEspacio
-// @Description Consulta la disponibilidad de un espacio academico
+// @Description Consulta la disponibilidad de un espacio fisico
+// @Param	salon 		path 	string	true		"Salon de las asignaciones"
 // @Param	vigencia 	path 	string	true		"Vigencia de las asignaciones"
 // @Param	carga_plan 	path 	string	true		"Id de la carga del plan de trabajo"
 // @Success 200 {}
 // @Failure 404 not found resource
-// @router /disponibilidad/:vigencia/:carga_plan [get]
-// func (c *PtdController) GetDisponibilidadEspacio() {
-// vigencia := c.Ctx.Input.Param(":vigencia")
-// docente := c.Ctx.Input.Param(":docente")
-// vinculacion := c.Ctx.Input.Param(":vinculacion")
-// }
+// @router /disponibilidad/:salon/:vigencia/:carga [get]
+func (c *PtdController) GetDisponibilidadEspacio() {
+	salon := c.Ctx.Input.Param(":salon")
+	vigencia := c.Ctx.Input.Param(":vigencia")
+	cargaId := c.Ctx.Input.Param(":carga")
+
+	var planTrabajoDocente map[string]interface{}
+	var cargaPlan map[string]interface{}
+	var cargas []map[string]interface{}
+	var alerta models.Alert
+	var errorGetAll bool
+
+	if errGetPlan := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"plan_docente?query=activo:true,periodo_id:"+vigencia+"&fields=_id", &planTrabajoDocente); errGetPlan == nil {
+		if fmt.Sprintf("%v", planTrabajoDocente["Data"]) != "[]" {
+			planes := planTrabajoDocente["Data"].([]interface{})
+
+			for _, plan := range planes {
+				if errGetCargas := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan?query=activo:true,salon_id:"+salon+",plan_docente_id:"+plan.(map[string]interface{})["_id"].(string)+"&fields=horario", &cargaPlan); errGetCargas == nil {
+					if fmt.Sprintf("%v", cargaPlan["Data"]) != "[]" {
+						for _, carga := range cargaPlan["Data"].([]interface{}) {
+							if carga.(map[string]interface{})["_id"] != cargaId {
+								var horarioJSON map[string]interface{}
+								json.Unmarshal([]byte(carga.(map[string]interface{})["horario"].(string)), &horarioJSON)
+								cargas = append(cargas, map[string]interface{}{
+									"finalPosition": horarioJSON["finalPosition"],
+									"horas":         horarioJSON["horas"],
+									"id":            carga.(map[string]interface{})["_id"]})
+							}
+						}
+					}
+				}
+			}
+		} else {
+			errorGetAll = true
+			alerta.Code = "404"
+			alerta.Type = "error"
+			alerta.Body = "No hay planes de trabajo docente para la vigencia seleccionada"
+			c.Data["json"] = map[string]interface{}{"Response": alerta}
+		}
+	}
+
+	if !errorGetAll {
+		alerta.Code = "200"
+		alerta.Type = "OK"
+		alerta.Body = cargas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
+	c.ServeJSON()
+}
+
+
 
 func consultarDetallePreasignacion(preasignaciones []interface{}) []map[string]interface{} {
 	memEspacios := map[string]interface{}{}
