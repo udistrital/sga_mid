@@ -30,6 +30,7 @@ func (c *PtdController) URLMapping() {
 	c.Mapping("GetPreasignacionesDocente", c.GetPreasignacionesDocente)
 	c.Mapping("GetPreasignaciones", c.GetPreasignaciones)
 	c.Mapping("GetAsignacionesDocente", c.GetAsignacionesDocente)
+	c.Mapping("GetDisponibilidadEspacio", c.GetDisponibilidadEspacio)
 }
 
 // GetNombreDocenteVinculacion ...
@@ -390,7 +391,7 @@ func (c *PtdController) GetAsignaciones() {
 }
 
 // GetAsignacionesDocente ...
-// @Title GetAsignacionesDocentes	
+// @Title GetAsignacionesDocentes
 // @Description Listar todas las asignaciones de la vigencia determinada de un docente
 // @Param	docente		path 	string	true		"Id docente"
 // @Param	vigencia	path 	string	true		"Vigencia de las asignaciones"
@@ -524,17 +525,64 @@ func (c *PtdController) PutPlanTrabajoDocente() {
 
 // GetVisponibilidadEspacio ...
 // @Title GetVisponibilidadEspacio
-// @Description Consulta la disponibilidad de un espacio academico
+// @Description Consulta la disponibilidad de un espacio fisico
+// @Param	salon 		path 	string	true		"Salon de las asignaciones"
 // @Param	vigencia 	path 	string	true		"Vigencia de las asignaciones"
 // @Param	carga_plan 	path 	string	true		"Id de la carga del plan de trabajo"
 // @Success 200 {}
 // @Failure 404 not found resource
-// @router /disponibilidad/:vigencia/:carga_plan [get]
-// func (c *PtdController) GetDisponibilidadEspacio() {
-	// vigencia := c.Ctx.Input.Param(":vigencia")
-	// docente := c.Ctx.Input.Param(":docente")
-	// vinculacion := c.Ctx.Input.Param(":vinculacion")
-// }
+// @router /disponibilidad/:salon/:vigencia/:carga [get]
+func (c *PtdController) GetDisponibilidadEspacio() {
+	salon := c.Ctx.Input.Param(":salon")
+	vigencia := c.Ctx.Input.Param(":vigencia")
+	cargaId := c.Ctx.Input.Param(":carga")
+
+	var planTrabajoDocente map[string]interface{}
+	var cargaPlan map[string]interface{}
+	var cargas []map[string]interface{}
+	var alerta models.Alert
+	var errorGetAll bool
+
+	if errGetPlan := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"plan_docente?query=activo:true,periodo_id:"+vigencia+"&fields=_id", &planTrabajoDocente); errGetPlan == nil {
+		if fmt.Sprintf("%v", planTrabajoDocente["Data"]) != "[]" {
+			planes := planTrabajoDocente["Data"].([]interface{})
+
+			for _, plan := range planes {
+				if errGetCargas := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan?query=activo:true,salon_id:"+salon+",plan_docente_id:"+plan.(map[string]interface{})["_id"].(string)+"&fields=horario", &cargaPlan); errGetCargas == nil {
+					if fmt.Sprintf("%v", cargaPlan["Data"]) != "[]" {
+						for _, carga := range cargaPlan["Data"].([]interface{}) {
+							if carga.(map[string]interface{})["_id"] != cargaId {
+								var horarioJSON map[string]interface{}
+								json.Unmarshal([]byte(carga.(map[string]interface{})["horario"].(string)), &horarioJSON)
+								cargas = append(cargas, map[string]interface{}{
+									"finalPosition": horarioJSON["finalPosition"],
+									"horas":         horarioJSON["horas"],
+									"id":            carga.(map[string]interface{})["_id"]})
+							}
+						}
+					}
+				}
+			}
+		} else {
+			errorGetAll = true
+			alerta.Code = "404"
+			alerta.Type = "error"
+			alerta.Body = "No hay planes de trabajo docente para la vigencia seleccionada"
+			c.Data["json"] = map[string]interface{}{"Response": alerta}
+		}
+	}
+
+	if !errorGetAll {
+		alerta.Code = "200"
+		alerta.Type = "OK"
+		alerta.Body = cargas
+		c.Data["json"] = map[string]interface{}{"Response": alerta}
+	}
+
+	c.ServeJSON()
+}
+
+
 
 func consultarDetallePreasignacion(preasignaciones []interface{}) []map[string]interface{} {
 	memEspacios := map[string]interface{}{}
@@ -720,16 +768,41 @@ func consultarDetallePlan(planes []interface{}, idVinculacion string) map[string
 			if fmt.Sprintf("%v", resCarga["Data"]) != "[]" {
 				for _, carga := range resCarga["Data"].([]interface{}) {
 					var horarioJSON map[string]interface{}
-					// var colocacionJSON []map[string]interface{}
-
+					var sede []map[string]interface{}
+					var edificio map[string]interface{}
+					var salon map[string]interface{}
 					json.Unmarshal([]byte(carga.(map[string]interface{})["horario"].(string)), &horarioJSON)
-					// json.Unmarshal([]byte(carga.(map[string]interface{})["colocacion"].(string)), &colocacionJSON)
 
-					cargaPlan = append(cargaPlan, map[string]interface{}{
-						"id":         carga.(map[string]interface{})["_id"].(string),
-						// "colocacion": colocacionJSON,
-						"horario":    horarioJSON,
-					})
+					cargaDetalle := map[string]interface{}{
+						"id":      carga.(map[string]interface{})["_id"].(string),
+						"horario": horarioJSON,
+					}
+					if carga.(map[string]interface{})["sede_id"].(string) != "-" {
+						if errSede := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"espacio_fisico?query=Id:"+carga.(map[string]interface{})["sede_id"].(string)+"&fields=Id,Nombre,CodigoAbreviacion", &sede); errSede == nil {
+							cargaDetalle["sede"] = sede[0]
+						}
+					} else {
+						cargaDetalle["sede"] = "-"
+
+					}
+
+					if carga.(map[string]interface{})["edificio_id"].(string) != "-" {
+						if errEdificio := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"espacio_fisico/"+carga.(map[string]interface{})["edificio_id"].(string), &edificio); errEdificio == nil {
+							cargaDetalle["edificio"] = edificio
+						}
+					} else {
+						cargaDetalle["edificio"] = "-"
+					}
+
+					if carga.(map[string]interface{})["salon_id"].(string) != "-" {
+						if errSalon := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"espacio_fisico/"+carga.(map[string]interface{})["salon_id"].(string), &salon); errSalon == nil {
+							cargaDetalle["salon"] = salon
+						}
+					} else {
+						cargaDetalle["salon"] = "-"
+					}
+
+					cargaPlan = append(cargaPlan, cargaDetalle)
 
 					if carga.(map[string]interface{})["actividad_id"] != nil {
 						cargaPlan[len(cargaPlan)-1].(map[string]interface{})[plan.(map[string]interface{})["_id"].(string)].(map[string]interface{})["actividad_id"] = carga.(map[string]interface{})["actividad_id"].(string)
