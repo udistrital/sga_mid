@@ -192,12 +192,11 @@ func (c *PtdController) GetGruposEspacioAcademico() {
 // @Failure 400 the request contains incorrect syntaxis
 // @router /aprobacion_preasignacion [put]
 func (c *PtdController) PutAprobacionPreasignacion() {
-
 	var aprobacion map[string]interface{}
 	var PreasignacionPut map[string]interface{}
-	resultado := []map[string]interface{}{}
 	var alerta models.Alert
 	var errorGetAll bool
+	resultado := []map[string]interface{}{}
 	alertas := []interface{}{}
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &aprobacion); err == nil {
@@ -301,6 +300,7 @@ func (c *PtdController) GetPreasignacionesDocente() {
 
 	var resPreasignaciones map[string]interface{}
 
+	fmt.Println("http://" + beego.AppConfig.String("PlanTrabajoDocenteService") + "pre_asignacion?query=aprobacion_proyecto:true,activo:true,periodo_id:" + vigencia + ",docente_id:" + docente)
 	if errPreasignacion := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion?query=aprobacion_proyecto:true,activo:true,periodo_id:"+vigencia+",docente_id:"+docente, &resPreasignaciones); errPreasignacion == nil {
 		if fmt.Sprintf("%v", resPreasignaciones["Data"]) != "[]" {
 			response := consultarDetallePreasignacion(resPreasignaciones["Data"].([]interface{}))
@@ -581,8 +581,6 @@ func (c *PtdController) GetDisponibilidadEspacio() {
 
 	c.ServeJSON()
 }
-
-
 
 func consultarDetallePreasignacion(preasignaciones []interface{}) []map[string]interface{} {
 	memEspacios := map[string]interface{}{}
