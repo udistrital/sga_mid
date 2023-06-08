@@ -528,14 +528,14 @@ func (c *PtdController) PutPlanTrabajoDocente() {
 // @Description Consulta la disponibilidad de un espacio fisico
 // @Param	salon 		path 	string	true		"Salon de las asignaciones"
 // @Param	vigencia 	path 	string	true		"Vigencia de las asignaciones"
-// @Param	carga_plan 	path 	string	true		"Id de la carga del plan de trabajo"
+// @Param	plan 		path 	string	true		"Id del plan de trabajo"
 // @Success 200 {}
 // @Failure 404 not found resource
-// @router /disponibilidad/:salon/:vigencia/:carga [get]
+// @router /disponibilidad/:salon/:vigencia/:plan [get]
 func (c *PtdController) GetDisponibilidadEspacio() {
 	salon := c.Ctx.Input.Param(":salon")
 	vigencia := c.Ctx.Input.Param(":vigencia")
-	cargaId := c.Ctx.Input.Param(":carga")
+	planId := c.Ctx.Input.Param(":plan")
 
 	var planTrabajoDocente map[string]interface{}
 	var cargaPlan map[string]interface{}
@@ -548,10 +548,10 @@ func (c *PtdController) GetDisponibilidadEspacio() {
 			planes := planTrabajoDocente["Data"].([]interface{})
 
 			for _, plan := range planes {
-				if errGetCargas := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan?query=activo:true,salon_id:"+salon+",plan_docente_id:"+plan.(map[string]interface{})["_id"].(string)+"&fields=horario", &cargaPlan); errGetCargas == nil {
+				if errGetCargas := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan?query=activo:true,salon_id:"+salon+",plan_docente_id:"+plan.(map[string]interface{})["_id"].(string)+"&fields=horario,plan_docente_id", &cargaPlan); errGetCargas == nil {
 					if fmt.Sprintf("%v", cargaPlan["Data"]) != "[]" {
 						for _, carga := range cargaPlan["Data"].([]interface{}) {
-							if carga.(map[string]interface{})["_id"] != cargaId {
+							if carga.(map[string]interface{})["plan_docente_id"] != planId {
 								var horarioJSON map[string]interface{}
 								json.Unmarshal([]byte(carga.(map[string]interface{})["horario"].(string)), &horarioJSON)
 								cargas = append(cargas, map[string]interface{}{

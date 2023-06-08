@@ -1207,7 +1207,7 @@ func init() {
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"],
         beego.ControllerComments{
             Method: "GetDisponibilidadEspacio",
-            Router: "/disponibilidad/:salon/:vigencia/:carga",
+            Router: "/disponibilidad/:salon/:vigencia/:plan",
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
