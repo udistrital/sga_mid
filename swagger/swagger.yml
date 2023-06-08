@@ -2177,7 +2177,7 @@ paths:
           description: '{}'
         "404":
           description: not found resource
-  /plan_trabajo_docente/disponibilidad/{salon}/{vigencia}/{carga}:
+  /plan_trabajo_docente/disponibilidad/{salon}/{vigencia}/{plan}:
     get:
       tags:
       - plan_trabajo_docente
@@ -2195,8 +2195,8 @@ paths:
         required: true
         type: string
       - in: path
-        name: carga_plan
-        description: Id de la carga del plan de trabajo
+        name: plan
+        description: Id del plan de trabajo
         required: true
         type: string
       responses:
