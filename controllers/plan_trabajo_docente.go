@@ -803,7 +803,7 @@ func consultarDetallePlan(planes []interface{}, idVinculacion string) map[string
 					cargaPlan = append(cargaPlan, cargaDetalle)
 
 					if carga.(map[string]interface{})["actividad_id"] != nil {
-						cargaPlan[len(cargaPlan)-1].(map[string]interface{})[plan.(map[string]interface{})["_id"].(string)].(map[string]interface{})["actividad_id"] = carga.(map[string]interface{})["actividad_id"].(string)
+						cargaPlan[len(cargaPlan)-1].(map[string]interface{})["actividad_id"] = carga.(map[string]interface{})["actividad_id"].(string)
 					} else {
 						cargaPlan[len(cargaPlan)-1].(map[string]interface{})["espacio_academico_id"] = carga.(map[string]interface{})["espacio_academico_id"].(string)
 					}
