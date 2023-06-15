@@ -995,6 +995,24 @@ paths:
           description: '{}'
         "404":
           description: not found resource
+  /espacios_academicos/byProject/{id_proyecto}:
+    get:
+      tags:
+      - espacios_academicos
+      description: get Espacios_academicos for Plan Estudios
+      operationId: Espacios_academicosController.GetAcademicSpacesByProject
+      parameters:
+      - in: path
+        name: id_proyecto
+        description: Id del proyecto
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
   /evento/:
     post:
       tags:
@@ -3484,3 +3502,6 @@ tags:
 - name: time_bog
   description: |
     Time_bogController operations for Time_bog
+- name: espacios_academicos
+  description: |
+    Espacios_academicosController operations for Espacios_academicos
