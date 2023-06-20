@@ -1215,6 +1215,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"],
         beego.ControllerComments{
+            Method: "CopiarPlanTrabajoDocente",
+            Router: "/copiar_plan/:docente/:vigenciaAnterior/:vigencia/:vinculacion/:carga",
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"],
+        beego.ControllerComments{
             Method: "GetDisponibilidadEspacio",
             Router: "/disponibilidad/:salon/:vigencia/:plan",
             AllowHTTPMethods: []string{"get"},
