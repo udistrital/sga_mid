@@ -3339,6 +3339,65 @@
                 }
             }
         },
+        "/plan_trabajo_docente/copiar_plan/{docente}/{vigenciaAnterior}/{vigencia}/{vinculacion}/{carga}": {
+            "get": {
+                "tags": [
+                    "plan_trabajo_docente"
+                ],
+                "description": "Copia de plan de trabajo docente de una vigencia anterior",
+                "operationId": "PtdController.CopiarPlanTrabajoDocente",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "docente",
+                        "description": "Id docente",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "path",
+                        "name": "vigenciaAnterior",
+                        "description": "Vigencia de la cual se pretende hacer copia",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "path",
+                        "name": "vigencia",
+                        "description": "Vigencia actual para encontrar diferencias",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "path",
+                        "name": "vinculacion",
+                        "description": "Id vinculacion",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "path",
+                        "name": "carga",
+                        "description": "Carga Lectiva 1, Actividades 2",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
         "/plan_trabajo_docente/disponibilidad/{salon}/{vigencia}/{plan}": {
             "get": {
                 "tags": [
