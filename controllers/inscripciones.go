@@ -1299,7 +1299,7 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 			"apellido":            SolicitudInscripcion["Apellido"].(string),
 			"correo":              SolicitudInscripcion["Correo"].(string),
 			"proyecto":            SolicitudInscripcion["ProgramaAcademicoId"].(float64),
-			"tiporecibo":          0,
+			"tiporecibo":          15, // se define 15 por que es el id definido en el api de recibos para inscripcion
 			"concepto":            "",
 			"valorordinario":      0,
 			"valorextraordinario": 0,
@@ -1336,7 +1336,7 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 				if errJson := json.Unmarshal([]byte(Dato.(map[string]interface{})["Valor"].(string)), &Valor); errJson == nil {
 					objTransaccion["valorordinario"] = Valor["Costo"].(float64)
 					objTransaccion["valorextraordinario"] = Valor["Costo"].(float64)
-					objTransaccion["tiporecibo"] = Dato.(map[string]interface{})["ParametroId"].(map[string]interface{})["CodigoAbreviacion"].(string)
+					//objTransaccion["tiporecibo"] = Dato.(map[string]interface{})["ParametroId"].(map[string]interface{})["CodigoAbreviacion"].(string)
 					objTransaccion["concepto"] = Dato.(map[string]interface{})["ParametroId"].(map[string]interface{})["Nombre"].(string)
 
 					SolicitudRecibo := objTransaccion
