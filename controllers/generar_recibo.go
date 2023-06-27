@@ -648,14 +648,14 @@ func generarCodigoBarras(pdf *gofpdf.Fpdf, datos map[string]interface{}) *gofpdf
 	for len(costo) < 10 {
 		costo = "0" + costo
 	}
-
+	FNC1 := '\u00f1'
 	fecha := strings.Split(datos["Fecha_pago"].(string), "/")
-	codigo := "41577099980004218020" + documento + numComprobante + "3900" + costo + "96" + fecha[2] + fecha[1] + fecha[0]
+	codigo := string(FNC1) + "41577099980004218020" + documento + numComprobante + string(FNC1) + "3900" + costo + string(FNC1) + "96" + fecha[2] + fecha[1] + fecha[0]
 	codigoTexto := "(415)7709998000421(8020)" + documento + numComprobante + "(3900)" + costo + "(96)" + fecha[2] + fecha[1] + fecha[0]
-	bcode := barcode.RegisterEAN(pdf, codigo)
-	barcode.Barcode(pdf, bcode, 9, pdf.GetY()+3, 130, 10, false)
+	bcode := barcode.RegisterCode128(pdf, codigo)
+	barcode.Barcode(pdf, bcode, 8, pdf.GetY()+2, 132, 12, false)
 	fontStyle(pdf, "", 8, 0)
-	pdf.Ln(13)
+	pdf.Ln(13.5)
 	pdf.CellFormat(134, 5, codigoTexto, "", 0, "C", false, 0, "")
 	pdf.Ln(5)
 
