@@ -376,7 +376,7 @@ func (c *PtdController) GetAsignaciones() {
 
 	if errPreasignacion := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion?query=activo:true,aprobacion_docente:true,aprobacion_proyecto:true,periodo_id:"+vigencia+"&fields=docente_id,tipo_vinculacion_id,plan_docente_id,periodo_id", &resPreasignaciones); errPreasignacion == nil {
 		if fmt.Sprintf("%v", resPreasignaciones["Data"]) != "[]" {
-			response := consultarDetalleAsignacion(resPreasignaciones["Data"].([]interface{}))
+			response := consultarDetalleAsignacion(resPreasignaciones["Data"].([]interface{}), false)
 
 			c.Ctx.Output.SetStatus(200)
 			c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Query successful", "Data": response}
@@ -409,7 +409,7 @@ func (c *PtdController) GetAsignacionesDocente() {
 
 	if errPreasignacion := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion?query=activo:true,aprobacion_docente:true,aprobacion_proyecto:true,docente_id:"+docente+",periodo_id:"+vigencia+"&fields=docente_id,tipo_vinculacion_id,plan_docente_id,periodo_id", &resPreasignaciones); errPreasignacion == nil {
 		if fmt.Sprintf("%v", resPreasignaciones["Data"]) != "[]" {
-			response := consultarDetalleAsignacion(resPreasignaciones["Data"].([]interface{}))
+			response := consultarDetalleAsignacion(resPreasignaciones["Data"].([]interface{}), true)
 
 			c.Ctx.Output.SetStatus(200)
 			c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Query successful", "Data": response}
@@ -503,6 +503,10 @@ func (c *PtdController) PutPlanTrabajoDocente() {
 			var resEstado map[string]interface{}
 			if errEstado := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"estado_plan?query=codigo_abreviacion:DEF", &resEstado); errEstado == nil {
 				plan["plan_docente"].(map[string]interface{})["estado_plan_id"] = resEstado["Data"].([]interface{})[0].(map[string]interface{})["_id"]
+			}
+		} else {
+			if _, err := utils.CheckIdString(plan["plan_docente"].(map[string]interface{})["estado_plan"].(string)); err == nil {
+				plan["plan_docente"].(map[string]interface{})["estado_plan_id"] = plan["plan_docente"].(map[string]interface{})["estado_plan"].(string)
 			}
 		}
 		if errPutPlan := request.SendJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"plan_docente/"+plan["plan_docente"].(map[string]interface{})["id"].(string), "PUT", &resPlan, plan["plan_docente"]); errPutPlan == nil {
@@ -955,15 +959,17 @@ func consultarDetallePreasignacion(preasignaciones []interface{}) []map[string]i
 			"codigo":                  memEspacios[preasignacion.(map[string]interface{})["espacio_academico_id"].(string)].(map[string]interface{})["codigo"],
 			"periodo":                 memPeriodo[preasignacion.(map[string]interface{})["periodo_id"].(string)],
 			"periodo_id":              preasignacion.(map[string]interface{})["periodo_id"].(string),
-			"aprobacion_docente":      map[string]interface{}{"value": preasignacion.(map[string]interface{})["aprobacion_docente"], "disabled": false},
-			"aprobacion_proyecto":     map[string]interface{}{"value": preasignacion.(map[string]interface{})["aprobacion_proyecto"], "disabled": false},
+			"aprobacion_docente":      map[string]interface{}{"value": preasignacion.(map[string]interface{})["aprobacion_docente"].(bool), "disabled": false},
+			"aprobacion_proyecto":     map[string]interface{}{"value": preasignacion.(map[string]interface{})["aprobacion_proyecto"].(bool), "disabled": false},
 			"editar":                  map[string]interface{}{"value": nil, "type": "editar", "disabled": false},
-			"enviar":                  map[string]interface{}{"value": nil, "type": "enviar", "disabled": false}})
+			"enviar":                  map[string]interface{}{"value": nil, "type": "enviar", "disabled": preasignacion.(map[string]interface{})["aprobacion_proyecto"].(bool)},
+			"borrar":                  map[string]interface{}{"value": nil, "type": "borrar", "disabled": preasignacion.(map[string]interface{})["aprobacion_docente"].(bool) && preasignacion.(map[string]interface{})["aprobacion_proyecto"].(bool)},
+		})
 	}
 	return response
 }
 
-func consultarDetalleAsignacion(asignaciones []interface{}) []map[string]interface{} {
+func consultarDetalleAsignacion(asignaciones []interface{}, forTeacher bool) []map[string]interface{} {
 	memEstados := map[string]interface{}{}
 	memPeriodo := map[string]interface{}{}
 	memDocente := map[string]interface{}{}
@@ -1001,8 +1007,12 @@ func consultarDetalleAsignacion(asignaciones []interface{}) []map[string]interfa
 		var resPlan map[string]interface{}
 		var idDocumental interface{}
 		if memEstados[asignacion.(map[string]interface{})["plan_docente_id"].(string)] == nil {
+
+			estadoPlan := "Sin definir"
+			plan_id := ""
 			if errPlan := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"plan_docente/"+fmt.Sprintf("%v", asignacion.(map[string]interface{})["plan_docente_id"]), &resPlan); errPlan == nil {
 				idEstado := resPlan["Data"].(map[string]interface{})["estado_plan_id"].(string)
+				plan_id = resPlan["Data"].(map[string]interface{})["_id"].(string)
 				if idEstado == "Sin definir" {
 					memEstados[asignacion.(map[string]interface{})["plan_docente_id"].(string)] = resPlan["Data"].(map[string]interface{})["estado_plan_id"].(string)
 					if resPlan["Data"].(map[string]interface{})["documento_id"] != nil {
@@ -1011,11 +1021,45 @@ func consultarDetalleAsignacion(asignaciones []interface{}) []map[string]interfa
 				} else {
 					if errEstado := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"estado_plan/"+idEstado, &resEstado); errEstado == nil {
 						memEstados[asignacion.(map[string]interface{})["plan_docente_id"].(string)] = resEstado["Data"].(map[string]interface{})["nombre"].(string)
+						estadoPlan = resEstado["Data"].(map[string]interface{})["codigo_abreviacion"].(string)
 					}
 				}
 			}
 
+			desactivarEnviar := false
+			tipoGestion := "ver"
+
+			if forTeacher {
+				switch estadoPlan {
+				case "ENV_COO":
+					tipoGestion = "editar"
+					desactivarEnviar = false
+				case "N_APR":
+					tipoGestion = "editar"
+					desactivarEnviar = false
+				default:
+					tipoGestion = "ver"
+					desactivarEnviar = true
+				}
+			} else {
+				tipoGestion = "editar"
+				switch estadoPlan {
+				case "Sin definir":
+					desactivarEnviar = true
+				case "ENV_COO":
+					desactivarEnviar = true
+				case "ENV_DOC":
+					desactivarEnviar = true
+				case "APR":
+					desactivarEnviar = true
+				default:
+					tipoGestion = "editar"
+					desactivarEnviar = false
+				}
+			}
+
 			response = append(response, map[string]interface{}{
+				"plan_docente_id":     plan_id,
 				"id":                  asignacion.(map[string]interface{})["_id"],
 				"docente_id":          asignacion.(map[string]interface{})["docente_id"].(string),
 				"docente":             cases.Title(language.Spanish).String(memDocente[asignacion.(map[string]interface{})["docente_id"].(string)].(map[string]interface{})["NombreCompleto"].(string)),
@@ -1026,8 +1070,8 @@ func consultarDetalleAsignacion(asignaciones []interface{}) []map[string]interfa
 				"periodo_id":          asignacion.(map[string]interface{})["periodo_id"].(string),
 				"estado":              memEstados[asignacion.(map[string]interface{})["plan_docente_id"].(string)],
 				"soporte_documental":  map[string]interface{}{"value": idDocumental, "type": "ver", "disabled": idDocumental == nil},
-				"enviar":              map[string]interface{}{"value": nil, "type": "enviar", "disabled": false},
-				"gestion":             map[string]interface{}{"value": nil, "type": "editar", "disabled": false}})
+				"enviar":              map[string]interface{}{"value": nil, "type": "enviar", "disabled": desactivarEnviar},
+				"gestion":             map[string]interface{}{"value": nil, "type": tipoGestion, "disabled": false}})
 		}
 
 	}
