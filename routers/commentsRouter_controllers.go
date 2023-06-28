@@ -475,6 +475,15 @@ func init() {
             Filters: nil,
             Params: nil})
 
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Espacios_academicosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Espacios_academicosController"],
+        beego.ControllerComments{
+            Method: "PostAcademicSpacesBySon",
+            Router: "/espacio_academico_hijos",
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:EventoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:EventoController"],
         beego.ControllerComments{
             Method: "PostEvento",
