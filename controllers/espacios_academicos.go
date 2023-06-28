@@ -246,7 +246,7 @@ func (c *Espacios_academicosController) PostAcademicSpacesBySon() {
 		fmt.Println(".------------------cantidad-----------------------------------")
 		fmt.Println(cantidadGrupos)
 		fmt.Println(".-----------------------------------------------------")
-		c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Successful", "Data": responseEspacioPadre}
+		c.Data["json"] = map[string]interface{}{"Success": true, "Status": "201", "Message": "Successful", "Data": responseEspacioPadre}
 
 	}
 	c.ServeJSON()
