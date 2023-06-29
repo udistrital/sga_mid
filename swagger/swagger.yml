@@ -1013,6 +1013,24 @@ paths:
           description: '{}'
         "404":
           description: not found resource
+  /espacios_academicos/espacio_academico_hijos:
+    post:
+      tags:
+      - espacios_academicos
+      description: post Espacios_academicos for Plan Estudios
+      operationId: Espacios_academicosController.PostAcademicSpacesBySon
+      parameters:
+      - in: body
+        name: body
+        description: body crear espacio academico content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "403":
+          description: :body is empty
   /evento/:
     post:
       tags:
