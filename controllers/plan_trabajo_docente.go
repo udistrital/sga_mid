@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/astaxie/beego"
@@ -17,6 +18,7 @@ import (
 	"github.com/udistrital/sga_mid/models/data"
 	"github.com/udistrital/sga_mid/utils"
 	requestmanager "github.com/udistrital/sga_mid/utils/requestManager"
+	"github.com/udistrital/utils_oas/formatdata"
 )
 
 // PtdController operations for plan trabajo docente
@@ -198,6 +200,7 @@ func (c *PtdController) GetGruposEspacioAcademico() {
 func (c *PtdController) PutAprobacionPreasignacion() {
 	var aprobacion map[string]interface{}
 	var PreasignacionPut map[string]interface{}
+	var EspacioPut map[string]interface{}
 	var alerta models.Alert
 	var errorGetAll bool
 	resultado := []map[string]interface{}{}
@@ -215,8 +218,35 @@ func (c *PtdController) PutAprobacionPreasignacion() {
 
 		for _, preasignacion := range aprobacion["preasignaciones"].([]interface{}) {
 			if errAprobacion := request.SendJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion/"+fmt.Sprintf("%v", preasignacion.(map[string]interface{})["Id"]), "PUT", &PreasignacionPut, preasignacionPut); errAprobacion == nil {
-				if aprobacion["docente"].(bool) && PreasignacionPut["Data"].(map[string]interface{})["plan_docente_id"] == nil {
+				// Actualización de espacio academico hijo con docente cuando es aprobado por el docente
+				if aprobacion["docente"] == true {
+					// Trae el espacio academico hijo para posterior actualización con el docente asigando
+					var EspacioAcademicoHijo map[string]interface{}
+					if errEspacios := request.GetJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico/"+fmt.Sprintf("%v", PreasignacionPut["Data"].(map[string]interface{})["espacio_academico_id"]), &EspacioAcademicoHijo); errEspacios == nil {
+						if fmt.Sprintf("%v", EspacioAcademicoHijo["Data"]) != "[]" {
+							EspacioAcademicoHijoPut := EspacioAcademicoHijo["Data"].(map[string]interface{})
+							EspacioAcademicoHijoPut["docente_id"], _ = strconv.Atoi(PreasignacionPut["Data"].(map[string]interface{})["docente_id"].(string))
+							// Put al espacio academico hijo con el docente asignado cuando se aprueba la preasignacion
+							if errPutEspacio := request.SendJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico/"+fmt.Sprintf("%v", PreasignacionPut["Data"].(map[string]interface{})["espacio_academico_id"]), "PUT", &EspacioPut, EspacioAcademicoHijoPut); errPutEspacio == nil {
+								formatdata.JsonPrint(EspacioPut)
+							} else {
+								resultado = append(resultado, map[string]interface{}{"Id": preasignacion.(map[string]interface{})["Id"], "actualizado": false})
+							}
 
+							//------------------------------------------Finalización Actualización------------------------------------------------------
+						} else {
+							c.Ctx.Output.SetStatus(404)
+							c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": "No se encontraron registros para el docente"}
+						}
+					} else {
+						logs.Error(errEspacios)
+						c.Ctx.Output.SetStatus(404)
+						c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": "No se encontraron registros de espacios academicos hijos"}
+					}
+
+				}
+
+				if aprobacion["docente"].(bool) && PreasignacionPut["Data"].(map[string]interface{})["plan_docente_id"] == nil {
 					var planDocenteGet map[string]interface{}
 					if errGetPlan := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"plan_docente?query=docente_id:"+fmt.Sprintf("%v", PreasignacionPut["Data"].(map[string]interface{})["docente_id"])+",periodo_id:"+fmt.Sprintf("%v", PreasignacionPut["Data"].(map[string]interface{})["periodo_id"])+",tipo_vinculacion_id:"+fmt.Sprintf("%v", PreasignacionPut["Data"].(map[string]interface{})["tipo_vinculacion_id"]), &planDocenteGet); errGetPlan == nil {
 						if resultado != nil {
@@ -286,7 +316,6 @@ func (c *PtdController) PutAprobacionPreasignacion() {
 		alerta.Body = alertas
 		c.Data["json"] = map[string]interface{}{"Response": alerta}
 	}
-
 	c.ServeJSON()
 }
 

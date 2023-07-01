@@ -178,6 +178,11 @@ func init() {
 				&controllers.Espacios_academicosController{},
 			),
 		),
+		beego.NSNamespace("/reportes",
+			beego.NSInclude(
+				&controllers.ReportesController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }

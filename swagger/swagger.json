@@ -1535,6 +1535,34 @@
                 }
             }
         },
+        "/espacios_academicos/espacio_academico_hijos": {
+            "post": {
+                "tags": [
+                    "espacios_academicos"
+                ],
+                "description": "post Espacios_academicos for Plan Estudios",
+                "operationId": "Espacios_academicosController.PostAcademicSpacesBySon",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body crear espacio academico content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": ":body is empty"
+                    }
+                }
+            }
+        },
         "/evento/": {
             "post": {
                 "tags": [
@@ -4294,6 +4322,59 @@
                 }
             }
         },
+        "/reportes/plan_trabajo_docente/{docente_id}/{vinculacion_id}/{periodo_id}/{carga}": {
+            "post": {
+                "tags": [
+                    "reportes"
+                ],
+                "description": "crear reporte excel de carga lectiva para docente",
+                "operationId": "ReportesController.ReporteCargaLectiva",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "docente_id",
+                        "description": "Id de docente",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "path",
+                        "name": "vinculacion_id",
+                        "description": "Id vinculacion",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "path",
+                        "name": "periodo_id",
+                        "description": "Id periodo academico",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "path",
+                        "name": "carga",
+                        "description": "Tipo carga: C) Carga lectiva, A) Actividades",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Report Creation successful"
+                    },
+                    "400": {
+                        "description": "The request contains an incorrect data type or an invalid parameter"
+                    },
+                    "404": {
+                        "description": "he request contains an incorrect parameter or no record exist"
+                    }
+                }
+            }
+        },
         "/solicitud_docente/": {
             "get": {
                 "tags": [
@@ -5367,6 +5448,10 @@
         {
             "name": "espacios_academicos",
             "description": "Espacios_academicosController operations for Espacios_academicos\n"
+        },
+        {
+            "name": "reportes",
+            "description": "ReportesController operations for Reportes\n"
         }
     ]
 }
