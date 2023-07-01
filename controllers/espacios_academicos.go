@@ -220,19 +220,18 @@ func (c *Espacios_academicosController) PostAcademicSpacesBySon() {
 		cantidadGrupos, Grupo_in := contarYSepararGrupos(str_grupos)
 
 		if err := helpers.SendJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico", "POST", &EspacioPadrePost, espacio_academico_request); err != nil {
-			panic(map[string]interface{}{"funcion": "VersionarPlan", "err": "Error al generar el espacio padre  ", "status": "400", "log": err})
+			panic(map[string]interface{}{"funcion": "FuncionPostHijosEspacio", "err": "Error al generar el espacio padre  ", "status": "400", "log": err})
 		}
 
 		responseEspacioPadre := EspacioPadrePost["Data"].(map[string]interface{})
-		IdEspacioAcademicoPadre := responseEspacioPadre["_id"]
-
+		IdEspacioAcademicoPadre := fmt.Sprintf("%v", responseEspacioPadre["_id"])
 		EspacioAcademicoHijoTemporal := espacio_academico_request
 
 		EspacioAcademicoHijoTemporal["espacio_academico_padre"] = IdEspacioAcademicoPadre
 
-		// fmt.Println(".---------------------------Espacio temporal--------------------------")
-		// formatdata.JsonPrint(EspacioAcademicoHijoTemporal)
-		// fmt.Println(".-----------------------------------------------------")
+		//fmt.Println(".---------------------------Espacio temporal--------------------------")
+		//formatdata.JsonPrint(EspacioAcademicoHijoTemporal)
+		//fmt.Println(".-----------------------------------------------------")
 
 		for i, grupo := range Grupo_in {
 			fmt.Printf("Grupo %d: %s\n", i+1, grupo)
