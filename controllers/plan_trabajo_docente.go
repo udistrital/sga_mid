@@ -222,7 +222,7 @@ func (c *PtdController) PutAprobacionPreasignacion() {
 				if aprobacion["docente"] == true {
 					// Trae el espacio academico hijo para posterior actualización con el docente asigando
 					var EspacioAcademicoHijo map[string]interface{}
-					if errEspacios := request.GetJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico/"+fmt.Sprintf("%v", PreasignacionPut["Data"].(map[string]interface{})["espacio_academico_id"]), &EspacioAcademicoHijo); errEspacios == nil {
+					if errEspacios := request.GetJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico/?query=_id:"+fmt.Sprintf("%v", PreasignacionPut["Data"].(map[string]interface{})["espacio_academico_id"]), &EspacioAcademicoHijo); errEspacios == nil {
 						if fmt.Sprintf("%v", EspacioAcademicoHijo["Data"]) != "[]" {
 							EspacioAcademicoHijoPut := EspacioAcademicoHijo["Data"].(map[string]interface{})
 							EspacioAcademicoHijoPut["docente_id"], _ = strconv.Atoi(PreasignacionPut["Data"].(map[string]interface{})["docente_id"].(string))
