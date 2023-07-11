@@ -1031,6 +1031,24 @@ paths:
           description: '{}'
         "403":
           description: :body is empty
+  /espacios_academicos/espacio_academico_hijos/asignar_periodo:
+    put:
+      tags:
+      - espacios_academicos
+      description: Asigna el periodo a los grupos/espacios académicos indicados
+      operationId: Espacios_academicosController.PutAcademicSpaceAssignPeriod
+      parameters:
+      - in: body
+        name: body
+        description: Asignar periodo a los espacios académicos
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "400":
+          description: the request contains incorrect syntaxis
   /evento/:
     post:
       tags:
@@ -2343,6 +2361,23 @@ paths:
       - in: path
         name: vigencia
         description: Vigencia del espacio académico
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
+  /plan_trabajo_docente/grupos_espacio_academico/padre/{padre}:
+    get:
+      tags:
+      - plan_trabajo_docente
+      description: Lista los grupos de un espacios académico padre
+      operationId: PtdController.GetGruposEspacioAcademicoPadre
+      parameters:
+      - in: path
+        name: padre
+        description: Id del espacio académico padre
         required: true
         type: string
       responses:

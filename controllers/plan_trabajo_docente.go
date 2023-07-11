@@ -31,6 +31,7 @@ func (c *PtdController) URLMapping() {
 	c.Mapping("GetNombreDocenteVinculacion", c.GetNombreDocenteVinculacion)
 	c.Mapping("GetDocumentoDocenteVinculacion", c.GetDocumentoDocenteVinculacion)
 	c.Mapping("GetGruposEspacioAcademico", c.GetGruposEspacioAcademico)
+	c.Mapping("GetGruposEspacioAcademicoPadre", c.GetGruposEspacioAcademicoPadre)
 	c.Mapping("PutAprobacionPreasignacion", c.PutAprobacionPreasignacion)
 	c.Mapping("GetPreasignacionesDocente", c.GetPreasignacionesDocente)
 	c.Mapping("GetPreasignaciones", c.GetPreasignaciones)
@@ -154,23 +155,25 @@ func (c *PtdController) GetDocumentoDocenteVinculacion() {
 func (c *PtdController) GetGruposEspacioAcademico() {
 	padre := c.Ctx.Input.Param(":padre")
 	vigencia := c.Ctx.Input.Param(":vigencia")
-
-	var resEspacios interface{}
-	response := []interface{}{}
-
-	if errEspacio := request.GetJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico?query=espacio_academico_padre:"+padre+",periodo_id:"+vigencia, &resEspacios); errEspacio == nil {
-		if resEspacios.(map[string]interface{})["Data"] != nil {
-			espacios := resEspacios.(map[string]interface{})["Data"].([]interface{})
-			for _, espacio := range espacios {
-				resProyecto := []interface{}{}
-				if errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Id:"+fmt.Sprintf("%v", espacio.(map[string]interface{})["proyecto_academico_id"])+"&fields=Nombre,Id,NivelFormacionId", &resProyecto); errProyecto == nil {
-					if resProyecto[0].(map[string]interface{})["Id"] != nil {
+	var response []interface{}
+	queryParams := "query=espacio_academico_padre:" + padre +
+		",periodo_id:" + vigencia
+	if resSpaces, errSpace := utils.GetAcademicSpacesByQuery(queryParams); errSpace == nil {
+		if resSpaces != nil {
+			spaces := resSpaces.([]any)
+			for _, space := range spaces {
+				var resProject []interface{}
+				queryParams = "query=Id:" +
+					fmt.Sprintf("%v", space.(map[string]interface{})["proyecto_academico_id"]) +
+					"&fields=Nombre,Id,NivelFormacionId"
+				if errProject := utils.GetAcademicProjectByQuery(queryParams, &resProject); errProject == nil {
+					if resProject[0].(map[string]interface{})["Id"] != nil {
 						response = append(response, map[string]interface{}{
-							"Id":                espacio.(map[string]interface{})["_id"],
-							"Nombre":            espacio.(map[string]interface{})["nombre"],
-							"ProyectoAcademico": resProyecto[0].(map[string]interface{})["Nombre"],
-							"Nivel":             resProyecto[0].(map[string]interface{})["NivelFormacionId"].(map[string]interface{})["Nombre"],
-							"grupo":             espacio.(map[string]interface{})["grupo"],
+							"Id":                space.(map[string]interface{})["_id"],
+							"Nombre":            space.(map[string]interface{})["nombre"],
+							"ProyectoAcademico": resProject[0].(map[string]interface{})["Nombre"],
+							"Nivel":             resProject[0].(map[string]interface{})["NivelFormacionId"].(map[string]interface{})["Nombre"],
+							"grupo":             space.(map[string]interface{})["grupo"],
 						})
 					}
 				}
@@ -182,11 +185,30 @@ func (c *PtdController) GetGruposEspacioAcademico() {
 			c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": "No se encontraron espacios académicos 1"}
 		}
 	} else {
-		logs.Error(errEspacio)
+		logs.Error(errSpace)
 		c.Ctx.Output.SetStatus(404)
 		c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": "No se encontraron espacios académicos"}
 	}
+	c.ServeJSON()
+}
 
+// GetGruposEspacioAcademicoPadre ...
+// @Title GetGruposEspacioAcademicoPadre
+// @Description Lista los grupos de un espacios académico padre
+// @Param	padre		path 	string	true		"Id del espacio académico padre"
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router /grupos_espacio_academico/padre/:padre [get]
+func (c *PtdController) GetGruposEspacioAcademicoPadre() {
+	padre := c.Ctx.Input.Param(":padre")
+	if response, errGroupsSpace := getAcademicSpaces2AssignPeriodByParent(padre); errGroupsSpace == nil {
+		c.Ctx.Output.SetStatus(200)
+		c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Query successful", "Data": response}
+	} else {
+		logs.Error(errGroupsSpace)
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": "No se encontraron espacios académicos"}
+	}
 	c.ServeJSON()
 }
 
@@ -1261,4 +1283,37 @@ func consultarDetallePlan(planes []interface{}, idVinculacion string) map[string
 	// response["actividades"] = memActividades
 
 	return response
+}
+
+func getAcademicSpaces2AssignPeriodByParent(parent string) (any, error) {
+	var response []any
+	queryParams := "query=_id:" + parent +
+		"&fields=nombre,grupo,proyecto_academico_id"
+	if resSpaces, errSpace := utils.GetAcademicSpacesByQuery(queryParams); errSpace == nil {
+		spaces := resSpaces.([]any)
+		for _, space := range spaces {
+			groups := utils.SplitTrimSpace(fmt.Sprintf("%v", space.(map[string]interface{})["grupo"]),
+				",")
+			var resProject []any
+			queryParams = "query=Id:" +
+				fmt.Sprintf("%v", space.(map[string]any)["proyecto_academico_id"]) +
+				"&fields=Nombre,Id,NivelFormacionId"
+			if errProject := utils.GetAcademicProjectByQuery(queryParams, &resProject); errProject == nil {
+				projectData := resProject[0].(map[string]any)
+				if projectData["Id"] != nil {
+					response = append(response, map[string]interface{}{
+						"Id":                space.(map[string]interface{})["_id"],
+						"Nombre":            space.(map[string]interface{})["nombre"],
+						"ProyectoAcademico": projectData["Nombre"],
+						"Nivel":             projectData["NivelFormacionId"].(map[string]interface{})["NivelFormacionPadreId"].(map[string]interface{})["Nombre"],
+						"Subnivel":          projectData["NivelFormacionId"].(map[string]interface{})["Nombre"],
+						"Grupos":            groups,
+					})
+				}
+			}
+		}
+		return response, nil
+	} else {
+		return nil, errSpace
+	}
 }
