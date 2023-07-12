@@ -3,6 +3,9 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/udistrital/sga_mid/utils"
+	requestmanager "github.com/udistrital/sga_mid/utils/requestManager"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -21,6 +24,7 @@ type Espacios_academicosController struct {
 func (c *Espacios_academicosController) URLMapping() {
 	c.Mapping("GetAcademicSpacesByProject", c.GetAcademicSpacesByProject)
 	c.Mapping("PostAcademicSpacesBySon", c.PostAcademicSpacesBySon)
+	c.Mapping("PutAcademicSpaceAssignPeriod", c.PutAcademicSpaceAssignPeriod)
 }
 
 // GetAcademicSpacesByProject ...
@@ -262,4 +266,185 @@ func contarYSepararGrupos(cadena string) (int, []string) {
 
 	// Devolver la cantidad de Grupos y el slice de Grupos
 	return len(grupos), grupos
+}
+
+// PutAcademicSpaceAssignPeriod ...
+// @Title PutAcademicSpaceAssignPeriod
+// @Description Asigna el periodo a los grupos/espacios académicos indicados
+// @Param   body        body    {}  true        "Asignar periodo a los espacios académicos"
+// @Success 200 {}
+// @Failure 400 the request contains incorrect syntaxis
+// @router /espacio_academico_hijos/asignar_periodo [put]
+func (c *Espacios_academicosController) PutAcademicSpaceAssignPeriod() {
+	/*
+		{
+			"grupo": ["Grupo 1", "Grupo 3"],
+			"periodo_id": 36,
+			"padre": "649cf98ecf8adba537ca9052"
+		}
+	*/
+	var periodRequestBody map[string]interface{}
+	var response []map[string]interface{}
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &periodRequestBody); err == nil {
+		parentId := fmt.Sprintf("%v", periodRequestBody["padre"])
+		queryParams := "query=activo:true,espacio_academico_padre:" +
+			parentId + "&fields=_id,grupo,periodo_id"
+		if resSpaces, errSpace := utils.GetAcademicSpacesByQuery(queryParams); errSpace == nil {
+			groups := utils.Slice2SliceString(periodRequestBody["grupo"].([]interface{}))
+			periodIdReq := int(periodRequestBody["periodo_id"].(float64))
+			if resSpaces != nil {
+				spaces := resSpaces.([]any)
+				if assignedSpaces, errAssign := assignExistingPeriod(spaces, &groups, periodIdReq); errAssign == nil {
+					response = append(response, assignedSpaces...)
+					if len(groups) > 0 {
+						if newSpaces, errNewSpaces := createAcademicSpaceChild(parentId, groups, periodIdReq); errNewSpaces == nil {
+							response = append(response, newSpaces...)
+						} else {
+							if newSpaces != nil {
+								response = append(response, newSpaces...)
+							}
+							c.Ctx.Output.SetStatus(400)
+							c.Data["json"] = map[string]interface{}{
+								"Success": false, "Status": "400",
+								"Message": "No fue posible asignar todos los espacios académicos",
+								"Data":    response,
+							}
+						}
+					}
+				} else {
+					if assignedSpaces != nil {
+						c.Ctx.Output.SetStatus(400)
+						c.Data["json"] = map[string]interface{}{
+							"Success": false, "Status": "400",
+							"Message": "No fue posible asignar todos los espacios académicos",
+							"Data":    assignedSpaces,
+						}
+					} else {
+						c.Ctx.Output.SetStatus(400)
+						c.Data["json"] = map[string]interface{}{
+							"Success": false, "Status": "400",
+							"Message": "Espacios académicos no encontrados",
+						}
+					}
+				}
+			} else {
+				c.Ctx.Output.SetStatus(400)
+				c.Data["json"] = map[string]interface{}{
+					"Success": false, "Status": "400",
+					"Message": "Espacios académicos no encontrados",
+				}
+			}
+		}
+		c.Data["json"] = map[string]interface{}{
+			"Success": true, "Status": "201", "Message": "Successful", "Data": response}
+	} else {
+		errResponse, statusCode := requestmanager.MidResponseFormat(
+			"AsignarPeriodoEspacioAcadémico", "PUT", false, err.Error())
+		c.Ctx.Output.SetStatus(statusCode)
+		c.Data["json"] = errResponse
+	}
+	c.ServeJSON()
+}
+
+func assignExistingPeriod(academicSpaces []interface{}, groups *[]string, periodIdReq int) ([]map[string]interface{}, error) {
+	var result []map[string]interface{}
+	spaceBody := map[string]interface{}{"periodo_id": periodIdReq}
+
+	for _, space := range academicSpaces {
+		spaceMap := space.(map[string]interface{})
+
+		// unassigned period
+		periodId := spaceMap["periodo_id"]
+		if periodId == nil {
+			validSpace, errValidation := validateGroup(groups, fmt.Sprintf("%v", spaceMap["grupo"]))
+			if validSpace {
+				// partial update
+				if responseSpace, errSpace := utils.UpdateAcademicSpace(fmt.Sprintf("%v", spaceMap["_id"]), spaceBody); errSpace == nil {
+					result = append(result, responseSpace)
+				} else {
+					return result, errValidation
+				}
+			} else if errValidation != nil {
+				return result, errValidation
+			}
+		} else if reflect.TypeOf(periodId).Kind() == reflect.Int || reflect.TypeOf(periodId).Kind() == reflect.Float64 {
+			if int(periodId.(float64)) == 0 {
+				validSpace, errValidation := validateGroup(groups, fmt.Sprintf("%v", spaceMap["grupo"]))
+				if validSpace {
+					// partial update
+					if responseSpace, errSpace := utils.UpdateAcademicSpace(fmt.Sprintf("%v", spaceMap["_id"]), spaceBody); errSpace != nil {
+						result = append(result, responseSpace)
+					} else {
+						return result, errValidation
+					}
+				} else if errValidation != nil {
+					return result, errValidation
+				}
+			}
+		} else if reflect.TypeOf(periodId).Kind() == reflect.String {
+			validSpace, errValidation := validateGroup(groups, fmt.Sprintf("%v", spaceMap["grupo"]))
+			if validSpace {
+				// partial update
+				if responseSpace, errSpace := utils.UpdateAcademicSpace(fmt.Sprintf("%v", spaceMap["_id"]), spaceBody); errSpace != nil {
+					result = append(result, responseSpace)
+				} else {
+					return result, errValidation
+				}
+			} else if errValidation != nil {
+				return result, errValidation
+			}
+		}
+
+		if len(*groups) == 0 {
+			return result, nil
+		}
+	}
+	return result, nil
+}
+
+func createAcademicSpaceChild(parent string, groups []string, periodIdReq int) ([]map[string]interface{}, error) {
+	var newSpace map[string]interface{}
+	var result []map[string]interface{}
+	queryParams := "query=_id:" + fmt.Sprintf("%v", parent)
+	urlAcademicSpaces := "http://" + beego.AppConfig.String("EspaciosAcademicosService") + "espacio-academico"
+
+	if resSpaces, errSpace := utils.GetAcademicSpacesByQuery(queryParams); errSpace == nil {
+		if space := resSpaces.([]any); space != nil {
+			spaceBody := space[0].(map[string]any)
+			spaceBody["espacio_academico_padre"] = spaceBody["_id"]
+			delete(spaceBody, "_id")
+			delete(spaceBody, "fecha_creacion")
+			delete(spaceBody, "fecha_modificacion")
+
+			for _, group := range groups {
+				spaceBody["grupo"] = group
+				spaceBody["periodo_id"] = periodIdReq
+				if errNewSpace := helpers.SendJson(urlAcademicSpaces, "POST", &newSpace, spaceBody); errNewSpace == nil {
+					result = append(result, newSpace["Data"].(map[string]interface{}))
+				} else {
+					return result, fmt.Errorf("EspaciosAcademicosService Error creando espacios académicos")
+				}
+			}
+			return result, nil
+		} else {
+			return nil, fmt.Errorf("Espacio académico padre no encontrado")
+		}
+	} else {
+		return nil, errSpace
+	}
+}
+
+func validateGroup(groups *[]string, group string) (bool, error) {
+	var errRemove error
+	contains, idx := utils.ContainsStringIndex(*groups, group)
+	if contains {
+		*groups, errRemove = utils.RemoveIndexString(*groups, idx)
+		if errRemove == nil {
+			return true, nil
+		} else {
+			return false, errRemove
+		}
+	}
+	return false, nil
 }
