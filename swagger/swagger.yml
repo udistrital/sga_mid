@@ -2918,6 +2918,19 @@ paths:
           description: The request contains an incorrect data type or an invalid parameter
         "404":
           description: he request contains an incorrect parameter or no record exist
+  /reportes/verif_cump_ptd:
+    post:
+      tags:
+      - reportes
+      description: crear reporte excel de verificacion cumplimiento PTD
+      operationId: ReportesController.ReporteVerifCumpPTD
+      responses:
+        "201":
+          description: Report Creation successful
+        "400":
+          description: The request contains an incorrect data type or an invalid parameter
+        "404":
+          description: he request contains an incorrect parameter or no record exist
   /solicitud_docente/:
     get:
       tags:

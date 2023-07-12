@@ -248,8 +248,11 @@ func (c *PtdController) PutAprobacionPreasignacion() {
 						if fmt.Sprintf("%v", EspacioAcademicoHijo["Data"]) != "[]" {
 							EspacioAcademicoHijoPut := EspacioAcademicoHijo["Data"].(map[string]interface{})
 							EspacioAcademicoHijoPut["docente_id"], _ = strconv.Atoi(PreasignacionPut["Data"].(map[string]interface{})["docente_id"].(string))
+
+							EspacioAcademicoHijoPut["espacio_academico_padre"], _ = EspacioAcademicoHijo["Data"].(map[string]interface{})["espacio_academico_padre"].(map[string]interface{})["_id"].(string)
 							// Put al espacio academico hijo con el docente asignado cuando se aprueba la preasignacion
 							if errPutEspacio := request.SendJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico/"+fmt.Sprintf("%v", PreasignacionPut["Data"].(map[string]interface{})["espacio_academico_id"]), "PUT", &EspacioPut, EspacioAcademicoHijoPut); errPutEspacio == nil {
+								fmt.Println(".---------------------------Espacio creado--------------------------")
 								formatdata.JsonPrint(EspacioPut)
 							} else {
 								resultado = append(resultado, map[string]interface{}{"Id": preasignacion.(map[string]interface{})["Id"], "actualizado": false})
