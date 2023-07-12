@@ -1563,6 +1563,34 @@
                 }
             }
         },
+        "/espacios_academicos/espacio_academico_hijos/asignar_periodo": {
+            "put": {
+                "tags": [
+                    "espacios_academicos"
+                ],
+                "description": "Asigna el periodo a los grupos/espacios académicos indicados",
+                "operationId": "Espacios_academicosController.PutAcademicSpaceAssignPeriod",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "Asignar periodo a los espacios académicos",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "400": {
+                        "description": "the request contains incorrect syntaxis"
+                    }
+                }
+            }
+        },
         "/evento/": {
             "post": {
                 "tags": [
@@ -3534,6 +3562,32 @@
                 }
             }
         },
+        "/plan_trabajo_docente/grupos_espacio_academico/padre/{padre}": {
+            "get": {
+                "tags": [
+                    "plan_trabajo_docente"
+                ],
+                "description": "Lista los grupos de un espacios académico padre",
+                "operationId": "PtdController.GetGruposEspacioAcademicoPadre",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "padre",
+                        "description": "Id del espacio académico padre",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
         "/plan_trabajo_docente/grupos_espacio_academico/{padre}/{vigencia}": {
             "get": {
                 "tags": [
@@ -4362,6 +4416,26 @@
                         "type": "string"
                     }
                 ],
+                "responses": {
+                    "201": {
+                        "description": "Report Creation successful"
+                    },
+                    "400": {
+                        "description": "The request contains an incorrect data type or an invalid parameter"
+                    },
+                    "404": {
+                        "description": "he request contains an incorrect parameter or no record exist"
+                    }
+                }
+            }
+        },
+        "/reportes/verif_cump_ptd": {
+            "post": {
+                "tags": [
+                    "reportes"
+                ],
+                "description": "crear reporte excel de verificacion cumplimiento PTD",
+                "operationId": "ReportesController.ReporteVerifCumpPTD",
                 "responses": {
                     "201": {
                         "description": "Report Creation successful"

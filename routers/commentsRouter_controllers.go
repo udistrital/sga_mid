@@ -484,6 +484,15 @@ func init() {
             Filters: nil,
             Params: nil})
 
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Espacios_academicosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Espacios_academicosController"],
+        beego.ControllerComments{
+            Method: "PutAcademicSpaceAssignPeriod",
+            Router: "/espacio_academico_hijos/asignar_periodo",
+            AllowHTTPMethods: []string{"put"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:EventoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:EventoController"],
         beego.ControllerComments{
             Method: "PostEvento",
@@ -1269,6 +1278,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"],
         beego.ControllerComments{
+            Method: "GetGruposEspacioAcademicoPadre",
+            Router: "/grupos_espacio_academico/padre/:padre",
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"],
+        beego.ControllerComments{
             Method: "PutPlanTrabajoDocente",
             Router: "/plan",
             AllowHTTPMethods: []string{"put"},
@@ -1307,6 +1325,15 @@ func init() {
         beego.ControllerComments{
             Method: "ReporteCargaLectiva",
             Router: "/plan_trabajo_docente/:docente_id/:vinculacion_id/:periodo_id/:carga",
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ReportesController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ReportesController"],
+        beego.ControllerComments{
+            Method: "ReporteVerifCumpPTD",
+            Router: "/verif_cump_ptd",
             AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
