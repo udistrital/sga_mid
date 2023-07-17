@@ -290,9 +290,10 @@ func (c *Espacios_academicosController) PutAcademicSpaceAssignPeriod() {
 		parentId := fmt.Sprintf("%v", periodRequestBody["padre"])
 		queryParams := "query=activo:true,espacio_academico_padre:" +
 			parentId + "&fields=_id,grupo,periodo_id"
+		groups := utils.Slice2SliceString(periodRequestBody["grupo"].([]interface{}))
+		periodIdReq := int(periodRequestBody["periodo_id"].(float64))
+
 		if resSpaces, errSpace := utils.GetAcademicSpacesByQuery(queryParams); errSpace == nil {
-			groups := utils.Slice2SliceString(periodRequestBody["grupo"].([]interface{}))
-			periodIdReq := int(periodRequestBody["periodo_id"].(float64))
 			if resSpaces != nil {
 				spaces := resSpaces.([]any)
 				if assignedSpaces, errAssign := assignExistingPeriod(spaces, &groups, periodIdReq); errAssign == nil {
@@ -300,6 +301,8 @@ func (c *Espacios_academicosController) PutAcademicSpaceAssignPeriod() {
 					if len(groups) > 0 {
 						if newSpaces, errNewSpaces := createAcademicSpaceChild(parentId, groups, periodIdReq); errNewSpaces == nil {
 							response = append(response, newSpaces...)
+							c.Data["json"] = map[string]interface{}{
+								"Success": true, "Status": "200", "Message": "Successful", "Data": response}
 						} else {
 							if newSpaces != nil {
 								response = append(response, newSpaces...)
@@ -311,6 +314,9 @@ func (c *Espacios_academicosController) PutAcademicSpaceAssignPeriod() {
 								"Data":    response,
 							}
 						}
+					} else {
+						c.Data["json"] = map[string]interface{}{
+							"Success": true, "Status": "200", "Message": "Successful", "Data": response}
 					}
 				} else {
 					if assignedSpaces != nil {
@@ -335,9 +341,23 @@ func (c *Espacios_academicosController) PutAcademicSpaceAssignPeriod() {
 					"Message": "Espacios académicos no encontrados",
 				}
 			}
+		} else {
+			if newSpaces, errNewSpaces := createAcademicSpaceChild(parentId, groups, periodIdReq); errNewSpaces == nil {
+				response = append(response, newSpaces...)
+				c.Data["json"] = map[string]interface{}{
+					"Success": true, "Status": "200", "Message": "Successful", "Data": response}
+			} else {
+				if newSpaces != nil {
+					response = append(response, newSpaces...)
+				}
+				c.Ctx.Output.SetStatus(400)
+				c.Data["json"] = map[string]interface{}{
+					"Success": false, "Status": "400",
+					"Message": "No fue posible asignar todos los espacios académicos",
+					"Data":    response,
+				}
+			}
 		}
-		c.Data["json"] = map[string]interface{}{
-			"Success": true, "Status": "201", "Message": "Successful", "Data": response}
 	} else {
 		errResponse, statusCode := requestmanager.MidResponseFormat(
 			"AsignarPeriodoEspacioAcadémico", "PUT", false, err.Error())
