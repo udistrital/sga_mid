@@ -1,16 +1,21 @@
 package controllers
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
+	"github.com/phpdave11/gofpdf"
 	"github.com/udistrital/sga_mid/models/data"
 	"github.com/udistrital/sga_mid/utils"
 	requestmanager "github.com/udistrital/sga_mid/utils/requestManager"
+	xlsx2pdf "github.com/udistrital/sga_mid/utils/xlsx2pdf"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -37,7 +42,7 @@ func (c *ReportesController) URLMapping() {
 // @Failure 404 he request contains an incorrect parameter or no record exist
 // @router /plan_trabajo_docente/:docente_id/:vinculacion_id/:periodo_id/:carga [post]
 func (c *ReportesController) ReporteCargaLectiva() {
-	defer HandlePanic(&c.Controller)
+	//defer HandlePanic(&c.Controller)
 	// * ----------
 	// * Check validez parameteros
 	//
@@ -166,6 +171,10 @@ func (c *ReportesController) ReporteCargaLectiva() {
 	// * ----------
 	// * Construir excel file
 	//
+
+	inBog, _ := time.LoadLocation("America/Bogota")
+	horaes := time.Now().In(inBog).Format("02/01/2006 15:04:05")
+
 	path := beego.AppConfig.String("StaticPath")
 	template, errt := excelize.OpenFile(path + "/templates/PTD.xlsx")
 	if errt != nil {
@@ -191,11 +200,17 @@ func (c *ReportesController) ReporteCargaLectiva() {
 	vinculacionFormateado := strings.ToLower(strings.Replace(datoVinculacion.Nombre, "DOCENTE DE ", "", 1))
 	vinculacionFormateado = strings.ToUpper(vinculacionFormateado[0:1]) + vinculacionFormateado[1:]
 
+	footerstr := fmt.Sprintf("&L%s&C&CPágina &P de &N&R%s", "Oficina Asesora de Tecnologías e Información", "Fecha de generación: "+horaes)
+	template.SetHeaderFooter(sheet, &excelize.HeaderFooterOptions{
+		AlignWithMargins: true,
+		ScaleWithDoc:     true,
+		OddFooter:        footerstr,
+	})
 	// ? información del docente
-	template.SetCellValue(sheet, "B5", nombreFormateado)
-	template.SetCellValue(sheet, "V5", datoIdenfTercero.TipoDocumentoId.CodigoAbreviacion+": "+datoIdenfTercero.Numero)
-	template.SetCellValue(sheet, "B8", datoPeriodo.Nombre)
-	template.SetCellValue(sheet, "V8", vinculacionFormateado)
+	template.SetCellValue(sheet, "B8", nombreFormateado)
+	template.SetCellValue(sheet, "V8", datoIdenfTercero.TipoDocumentoId.CodigoAbreviacion+": "+datoIdenfTercero.Numero)
+	template.SetCellValue(sheet, "B11", datoPeriodo.Nombre)
+	template.SetCellValue(sheet, "V11", vinculacionFormateado)
 
 	type coord struct {
 		X float64 `json:"x"` // ? día
@@ -240,7 +255,7 @@ func (c *ReportesController) ReporteCargaLectiva() {
 		},
 	})
 
-	Lunes, Madrugada, _ := excelize.CellNameToCoordinates("G13") // ? Donde inicia cuadrícula de horario
+	Lunes, Madrugada, _ := excelize.CellNameToCoordinates("G16") // ? Donde inicia cuadrícula de horario
 	horamax := int(0)
 
 	for _, carga := range datosCargaPlan {
@@ -321,28 +336,39 @@ func (c *ReportesController) ReporteCargaLectiva() {
 	}
 
 	// ? resumen
-	template.SetCellValue(sheet, "N88", vinculacionFormateado)
-	template.SetCellValue(sheet, "AD88", datoResumen.HorasLectivas)
-	template.SetCellValue(sheet, "N89", vinculacionFormateado)
-	template.SetCellValue(sheet, "AD89", datoResumen.HorasActividades)
-	template.SetCellValue(sheet, "AD90", datoResumen.HorasLectivas+datoResumen.HorasActividades)
-	template.SetCellValue(sheet, "B93", datoResumen.Observacion)
+	template.SetCellValue(sheet, "M94", vinculacionFormateado)
+	template.SetCellValue(sheet, "AD94", datoResumen.HorasLectivas)
+	template.SetCellValue(sheet, "M95", vinculacionFormateado)
+	template.SetCellValue(sheet, "AD95", datoResumen.HorasActividades)
+	template.SetCellValue(sheet, "AD96", datoResumen.HorasLectivas+datoResumen.HorasActividades)
+	template.SetCellValue(sheet, "B99", datoResumen.Observacion)
 
 	if cargaTipo == "C" { // ? si carga se borra actividades y total
-		template.RemoveRow(sheet, 89)
-		template.RemoveRow(sheet, 89)
+		template.RemoveRow(sheet, 95)
+		template.RemoveRow(sheet, 95)
 	} else if cargaTipo == "A" { // ? si actividades se borra carga y total
-		template.RemoveRow(sheet, 88)
-		template.RemoveRow(sheet, 89)
+		template.RemoveRow(sheet, 94)
+		template.RemoveRow(sheet, 95)
 	}
 
-	if (Madrugada + horamax) <= 61 { // ? celda donde empieza la noche
-		for i := 0; i < 20; i++ {
-			template.RemoveRow(sheet, 61) // ? remover el horario de la noche
+	if (Madrugada + horamax) <= 64 { // ? celda donde empieza la noche
+		template.DeletePicture(sheet, "A87")
+		template.DeletePicture(sheet, "AF87")
+		for i := 0; i <= 20; i++ {
+			template.RemoveRow(sheet, 64) // ? remover el horario de la noche
 		}
-		for i := 13; i <= 60; i++ {
+		for i := 16; i <= 63; i++ {
 			template.SetRowHeight(sheet, i, 9.8458) // ? ajustar altura del horario día si se quita la parte de la noche
 		}
+		template.AddPicture(sheet, "A66", path+"/img/logoud.jpeg", &excelize.GraphicOptions{
+			ScaleX: 0.4,
+			ScaleY: 0.324,
+		})
+		template.AddPicture(sheet, "AF66", path+"/img/logosga.jpeg", &excelize.GraphicOptions{
+			ScaleX:  0.627,
+			ScaleY:  0.5,
+			OffsetX: 3,
+		})
 	}
 
 	/* if err := template.SaveAs("../docs/Book1.xlsx"); err != nil { // ? Previsualizar archivo sin pasarlo a base64
@@ -351,12 +377,73 @@ func (c *ReportesController) ReporteCargaLectiva() {
 	//
 	// * ----------
 
-	// TODO: Convertir a pdf
+	// * ----------
+	// * Construcción de excel a pdf
+	//
+
+	pdf := gofpdf.New("P", "mm", "Letter", "")
+
+	ExcelPdf := xlsx2pdf.Excel2PDF{
+		Excel:  template,
+		Pdf:    pdf,
+		Sheets: make(map[string]xlsx2pdf.SheetInfo),
+		WFx:    2.02,
+		HFx:    2.85,
+		Header: func() {},
+		Footer: func() {},
+	}
+
+	ExcelPdf.Header = func() {
+		pdf.SetFontSize(9)
+		pdf.SetFontStyle("")
+		lm, _, rm, _ := pdf.GetMargins()
+		pw, _ := pdf.GetPageSize()
+		x, y := pdf.GetXY()
+		pdf.SetXY(lm, 8)
+		pdf.CellFormat(pw-lm-rm, 9, pdf.UnicodeTranslatorFromDescriptor("")("Plan Trabajo Docente"), "", 0, "CT", false, 0, "")
+		pdf.ImageOptions(path+"/img/logoud.jpeg", lm, 8, 0, 15, false, gofpdf.ImageOptions{ImageType: "JPEG", ReadDpi: true}, 0, "")
+		pdf.ImageOptions(path+"/img/logosga.jpeg", pw-rm-46.3157, 8, 46.3157, 0, false, gofpdf.ImageOptions{ImageType: "JPEG", ReadDpi: true}, 0, "")
+		pdf.SetXY(x, y)
+	}
+
+	maxpages := ExcelPdf.EstimateMaxPages()
+	ExcelPdf.Footer = func() {
+		pdf.SetFontSize(9)
+		pdf.SetFontStyle("")
+		pagenum := pdf.PageNo()
+		lm, _, rm, bm := pdf.GetMargins()
+		pw, ph := pdf.GetPageSize()
+		x, y := pdf.GetXY()
+		pdf.SetXY(lm, ph-bm)
+		w := (pw - lm - rm) / 3
+		pdf.CellFormat(w, 9, pdf.UnicodeTranslatorFromDescriptor("")("Oficina Asesora de Tecnologías e Información"), "", 0, "LT", false, 0, "")
+		pdf.CellFormat(w, 9, pdf.UnicodeTranslatorFromDescriptor("")(fmt.Sprintf("Página %d de %d", pagenum, maxpages)), "", 0, "CT", false, 0, "")
+		pdf.CellFormat(w, 9, pdf.UnicodeTranslatorFromDescriptor("")("Fecha de generación: "+horaes), "", 0, "RT", false, 0, "")
+		pdf.SetXY(x, y)
+	}
+
+	ExcelPdf.ConvertSheets()
+
+	/* err = pdf.OutputFileAndClose("../docs/output.pdf") // ? previsualizar el pdf antes de
+	if err != nil {
+		fmt.Println(err)
+	} */
+	//
+	// * ----------
+
+	// ? una vaina ahi para redimensionar las filas.. no coinciden en excel con respecto a pdf :(
+	dim, _ := template.GetSheetDimension(sheet)
+	_, maxrow, _ := excelize.CellNameToCoordinates(strings.Split(dim, ":")[1])
+	for r := 1; r <= maxrow; r++ {
+		h, _ := template.GetRowHeight(sheet, r)
+		template.SetRowHeight(sheet, r, h*1.046)
+	}
 
 	// * ----------
 	// * Convertir a base64
 	//
-	buffer, err := template.WriteToBuffer()
+	// ? excel
+	bufferExcel, err := template.WriteToBuffer()
 	if err != nil {
 		logs.Error(err)
 		badAns, code := requestmanager.MidResponseFormat("ReporteCargaLectiva (writing_file)", "POST", false, map[string]interface{}{
@@ -368,12 +455,22 @@ func (c *ReportesController) ReporteCargaLectiva() {
 		c.ServeJSON()
 		return
 	}
-	encodedFile := base64.StdEncoding.EncodeToString(buffer.Bytes())
+	encodedFileExcel := base64.StdEncoding.EncodeToString(bufferExcel.Bytes())
+
+	// ? pdf
+	var bufferPdf bytes.Buffer
+	writer := bufio.NewWriter(&bufferPdf)
+	pdf.Output(writer)
+	writer.Flush()
+	encodedFilePdf := base64.StdEncoding.EncodeToString(bufferPdf.Bytes())
 	//
 	// * ----------
 
 	// ? Entrega de respuesta existosa :)
-	respuesta, statuscode := requestmanager.MidResponseFormat("ReporteCargaLectiva", "POST", true, encodedFile)
+	respuesta, statuscode := requestmanager.MidResponseFormat("ReporteCargaLectiva", "POST", true, map[string]interface{}{
+		"excel": encodedFileExcel,
+		"pdf":   encodedFilePdf,
+	})
 	respuesta.Message = "Report Creation successful"
 	c.Ctx.Output.SetStatus(statuscode)
 	c.Data["json"] = respuesta
