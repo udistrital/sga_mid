@@ -4429,13 +4429,23 @@
                 }
             }
         },
-        "/reportes/verif_cump_ptd": {
+        "/reportes/verif_cump_ptd/{vigencia}": {
             "post": {
                 "tags": [
                     "reportes"
                 ],
                 "description": "crear reporte excel de verificacion cumplimiento PTD",
                 "operationId": "ReportesController.ReporteVerifCumpPTD",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "vigencia",
+                        "description": "Id periodo academico",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
                 "responses": {
                     "201": {
                         "description": "Report Creation successful"

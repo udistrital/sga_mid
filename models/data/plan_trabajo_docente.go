@@ -30,19 +30,19 @@ type PreAsignacion struct {
 }
 
 type CargaPlan struct {
-	Id                   string `json:"_id,omitempty"`
-	Espacio_academico_id string `json:"espacio_academico_id,omitempty"`
-	Actividad_id         string `json:"actividad_id,omitempty"`
-	Plan_docente_id      string `json:"plan_docente_id,omitempty"`
-	Sede_id              string `json:"sede_id,omitempty"`
-	Edificio_id          string `json:"edificio_id,omitempty"`
-	Salon_id             string `json:"salon_id,omitempty"`
-	Horario              string `json:"horario,omitempty"`
-	Hora_inicio          int    `json:"hora_inicio,omitempty"`
-	Duracion             int    `json:"duracion,omitempty"`
-	Activo               bool   `json:"activo,omitempty"`
-	Fecha_creacion       string `json:"fecha_creacion,omitempty"`
-	Fecha_modificacion   string `json:"fecha_modificacion,omitempty"`
+	Id                   string  `json:"_id,omitempty"`
+	Espacio_academico_id string  `json:"espacio_academico_id,omitempty"`
+	Actividad_id         string  `json:"actividad_id,omitempty"`
+	Plan_docente_id      string  `json:"plan_docente_id,omitempty"`
+	Sede_id              string  `json:"sede_id,omitempty"`
+	Edificio_id          string  `json:"edificio_id,omitempty"`
+	Salon_id             string  `json:"salon_id,omitempty"`
+	Horario              string  `json:"horario,omitempty"`
+	Hora_inicio          int     `json:"hora_inicio,omitempty"`
+	Duracion             float64 `json:"duracion,omitempty"`
+	Activo               bool    `json:"activo,omitempty"`
+	Fecha_creacion       string  `json:"fecha_creacion,omitempty"`
+	Fecha_modificacion   string  `json:"fecha_modificacion,omitempty"`
 }
 
 type Actividad struct {
