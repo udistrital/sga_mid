@@ -3308,6 +3308,34 @@
                 }
             }
         },
+        "/plan_estudios/base": {
+            "post": {
+                "tags": [
+                    "plan_estudios"
+                ],
+                "description": "create study plan",
+                "operationId": "Plan_estudiosController.PostBaseStudyPlan",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Plan_estudios content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
         "/plan_trabajo_docente/aprobacion_preasignacion": {
             "put": {
                 "tags": [
@@ -5520,6 +5548,10 @@
         {
             "name": "notas",
             "description": "NotasController operations for Notas\n"
+        },
+        {
+            "name": "plan_estudios",
+            "description": "Plan_estudiosController operations for Plan_estudios\n"
         },
         {
             "name": "plan_trabajo_docente",
