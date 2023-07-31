@@ -3706,6 +3706,41 @@
                 }
             }
         },
+        "/plan_trabajo_docente/planes_preaprobados/{vigencia}/{proyecto}": {
+            "get": {
+                "tags": [
+                    "plan_trabajo_docente"
+                ],
+                "description": "Listar planes que han sido aprobados en asignar ptd",
+                "operationId": "PtdController.GetPlanesPreaprobados",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "vigencia",
+                        "description": "Id perido",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "path",
+                        "name": "proyecto",
+                        "description": "Id proyecto",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
         "/plan_trabajo_docente/preasignaciones/{vigencia}": {
             "get": {
                 "tags": [
