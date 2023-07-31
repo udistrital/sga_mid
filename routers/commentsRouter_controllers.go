@@ -1051,6 +1051,15 @@ func init() {
             Filters: nil,
             Params: nil})
 
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Plan_estudiosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Plan_estudiosController"],
+        beego.ControllerComments{
+            Method: "PostBaseStudyPlan",
+            Router: "/base",
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PracticasAcademicasController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PracticasAcademicasController"],
         beego.ControllerComments{
             Method: "Post",
@@ -1305,6 +1314,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"],
         beego.ControllerComments{
+            Method: "GetPlanesPreaprobados",
+            Router: "/planes_preaprobados/:vigencia/:proyecto",
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"],
+        beego.ControllerComments{
             Method: "GetPreasignaciones",
             Router: "/preasignaciones/:vigencia",
             AllowHTTPMethods: []string{"get"},
@@ -1333,7 +1351,7 @@ func init() {
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ReportesController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ReportesController"],
         beego.ControllerComments{
             Method: "ReporteVerifCumpPTD",
-            Router: "/verif_cump_ptd",
+            Router: "/verif_cump_ptd/:vigencia",
             AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,

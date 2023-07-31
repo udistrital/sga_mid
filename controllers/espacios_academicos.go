@@ -62,7 +62,7 @@ func (c *Espacios_academicosController) GetAcademicSpacesByProject() {
 	*/
 	var Espacios_academicos_1 map[string]interface{}
 	Espacios_academicos_1Err := request.GetJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+
-		fmt.Sprintf("espacio-academico?query=activo:true,proyecto_academico_id:%v&limit=0", id_proyecto_str), &Espacios_academicos_1)
+		fmt.Sprintf("espacio-academico?query=activo:true,proyecto_academico_id:%v,espacio_academico_padre&limit=0", id_proyecto_str), &Espacios_academicos_1)
 	if Espacios_academicos_1Err != nil || Espacios_academicos_1["Success"] == false || Espacios_academicos_1["Status"] != "200" {
 		if Espacios_academicos_1Err == nil {
 			Espacios_academicos_1Err = fmt.Errorf("EspaciosAcademicosService: %v", Espacios_academicos_1["Message"])

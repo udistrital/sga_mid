@@ -4,6 +4,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"strings"
 )
 
@@ -16,4 +17,12 @@ func SplitTrimSpace(s, sep string) []string {
 		substrings[i] = strings.TrimSpace(elementString)
 	}
 	return substrings
+}
+
+func Map2String(inMap map[string]any) (string, error) {
+	if outString, err := json.Marshal(&inMap); err == nil {
+		return string(outString), nil
+	} else {
+		return "", err
+	}
 }

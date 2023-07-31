@@ -3308,6 +3308,34 @@
                 }
             }
         },
+        "/plan_estudios/base": {
+            "post": {
+                "tags": [
+                    "plan_estudios"
+                ],
+                "description": "create study plan",
+                "operationId": "Plan_estudiosController.PostBaseStudyPlan",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Plan_estudios content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
         "/plan_trabajo_docente/aprobacion_preasignacion": {
             "put": {
                 "tags": [
@@ -3666,6 +3694,41 @@
                         "description": "Id vinculacion",
                         "required": true,
                         "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
+        "/plan_trabajo_docente/planes_preaprobados/{vigencia}/{proyecto}": {
+            "get": {
+                "tags": [
+                    "plan_trabajo_docente"
+                ],
+                "description": "Listar planes que han sido aprobados en asignar ptd",
+                "operationId": "PtdController.GetPlanesPreaprobados",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "vigencia",
+                        "description": "Id perido",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "path",
+                        "name": "proyecto",
+                        "description": "Id proyecto",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
                     }
                 ],
                 "responses": {
@@ -4429,13 +4492,23 @@
                 }
             }
         },
-        "/reportes/verif_cump_ptd": {
+        "/reportes/verif_cump_ptd/{vigencia}": {
             "post": {
                 "tags": [
                     "reportes"
                 ],
                 "description": "crear reporte excel de verificacion cumplimiento PTD",
                 "operationId": "ReportesController.ReporteVerifCumpPTD",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "vigencia",
+                        "description": "Id periodo academico",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
                 "responses": {
                     "201": {
                         "description": "Report Creation successful"
@@ -5510,6 +5583,10 @@
         {
             "name": "notas",
             "description": "NotasController operations for Notas\n"
+        },
+        {
+            "name": "plan_estudios",
+            "description": "Plan_estudiosController operations for Plan_estudios\n"
         },
         {
             "name": "plan_trabajo_docente",
