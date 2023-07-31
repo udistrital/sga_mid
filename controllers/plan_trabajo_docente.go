@@ -38,6 +38,7 @@ func (c *PtdController) URLMapping() {
 	c.Mapping("GetAsignacionesDocente", c.GetAsignacionesDocente)
 	c.Mapping("GetDisponibilidadEspacio", c.GetDisponibilidadEspacio)
 	c.Mapping("CopiarPlanTrabajoDocente", c.CopiarPlanTrabajoDocente)
+	c.Mapping("GetPlanesPreaprobados", c.GetPlanesPreaprobados)
 }
 
 // GetNombreDocenteVinculacion ...
@@ -916,6 +917,133 @@ func (c *PtdController) CopiarPlanTrabajoDocente() {
 	c.ServeJSON()
 }
 
+// GetPlanesPreaprobados ...
+// @Title GetPlanesPreaprobados
+// @Description Listar planes que han sido aprobados en asignar ptd
+// @Param	vigencia		path 	int	true	"Id perido"
+// @Param	proyecto		path 	int	true	"Id proyecto"
+// @Success 200 {}
+// @Failure 404 not found resource
+// @router /planes_preaprobados/:vigencia/:proyecto [get]
+func (c *PtdController) GetPlanesPreaprobados() {
+	defer HandlePanic(&c.Controller)
+	// * ----------
+	// * Check validez parameteros
+	//
+	vigencia, err := utils.CheckIdInt(c.Ctx.Input.Param(":vigencia"))
+	if err != nil {
+		logs.Error(err)
+		errorAns, statuscode := requestmanager.MidResponseFormat("GetPlanesPreaprobados (param: vigencia)", "GET", false, err.Error())
+		c.Ctx.Output.SetStatus(statuscode)
+		c.Data["json"] = errorAns
+		c.ServeJSON()
+		return
+	}
+	proyecto, err := utils.CheckIdInt(c.Ctx.Input.Param(":proyecto"))
+	if err != nil {
+		logs.Error(err)
+		errorAns, statuscode := requestmanager.MidResponseFormat("GetPlanesPreaprobados (param: proyecto)", "GET", false, err.Error())
+		c.Ctx.Output.SetStatus(statuscode)
+		c.Data["json"] = errorAns
+		c.ServeJSON()
+		return
+	}
+	//
+	// * ----------
+
+	estado_preaprobado := "64c2ca7fd1e67f67f057f3c8"
+	resp, err := requestmanager.Get("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+
+		fmt.Sprintf("plan_docente?query=activo:true,estado_plan_id:%s,periodo_id:%d&limit=0", estado_preaprobado, vigencia), requestmanager.ParseResponseFormato1)
+	if err != nil {
+		logs.Error(err)
+		badAns, code := requestmanager.MidResponseFormat("PlanTrabajoDocenteService (plan_docente)", "GET", false, map[string]interface{}{
+			"response": resp,
+			"error":    err.Error(),
+		})
+		c.Ctx.Output.SetStatus(code)
+		c.Data["json"] = badAns
+		c.ServeJSON()
+		return
+	}
+	lista_planes := []data.PlanDocente{}
+	utils.ParseData(resp, &lista_planes)
+
+	planes_proyecto := []data.PlanDocente{}
+
+	for _, plan := range lista_planes {
+		_, err := requestmanager.Get("http://"+beego.AppConfig.String("EspaciosAcademicosService")+
+			fmt.Sprintf("espacio-academico?query=activo:true,periodo_id:%d,proyecto_academico_id:%d,docente_id:%s&fields=_id&limit=0", vigencia, proyecto, plan.Docente_id), requestmanager.ParseResponseFormato1)
+		if err == nil {
+			planes_proyecto = append(planes_proyecto, plan)
+		}
+	}
+
+	if len(planes_proyecto) == 0 {
+		respuesta, statuscode := requestmanager.MidResponseFormat("GetPlanesPreaprobados", "GET", false, nil)
+		c.Ctx.Output.SetStatus(statuscode)
+		c.Data["json"] = respuesta
+		c.ServeJSON()
+		return
+	}
+
+	prepareAns := []map[string]interface{}{}
+
+	for _, planProyecto := range planes_proyecto {
+		resp, err := requestmanager.Get("http://"+beego.AppConfig.String("TercerosService")+
+			fmt.Sprintf("datos_identificacion?query=Activo:true,TerceroId__Id:%v&fields=TerceroId,Numero,TipoDocumentoId&sortby=FechaExpedicion,Id&order=desc&limit=1",
+				planProyecto.Docente_id), requestmanager.ParseResonseNoFormat)
+		if err != nil {
+			logs.Error(err)
+			badAns, code := requestmanager.MidResponseFormat("TercerosService (datos_identificacion)", "GET", false, map[string]interface{}{
+				"response": resp,
+				"error":    err.Error(),
+			})
+			c.Ctx.Output.SetStatus(code)
+			c.Data["json"] = badAns
+			c.ServeJSON()
+			return
+		}
+		datos_identificacion := data.DatosIdentificacion{}
+		utils.ParseData(resp.([]interface{})[0], &datos_identificacion)
+
+		resp, err = requestmanager.Get("http://"+beego.AppConfig.String("ParametroService")+
+			fmt.Sprintf("parametro/%s", planProyecto.Tipo_vinculacion_id), requestmanager.ParseResponseFormato1)
+		if err != nil {
+			logs.Error(err)
+			badAns, code := requestmanager.MidResponseFormat("ParametroService (parametro)", "GET", false, map[string]interface{}{
+				"response": resp,
+				"error":    err.Error(),
+			})
+			c.Ctx.Output.SetStatus(code)
+			c.Data["json"] = badAns
+			c.ServeJSON()
+			return
+		}
+		infoVinculacion := data.Parametro{}
+		utils.ParseData(resp, &infoVinculacion)
+
+		prepareAns = append(prepareAns, map[string]interface{}{
+			"id":                 planProyecto.Id,
+			"nombre":             utils.FormatNameTercero(datos_identificacion.TerceroId),
+			"identificacion":     datos_identificacion.Numero,
+			"tipo_vinculacion":   infoVinculacion.Nombre,
+			"periodo_academico":  vigencia,
+			"soporte_documental": map[string]interface{}{"value": planProyecto.Soporte_documental, "type": "ver", "disabled": (planProyecto.Soporte_documental <= 0)},
+			"gestion":            map[string]interface{}{"value": nil, "type": "editar", "disabled": false},
+			"estado":             planProyecto.Estado_plan_id,
+			"tercero_id":         datos_identificacion.TerceroId.Id,
+			"vinculacion_id":     planProyecto.Tipo_vinculacion_id,
+		})
+
+	}
+
+	// ? Entrega de respuesta existosa :)
+	respuesta, statuscode := requestmanager.MidResponseFormat("GetPlanesPreaprobados", "GET", true, prepareAns)
+	c.Ctx.Output.SetStatus(statuscode)
+	c.Data["json"] = respuesta
+	c.ServeJSON()
+}
+
 func consultarEspaciosAcademicosInfoPadre(docente, periodo, vinculacion int64) ([]data.EspacioAcademico, error) {
 	espacios := []data.EspacioAcademico{}
 	response, err := requestmanager.Get("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+
@@ -1103,6 +1231,8 @@ func consultarDetalleAsignacion(asignaciones []interface{}, forTeacher bool) []m
 				case "ENV_COO":
 					desactivarEnviar = true
 				case "ENV_DOC":
+					desactivarEnviar = true
+				case "PAPR":
 					desactivarEnviar = true
 				case "APR":
 					desactivarEnviar = true
