@@ -951,22 +951,28 @@ func (c *PtdController) GetPlanesPreaprobados() {
 	//
 	// * ----------
 
-	estado_preaprobado := "64c2ca7fd1e67f67f057f3c8"
+	rawPlanes := []interface{}{}
+	estado := "64c2ca7fd1e67f67f057f3c8" // preaprobado
 	resp, err := requestmanager.Get("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+
-		fmt.Sprintf("plan_docente?query=activo:true,estado_plan_id:%s,periodo_id:%d&limit=0", estado_preaprobado, vigencia), requestmanager.ParseResponseFormato1)
-	if err != nil {
-		logs.Error(err)
-		badAns, code := requestmanager.MidResponseFormat("PlanTrabajoDocenteService (plan_docente)", "GET", false, map[string]interface{}{
-			"response": resp,
-			"error":    err.Error(),
-		})
-		c.Ctx.Output.SetStatus(code)
-		c.Data["json"] = badAns
-		c.ServeJSON()
-		return
+		fmt.Sprintf("plan_docente?query=activo:true,estado_plan_id:%s,periodo_id:%d&limit=0", estado, vigencia), requestmanager.ParseResponseFormato1)
+	if err == nil {
+		rawPlanes = append(rawPlanes, resp.([]interface{})...)
 	}
+	estado = "646fcf784c0bc253c1c720d4" // aprobado
+	resp, err = requestmanager.Get("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+
+		fmt.Sprintf("plan_docente?query=activo:true,estado_plan_id:%s,periodo_id:%d&limit=0", estado, vigencia), requestmanager.ParseResponseFormato1)
+	if err == nil {
+		rawPlanes = append(rawPlanes, resp.([]interface{})...)
+	}
+	estado = "646fcf8a4c0bc253c1c720d6" // no aprobado
+	resp, err = requestmanager.Get("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+
+		fmt.Sprintf("plan_docente?query=activo:true,estado_plan_id:%s,periodo_id:%d&limit=0", estado, vigencia), requestmanager.ParseResponseFormato1)
+	if err == nil {
+		rawPlanes = append(rawPlanes, resp.([]interface{})...)
+	}
+
 	lista_planes := []data.PlanDocente{}
-	utils.ParseData(resp, &lista_planes)
+	utils.ParseData(rawPlanes, &lista_planes)
 
 	planes_proyecto := []data.PlanDocente{}
 
@@ -1028,7 +1034,7 @@ func (c *PtdController) GetPlanesPreaprobados() {
 			"identificacion":     datos_identificacion.Numero,
 			"tipo_vinculacion":   infoVinculacion.Nombre,
 			"periodo_academico":  vigencia,
-			"soporte_documental": map[string]interface{}{"value": planProyecto.Soporte_documental, "type": "ver", "disabled": (planProyecto.Soporte_documental <= 0)},
+			"soporte_documental": map[string]interface{}{"value": planProyecto.Soporte_documental, "type": "ver", "disabled": false}, //(planProyecto.Soporte_documental <= 0)},
 			"gestion":            map[string]interface{}{"value": nil, "type": "editar", "disabled": false},
 			"estado":             planProyecto.Estado_plan_id,
 			"tercero_id":         datos_identificacion.TerceroId.Id,
