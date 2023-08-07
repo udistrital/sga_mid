@@ -42,7 +42,6 @@ func (c *ReportesController) URLMapping() {
 // @Failure 404 he request contains an incorrect parameter or no record exist
 // @router /plan_trabajo_docente/:docente_id/:vinculacion_id/:periodo_id/:carga [post]
 func (c *ReportesController) ReporteCargaLectiva() {
-	fmt.Println("DEBUG>> trigger: ReporteCargaLectiva()")
 	defer HandlePanic(&c.Controller)
 	// * ----------
 	// * Check validez parameteros
@@ -194,7 +193,6 @@ func (c *ReportesController) ReporteCargaLectiva() {
 			logs.Error(err)
 		}
 	}()
-	fmt.Println("DEBUG>> Open PTD.xlsx")
 
 	sheet := "PTD"
 	nombreFormateado := utils.FormatNameTercero(datoIdenfTercero.TerceroId)
@@ -372,7 +370,7 @@ func (c *ReportesController) ReporteCargaLectiva() {
 			OffsetX: 3,
 		})
 	}
-	fmt.Println("DEBUG>> finish xlsx")
+
 	/* if err := template.SaveAs("../docs/Book1.xlsx"); err != nil { // ? Previsualizar archivo sin pasarlo a base64
 		fmt.Println(err)
 	} */
@@ -740,7 +738,6 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 			logs.Error(err)
 		}
 	}()
-	fmt.Println("DEBUG>> open Verif_Cump_PTD.xlsx")
 
 	posicionActividades := map[string]interface{}{
 		"647609c548f8405cfda2783f": "E",
@@ -1084,7 +1081,7 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 		rowPosition += incrow
 	}
 	template.RemoveRow(sheet, rowPosition)
-	fmt.Println("DEBUG>> finish xlsx")
+
 	/* if err := template.SaveAs("../docs/Book1.xlsx"); err != nil { // ? Previsualizar archivo sin pasarlo a base64
 		fmt.Println(err)
 	} */

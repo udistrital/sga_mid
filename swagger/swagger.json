@@ -3590,6 +3590,33 @@
                 }
             }
         },
+        "/plan_trabajo_docente/espacios_fisicos_dependencia/{dependencia}": {
+            "get": {
+                "tags": [
+                    "plan_trabajo_docente"
+                ],
+                "description": "Lista opciones espacios físicos asignados a una dependencia",
+                "operationId": "PtdController.GetEspaciosFisicosDependencia",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dependencia",
+                        "description": "Id dependencia Oikos",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "404": {
+                        "description": "not found resource"
+                    }
+                }
+            }
+        },
         "/plan_trabajo_docente/grupos_espacio_academico/padre/{padre}": {
             "get": {
                 "tags": [
