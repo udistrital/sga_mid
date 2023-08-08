@@ -3601,7 +3601,7 @@
                     {
                         "in": "path",
                         "name": "dependencia",
-                        "description": "Id dependencia Oikos",
+                        "description": "Id dependencia",
                         "required": true,
                         "type": "integer",
                         "format": "int64"
@@ -4519,7 +4519,7 @@
                 }
             }
         },
-        "/reportes/verif_cump_ptd/{vigencia}": {
+        "/reportes/verif_cump_ptd/{vigencia}/{proyecto}": {
             "post": {
                 "tags": [
                     "reportes"
@@ -4531,6 +4531,14 @@
                         "in": "path",
                         "name": "vigencia",
                         "description": "Id periodo academico",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "in": "path",
+                        "name": "proyecto",
+                        "description": "Id proyecto academico",
                         "required": true,
                         "type": "integer",
                         "format": "int64"
