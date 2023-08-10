@@ -1278,6 +1278,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"],
         beego.ControllerComments{
+            Method: "GetEspaciosFisicosDependencia",
+            Router: "/espacios_fisicos_dependencia/:dependencia",
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"],
+        beego.ControllerComments{
             Method: "GetGruposEspacioAcademico",
             Router: "/grupos_espacio_academico/:padre/:vigencia",
             AllowHTTPMethods: []string{"get"},
@@ -1351,7 +1360,7 @@ func init() {
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ReportesController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ReportesController"],
         beego.ControllerComments{
             Method: "ReporteVerifCumpPTD",
-            Router: "/verif_cump_ptd/:vigencia",
+            Router: "/verif_cump_ptd/:vigencia/:proyecto",
             AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,

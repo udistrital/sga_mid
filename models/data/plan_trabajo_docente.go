@@ -66,15 +66,18 @@ type EstadoPlan struct {
 }
 
 type ConsolidadoDocente struct {
-	Id                    string `json:"_id,omitempty"`
-	Plan_docente_id       string `json:"plan_docente_id,omitempty"`
-	Estado_consolidado_id string `json:"estado_consolidado_id,omitempty"`
-	Respuesta_decanatura  string `json:"respuesta_decanatura,omitempty"`
-	Cumple_normativa      bool   `json:"cumple_normativa,omitempty"`
-	Aprobado              bool   `json:"aprobado,omitempty"`
-	Activo                bool   `json:"activo,omitempty"`
-	Fecha_creacion        string `json:"fecha_creacion,omitempty"`
-	Fecha_modificacion    string `json:"fecha_modificacion,omitempty"`
+	Id                       string `json:"_id,omitempty"`
+	Plan_docente_id          string `json:"plan_docente_id,omitempty"`
+	Periodo_id               string `json:"periodo_id,omitempty"`
+	Proyecto_academico_id    string `json:"proyecto_academico_id,omitempty"`
+	Estado_consolidado_id    string `json:"estado_consolidado_id,omitempty"`
+	Respuesta_decanatura     string `json:"respuesta_decanatura,omitempty"`
+	Consolidado_coordinacion string `json:"consolidado_coordinacion,omitempty"`
+	Cumple_normativa         bool   `json:"cumple_normativa,omitempty"`
+	Aprobado                 bool   `json:"aprobado,omitempty"`
+	Activo                   bool   `json:"activo,omitempty"`
+	Fecha_creacion           string `json:"fecha_creacion,omitempty"`
+	Fecha_modificacion       string `json:"fecha_modificacion,omitempty"`
 }
 
 type EstadoConsolidado struct {

@@ -2364,6 +2364,24 @@ paths:
           description: '{}'
         "404":
           description: not found resource
+  /plan_trabajo_docente/espacios_fisicos_dependencia/{dependencia}:
+    get:
+      tags:
+      - plan_trabajo_docente
+      description: Lista opciones espacios físicos asignados a una dependencia
+      operationId: PtdController.GetEspaciosFisicosDependencia
+      parameters:
+      - in: path
+        name: dependencia
+        description: Id dependencia
+        required: true
+        type: integer
+        format: int64
+      responses:
+        "200":
+          description: '{}'
+        "404":
+          description: not found resource
   /plan_trabajo_docente/grupos_espacio_academico/{padre}/{vigencia}:
     get:
       tags:
@@ -2960,7 +2978,7 @@ paths:
           description: The request contains an incorrect data type or an invalid parameter
         "404":
           description: he request contains an incorrect parameter or no record exist
-  /reportes/verif_cump_ptd/{vigencia}:
+  /reportes/verif_cump_ptd/{vigencia}/{proyecto}:
     post:
       tags:
       - reportes
@@ -2970,6 +2988,12 @@ paths:
       - in: path
         name: vigencia
         description: Id periodo academico
+        required: true
+        type: integer
+        format: int64
+      - in: path
+        name: proyecto
+        description: Id proyecto academico
         required: true
         type: integer
         format: int64

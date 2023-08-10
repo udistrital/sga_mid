@@ -42,7 +42,6 @@ func (c *ReportesController) URLMapping() {
 // @Failure 404 he request contains an incorrect parameter or no record exist
 // @router /plan_trabajo_docente/:docente_id/:vinculacion_id/:periodo_id/:carga [post]
 func (c *ReportesController) ReporteCargaLectiva() {
-	fmt.Println("DEBUG>> trigger: ReporteCargaLectiva()")
 	defer HandlePanic(&c.Controller)
 	// * ----------
 	// * Check validez parameteros
@@ -194,7 +193,6 @@ func (c *ReportesController) ReporteCargaLectiva() {
 			logs.Error(err)
 		}
 	}()
-	fmt.Println("DEBUG>> Open PTD.xlsx")
 
 	sheet := "PTD"
 	nombreFormateado := utils.FormatNameTercero(datoIdenfTercero.TerceroId)
@@ -372,7 +370,7 @@ func (c *ReportesController) ReporteCargaLectiva() {
 			OffsetX: 3,
 		})
 	}
-	fmt.Println("DEBUG>> finish xlsx")
+
 	/* if err := template.SaveAs("../docs/Book1.xlsx"); err != nil { // ? Previsualizar archivo sin pasarlo a base64
 		fmt.Println(err)
 	} */
@@ -483,10 +481,11 @@ func (c *ReportesController) ReporteCargaLectiva() {
 // @Title ReporteVerifCumpPTD
 // @Description crear reporte excel de verificacion cumplimiento PTD
 // @Param 	vigencia 		path 	int true	 "Id periodo academico"
+// @Param 	proyecto 		path 	int true	 "Id proyecto academico"
 // @Success 201 Report Creation successful
 // @Failure 400 The request contains an incorrect data type or an invalid parameter
 // @Failure 404 he request contains an incorrect parameter or no record exist
-// @router /verif_cump_ptd/:vigencia [post]
+// @router /verif_cump_ptd/:vigencia/:proyecto [post]
 func (c *ReportesController) ReporteVerifCumpPTD() {
 	fmt.Println("trigger: ReporteVerifCumpPTD()")
 	defer HandlePanic(&c.Controller)
@@ -502,6 +501,7 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 		c.ServeJSON()
 		return
 	}
+	proyectoFilter := c.Ctx.Input.Param(":proyecto")
 	//
 	// * ----------
 
@@ -512,6 +512,7 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 	PlanesPlanta := map[string]map[string]formatoCumplimiento{} // ? tercero.proyecto.formatoCumplimiento
 	PlanesTCO := map[string]map[string]formatoCumplimiento{}    // ? tercero.proyecto.formatoCumplimiento
 	PlanesMTO := map[string]map[string]formatoCumplimiento{}    // ? tercero.proyecto.formatoCumplimiento
+	ListaIdPlanes := []string{}
 
 	plan_aprobado := "646fcf784c0bc253c1c720d4"
 	resp, err := requestmanager.Get("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+
@@ -577,74 +578,77 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 			docenteId := plan_docente.Docente_id
 			projectId := fmt.Sprintf("%d", espacio_academico.Proyecto_academico_id)
 
-			resp, err = requestmanager.Get("http://"+beego.AppConfig.String("ProyectoAcademicoService")+
-				fmt.Sprintf("proyecto_academico_institucion/%s", projectId), requestmanager.ParseResonseNoFormat)
-			if err != nil {
-				logs.Error(err)
-				badAns, code := requestmanager.MidResponseFormat("ProyectoAcademicoService (proyecto_academico_institucion)", "GET", false, map[string]interface{}{
-					"response": resp,
-					"error":    err.Error(),
-				})
-				c.Ctx.Output.SetStatus(code)
-				c.Data["json"] = badAns
-				c.ServeJSON()
-				return
-			}
+			if (proyectoFilter == "0") || (proyectoFilter == projectId) {
+				resp, err = requestmanager.Get("http://"+beego.AppConfig.String("ProyectoAcademicoService")+
+					fmt.Sprintf("proyecto_academico_institucion/%s", projectId), requestmanager.ParseResonseNoFormat)
+				if err != nil {
+					logs.Error(err)
+					badAns, code := requestmanager.MidResponseFormat("ProyectoAcademicoService (proyecto_academico_institucion)", "GET", false, map[string]interface{}{
+						"response": resp,
+						"error":    err.Error(),
+					})
+					c.Ctx.Output.SetStatus(code)
+					c.Data["json"] = badAns
+					c.ServeJSON()
+					return
+				}
 
-			if plan_docente.Tipo_vinculacion_id == "293" || plan_docente.Tipo_vinculacion_id == "294" { // ? Carrera T Comp || Carrera Med T
-				if _, ok := PlanesPlanta[docenteId]; !ok {
-					PlanesPlanta[docenteId] = map[string]formatoCumplimiento{}
-				}
-				if _, ok := PlanesPlanta[docenteId][projectId]; !ok {
+				if plan_docente.Tipo_vinculacion_id == "293" || plan_docente.Tipo_vinculacion_id == "294" { // ? Carrera T Comp || Carrera Med T
+					if _, ok := PlanesPlanta[docenteId]; !ok {
+						PlanesPlanta[docenteId] = map[string]formatoCumplimiento{}
+					}
+					if _, ok := PlanesPlanta[docenteId][projectId]; !ok {
+						PlanesPlanta[docenteId][projectId] = formatoCumplimiento{
+							Asignaturas: map[string]asignaturaPadreGrupos{},
+						}
+					}
 					PlanesPlanta[docenteId][projectId] = formatoCumplimiento{
-						Asignaturas: map[string]asignaturaPadreGrupos{},
+						Proyecto:      resp.(map[string]interface{})["Nombre"].(string),
+						HorasLectivas: PlanesPlanta[docenteId][projectId].HorasLectivas + agrupacionEspacios[idEspAcad],
+						Asignaturas:   PlanesPlanta[docenteId][projectId].Asignaturas,
 					}
-				}
-				PlanesPlanta[docenteId][projectId] = formatoCumplimiento{
-					Proyecto:      resp.(map[string]interface{})["Nombre"].(string),
-					HorasLectivas: PlanesPlanta[docenteId][projectId].HorasLectivas + agrupacionEspacios[idEspAcad],
-					Asignaturas:   PlanesPlanta[docenteId][projectId].Asignaturas,
-				}
-				PlanesPlanta[docenteId][projectId].Asignaturas[espacio_academico.Espacio_academico_padre] = asignaturaPadreGrupos{
-					Nombre: espacio_academico.Nombre,
-					Grupos: append(PlanesPlanta[docenteId][projectId].Asignaturas[espacio_academico.Espacio_academico_padre].Grupos, espacio_academico.Grupo),
-				}
-			} else if plan_docente.Tipo_vinculacion_id == "296" { // ? T Comp Ocacional
-				if _, ok := PlanesTCO[docenteId]; !ok {
-					PlanesTCO[docenteId] = map[string]formatoCumplimiento{}
-				}
-				if _, ok := PlanesTCO[docenteId][projectId]; !ok {
+					PlanesPlanta[docenteId][projectId].Asignaturas[espacio_academico.Espacio_academico_padre] = asignaturaPadreGrupos{
+						Nombre: espacio_academico.Nombre,
+						Grupos: append(PlanesPlanta[docenteId][projectId].Asignaturas[espacio_academico.Espacio_academico_padre].Grupos, espacio_academico.Grupo),
+					}
+				} else if plan_docente.Tipo_vinculacion_id == "296" { // ? T Comp Ocacional
+					if _, ok := PlanesTCO[docenteId]; !ok {
+						PlanesTCO[docenteId] = map[string]formatoCumplimiento{}
+					}
+					if _, ok := PlanesTCO[docenteId][projectId]; !ok {
+						PlanesTCO[docenteId][projectId] = formatoCumplimiento{
+							Asignaturas: map[string]asignaturaPadreGrupos{},
+						}
+					}
 					PlanesTCO[docenteId][projectId] = formatoCumplimiento{
-						Asignaturas: map[string]asignaturaPadreGrupos{},
+						Proyecto:      resp.(map[string]interface{})["Nombre"].(string),
+						HorasLectivas: PlanesTCO[docenteId][projectId].HorasLectivas + agrupacionEspacios[idEspAcad],
+						Asignaturas:   PlanesTCO[docenteId][projectId].Asignaturas,
 					}
-				}
-				PlanesTCO[docenteId][projectId] = formatoCumplimiento{
-					Proyecto:      resp.(map[string]interface{})["Nombre"].(string),
-					HorasLectivas: PlanesTCO[docenteId][projectId].HorasLectivas + agrupacionEspacios[idEspAcad],
-					Asignaturas:   PlanesTCO[docenteId][projectId].Asignaturas,
-				}
-				PlanesTCO[docenteId][projectId].Asignaturas[espacio_academico.Espacio_academico_padre] = asignaturaPadreGrupos{
-					Nombre: espacio_academico.Nombre,
-					Grupos: append(PlanesTCO[docenteId][projectId].Asignaturas[espacio_academico.Espacio_academico_padre].Grupos, espacio_academico.Grupo),
-				}
-			} else if plan_docente.Tipo_vinculacion_id == "298" { // ? Med T Ocacional
-				if _, ok := PlanesMTO[docenteId]; !ok {
-					PlanesMTO[docenteId] = map[string]formatoCumplimiento{}
-				}
-				if _, ok := PlanesMTO[docenteId][projectId]; !ok {
+					PlanesTCO[docenteId][projectId].Asignaturas[espacio_academico.Espacio_academico_padre] = asignaturaPadreGrupos{
+						Nombre: espacio_academico.Nombre,
+						Grupos: append(PlanesTCO[docenteId][projectId].Asignaturas[espacio_academico.Espacio_academico_padre].Grupos, espacio_academico.Grupo),
+					}
+				} else if plan_docente.Tipo_vinculacion_id == "298" { // ? Med T Ocacional
+					if _, ok := PlanesMTO[docenteId]; !ok {
+						PlanesMTO[docenteId] = map[string]formatoCumplimiento{}
+					}
+					if _, ok := PlanesMTO[docenteId][projectId]; !ok {
+						PlanesMTO[docenteId][projectId] = formatoCumplimiento{
+							Asignaturas: map[string]asignaturaPadreGrupos{},
+						}
+					}
 					PlanesMTO[docenteId][projectId] = formatoCumplimiento{
-						Asignaturas: map[string]asignaturaPadreGrupos{},
+						Proyecto:      resp.(map[string]interface{})["Nombre"].(string),
+						HorasLectivas: PlanesMTO[docenteId][projectId].HorasLectivas + agrupacionEspacios[idEspAcad],
+						Asignaturas:   PlanesMTO[docenteId][projectId].Asignaturas,
+					}
+					PlanesMTO[docenteId][projectId].Asignaturas[espacio_academico.Espacio_academico_padre] = asignaturaPadreGrupos{
+						Nombre: espacio_academico.Nombre,
+						Grupos: append(PlanesMTO[docenteId][projectId].Asignaturas[espacio_academico.Espacio_academico_padre].Grupos, espacio_academico.Grupo),
 					}
 				}
-				PlanesMTO[docenteId][projectId] = formatoCumplimiento{
-					Proyecto:      resp.(map[string]interface{})["Nombre"].(string),
-					HorasLectivas: PlanesMTO[docenteId][projectId].HorasLectivas + agrupacionEspacios[idEspAcad],
-					Asignaturas:   PlanesMTO[docenteId][projectId].Asignaturas,
-				}
-				PlanesMTO[docenteId][projectId].Asignaturas[espacio_academico.Espacio_academico_padre] = asignaturaPadreGrupos{
-					Nombre: espacio_academico.Nombre,
-					Grupos: append(PlanesMTO[docenteId][projectId].Asignaturas[espacio_academico.Espacio_academico_padre].Grupos, espacio_academico.Grupo),
-				}
+				ListaIdPlanes = append(ListaIdPlanes, plan_docente.Id)
 			}
 
 		}
@@ -686,28 +690,34 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 		json.Unmarshal([]byte(plan_docente.Resumen), &datoResumen)
 
 		if plan_docente.Tipo_vinculacion_id == "293" || plan_docente.Tipo_vinculacion_id == "294" { // ? Carrera T Comp || Carrera Med T
-			PlanesPlanta[plan_docente.Docente_id]["actividades"] = formatoCumplimiento{
-				Nombre:      utils.FormatNameTercero(datos_identificacion.TerceroId),
-				Documento:   datos_identificacion.Numero,
-				Vinculacion: infoVinculacion.Nombre,
-				Actividades: agrupacionActividades,
-				Observacion: datoResumen["observacion"].(string),
+			if _, ok := PlanesPlanta[plan_docente.Docente_id]; ok {
+				PlanesPlanta[plan_docente.Docente_id]["actividades"] = formatoCumplimiento{
+					Nombre:      utils.FormatNameTercero(datos_identificacion.TerceroId),
+					Documento:   datos_identificacion.Numero,
+					Vinculacion: infoVinculacion.Nombre,
+					Actividades: agrupacionActividades,
+					Observacion: datoResumen["observacion"].(string),
+				}
 			}
 		} else if plan_docente.Tipo_vinculacion_id == "296" { // ? T Comp Ocacional
-			PlanesTCO[plan_docente.Docente_id]["actividades"] = formatoCumplimiento{
-				Nombre:      utils.FormatNameTercero(datos_identificacion.TerceroId),
-				Documento:   datos_identificacion.Numero,
-				Vinculacion: infoVinculacion.Nombre,
-				Actividades: agrupacionActividades,
-				Observacion: datoResumen["observacion"].(string),
+			if _, ok := PlanesTCO[plan_docente.Docente_id]; ok {
+				PlanesTCO[plan_docente.Docente_id]["actividades"] = formatoCumplimiento{
+					Nombre:      utils.FormatNameTercero(datos_identificacion.TerceroId),
+					Documento:   datos_identificacion.Numero,
+					Vinculacion: infoVinculacion.Nombre,
+					Actividades: agrupacionActividades,
+					Observacion: datoResumen["observacion"].(string),
+				}
 			}
 		} else if plan_docente.Tipo_vinculacion_id == "298" { // ? Med T Ocacional
-			PlanesMTO[plan_docente.Docente_id]["actividades"] = formatoCumplimiento{
-				Nombre:      utils.FormatNameTercero(datos_identificacion.TerceroId),
-				Documento:   datos_identificacion.Numero,
-				Vinculacion: infoVinculacion.Nombre,
-				Actividades: agrupacionActividades,
-				Observacion: datoResumen["observacion"].(string),
+			if _, ok := PlanesMTO[plan_docente.Docente_id]; ok {
+				PlanesMTO[plan_docente.Docente_id]["actividades"] = formatoCumplimiento{
+					Nombre:      utils.FormatNameTercero(datos_identificacion.TerceroId),
+					Documento:   datos_identificacion.Numero,
+					Vinculacion: infoVinculacion.Nombre,
+					Actividades: agrupacionActividades,
+					Observacion: datoResumen["observacion"].(string),
+				}
 			}
 		}
 
@@ -740,7 +750,6 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 			logs.Error(err)
 		}
 	}()
-	fmt.Println("DEBUG>> open Verif_Cump_PTD.xlsx")
 
 	posicionActividades := map[string]interface{}{
 		"647609c548f8405cfda2783f": "E",
@@ -1084,7 +1093,7 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 		rowPosition += incrow
 	}
 	template.RemoveRow(sheet, rowPosition)
-	fmt.Println("DEBUG>> finish xlsx")
+
 	/* if err := template.SaveAs("../docs/Book1.xlsx"); err != nil { // ? Previsualizar archivo sin pasarlo a base64
 		fmt.Println(err)
 	} */
@@ -1114,6 +1123,7 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 	respuesta, statuscode := requestmanager.MidResponseFormat("ReporteVerifCumpPTD", "POST", true, map[string]interface{}{
 		"excel": encodedFileExcel,
 		//"pdf":   encodedFilePdf,
+		"listaIdPlanes": ListaIdPlanes,
 	})
 	respuesta.Message = "Report Creation successful"
 	c.Ctx.Output.SetStatus(statuscode)
