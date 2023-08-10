@@ -40,7 +40,6 @@ func (Xlsx2Pdf *Excel2PDF) EstimateMaxPages() int {
 	maxheight := 0.0
 	for _, sheetName := range Xlsx2Pdf.Excel.GetSheetList() {
 		dim, _ := Xlsx2Pdf.Excel.GetSheetDimension(sheetName)
-		fmt.Println("DEBUG>> dimension sheet: ", dim)
 		_, maxrow, _ := excelize.CellNameToCoordinates(strings.Split(dim, ":")[1])
 		for r := 1; r <= maxrow; r++ {
 			h, _ := Xlsx2Pdf.Excel.GetRowHeight(sheetName, r)
