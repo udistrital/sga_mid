@@ -1055,7 +1055,7 @@ func (c *PtdController) GetPlanesPreaprobados() {
 // GetEspaciosFisicosDependencia ...
 // @Title GetEspaciosFisicosDependencia
 // @Description Lista opciones espacios físicos asignados a una dependencia
-// @Param	dependencia		path	int	true	"Id dependencia Oikos"
+// @Param	dependencia		path	int	true	"Id dependencia"
 // @Success 200 {}
 // @Failure 404 not found resource
 // @router /espacios_fisicos_dependencia/:dependencia [get]
@@ -1079,11 +1079,37 @@ func (c *PtdController) GetEspaciosFisicosDependencia() {
 	inBog, _ := time.LoadLocation("America/Bogota")
 	horaes := time.Now().In(inBog).Format(time.RFC3339)
 
+	resp, err := requestmanager.Get("http://"+beego.AppConfig.String("ProyectoAcademicoService")+
+		fmt.Sprintf("proyecto_academico_institucion/%d", dependencia), requestmanager.ParseResonseNoFormat)
+	if err != nil {
+		logs.Error(err)
+		badAns, code := requestmanager.MidResponseFormat("ProyectoAcademicoService (proyecto_academico_institucion)", "GET", false, map[string]interface{}{
+			"response": resp,
+			"error":    err.Error(),
+		})
+		c.Ctx.Output.SetStatus(code)
+		c.Data["json"] = badAns
+		c.ServeJSON()
+		return
+	}
+
+	dependencia = int64(resp.(map[string]interface{})["DependenciaId"].(float64))
+	fmt.Println("dependencia oikos id: ", dependencia)
+	if dependencia <= 0 {
+		err = fmt.Errorf("no valid Id: %d > 0 = false", dependencia)
+		logs.Error(err)
+		errorAns, statuscode := requestmanager.MidResponseFormat("GetEspaciosFisicosDependencia (param: dependencia)", "GET", false, err.Error())
+		c.Ctx.Output.SetStatus(statuscode)
+		c.Data["json"] = errorAns
+		c.ServeJSON()
+		return
+	}
+
 	Salones := map[string][]map[string]interface{}{}
 	Edificios := map[string][]map[string]interface{}{}
 	Sedes := []map[string]interface{}{}
 
-	resp, err := requestmanager.Get("http://"+beego.AppConfig.String("OikosService")+
+	resp, err = requestmanager.Get("http://"+beego.AppConfig.String("OikosService")+
 		fmt.Sprintf("asignacion_espacio_fisico_dependencia?query=Activo:true,DependenciaId:%d,FechaInicio__lte:%v,FechaFin__gte:%v&fields=EspacioFisicoId&limit=0",
 			dependencia, horaes, horaes), requestmanager.ParseResonseNoFormat)
 	if err != nil {

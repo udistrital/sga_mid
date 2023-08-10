@@ -1360,7 +1360,7 @@ func init() {
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ReportesController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ReportesController"],
         beego.ControllerComments{
             Method: "ReporteVerifCumpPTD",
-            Router: "/verif_cump_ptd/:vigencia",
+            Router: "/verif_cump_ptd/:vigencia/:proyecto",
             AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
