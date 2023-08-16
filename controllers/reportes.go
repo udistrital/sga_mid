@@ -487,7 +487,6 @@ func (c *ReportesController) ReporteCargaLectiva() {
 // @Failure 404 he request contains an incorrect parameter or no record exist
 // @router /verif_cump_ptd/:vigencia/:proyecto [post]
 func (c *ReportesController) ReporteVerifCumpPTD() {
-	fmt.Println("trigger: ReporteVerifCumpPTD()")
 	defer HandlePanic(&c.Controller)
 	// * ----------
 	// * Check validez parameteros

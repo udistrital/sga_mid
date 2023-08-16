@@ -1368,14 +1368,14 @@ func consultarDetalleAsignacion(asignaciones []interface{}, forTeacher bool) []m
 				plan_id = resPlan["Data"].(map[string]interface{})["_id"].(string)
 				if idEstado == "Sin definir" {
 					memEstados[asignacion.(map[string]interface{})["plan_docente_id"].(string)] = resPlan["Data"].(map[string]interface{})["estado_plan_id"].(string)
-					if resPlan["Data"].(map[string]interface{})["documento_id"] != nil {
-						idDocumental = resPlan["Data"].(map[string]interface{})["documento_id"]
-					}
 				} else {
 					if errEstado := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"estado_plan/"+idEstado, &resEstado); errEstado == nil {
 						memEstados[asignacion.(map[string]interface{})["plan_docente_id"].(string)] = resEstado["Data"].(map[string]interface{})["nombre"].(string)
 						estadoPlan = resEstado["Data"].(map[string]interface{})["codigo_abreviacion"].(string)
 					}
+				}
+				if resPlan["Data"].(map[string]interface{})["soporte_documental"] != nil {
+					idDocumental = resPlan["Data"].(map[string]interface{})["soporte_documental"]
 				}
 			}
 

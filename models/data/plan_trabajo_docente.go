@@ -6,7 +6,7 @@ type PlanDocente struct {
 	Docente_id          string `json:"docente_id,omitempty"`
 	Tipo_vinculacion_id string `json:"tipo_vinculacion_id,omitempty"`
 	Periodo_id          string `json:"periodo_id,omitempty"`
-	Soporte_documental  int    `json:"soporte_documental,omitempty"`
+	Soporte_documental  string `json:"soporte_documental,omitempty"`
 	Observacion_docente string `json:"observacion_docente,omitempty"`
 	Respuesta           string `json:"respuesta,omitempty"`
 	Resumen             string `json:"resumen,omitempty"`
