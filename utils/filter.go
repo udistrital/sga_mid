@@ -63,6 +63,12 @@ func SubstractDiff(A, B interface{}, from string, compare func(item interface{})
 	return diferente
 }
 
+// Encuentra una coincidencia en un arreglo, tomando como validador una funcion de filtro dada
+//   - A: Array para buscar según criterio de función
+//   - compare: Función que recibe item de A, debe retornar booleano resultado de comprobación de item
+//
+// Retorna:
+//   - item interface{} si coincide o nil en caso contrario
 func Find(A interface{}, compare func(item interface{}) bool) interface{} {
 	_A := reflect.ValueOf(A)
 	for i := 0; i < _A.Len(); i++ {
@@ -71,4 +77,23 @@ func Find(A interface{}, compare func(item interface{}) bool) interface{} {
 		}
 	}
 	return nil
+}
+
+// Remueve duplicados en un arreglo, tomando como validador una funcion de filtro dada
+//   - A: Array para buscar según criterio de función
+//   - compare: Función que recibe item de A, debe retornar el parametro de comparación
+//
+// Retorna:
+//   - Array con los items únicos de A
+func RemoveDuplicated(A interface{}, compare func(item interface{}) interface{}) (unicos []interface{}) {
+	_A := reflect.ValueOf(A)
+	mapeoUnicos := make(map[interface{}]bool)
+	unicos = []interface{}{}
+	for i := 0; i < _A.Len(); i++ {
+		if _, encontrado := mapeoUnicos[compare(_A.Index(i).Interface())]; !encontrado {
+			mapeoUnicos[compare(_A.Index(i).Interface())] = true
+			unicos = append(unicos, _A.Index(i).Interface())
+		}
+	}
+	return unicos
 }
