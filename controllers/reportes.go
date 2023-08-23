@@ -400,9 +400,11 @@ func (c *ReportesController) ReporteCargaLectiva() {
 		pw, _ := pdf.GetPageSize()
 		x, y := pdf.GetXY()
 		pdf.SetXY(lm, 8)
-		pdf.CellFormat(pw-lm-rm, 9, pdf.UnicodeTranslatorFromDescriptor("")("Plan Trabajo Docente"), "", 0, "CT", false, 0, "")
+		//pdf.CellFormat(pw-lm-rm, 9, pdf.UnicodeTranslatorFromDescriptor("")("Plan Trabajo Docente"), "", 0, "CT", false, 0, "")
+		pdf.BeginLayer(ExcelPdf.Layers.Imgs)
 		pdf.ImageOptions(path+"/img/logoud.jpeg", lm, 8, 0, 15, false, gofpdf.ImageOptions{ImageType: "JPEG", ReadDpi: true}, 0, "")
 		pdf.ImageOptions(path+"/img/logosga.jpeg", pw-rm-46.3157, 8, 46.3157, 0, false, gofpdf.ImageOptions{ImageType: "JPEG", ReadDpi: true}, 0, "")
+		pdf.EndLayer()
 		pdf.SetXY(x, y)
 	}
 
@@ -416,9 +418,11 @@ func (c *ReportesController) ReporteCargaLectiva() {
 		x, y := pdf.GetXY()
 		pdf.SetXY(lm, ph-bm)
 		w := (pw - lm - rm) / 3
+		pdf.BeginLayer(ExcelPdf.Layers.Txts)
 		pdf.CellFormat(w, 9, pdf.UnicodeTranslatorFromDescriptor("")("Oficina Asesora de Tecnologías e Información"), "", 0, "LT", false, 0, "")
 		pdf.CellFormat(w, 9, pdf.UnicodeTranslatorFromDescriptor("")(fmt.Sprintf("Página %d de %d", pagenum, maxpages)), "", 0, "CT", false, 0, "")
 		pdf.CellFormat(w, 9, pdf.UnicodeTranslatorFromDescriptor("")("Fecha de generación: "+horaes), "", 0, "RT", false, 0, "")
+		pdf.EndLayer()
 		pdf.SetXY(x, y)
 	}
 
@@ -785,7 +789,7 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 	for docenteId := range PlanesPlanta {
 		for proyecto := range PlanesPlanta[docenteId] {
 			if proyecto != "actividades" {
-				template.DuplicateRow(sheet, 5)
+				template.DuplicateRow(sheet, rowPosition)
 			}
 		}
 	}
@@ -866,35 +870,36 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 
 		template.MergeCell(sheet, fmt.Sprintf("AP%d", rowPosition), fmt.Sprintf("AP%d", rowPosition+incrow-1))
 		template.SetCellFormula(sheet, fmt.Sprintf("AP%d", rowPosition),
-			fmt.Sprintf(`=IF(AN%d=40,"Cumple",IF(AN%d>40,"Mas Horas","Menos Horas"))`, rowPosition, rowPosition))
+			fmt.Sprintf(`=IF(VALUE(AN%d)=40,"Cumple",IF(VALUE(AN%d)>40,"Mas Horas","Menos Horas"))`, rowPosition, rowPosition))
 		template.MergeCell(sheet, fmt.Sprintf("AQ%d", rowPosition), fmt.Sprintf("AQ%d", rowPosition+incrow-1))
 		template.SetCellFormula(sheet, fmt.Sprintf("AQ%d", rowPosition),
-			fmt.Sprintf(`=IF(AJ%d=1,IF(AH%d>18,"Exceso Carga Lectiva",IF(AH%d<16,"Carga Lectiva Insuficiente","Cumple")),IF(AH%d>14,"Exceso Carga Lectiva",IF(AH%d<12,"Carga Lectiva Insuficiente","Cumple")))`,
+			fmt.Sprintf(`=IF(VALUE(AJ%d)=1,IF(VALUE(AH%d)>18,"Exceso Carga Lectiva",IF(VALUE(AH%d)<16,"Carga Lectiva Insuficiente","Cumple")),IF(VALUE(AH%d)>14,"Exceso Carga Lectiva",IF(VALUE(AH%d)<12,"Carga Lectiva Insuficiente","Cumple")))`,
 				rowPosition, rowPosition, rowPosition, rowPosition, rowPosition))
 		template.MergeCell(sheet, fmt.Sprintf("AR%d", rowPosition), fmt.Sprintf("AR%d", rowPosition+incrow-1))
 		template.SetCellFormula(sheet, fmt.Sprintf("AR%d", rowPosition),
-			fmt.Sprintf(`=IF(U%d>(AH%d/2),"Exceso Horas","Cumple")`, rowPosition, rowPosition))
+			fmt.Sprintf(`=IF(VALUE(U%d)>VALUE(AH%d)/2,"Exceso Horas","Cumple")`, rowPosition, rowPosition))
 		template.MergeCell(sheet, fmt.Sprintf("AS%d", rowPosition), fmt.Sprintf("AS%d", rowPosition+incrow-1))
 		template.SetCellFormula(sheet, fmt.Sprintf("AS%d", rowPosition),
-			fmt.Sprintf(`=IF(E%d>8,"Exceso Horas","Cumple")`, rowPosition))
+			fmt.Sprintf(`=IF(VALUE(E%d)>8,"Exceso Horas","Cumple")`, rowPosition))
 		template.MergeCell(sheet, fmt.Sprintf("AT%d", rowPosition), fmt.Sprintf("AT%d", rowPosition+incrow-1))
 		template.SetCellFormula(sheet, fmt.Sprintf("AT%d", rowPosition),
-			fmt.Sprintf(`=IF(N%d=0,"N/A",IF(N%d>12,"Exceso Horas",IF(N%d<8,"Faltan Horas","Cumple")))`, rowPosition, rowPosition, rowPosition))
+			fmt.Sprintf(`=IF(VALUE(N%d)=0,"N/A",IF(VALUE(N%d)>12,"Exceso Horas",IF(VALUE(N%d)<8,"Faltan Horas","Cumple")))`, rowPosition, rowPosition, rowPosition))
 		template.MergeCell(sheet, fmt.Sprintf("AU%d", rowPosition), fmt.Sprintf("AU%d", rowPosition+incrow-1))
 		template.SetCellFormula(sheet, fmt.Sprintf("AU%d", rowPosition),
-			fmt.Sprintf(`=IF(J%d=0,"N/A",IF(J%d>20,"Exceso Horas",IF(J%d<12,"Faltan Horas","Cumple")))`, rowPosition, rowPosition, rowPosition))
+			fmt.Sprintf(`=IF(VALUE(J%d)=0,"N/A",IF(VALUE(J%d)>20,"Exceso Horas",IF(VALUE(J%d)<12,"Faltan Horas","Cumple")))`, rowPosition, rowPosition, rowPosition))
 		template.MergeCell(sheet, fmt.Sprintf("AV%d", rowPosition), fmt.Sprintf("AV%d", rowPosition+incrow-1))
 		template.SetCellFormula(sheet, fmt.Sprintf("AV%d", rowPosition),
-			fmt.Sprintf(`=IF(K%d=0,"N/A",IF(K%d>20,"Exceso Horas",IF(K%d<12,"Faltan Horas","Cumple")))`, rowPosition, rowPosition, rowPosition))
+			fmt.Sprintf(`=IF(VALUE(K%d)=0,"N/A",IF(VALUE(K%d)>20,"Exceso Horas",IF(VALUE(K%d)<12,"Faltan Horas","Cumple")))`, rowPosition, rowPosition, rowPosition))
 		template.MergeCell(sheet, fmt.Sprintf("AW%d", rowPosition), fmt.Sprintf("AW%d", rowPosition+incrow-1))
 		template.SetCellFormula(sheet, fmt.Sprintf("AW%d", rowPosition),
-			fmt.Sprintf(`=IF(L%d=0,"N/A",IF(L%d>20,"Exceso Horas",IF(L%d<12,"Faltan Horas","Cumple")))`, rowPosition, rowPosition, rowPosition))
+			fmt.Sprintf(`=IF(VALUE(L%d)=0,"N/A",IF(VALUE(L%d)>20,"Exceso Horas",IF(VALUE(L%d)<12,"Faltan Horas","Cumple")))`, rowPosition, rowPosition, rowPosition))
 		template.MergeCell(sheet, fmt.Sprintf("AX%d", rowPosition), fmt.Sprintf("AX%d", rowPosition+incrow-1))
 		template.SetCellFormula(sheet, fmt.Sprintf("AX%d", rowPosition),
-			fmt.Sprintf(`=IF(AND(AD%d="Investigador Principal",Z%d+Y%d+AA%d+AB%d+AC%d>10),"Exeso de horas",IF(AND(AD%d="Co-Investigador",Z%d+Y%d+AA%d+AB%d+AC%d>8),"Exceso de horas","Cumple"))`,
+			fmt.Sprintf(`=IF(AND(AD%d="Investigador Principal",(VALUE(Z%d)+VALUE(Y%d)+VALUE(AA%d)+VALUE(AB%d)+VALUE(AC%d))>10),"Exeso de horas",IF(AND(AD%d="Co-Investigador",(VALUE(Z%d)+VALUE(Y%d)+VALUE(AA%d)+VALUE(AB%d)+VALUE(AC%d))>8),"Exceso de horas","Cumple"))`,
 				rowPosition, rowPosition, rowPosition, rowPosition, rowPosition, rowPosition, rowPosition, rowPosition, rowPosition, rowPosition, rowPosition, rowPosition))
 		rowPosition += incrow
 	}
+	template.SetSheetDimension(sheet, fmt.Sprintf("A1:AX%d", rowPosition-1))
 	template.RemoveRow(sheet, rowPosition)
 
 	rowPosition = 5
@@ -903,7 +908,7 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 	for docenteId := range PlanesTCO {
 		for proyecto := range PlanesTCO[docenteId] {
 			if proyecto != "actividades" {
-				template.DuplicateRow(sheet, 5)
+				template.DuplicateRow(sheet, rowPosition)
 			}
 		}
 	}
@@ -984,15 +989,16 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 
 		template.MergeCell(sheet, fmt.Sprintf("AP%d", rowPosition), fmt.Sprintf("AP%d", rowPosition+incrow-1))
 		template.SetCellFormula(sheet, fmt.Sprintf("AP%d", rowPosition),
-			fmt.Sprintf(`=IF(AN%d=40,"Cumple",IF(AN%d>40,"Mas Horas","Menos Horas"))`, rowPosition, rowPosition))
+			fmt.Sprintf(`=IF(VALUE(AN%d)=40,"Cumple",IF(VALUE(AN%d)>40,"Mas Horas","Menos Horas"))`, rowPosition, rowPosition))
 		template.MergeCell(sheet, fmt.Sprintf("AQ%d", rowPosition), fmt.Sprintf("AQ%d", rowPosition+incrow-1))
 		template.SetCellFormula(sheet, fmt.Sprintf("AQ%d", rowPosition),
-			fmt.Sprintf(`=IF(AH%d>24,"Exceso Carga Lectiva",IF(AH%d<20,"Carga Lectiva insuficiente","Cumple"))`, rowPosition, rowPosition))
+			fmt.Sprintf(`=IF(VALUE(AH%d)>24,"Exceso Carga Lectiva",IF(VALUE(AH%d)<20,"Carga Lectiva insuficiente","Cumple"))`, rowPosition, rowPosition))
 		template.MergeCell(sheet, fmt.Sprintf("AR%d", rowPosition), fmt.Sprintf("AR%d", rowPosition+incrow-1))
 		template.SetCellFormula(sheet, fmt.Sprintf("AR%d", rowPosition),
-			fmt.Sprintf(`=IF(U%d>(AH%d/2),"Exceso Horas","Cumple")`, rowPosition, rowPosition))
+			fmt.Sprintf(`=IF(VALUE(U%d)>VALUE(AH%d)/2,"Exceso Horas","Cumple")`, rowPosition, rowPosition))
 		rowPosition += incrow
 	}
+	template.SetSheetDimension(sheet, fmt.Sprintf("A1:AR%d", rowPosition-1))
 	template.RemoveRow(sheet, rowPosition)
 
 	rowPosition = 5
@@ -1001,7 +1007,7 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 	for docenteId := range PlanesMTO {
 		for proyecto := range PlanesMTO[docenteId] {
 			if proyecto != "actividades" {
-				template.DuplicateRow(sheet, 5)
+				template.DuplicateRow(sheet, rowPosition)
 			}
 		}
 	}
@@ -1082,15 +1088,16 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 
 		template.MergeCell(sheet, fmt.Sprintf("AP%d", rowPosition), fmt.Sprintf("AP%d", rowPosition+incrow-1))
 		template.SetCellFormula(sheet, fmt.Sprintf("AP%d", rowPosition),
-			fmt.Sprintf(`=IF(AN%d=20,"Cumple",IF(AN%d>20,"Mas Horas","Menos Horas"))`, rowPosition, rowPosition))
+			fmt.Sprintf(`=IF(VALUE(AN%d)=20,"Cumple",IF(VALUE(AN%d)>20,"Mas Horas","Menos Horas"))`, rowPosition, rowPosition))
 		template.MergeCell(sheet, fmt.Sprintf("AQ%d", rowPosition), fmt.Sprintf("AQ%d", rowPosition+incrow-1))
 		template.SetCellFormula(sheet, fmt.Sprintf("AQ%d", rowPosition),
-			fmt.Sprintf(`=IF(AH%d>16,"Exceso Carga Lectiva",IF(AH%d<12,"Carga Lectiva insuficiente","Cumple"))`, rowPosition, rowPosition))
+			fmt.Sprintf(`=IF(VALUE(AH%d)>16,"Exceso Carga Lectiva",IF(VALUE(AH%d)<12,"Carga Lectiva insuficiente","Cumple"))`, rowPosition, rowPosition))
 		template.MergeCell(sheet, fmt.Sprintf("AR%d", rowPosition), fmt.Sprintf("AR%d", rowPosition+incrow-1))
 		template.SetCellFormula(sheet, fmt.Sprintf("AR%d", rowPosition),
-			fmt.Sprintf(`=IF(U%d>(AH%d/2),"Exceso Horas","Cumple")`, rowPosition, rowPosition))
+			fmt.Sprintf(`=IF(VALUE(U%d)>VALUE(AH%d)/2,"Exceso Horas","Cumple")`, rowPosition, rowPosition))
 		rowPosition += incrow
 	}
+	template.SetSheetDimension(sheet, fmt.Sprintf("A1:AR%d", rowPosition-1))
 	template.RemoveRow(sheet, rowPosition)
 
 	/* if err := template.SaveAs("../docs/Book1.xlsx"); err != nil { // ? Previsualizar archivo sin pasarlo a base64
@@ -1100,8 +1107,74 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 	// * ----------
 
 	// * ----------
+	// * Construcción de excel a pdf
+	//
+
+	pdf := gofpdf.New("L", "mm", "", "")
+
+	ExcelPdf := xlsx2pdf.Excel2PDF{
+		Excel:    template,
+		Pdf:      pdf,
+		Sheets:   make(map[string]xlsx2pdf.SheetInfo),
+		WFx:      2.02,
+		HFx:      2.925,
+		FontDims: xlsx2pdf.FontDims{Size: 0.85},
+		Header:   func() {},
+		Footer:   func() {},
+		CustomSize: xlsx2pdf.PageFormat{
+			Orientation: "L",
+			Wd:          215.9,
+			Ht:          1778,
+		},
+	}
+
+	ExcelPdf.Header = func() {
+		if ExcelPdf.PageCount == 1 {
+			pdf.SetFontSize(9)
+			pdf.SetFontStyle("")
+			lm, _, rm, _ := pdf.GetMargins()
+			pw, _ := pdf.GetPageSize()
+			x, y := pdf.GetXY()
+			pdf.SetXY(lm, 8)
+			pdf.BeginLayer(ExcelPdf.Layers.Imgs)
+			pdf.ImageOptions(path+"/img/logoud.jpeg", lm+1.5, 12, 50, 0, false, gofpdf.ImageOptions{ImageType: "JPEG", ReadDpi: true}, 0, "")
+			pdf.ImageOptions(path+"/img/logosigud.jpeg", (pw/5)-rm-60, 12, 60, 0, false, gofpdf.ImageOptions{ImageType: "JPEG", ReadDpi: true}, 0, "")
+			pdf.EndLayer()
+			pdf.SetXY(x, y)
+		}
+	}
+
+	maxpages := ExcelPdf.EstimateMaxPages()
+	ExcelPdf.Footer = func() {
+		pdf.SetFontSize(9)
+		pdf.SetFontStyle("")
+		pagenum := pdf.PageNo()
+		lm, _, rm, bm := pdf.GetMargins()
+		pw, ph := pdf.GetPageSize()
+		x, y := pdf.GetXY()
+		pdf.SetXY(lm, ph-bm)
+		w := (pw - lm - rm) / 3
+		pdf.BeginLayer(ExcelPdf.Layers.Txts)
+		pdf.CellFormat(w, 9, pdf.UnicodeTranslatorFromDescriptor("")("Oficina Asesora de Tecnologías e Información"), "", 0, "LT", false, 0, "")
+		pdf.CellFormat(w, 9, pdf.UnicodeTranslatorFromDescriptor("")(fmt.Sprintf("Página %d de %d", pagenum, maxpages)), "", 0, "CT", false, 0, "")
+		pdf.CellFormat(w, 9, pdf.UnicodeTranslatorFromDescriptor("")("Fecha de generación: "+horaes), "", 0, "RT", false, 0, "")
+		pdf.EndLayer()
+		pdf.SetXY(x, y)
+	}
+
+	ExcelPdf.ConvertSheets()
+
+	/* err = pdf.OutputFileAndClose("../docs/output.pdf") // ? previsualizar el pdf antes de
+	if err != nil {
+		fmt.Println(err)
+	} */
+	//
+	// * ----------
+
+	// * ----------
 	// * Convertir a base64
 	//
+	// ? excel
 	buffer, err := template.WriteToBuffer()
 	if err != nil {
 		logs.Error(err)
@@ -1115,14 +1188,25 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 		return
 	}
 	encodedFileExcel := base64.StdEncoding.EncodeToString(buffer.Bytes())
+
+	// ? pdf
+	var bufferPdf bytes.Buffer
+	writer := bufio.NewWriter(&bufferPdf)
+	pdf.Output(writer)
+	writer.Flush()
+	encodedFilePdf := base64.StdEncoding.EncodeToString(bufferPdf.Bytes())
 	//
 	// * ----------
 
+	listaIdPlanesSimple := utils.RemoveDuplicated(ListaIdPlanes, func(item interface{}) interface{} {
+		return item.(string)
+	})
+
 	// ? Entrega de respuesta existosa :)
 	respuesta, statuscode := requestmanager.MidResponseFormat("ReporteVerifCumpPTD", "POST", true, map[string]interface{}{
-		"excel": encodedFileExcel,
-		//"pdf":   encodedFilePdf,
-		"listaIdPlanes": ListaIdPlanes,
+		"excel":         encodedFileExcel,
+		"pdf":           encodedFilePdf,
+		"listaIdPlanes": listaIdPlanesSimple,
 	})
 	respuesta.Message = "Report Creation successful"
 	c.Ctx.Output.SetStatus(statuscode)
