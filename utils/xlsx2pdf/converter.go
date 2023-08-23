@@ -10,17 +10,38 @@ import (
 )
 
 type Excel2PDF struct {
-	Excel  *excelize.File
-	Pdf    *gofpdf.Fpdf
-	Sheets map[string]SheetInfo
-	WFx    float64
-	HFx    float64
-	Header func()
-	Footer func()
+	Excel      *excelize.File
+	Pdf        *gofpdf.Fpdf
+	Sheets     map[string]SheetInfo
+	PageCount  int
+	WFx        float64
+	HFx        float64
+	FontDims   FontDims
+	Header     func()
+	Footer     func()
+	Layers     LayersId
+	CustomSize PageFormat
 }
 
 type SheetInfo struct {
 	MergedList []excelize.MergeCell
+}
+
+type FontDims struct {
+	Interline float64
+	Size      float64
+}
+type LayersId struct {
+	BgClr int
+	WrFrm int
+	Txts  int
+	Imgs  int
+}
+
+type PageFormat struct {
+	Orientation string
+	Wd          float64
+	Ht          float64
 }
 
 type colorRGB struct {
@@ -32,29 +53,62 @@ type colorRGB struct {
 func (Xlsx2Pdf *Excel2PDF) InitSheet(sheet string) {
 	pageOptions, _ := Xlsx2Pdf.Excel.GetPageMargins(sheet)
 
+	if Xlsx2Pdf.WFx == 0 {
+		Xlsx2Pdf.WFx = 2.02
+	}
+	if Xlsx2Pdf.HFx == 0 {
+		Xlsx2Pdf.HFx = 2.85
+	}
+	if Xlsx2Pdf.FontDims.Interline == 0 {
+		Xlsx2Pdf.FontDims.Interline = 2.15
+	}
+	if Xlsx2Pdf.FontDims.Size == 0 {
+		Xlsx2Pdf.FontDims.Size = 0.9
+	}
+
+	if Xlsx2Pdf.Layers.Txts == 0 {
+		Xlsx2Pdf.Layers.BgClr = Xlsx2Pdf.Pdf.AddLayer("Background", true)
+		Xlsx2Pdf.Layers.WrFrm = Xlsx2Pdf.Pdf.AddLayer("Wireframe", true)
+		Xlsx2Pdf.Layers.Txts = Xlsx2Pdf.Pdf.AddLayer("Texts", true)
+		Xlsx2Pdf.Layers.Imgs = Xlsx2Pdf.Pdf.AddLayer("Images", true)
+	}
+
 	Xlsx2Pdf.Pdf.SetMargins(*pageOptions.Left*25.4, *pageOptions.Top*25.4, *pageOptions.Right*25.4)
-	Xlsx2Pdf.Pdf.SetAutoPageBreak(true, *pageOptions.Bottom*25.4)
+	Xlsx2Pdf.Pdf.SetAutoPageBreak(false, *pageOptions.Bottom*25.4)
+}
+
+func (Xlsx2Pdf *Excel2PDF) AddPage() {
+	if (Xlsx2Pdf.CustomSize.Wd > 0) && (Xlsx2Pdf.CustomSize.Ht > 0) {
+		Xlsx2Pdf.Pdf.AddPageFormat(Xlsx2Pdf.CustomSize.Orientation, gofpdf.SizeType{
+			Wd: Xlsx2Pdf.CustomSize.Wd,
+			Ht: Xlsx2Pdf.CustomSize.Ht,
+		})
+	} else {
+		Xlsx2Pdf.Pdf.AddPage()
+	}
 }
 
 func (Xlsx2Pdf *Excel2PDF) EstimateMaxPages() int {
-	maxheight := 0.0
+	totalPages := int(0)
 	for _, sheetName := range Xlsx2Pdf.Excel.GetSheetList() {
+		maxheight := 0.0
 		dim, _ := Xlsx2Pdf.Excel.GetSheetDimension(sheetName)
 		_, maxrow, _ := excelize.CellNameToCoordinates(strings.Split(dim, ":")[1])
 		for r := 1; r <= maxrow; r++ {
 			h, _ := Xlsx2Pdf.Excel.GetRowHeight(sheetName, r)
 			maxheight += h / Xlsx2Pdf.HFx
 		}
+		_, tm, _, bm := Xlsx2Pdf.Pdf.GetMargins()
+		_, hp := Xlsx2Pdf.Pdf.GetPageSize()
+		vertwork := hp - tm - bm
+		maxPages := maxheight / vertwork
+		rounded := math.Floor(maxPages)
+		if maxPages-rounded > 0 {
+			rounded++
+		}
+		totalPages += int(rounded)
 	}
-	_, tm, _, bm := Xlsx2Pdf.Pdf.GetMargins()
-	_, hp := Xlsx2Pdf.Pdf.GetPageSize()
-	vertwork := hp - tm - bm
-	maxPages := maxheight / vertwork
-	rounded := math.Floor(maxPages)
-	if maxPages-rounded > 0 {
-		rounded++
-	}
-	return int(rounded)
+	return totalPages
 }
 
 func (Xlsx2Pdf *Excel2PDF) CheckMerged(sheet string, r, c int) (ismerged bool, value, border string, id int) {
@@ -82,6 +136,10 @@ func (Xlsx2Pdf *Excel2PDF) CheckMerged(sheet string, r, c int) (ismerged bool, v
 			}
 			if r == rf && c == cf {
 				value = mergedBox.GetCellValue()
+				if value == "" {
+					Xlsx2Pdf.Excel.UpdateLinkedValue()
+					value, _ = Xlsx2Pdf.Excel.CalcCellValue(sheet, mergedBox.GetStartAxis())
+				}
 			}
 			id = i
 			break
@@ -146,7 +204,7 @@ func (Xlsx2Pdf *Excel2PDF) GetCellTextStyle(styleID int) (size float64, style st
 
 	fontProps := Xlsx2Pdf.Excel.Styles.Fonts.Font[fontID]
 
-	size = *fontProps.Sz.Val * 0.9
+	size = *fontProps.Sz.Val * Xlsx2Pdf.FontDims.Size
 
 	style = ""
 	if fontProps.B != nil {
@@ -194,6 +252,7 @@ func (Xlsx2Pdf *Excel2PDF) DrawCell(w, h float64, border string, styleID int) {
 
 	x, y := Xlsx2Pdf.Pdf.GetXY()
 
+	Xlsx2Pdf.Pdf.BeginLayer(Xlsx2Pdf.Layers.WrFrm)
 	for _, side := range border {
 		switch string(side) {
 		case "T":
@@ -230,10 +289,36 @@ func (Xlsx2Pdf *Excel2PDF) DrawCell(w, h float64, border string, styleID int) {
 			Xlsx2Pdf.Pdf.Line(x, y+h, x, y)
 		}
 	}
+	Xlsx2Pdf.Pdf.EndLayer()
+
+	Xlsx2Pdf.Pdf.BeginLayer(Xlsx2Pdf.Layers.BgClr)
+	missingBorders := ""
+	for _, side := range "TLRB" {
+		if !strings.Contains(border, string(side)) {
+			missingBorders += string(side)
+		}
+	}
+	for _, side := range missingBorders {
+		r, g, b := Xlsx2Pdf.Pdf.GetFillColor()
+		if r < 250 && g < 250 && b < 250 {
+			Xlsx2Pdf.Pdf.SetDrawColor(r, g, b)
+			switch string(side) {
+			case "T":
+				Xlsx2Pdf.Pdf.Line(x, y, x+w, y)
+			case "R":
+				Xlsx2Pdf.Pdf.Line(x+w, y, x+w, y+h)
+			case "B":
+				Xlsx2Pdf.Pdf.Line(x+w, y+h, x, y+h)
+			case "L":
+				Xlsx2Pdf.Pdf.Line(x, y+h, x, y)
+			}
+		}
+	}
+	Xlsx2Pdf.Pdf.EndLayer()
 }
 
-func (Xlsx2Pdf *Excel2PDF) PutText(w, h float64, text string, textsize float64, align string) {
-	textsize = textsize / 2.15
+func (Xlsx2Pdf *Excel2PDF) PutTextMerged(w, h float64, text string, textsize float64, align string) {
+	textsize = textsize / Xlsx2Pdf.FontDims.Interline
 	lineasraw := Xlsx2Pdf.Pdf.SplitLines([]byte(text), w+3)
 	var lineas []string
 	for _, lineraw := range lineasraw {
@@ -258,15 +343,69 @@ func (Xlsx2Pdf *Excel2PDF) PutText(w, h float64, text string, textsize float64, 
 	}
 	if text != "" {
 		Xlsx2Pdf.Pdf.SetXY(x+0.1, y+0.1)
+		Xlsx2Pdf.Pdf.BeginLayer(Xlsx2Pdf.Layers.BgClr)
+		Xlsx2Pdf.removeWhiteBg(true)
 		Xlsx2Pdf.Pdf.CellFormat(w-0.2, h-0.2, "", "", 0, "", true, 0, "")
+		Xlsx2Pdf.removeWhiteBg(false)
+		Xlsx2Pdf.Pdf.EndLayer()
 		Xlsx2Pdf.Pdf.SetXY(x, y)
 	}
 	Xlsx2Pdf.Pdf.SetXY(x, y+yoffset)
 	for i, linea := range lineas {
+		Xlsx2Pdf.Pdf.BeginLayer(Xlsx2Pdf.Layers.Txts)
 		Xlsx2Pdf.Pdf.CellFormat(w, textsize, Xlsx2Pdf.Pdf.UnicodeTranslatorFromDescriptor("")(linea), "", 0, align, false, 0, "")
+		Xlsx2Pdf.Pdf.EndLayer()
 		Xlsx2Pdf.Pdf.SetXY(x, y+yoffset+textsize*float64(i+1))
 	}
 	Xlsx2Pdf.Pdf.SetXY(xorg, yorg)
+}
+
+func (Xlsx2Pdf *Excel2PDF) PutTextCell(w, h float64, text string, textsize float64, align string) {
+	textsize = textsize / Xlsx2Pdf.FontDims.Interline
+	lineasraw := Xlsx2Pdf.Pdf.SplitLines([]byte(text), w+3)
+	var lineas []string
+	for _, lineraw := range lineasraw {
+		lineas = append(lineas, string(lineraw))
+	}
+	xorg, yorg := Xlsx2Pdf.Pdf.GetXY()
+	x := xorg
+	y := yorg
+
+	hlines := float64(len(lineas)) * textsize
+	valing := align[1:]
+	yoffset := 0.0
+	switch valing {
+	case "T":
+		yoffset = 1
+	case "M":
+		yoffset = (h - hlines) / 2
+	case "B":
+		yoffset = (h - hlines) - 1
+	default:
+		yoffset = (h - hlines) / 2
+	}
+
+	Xlsx2Pdf.Pdf.SetXY(x, y+yoffset)
+	for i, linea := range lineas {
+		Xlsx2Pdf.Pdf.BeginLayer(Xlsx2Pdf.Layers.Txts)
+		Xlsx2Pdf.Pdf.CellFormat(w, textsize, Xlsx2Pdf.Pdf.UnicodeTranslatorFromDescriptor("")(linea), "", 0, align, false, 0, "")
+		Xlsx2Pdf.Pdf.EndLayer()
+		Xlsx2Pdf.Pdf.SetXY(x, y+yoffset+textsize*float64(i+1))
+	}
+	Xlsx2Pdf.Pdf.SetXY(xorg+w, yorg)
+}
+
+func (Xlsx2Pdf *Excel2PDF) removeWhiteBg(isBackground bool) {
+	if isBackground {
+		rc, gc, bc := Xlsx2Pdf.Pdf.GetFillColor()
+		if rc >= 250 && gc >= 250 && bc >= 250 {
+			Xlsx2Pdf.Pdf.SetAlpha(0, "")
+		} else {
+			Xlsx2Pdf.Pdf.SetAlpha(1, "")
+		}
+	} else {
+		Xlsx2Pdf.Pdf.SetAlpha(1, "")
+	}
 }
 
 func ColorHex2RGB(color string) (int, int, int) {
@@ -328,13 +467,15 @@ func (Xlsx2Pdf *Excel2PDF) ConvertSheets() {
 
 	for _, sheetName := range Xlsx2Pdf.Excel.GetSheetList() {
 		Xlsx2Pdf.InitSheet(sheetName)
-		//maxpages := Xlsx2Pdf.EstimateMaxPages()
+		Xlsx2Pdf.PageCount = 1
 
 		Xlsx2Pdf.Pdf.SetHeaderFunc(Xlsx2Pdf.Header)
 		Xlsx2Pdf.Pdf.SetFooterFunc(Xlsx2Pdf.Footer)
 
-		Xlsx2Pdf.Pdf.AddPage()
+		Xlsx2Pdf.AddPage()
+
 		Xlsx2Pdf.Pdf.SetHomeXY()
+		Xlsx2Pdf.Pdf.Bookmark(sheetName, 0, -1)
 
 		ml, _ := Xlsx2Pdf.Excel.GetMergeCells(sheetName)
 		Xlsx2Pdf.Sheets[sheetName] = SheetInfo{
@@ -343,15 +484,26 @@ func (Xlsx2Pdf *Excel2PDF) ConvertSheets() {
 
 		dim, _ := Xlsx2Pdf.Excel.GetSheetDimension(sheetName)
 		maxcol, maxrow, _ := excelize.CellNameToCoordinates(strings.Split(dim, ":")[1])
+
 		for r := 1; r <= maxrow; r++ {
+			_, tm, _, bm := Xlsx2Pdf.Pdf.GetMargins()
+			_, hp := Xlsx2Pdf.Pdf.GetPageSize()
+			vertwork := hp - tm - bm
 			rowheight, _ := Xlsx2Pdf.Excel.GetRowHeight(sheetName, r)
+			if (Xlsx2Pdf.Pdf.GetY() - tm + rowheight/Xlsx2Pdf.HFx) > vertwork {
+				Xlsx2Pdf.PageCount++
+				Xlsx2Pdf.AddPage()
+			}
 			for c := 1; c <= maxcol; c++ {
 				cellname, _ := excelize.CoordinatesToCellName(c, r)
 				styleID, _ := Xlsx2Pdf.Excel.GetCellStyle(sheetName, cellname)
 				colname, _ := excelize.ColumnNumberToName(c)
 				colwidth, _ := Xlsx2Pdf.Excel.GetColWidth(sheetName, colname)
 				value, _ := Xlsx2Pdf.Excel.GetCellValue(sheetName, cellname)
-
+				if value == "" {
+					Xlsx2Pdf.Excel.UpdateLinkedValue()
+					value, _ = Xlsx2Pdf.Excel.CalcCellValue(sheetName, cellname)
+				}
 				strBorder := Xlsx2Pdf.GetCellBorder(styleID)
 
 				colorFill, fill := Xlsx2Pdf.GetCellColor(styleID)
@@ -369,14 +521,12 @@ func (Xlsx2Pdf *Excel2PDF) ConvertSheets() {
 					} else {
 						value = ""
 					}
-
 					strBorder = ValidateBorder(strBorder, borderstr)
-
 				}
 
 				Xlsx2Pdf.DrawCell(colwidth*Xlsx2Pdf.WFx, rowheight/Xlsx2Pdf.HFx, strBorder, styleID)
 
-				size, styl, col, alig := Xlsx2Pdf.GetCellTextStyle(styleID)
+				size, styl, col, align := Xlsx2Pdf.GetCellTextStyle(styleID)
 
 				Xlsx2Pdf.Pdf.SetFontSize(size)
 				Xlsx2Pdf.Pdf.SetFontStyle(styl)
@@ -385,13 +535,17 @@ func (Xlsx2Pdf *Excel2PDF) ConvertSheets() {
 				if ismerged {
 					Xlsx2Pdf.Pdf.SetXY(x+colwidth*Xlsx2Pdf.WFx, y+rowheight/Xlsx2Pdf.HFx)
 					wm, hm := Xlsx2Pdf.GetMergedTam(sheetName, idmerge)
-					Xlsx2Pdf.PutText(wm*Xlsx2Pdf.WFx, hm/Xlsx2Pdf.HFx, value, size, alig)
+					Xlsx2Pdf.PutTextMerged(wm*Xlsx2Pdf.WFx, hm/Xlsx2Pdf.HFx, value, size, align)
 				}
 				Xlsx2Pdf.Pdf.SetXY(x, y)
 				if !ismerged && value != "" {
-					Xlsx2Pdf.Pdf.CellFormat(colwidth*Xlsx2Pdf.WFx, rowheight/Xlsx2Pdf.HFx, Xlsx2Pdf.Pdf.UnicodeTranslatorFromDescriptor("")(value), "", 0, alig, true, 0, "")
+					Xlsx2Pdf.PutTextCell(colwidth*Xlsx2Pdf.WFx, rowheight/Xlsx2Pdf.HFx, value, size, align)
 				} else {
-					Xlsx2Pdf.Pdf.CellFormat(colwidth*Xlsx2Pdf.WFx, rowheight/Xlsx2Pdf.HFx, "", "", 0, alig, false, 0, "")
+					Xlsx2Pdf.Pdf.BeginLayer(Xlsx2Pdf.Layers.BgClr)
+					Xlsx2Pdf.removeWhiteBg(true)
+					Xlsx2Pdf.Pdf.CellFormat(colwidth*Xlsx2Pdf.WFx, rowheight/Xlsx2Pdf.HFx, "", "", 0, align, !ismerged, 0, "")
+					Xlsx2Pdf.removeWhiteBg(false)
+					Xlsx2Pdf.Pdf.EndLayer()
 				}
 
 			}
