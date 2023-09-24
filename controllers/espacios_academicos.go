@@ -24,6 +24,7 @@ type Espacios_academicosController struct {
 func (c *Espacios_academicosController) URLMapping() {
 	c.Mapping("GetAcademicSpacesByProject", c.GetAcademicSpacesByProject)
 	c.Mapping("PostAcademicSpacesBySon", c.PostAcademicSpacesBySon)
+	c.Mapping("PostSyllabusTemplate", c.PostSyllabusTemplate)
 	c.Mapping("PutAcademicSpaceAssignPeriod", c.PutAcademicSpaceAssignPeriod)
 }
 
@@ -467,4 +468,334 @@ func validateGroup(groups *[]string, group string) (bool, error) {
 		}
 	}
 	return false, nil
+}
+
+// PostSyllabusTemplate ...
+// @Title PostSyllabusTemplate
+// @Description post Syllabus template
+// @Param   body        body    {}  true        "body generar plantilla del syllabus"
+// @Success 200 {}
+// @Failure 403 :body is empty
+// @router /syllabus_template [post]
+func (c *Espacios_academicosController) PostSyllabusTemplate() {
+	var syllabusRequest map[string]interface{}
+	var syllabusResponse map[string]interface{}
+	var syllabusTemplateResponse map[string]interface{}
+	var syllabusTemplateData map[string]interface{}
+
+	failureAsn := map[string]interface{}{
+		"Success": false,
+		"Status":  "404",
+		"Message": "Error service PostSyllabusTemplate: The request contains an incorrect parameter or no record exist",
+		"Data":    nil}
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &syllabusRequest); err == nil {
+		syllabusCode := syllabusRequest["syllabusCode"]
+
+		syllabusErr := request.GetJson("http://"+beego.AppConfig.String("SyllabusService")+
+			fmt.Sprintf("syllabus/%v", syllabusCode), &syllabusResponse)
+		if syllabusErr != nil || syllabusResponse["Success"] == false {
+			if syllabusErr == nil {
+				syllabusErr = fmt.Errorf("SyllabusService: %v", syllabusResponse["Message"])
+			}
+			logs.Error(syllabusErr.Error())
+			c.Ctx.Output.SetStatus(404)
+			failureAsn["Data"] = syllabusErr.Error()
+			c.Data["json"] = failureAsn
+			c.ServeJSON()
+			return
+		}
+		syllabusData := syllabusResponse["Data"].(map[string]interface{})
+		spaceData, spaceErr := getAcademicSpaceData(
+			int(syllabusData["plan_estudios_id"].(float64)),
+			int(syllabusData["proyecto_curricular_id"].(float64)),
+			int(syllabusData["espacio_academico_id"].(float64)))
+
+		projectData, projectErr := getProyectoCurricular(int(syllabusData["proyecto_curricular_id"].(float64)))
+
+		if spaceErr == nil && projectErr == nil {
+			facultyData, facultyErr := getFacultad(projectData["id_oikos"].(string))
+			idiomas := ""
+
+			if syllabusData["idioma_espacio_id"] != nil {
+				idiomasStr, idiomaErr := getIdiomas(syllabusData["idioma_espacio_id"].([]interface{}))
+				if idiomaErr == nil {
+					idiomas = idiomasStr
+				}
+			}
+
+			if facultyErr == nil {
+				syllabusTemplateData = getSyllabusTemplateData(
+					spaceData, syllabusData,
+					facultyData, projectData, idiomas)
+				getSyllabusTemplate(syllabusTemplateData, &syllabusTemplateResponse)
+
+				c.Data["json"] = map[string]interface{}{
+					"Success": true,
+					"Status":  "201",
+					"Message": "Generated Syllabus Template OK",
+					"Data":    syllabusTemplateResponse["Data"].(map[string]interface{})}
+			} else {
+				err := fmt.Errorf(
+					"SyllabusTemplateService: Incomplete data to generate the document. Facultad y/o Idioma")
+				logs.Error(err.Error())
+				c.Ctx.Output.SetStatus(404)
+				failureAsn["Data"] = err.Error()
+				c.Data["json"] = failureAsn
+				c.ServeJSON()
+				return
+			}
+		} else {
+			err := fmt.Errorf(
+				"SyllabusTemplateService: Incomplete data to generate the document. Espacio Académico y/o Proyecto Curricular")
+			logs.Error(err.Error())
+			c.Ctx.Output.SetStatus(404)
+			failureAsn["Data"] = err.Error()
+			c.Data["json"] = failureAsn
+			c.ServeJSON()
+			return
+		}
+	}
+	c.ServeJSON()
+}
+
+func getSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData map[string]interface{}, languages string) map[string]interface{} {
+	var propositos []string
+	var contenidoTematicoDescripcion string
+	var contenidoTematicoDetalle []interface{}
+	var evaluacionDescripcion string
+	var evaluacionDetalle []interface{}
+	var idiomas string
+	var bibliografia map[string]interface{}
+	var seguimiento map[string]interface{}
+	var objetivosEspecificos []string
+
+	if syllabusData["objetivos_especificos"] != nil {
+		objetivos := syllabusData["objetivos_especificos"].([]any)
+		for _, objetivo := range objetivos {
+			objetivoStr := fmt.Sprintf("%v", objetivo.(map[string]interface{})["objetivo"])
+			objetivosEspecificos = append(objetivosEspecificos, objetivoStr)
+		}
+	} else {
+		objetivosEspecificos = []string{}
+	}
+
+	contenido := syllabusData["contenido"]
+	if contenido != nil {
+		contenidoTematicoDescripcion = fmt.Sprintf("%v",
+			helpers.DefaultTo(contenido.(map[string]interface{})["descripcion"], ""))
+
+		if contenido.(map[string]interface{})["temas"] == nil {
+			contenidoTematicoDetalle = []interface{}{}
+		} else {
+			contenidoTematicoDetalle = contenido.(map[string]interface{})["temas"].([]interface{})
+		}
+	}
+
+	evaluacion := syllabusData["evaluacion"]
+	if evaluacion != nil {
+		evaluacionDescripcion = fmt.Sprintf("%v",
+			helpers.DefaultTo(evaluacion.(map[string]interface{})["descripcion"], ""))
+
+		if evaluacion.(map[string]interface{})["evaluaciones"] == nil {
+			evaluacionDetalle = []any{}
+		} else {
+			evaluacionDetalle = evaluacion.(map[string]interface{})["evaluaciones"].([]interface{})
+		}
+	}
+
+	if syllabusData["idioma_espacio_id"] != nil {
+		idiomas = languages
+	}
+
+	if syllabusData["bibliografia"] != nil {
+		bibliografia = syllabusData["bibliografia"].(map[string]interface{})
+	}
+
+	if syllabusData["seguimiento"] != nil {
+		seguimiento = syllabusData["seguimiento"].(map[string]interface{})
+	} else {
+		seguimiento = map[string]interface{}{}
+	}
+
+	fechaRevConsejo := strings.Split(
+		helpers.DefaultTo(seguimiento["fechaRevisionConsejo"], "").(string),
+		"T")[0]
+	fechaAprobConsejo := strings.Split(
+		helpers.DefaultTo(seguimiento["fechaAprobacionConsejo"], "").(string),
+		"T")[0]
+	numActa := helpers.DefaultTo(seguimiento["numeroActa"], "").(string)
+
+	syllabusTemplateData := map[string]interface{}{
+		"nombre_facultad":                helpers.DefaultTo(facultyData["Nombre"], ""),
+		"nombre_proyecto_curricular":     helpers.DefaultTo(projectData["proyecto_curricular_nombre"], ""),
+		"cod_plan_estudio":               helpers.DefaultTo(syllabusData["plan_estudios_id"], ""),
+		"nombre_espacio_academico":       helpers.DefaultTo(spaceData["nombre_espacio_academico"], ""),
+		"cod_espacio_academico":          helpers.DefaultTo(spaceData["cod_espacio_academico"], ""),
+		"num_creditos":                   helpers.DefaultTo(spaceData["num_creditos"], ""),
+		"htd":                            helpers.DefaultTo(spaceData["htd"], ""),
+		"htc":                            helpers.DefaultTo(spaceData["htc"], ""),
+		"hta":                            helpers.DefaultTo(spaceData["hta"], ""),
+		"es_asignatura":                  helpers.DefaultTo(spaceData["es_asignatura"], false),
+		"es_catedra":                     helpers.DefaultTo(spaceData["es_catedra"], false),
+		"es_obligatorio_basico":          helpers.DefaultTo(spaceData["es_obligatorio_basico"], false),
+		"es_obligatorio_comp":            helpers.DefaultTo(spaceData["es_obligatorio_comp"], false),
+		"es_electivo_int":                helpers.DefaultTo(spaceData["es_electivo_int"], false),
+		"es_electivo_ext":                helpers.DefaultTo(spaceData["es_electivo_ext"], false),
+		"es_electivo":                    helpers.DefaultTo(spaceData["es_electivo"], false),
+		"es_teorico":                     false,
+		"es_practico":                    false,
+		"es_teorico_practico":            false,
+		"es_presencial":                  false,
+		"es_presencial_tic":              false,
+		"es_virtual":                     false,
+		"otra_modalidad":                 false,
+		"cual_otra_modalidad":            "",
+		"idiomas":                        helpers.DefaultTo(idiomas, ""),
+		"sugerencias":                    helpers.DefaultTo(syllabusData["sugerencias"], ""),
+		"justificacion":                  helpers.DefaultTo(syllabusData["justificacion"], ""),
+		"objetivo_general":               helpers.DefaultTo(syllabusData["objetivo_general"], ""),
+		"objetivos_especificos":          objetivosEspecificos,
+		"propositos":                     propositos,
+		"contenido_tematico_descripcion": helpers.DefaultTo(contenidoTematicoDescripcion, ""),
+		"contenido_tematico_detalle":     contenidoTematicoDetalle,
+		"estrategias_ensenanza":          syllabusData["estrategias"],
+		"evaluacion_descripcion":         helpers.DefaultTo(evaluacionDescripcion, ""),
+		"evaluacion_detalle":             evaluacionDetalle,
+		"medios_recursos":                helpers.DefaultTo(syllabusData["recursos_educativos"], ""),
+		"practicas_salidas":              helpers.DefaultTo(syllabusData["practicas_academicas"], ""),
+		"bibliografia_basica":            bibliografia["basicas"],
+		"bibliografia_complementaria":    bibliografia["complementarias"],
+		"bibliografia_paginas":           bibliografia["paginasWeb"],
+		"fecha_rev_consejo":              fechaRevConsejo,
+		"fecha_aprob_consejo":            fechaAprobConsejo,
+		"num_acta":                       numActa}
+
+	return syllabusTemplateData
+}
+
+func getSyllabusTemplate(syllabusTemplateData map[string]interface{}, syllabusTemplateResponse *map[string]interface{}) {
+
+	if err := helpers.SendJson(
+		"http://"+beego.AppConfig.String("SyllabusService")+"syllabus/template",
+		"POST",
+		&syllabusTemplateResponse,
+		syllabusTemplateData); err != nil {
+		panic(map[string]interface{}{
+			"funcion": "GenerarTemplate",
+			"err":     "Error al generar el documento del syllabus ",
+			"status":  "400",
+			"log":     err})
+	}
+}
+
+func getAcademicSpaceData(pensumId, carreraCod, asignaturaCod int) (map[string]any, error) {
+	var spaceResponse map[string]interface{}
+
+	spaceErr := request.GetJsonWSO2(
+		"http://"+beego.AppConfig.String("AcademicaEspacioAcademicoService")+
+			fmt.Sprintf("detalle_espacio_academico/%v/%v/%v", pensumId, carreraCod, asignaturaCod),
+		&spaceResponse)
+
+	if spaceErr == nil && fmt.Sprintf("%v", spaceResponse) != "map[espacios_academicos:map[]]" && fmt.Sprintf("%v", spaceResponse) != "map[]]" {
+		spaces := spaceResponse["espacios_academicos"].(map[string]interface{})["espacio_academico"].([]interface{})
+		if len(spaces) > 0 {
+			space := spaces[0].(map[string]interface{})
+			esAsignatura := strings.ToLower(fmt.Sprintf("%v", space["tipo"])) == "asignatura"
+			spaceType := strings.ToLower(fmt.Sprintf("%v", space["cea_abr"]))
+			spaceData := map[string]interface{}{
+				"nombre_espacio_academico": fmt.Sprintf("%v", helpers.DefaultTo(space["asi_nombre"], "")),
+				"cod_espacio_academico":    fmt.Sprintf("%v", helpers.DefaultTo(space["asi_cod"], "")),
+				"num_creditos":             fmt.Sprintf("%v", helpers.DefaultTo(space["pen_cre"], "")),
+				"htd":                      fmt.Sprintf("%v", helpers.DefaultTo(space["pen_nro_ht"], "")),
+				"htc":                      fmt.Sprintf("%v", helpers.DefaultTo(space["pen_nro_hp"], "")),
+				"hta":                      fmt.Sprintf("%v", helpers.DefaultTo(space["pen_nro_aut"], "")),
+				"es_asignatura":            esAsignatura,
+				"es_catedra":               !esAsignatura,
+				"es_obligatorio_basico":    spaceType == "ob",
+				"es_obligatorio_comp":      spaceType == "oc",
+				"es_electivo_int":          spaceType == "ei",
+				"es_electivo_ext":          spaceType == "ee",
+				"es_electivo":              spaceType == "e",
+			}
+			return spaceData, nil
+		} else {
+			return nil, fmt.Errorf("Espacio académico no encontrado")
+		}
+	} else {
+		return nil, fmt.Errorf("Espacio académico no encontrado")
+	}
+}
+
+func getFacultad(proyectoIdOikos string) (map[string]any, error) {
+	var facultadResponse map[string]interface{}
+
+	facultadErr := request.GetJson(
+		"http://"+beego.AppConfig.String("OikosService")+
+			fmt.Sprintf("dependencia/get_dependencias_padres_by_id/%v", proyectoIdOikos),
+		&facultadResponse)
+	if facultadErr == nil && facultadResponse["Type"] == "success" {
+		dependencias := facultadResponse["Body"].([]interface{})
+		if len(dependencias) > 0 {
+			var dependenciaPadre int
+			for i := len(dependencias) - 1; i >= 0; i-- {
+				if fmt.Sprintf("%v", dependencias[i].(map[string]interface{})["Id"]) == proyectoIdOikos {
+					dependenciaPadre = int(dependencias[i].(map[string]interface{})["Padre"].(float64))
+				}
+
+				if dependenciaPadre > 0 && int(dependencias[i].(map[string]interface{})["Id"].(float64)) == dependenciaPadre {
+					return dependencias[i].(map[string]interface{}), nil
+				}
+			}
+		}
+		return nil, fmt.Errorf("Facultad no encontrada")
+	} else {
+		return nil, fmt.Errorf("Facultad no encontrada")
+	}
+}
+
+func getProyectoCurricular(proyectoId int) (map[string]any, error) {
+	var proyectoResponse map[string]interface{}
+
+	proyectoErr := request.GetJsonWSO2(
+		"http://"+beego.AppConfig.String("HomologacionDependenciaService")+
+			fmt.Sprintf("proyecto_curricular_cod_proyecto/%v", proyectoId),
+		&proyectoResponse)
+	if proyectoErr == nil && fmt.Sprintf("%v", proyectoResponse) != "map[homologacion:map[]]" && fmt.Sprintf("%v", proyectoResponse) != "map[]]" {
+		homologacionData := proyectoResponse["homologacion"].(map[string]interface{})
+		proyectoData := map[string]interface{}{
+			"proyecto_curricular_nombre": fmt.Sprintf("%v", homologacionData["proyecto_snies"]),
+			"id_oikos":                   homologacionData["id_oikos"],
+		}
+		return proyectoData, nil
+	} else {
+		return nil, fmt.Errorf("Proyecto curricular homologación no encontrado")
+	}
+}
+
+func getIdiomas(idiomaIds []interface{}) (string, error) {
+	var idiomaResponse []map[string]interface{}
+	idiomasStr := ""
+
+	idiomaErr := request.GetJson(
+		"http://"+beego.AppConfig.String("IdiomaService")+"idioma",
+		&idiomaResponse)
+
+	if idiomaErr == nil {
+		for i, id := range idiomaIds {
+			for _, idioma := range idiomaResponse {
+				if idioma["Id"] == id {
+					if i == len(idiomaIds)-1 {
+						idiomasStr += idioma["Nombre"].(string)
+					} else {
+						idiomasStr += idioma["Nombre"].(string) + ", "
+					}
+					break
+				}
+			}
+		}
+		return idiomasStr, nil
+	} else {
+		return "", fmt.Errorf("Idiomas no encontrados")
+	}
 }

@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
@@ -69,6 +70,31 @@ func SendJson(url string, trequest string, target interface{}, datajson interfac
 	}()
 
 	return json.NewDecoder(r.Body).Decode(target)
+}
+
+func GetXML2String(url string, target interface{}) string {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		beego.Error("Error reading request. ", err)
+	}
+
+	client := &http.Client{}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		beego.Error("Error reading response. ", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		beego.Error("Error reading response. ", err)
+	}
+
+	print(body)
+	print(string(body))
+	s := strings.TrimSpace(string(body))
+	return s
 }
 
 func getJsonTest(url string, target interface{}) (status int, err error) {
@@ -176,4 +202,12 @@ func SortSlice(slice *[]map[string]interface{}, parameter string) {
 		}
 		return a < b
 	})
+}
+
+func DefaultTo[T any](value, defaultValue T) T {
+	if reflect.ValueOf(value).IsZero() {
+		return defaultValue
+	} else {
+		return value
+	}
 }
