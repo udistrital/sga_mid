@@ -1591,6 +1591,34 @@
                 }
             }
         },
+        "/espacios_academicos/syllabus_template": {
+            "post": {
+                "tags": [
+                    "espacios_academicos"
+                ],
+                "description": "post Syllabus template",
+                "operationId": "Espacios_academicosController.PostSyllabusTemplate",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body generar plantilla del syllabus",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/{}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{}"
+                    },
+                    "403": {
+                        "description": ":body is empty"
+                    }
+                }
+            }
+        },
         "/evento/": {
             "post": {
                 "tags": [
