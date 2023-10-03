@@ -511,10 +511,10 @@ func (c *Espacios_academicosController) PostSyllabusTemplate() {
 			int(syllabusData["proyecto_curricular_id"].(float64)),
 			int(syllabusData["espacio_academico_id"].(float64)))
 
-		projectData, projectErr := getProyectoCurricular(int(syllabusData["proyecto_curricular_id"].(float64)))
+		projectData, projectErr := utils.GetProyectoCurricular(int(syllabusData["proyecto_curricular_id"].(float64)))
 
 		if spaceErr == nil && projectErr == nil {
-			facultyData, facultyErr := getFacultad(projectData["id_oikos"].(string))
+			facultyData, facultyErr := utils.GetFacultadDelProyectoC(projectData["id_oikos"].(string))
 			idiomas := ""
 
 			if syllabusData["idioma_espacio_id"] != nil {
@@ -724,52 +724,6 @@ func getAcademicSpaceData(pensumId, carreraCod, asignaturaCod int) (map[string]a
 		}
 	} else {
 		return nil, fmt.Errorf("Espacio académico no encontrado")
-	}
-}
-
-func getFacultad(proyectoIdOikos string) (map[string]any, error) {
-	var facultadResponse map[string]interface{}
-
-	facultadErr := request.GetJson(
-		"http://"+beego.AppConfig.String("OikosService")+
-			fmt.Sprintf("dependencia/get_dependencias_padres_by_id/%v", proyectoIdOikos),
-		&facultadResponse)
-	if facultadErr == nil && facultadResponse["Type"] == "success" {
-		dependencias := facultadResponse["Body"].([]interface{})
-		if len(dependencias) > 0 {
-			var dependenciaPadre int
-			for i := len(dependencias) - 1; i >= 0; i-- {
-				if fmt.Sprintf("%v", dependencias[i].(map[string]interface{})["Id"]) == proyectoIdOikos {
-					dependenciaPadre = int(dependencias[i].(map[string]interface{})["Padre"].(float64))
-				}
-
-				if dependenciaPadre > 0 && int(dependencias[i].(map[string]interface{})["Id"].(float64)) == dependenciaPadre {
-					return dependencias[i].(map[string]interface{}), nil
-				}
-			}
-		}
-		return nil, fmt.Errorf("Facultad no encontrada")
-	} else {
-		return nil, fmt.Errorf("Facultad no encontrada")
-	}
-}
-
-func getProyectoCurricular(proyectoId int) (map[string]any, error) {
-	var proyectoResponse map[string]interface{}
-
-	proyectoErr := request.GetJsonWSO2(
-		"http://"+beego.AppConfig.String("HomologacionDependenciaService")+
-			fmt.Sprintf("proyecto_curricular_cod_proyecto/%v", proyectoId),
-		&proyectoResponse)
-	if proyectoErr == nil && fmt.Sprintf("%v", proyectoResponse) != "map[homologacion:map[]]" && fmt.Sprintf("%v", proyectoResponse) != "map[]]" {
-		homologacionData := proyectoResponse["homologacion"].(map[string]interface{})
-		proyectoData := map[string]interface{}{
-			"proyecto_curricular_nombre": fmt.Sprintf("%v", homologacionData["proyecto_snies"]),
-			"id_oikos":                   homologacionData["id_oikos"],
-		}
-		return proyectoData, nil
-	} else {
-		return nil, fmt.Errorf("Proyecto curricular homologación no encontrado")
 	}
 }
 
