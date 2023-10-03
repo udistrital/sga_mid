@@ -1069,6 +1069,15 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
+	beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Plan_estudiosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Plan_estudiosController"],
+		beego.ControllerComments{
+			Method:           "GetStudyPlanVisualization",
+			Router:           "/study_plan_visualization/:id_plan",
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
 	beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PracticasAcademicasController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PracticasAcademicasController"],
 		beego.ControllerComments{
 			Method:           "Post",
