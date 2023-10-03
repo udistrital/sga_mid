@@ -495,15 +495,6 @@ func getParentStudyPlanVisualization(studyPlanData map[string]interface{}, class
 				logs.Error(errorPlanProject.Error())
 				return nil, errorPlanProject
 			}
-
-			planData, errorPlan := getPlanVisualization(studyPlanData, 1,
-				fmt.Sprintf("%v", projectCData["id_snies"]), classificationsData)
-			if errorPlan == nil {
-				totalPlanData = append(totalPlanData, planData)
-			} else {
-				logs.Error(errorPlan.Error())
-				return nil, errorPlan
-			}
 		} else {
 			return nil, projectErr
 		}
