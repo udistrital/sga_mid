@@ -560,7 +560,7 @@ func (c *Espacios_academicosController) PostSyllabusTemplate() {
 }
 
 func getSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData map[string]interface{}, languages string) map[string]interface{} {
-	var propositos []string
+	var propositos []interface{}
 	var contenidoTematicoDescripcion string
 	var contenidoTematicoDetalle []interface{}
 	var evaluacionDescripcion string
@@ -616,6 +616,12 @@ func getSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData m
 		seguimiento = syllabusData["seguimiento"].(map[string]interface{})
 	} else {
 		seguimiento = map[string]interface{}{}
+	}
+
+	if syllabusData["resultados_aprendizaje"] != nil {
+		propositos = syllabusData["resultados_aprendizaje"].([]interface{})
+	} else {
+		propositos = []interface{}{}
 	}
 
 	fechaRevConsejo := strings.Split(
