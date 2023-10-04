@@ -211,3 +211,11 @@ func DefaultTo[T any](value, defaultValue T) T {
 		return value
 	}
 }
+
+func DefaultToMapString(objMap map[string]any, key string, defaultValue any) any {
+	if value, hasKey := objMap[key]; hasKey {
+		return value
+	} else {
+		return defaultValue
+	}
+}
