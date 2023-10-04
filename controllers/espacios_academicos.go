@@ -582,8 +582,10 @@ func getSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData m
 
 	contenido := syllabusData["contenido"]
 	if contenido != nil {
-		contenidoTematicoDescripcion = fmt.Sprintf("%v",
-			helpers.DefaultTo(contenido.(map[string]interface{})["descripcion"], ""))
+		contenidoTematicoDescripcion = fmt.Sprintf(
+			"%v",
+			helpers.DefaultToMapString(contenido.(map[string]interface{}),
+				"descripcion", ""))
 
 		if contenido.(map[string]interface{})["temas"] == nil {
 			contenidoTematicoDetalle = []interface{}{}
@@ -594,8 +596,9 @@ func getSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData m
 
 	evaluacion := syllabusData["evaluacion"]
 	if evaluacion != nil {
-		evaluacionDescripcion = fmt.Sprintf("%v",
-			helpers.DefaultTo(evaluacion.(map[string]interface{})["descripcion"], ""))
+		evaluacionDescripcion = fmt.Sprintf(
+			"%v",
+			helpers.DefaultToMapString(evaluacion.(map[string]interface{}), "descripcion", ""))
 
 		if evaluacion.(map[string]interface{})["evaluaciones"] == nil {
 			evaluacionDetalle = []any{}
@@ -625,23 +628,23 @@ func getSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData m
 	}
 
 	fechaRevConsejo := strings.Split(
-		helpers.DefaultTo(seguimiento["fechaRevisionConsejo"], "").(string),
+		helpers.DefaultToMapString(seguimiento, "fechaRevisionConsejo", "").(string),
 		"T")[0]
 	fechaAprobConsejo := strings.Split(
-		helpers.DefaultTo(seguimiento["fechaAprobacionConsejo"], "").(string),
+		helpers.DefaultToMapString(seguimiento, "fechaAprobacionConsejo", "").(string),
 		"T")[0]
-	numActa := helpers.DefaultTo(seguimiento["numeroActa"], "").(string)
+	numActa := helpers.DefaultToMapString(seguimiento, "numeroActa", "").(string)
 
 	syllabusTemplateData := map[string]interface{}{
-		"nombre_facultad":                helpers.DefaultTo(facultyData["Nombre"], ""),
-		"nombre_proyecto_curricular":     helpers.DefaultTo(projectData["proyecto_curricular_nombre"], ""),
-		"cod_plan_estudio":               helpers.DefaultTo(syllabusData["plan_estudios_id"], ""),
-		"nombre_espacio_academico":       helpers.DefaultTo(spaceData["nombre_espacio_academico"], ""),
-		"cod_espacio_academico":          helpers.DefaultTo(spaceData["cod_espacio_academico"], ""),
-		"num_creditos":                   helpers.DefaultTo(spaceData["num_creditos"], ""),
-		"htd":                            helpers.DefaultTo(spaceData["htd"], ""),
-		"htc":                            helpers.DefaultTo(spaceData["htc"], ""),
-		"hta":                            helpers.DefaultTo(spaceData["hta"], ""),
+		"nombre_facultad":                helpers.DefaultToMapString(facultyData, "Nombre", ""),
+		"nombre_proyecto_curricular":     helpers.DefaultToMapString(projectData, "proyecto_curricular_nombre", ""),
+		"cod_plan_estudio":               helpers.DefaultToMapString(syllabusData, "plan_estudios_id", ""),
+		"nombre_espacio_academico":       helpers.DefaultToMapString(spaceData, "nombre_espacio_academico", ""),
+		"cod_espacio_academico":          helpers.DefaultToMapString(spaceData, "cod_espacio_academico", ""),
+		"num_creditos":                   helpers.DefaultToMapString(spaceData, "num_creditos", ""),
+		"htd":                            helpers.DefaultToMapString(spaceData, "htd", ""),
+		"htc":                            helpers.DefaultToMapString(spaceData, "htc", ""),
+		"hta":                            helpers.DefaultToMapString(spaceData, "hta", ""),
 		"es_asignatura":                  helpers.DefaultTo(spaceData["es_asignatura"], false),
 		"es_catedra":                     helpers.DefaultTo(spaceData["es_catedra"], false),
 		"es_obligatorio_basico":          helpers.DefaultTo(spaceData["es_obligatorio_basico"], false),
@@ -658,9 +661,9 @@ func getSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData m
 		"otra_modalidad":                 false,
 		"cual_otra_modalidad":            "",
 		"idiomas":                        helpers.DefaultTo(idiomas, ""),
-		"sugerencias":                    helpers.DefaultTo(syllabusData["sugerencias"], ""),
-		"justificacion":                  helpers.DefaultTo(syllabusData["justificacion"], ""),
-		"objetivo_general":               helpers.DefaultTo(syllabusData["objetivo_general"], ""),
+		"sugerencias":                    helpers.DefaultToMapString(syllabusData, "sugerencias", ""),
+		"justificacion":                  helpers.DefaultToMapString(syllabusData, "justificacion", ""),
+		"objetivo_general":               helpers.DefaultToMapString(syllabusData, "objetivo_general", ""),
 		"objetivos_especificos":          objetivosEspecificos,
 		"propositos":                     propositos,
 		"contenido_tematico_descripcion": helpers.DefaultTo(contenidoTematicoDescripcion, ""),
@@ -668,8 +671,8 @@ func getSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData m
 		"estrategias_ensenanza":          syllabusData["estrategias"],
 		"evaluacion_descripcion":         helpers.DefaultTo(evaluacionDescripcion, ""),
 		"evaluacion_detalle":             evaluacionDetalle,
-		"medios_recursos":                helpers.DefaultTo(syllabusData["recursos_educativos"], ""),
-		"practicas_salidas":              helpers.DefaultTo(syllabusData["practicas_academicas"], ""),
+		"medios_recursos":                helpers.DefaultToMapString(syllabusData, "recursos_educativos", ""),
+		"practicas_salidas":              helpers.DefaultToMapString(syllabusData, "practicas_academicas", ""),
 		"bibliografia_basica":            bibliografia["basicas"],
 		"bibliografia_complementaria":    bibliografia["complementarias"],
 		"bibliografia_paginas":           bibliografia["paginasWeb"],
@@ -707,15 +710,16 @@ func getAcademicSpaceData(pensumId, carreraCod, asignaturaCod int) (map[string]a
 		spaces := spaceResponse["espacios_academicos"].(map[string]interface{})["espacio_academico"].([]interface{})
 		if len(spaces) > 0 {
 			space := spaces[0].(map[string]interface{})
+
 			esAsignatura := strings.ToLower(fmt.Sprintf("%v", space["tipo"])) == "asignatura"
 			spaceType := strings.ToLower(fmt.Sprintf("%v", space["cea_abr"]))
 			spaceData := map[string]interface{}{
-				"nombre_espacio_academico": fmt.Sprintf("%v", helpers.DefaultTo(space["asi_nombre"], "")),
-				"cod_espacio_academico":    fmt.Sprintf("%v", helpers.DefaultTo(space["asi_cod"], "")),
-				"num_creditos":             fmt.Sprintf("%v", helpers.DefaultTo(space["pen_cre"], "")),
-				"htd":                      fmt.Sprintf("%v", helpers.DefaultTo(space["pen_nro_ht"], "")),
-				"htc":                      fmt.Sprintf("%v", helpers.DefaultTo(space["pen_nro_hp"], "")),
-				"hta":                      fmt.Sprintf("%v", helpers.DefaultTo(space["pen_nro_aut"], "")),
+				"nombre_espacio_academico": fmt.Sprintf("%v", helpers.DefaultToMapString(space, "asi_nombre", "")),
+				"cod_espacio_academico":    fmt.Sprintf("%v", helpers.DefaultToMapString(space, "asi_cod", "")),
+				"num_creditos":             fmt.Sprintf("%v", helpers.DefaultToMapString(space, "pen_cre", "")),
+				"htd":                      fmt.Sprintf("%v", helpers.DefaultToMapString(space, "pen_nro_ht", "")),
+				"htc":                      fmt.Sprintf("%v", helpers.DefaultToMapString(space, "pen_nro_hp", "")),
+				"hta":                      fmt.Sprintf("%v", helpers.DefaultToMapString(space, "pen_nro_aut", "")),
 				"es_asignatura":            esAsignatura,
 				"es_catedra":               !esAsignatura,
 				"es_obligatorio_basico":    spaceType == "ob",
