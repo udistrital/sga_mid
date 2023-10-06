@@ -482,6 +482,7 @@ func (c *Espacios_academicosController) PostSyllabusTemplate() {
 	var syllabusResponse map[string]interface{}
 	var syllabusTemplateResponse map[string]interface{}
 	var syllabusTemplateData map[string]interface{}
+	var syllabusData map[string]interface{}
 
 	failureAsn := map[string]interface{}{
 		"Success": false,
@@ -491,21 +492,47 @@ func (c *Espacios_academicosController) PostSyllabusTemplate() {
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &syllabusRequest); err == nil {
 		syllabusCode := syllabusRequest["syllabusCode"]
-
-		syllabusErr := request.GetJson("http://"+beego.AppConfig.String("SyllabusService")+
-			fmt.Sprintf("syllabus/%v", syllabusCode), &syllabusResponse)
-		if syllabusErr != nil || syllabusResponse["Success"] == false {
-			if syllabusErr == nil {
-				syllabusErr = fmt.Errorf("SyllabusService: %v", syllabusResponse["Message"])
+		if syllabusVersion, hasVersion := syllabusRequest["version"]; hasVersion {
+			syllabusErr := request.GetJson("http://"+beego.AppConfig.String("SyllabusService")+
+				fmt.Sprintf("syllabus?query=syllabus_code:%v,version:%v&limit=1&offset=0", syllabusCode, syllabusVersion), &syllabusResponse)
+			if syllabusErr != nil || syllabusResponse["Success"] == false {
+				if syllabusErr == nil {
+					syllabusErr = fmt.Errorf("SyllabusService: %v", syllabusResponse["Message"])
+				}
+				logs.Error(syllabusErr.Error())
+				c.Ctx.Output.SetStatus(404)
+				failureAsn["Data"] = syllabusErr.Error()
+				c.Data["json"] = failureAsn
+				c.ServeJSON()
+				return
 			}
-			logs.Error(syllabusErr.Error())
-			c.Ctx.Output.SetStatus(404)
-			failureAsn["Data"] = syllabusErr.Error()
-			c.Data["json"] = failureAsn
-			c.ServeJSON()
-			return
+			syllabusList := syllabusResponse["Data"].([]interface{})
+			if len(syllabusList) < 1 {
+				c.Ctx.Output.SetStatus(404)
+				failureAsn["Data"] = fmt.Errorf("SyllabusService: syllabus not found by syllabusCode and version")
+				c.Data["json"] = failureAsn
+				c.ServeJSON()
+				return
+			} else {
+				syllabusData = syllabusList[0].(map[string]interface{})
+			}
+		} else {
+			syllabusErr := request.GetJson("http://"+beego.AppConfig.String("SyllabusService")+
+				fmt.Sprintf("syllabus/%v", syllabusCode), &syllabusResponse)
+			if syllabusErr != nil || syllabusResponse["Success"] == false {
+				if syllabusErr == nil {
+					syllabusErr = fmt.Errorf("SyllabusService: %v", syllabusResponse["Message"])
+				}
+				logs.Error(syllabusErr.Error())
+				c.Ctx.Output.SetStatus(404)
+				failureAsn["Data"] = syllabusErr.Error()
+				c.Data["json"] = failureAsn
+				c.ServeJSON()
+				return
+			}
+			syllabusData = syllabusResponse["Data"].(map[string]interface{})
 		}
-		syllabusData := syllabusResponse["Data"].(map[string]interface{})
+
 		spaceData, spaceErr := getAcademicSpaceData(
 			int(syllabusData["plan_estudios_id"].(float64)),
 			int(syllabusData["proyecto_curricular_id"].(float64)),
@@ -569,6 +596,7 @@ func getSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData m
 	var bibliografia map[string]interface{}
 	var seguimiento map[string]interface{}
 	var objetivosEspecificos []string
+	var versionSyllabus string
 
 	if syllabusData["objetivos_especificos"] != nil {
 		objetivos := syllabusData["objetivos_especificos"].([]any)
@@ -635,6 +663,12 @@ func getSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData m
 		"T")[0]
 	numActa := helpers.DefaultToMapString(seguimiento, "numeroActa", "").(string)
 
+	if versionSyll := helpers.DefaultToMapString(syllabusData, "version", 0); versionSyll.(float64) > 0 {
+		versionSyllabus = fmt.Sprintf("%v", versionSyll)
+	} else {
+		versionSyllabus = ""
+	}
+
 	syllabusTemplateData := map[string]interface{}{
 		"nombre_facultad":                helpers.DefaultToMapString(facultyData, "Nombre", ""),
 		"nombre_proyecto_curricular":     helpers.DefaultToMapString(projectData, "proyecto_curricular_nombre", ""),
@@ -678,7 +712,8 @@ func getSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData m
 		"bibliografia_paginas":           bibliografia["paginasWeb"],
 		"fecha_rev_consejo":              fechaRevConsejo,
 		"fecha_aprob_consejo":            fechaAprobConsejo,
-		"num_acta":                       numActa}
+		"num_acta":                       numActa,
+		"version_syllabus":               versionSyllabus}
 
 	return syllabusTemplateData
 }
