@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
-	"github.com/phpdave11/gofpdf"
 	"github.com/udistrital/sga_mid/helpers"
 	request "github.com/udistrital/sga_mid/models"
+	"github.com/udistrital/sga_mid/process"
 	"github.com/udistrital/sga_mid/utils"
 	requestmanager "github.com/udistrital/sga_mid/utils/requestManager"
 	"reflect"
@@ -540,7 +540,7 @@ func (c *Plan_estudiosController) PostGenerarDocumentoPlanEstudio() {
 	var data map[string]interface{}
 
 	if parseErr := json.Unmarshal(c.Ctx.Input.RequestBody, &data); parseErr == nil {
-		pdf := generateStudyPlanDocument(data)
+		pdf := process.GenerateStudyPlanDocument(data)
 
 		if pdf.Err() {
 			logs.Error("Failed creating PDF report: %s\n", pdf.Error())
@@ -566,128 +566,4 @@ func (c *Plan_estudiosController) PostGenerarDocumentoPlanEstudio() {
 		c.Data["json"] = errResponse
 	}
 	c.ServeJSON()
-}
-
-func generateStudyPlanDocument(data map[string]interface{}) *gofpdf.Fpdf {
-	// page features
-	pdf := gofpdf.New("L", "mm", "A4", "")
-
-	marginTB := 4.0
-	marginLR := 4.0
-
-	pdf.AddPage()
-	pdf.SetMargins(marginLR, marginTB, marginLR)
-	pdf.SetAutoPageBreak(true, marginTB)
-	pdf.SetHomeXY()
-
-	widthPage, heightPage := pdf.GetPageSize()
-
-	pageStyle := utils.PageStyle{
-		ML: marginLR,
-		MT: marginTB,
-		MR: marginLR,
-		MB: marginTB,
-		WW: widthPage - (2 * marginLR),
-		HW: heightPage - (2 * marginTB),
-		HH: 40,
-		HB: heightPage - 70,
-		HF: 30}
-
-	// blue for headers
-	pageStyle.BaseColorRGB[0] = 20
-	pageStyle.BaseColorRGB[1] = 103
-	pageStyle.BaseColorRGB[2] = 143
-
-	// gray for headers
-	pageStyle.SecondaryColorRGB[0] = 128
-	pageStyle.SecondaryColorRGB[1] = 128
-	pageStyle.SecondaryColorRGB[2] = 128
-
-	// light blue for outlines
-	pageStyle.ComplementaryColorRGB[0] = 90
-	pageStyle.ComplementaryColorRGB[1] = 149
-	pageStyle.ComplementaryColorRGB[2] = 184
-
-	// draw margin
-	x, y := pdf.GetXY()
-	r, g, b := pdf.GetDrawColor()
-	pdf.SetDrawColor(
-		pageStyle.ComplementaryColorRGB[0],
-		pageStyle.ComplementaryColorRGB[1],
-		pageStyle.ComplementaryColorRGB[2])
-	pdf.RoundedRect(x-1, y-1, pageStyle.WW+1, pageStyle.HW+1, 2, "1234", "D")
-	pdf.SetDrawColor(r, g, b)
-
-	pdf.Line(x-1, pageStyle.HH, pageStyle.WW+x, pageStyle.HH)
-	pdf.Line(x-1, pageStyle.HW-pageStyle.HF, pageStyle.WW+x, pageStyle.HW-pageStyle.HF)
-
-	pdf.SetXY(x, y)
-	fmt.Println(pageStyle)
-
-	pdf = studyPlanHeader(pdf, data, pageStyle)
-
-	// Add cards
-	x, y = pageStyle.ML+2, pageStyle.HH+5
-	pdf.SetXY(x, y)
-	widthCard := calculateCardWidth(6, 5, 6, 40)
-	fmt.Println(widthCard)
-	pdf = createProjectCard(pdf, data, pageStyle, widthCard)
-
-	// Add footer
-	pdf = studyPlanFooter(pdf, data, pageStyle)
-	return pdf
-}
-
-func studyPlanHeader(pdf *gofpdf.Fpdf, data map[string]interface{}, pageStyle utils.PageStyle) *gofpdf.Fpdf {
-	tr := pdf.UnicodeTranslatorFromDescriptor("")
-
-	// Added university logo
-	path := beego.AppConfig.String("StaticPath")
-	x := (pageStyle.WW - 70) / 2
-	y := pageStyle.MT
-	pdf = utils.AddImage(pdf, path+"/img/logoud.jpeg", x, y, 0, 25)
-
-	// Added title and subtitle
-	facultyName, facNameOk := data["Facultad"]
-	if facNameOk == false || facultyName == nil {
-		facultyName = ""
-	}
-	facultyNameSize := float64(len(fmt.Sprintf("%v", facultyName)))
-
-	utils.FontStyle(pdf, "B", 11, 0, "Helvetica")
-	pdf.SetXY((pageStyle.WW-5-facultyNameSize)/2, y+22)
-	pdf.Cell(5, 10, tr(fmt.Sprintf("%v", facultyName)))
-	pdf.Ln(5)
-
-	planName, planNameOk := data["Nombre"]
-	if planNameOk == false || facultyName == nil {
-		planName = ""
-	}
-	planNameSize := float64(len(fmt.Sprintf("%v", planName)))
-
-	utils.FontStyle(pdf, "", 10, 0, "Helvetica")
-	y = pdf.GetY()
-	pdf.SetXY((pageStyle.WW-planNameSize)/2, y)
-	pdf.Cell(5, 10, tr(fmt.Sprintf("%v", planName)))
-	return pdf
-}
-
-func createProjectCard(pdf *gofpdf.Fpdf, data map[string]interface{}, pageStyle utils.PageStyle, widthCard float64) *gofpdf.Fpdf {
-	x, y := pdf.GetXY()
-	pdf.RoundedRect(x-1, y-1, widthCard, pageStyle.HB-15, 2, "1234", "D")
-	return pdf
-}
-
-func calculateCardWidth(numCols int, colSpacing float64, outerSpace float64, colWidth float64) float64 {
-	cardWidth := ((float64(numCols) - 1) * colSpacing) + (outerSpace * 2) + (float64(numCols) * colWidth)
-	return cardWidth
-}
-
-func studyPlanFooter(pdf *gofpdf.Fpdf, data map[string]interface{}, pageStyle utils.PageStyle) *gofpdf.Fpdf {
-	// Added space detail footer
-	path := beego.AppConfig.String("StaticPath")
-	x := (pageStyle.WW - 70) / 2
-	y := pageStyle.HH + pageStyle.HB - 5
-	pdf = utils.AddImage(pdf, path+"/img/space_academic_detail_footer_es.png", x, y, 0, 30)
-	return pdf
 }

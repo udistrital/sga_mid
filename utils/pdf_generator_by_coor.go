@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"github.com/phpdave11/gofpdf"
+	"strconv"
 	"strings"
 )
 
@@ -51,4 +52,21 @@ func FontStyle(pdf *gofpdf.Fpdf, style string, size float64, bw int, fontFamily 
 		fontFamily = "Arial"
 	}
 	pdf.SetFont(fontFamily, style, size)
+}
+
+func Hex2RGB(hexString string) ([3]int, error) {
+	hexString = strings.Replace(hexString, "#", "", 1)
+
+	var rgb [3]int
+	values, err := strconv.ParseInt(hexString, 16, 32)
+
+	if err != nil {
+		return [3]int{}, err
+	}
+
+	rgb[0] = int(values >> 16)
+	rgb[1] = int((values >> 8) & 0xFF)
+	rgb[2] = int(values & 0xFF)
+
+	return rgb, err
 }
