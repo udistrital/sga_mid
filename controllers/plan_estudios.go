@@ -7,7 +7,7 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/helpers"
 	request "github.com/udistrital/sga_mid/models"
-	"github.com/udistrital/sga_mid/process"
+	"github.com/udistrital/sga_mid/process/plan_estudio_visualizacion_documento"
 	"github.com/udistrital/sga_mid/utils"
 	requestmanager "github.com/udistrital/sga_mid/utils/requestManager"
 	"reflect"
@@ -540,7 +540,7 @@ func (c *Plan_estudiosController) PostGenerarDocumentoPlanEstudio() {
 	var data map[string]interface{}
 
 	if parseErr := json.Unmarshal(c.Ctx.Input.RequestBody, &data); parseErr == nil {
-		pdf := process.GenerateStudyPlanDocument(data)
+		pdf := plan_estudio_visualizacion_documento.GenerateStudyPlanDocument(data)
 
 		if pdf.Err() {
 			logs.Error("Failed creating PDF report: %s\n", pdf.Error())

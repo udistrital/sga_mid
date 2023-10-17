@@ -1,4 +1,4 @@
-package process
+package plan_estudio_visualizacion_documento
 
 import (
 	"fmt"
@@ -8,43 +8,81 @@ import (
 	"github.com/udistrital/sga_mid/utils"
 )
 
-type CardStyle struct {
-	numCols    int     // number of columns (periods)
-	colSpacing float64 // column spacing
-	outerSpace float64 // space outside the first and last column
-	colWidth   float64 // column width
-	cardWidth  float64 // card width
-	cardHeight float64 // card height
-}
-
-type PlanStyle struct {
-	numProjects       int         // number of projects
-	numPeriodsProject []int       // number of periods per project
-	numSpacesPeriod   []int       // number of spaces per period
-	cardStyleProject  []CardStyle // card style per project
-}
-
 func GenerateStudyPlanDocument(data map[string]interface{}) *gofpdf.Fpdf {
 	// page features
 	pdf := gofpdf.New("L", "mm", "Legal", "")
 
 	marginTB := 4.0
 	marginLR := 4.0
+	pdf.SetMargins(marginLR, marginTB, marginLR)
+	pdf.SetAutoPageBreak(true, 1.0)
+
+	pageStyle := getPageStyle(pdf)
+	planMetadata := getPlanMetadata(data, pageStyle)
+	fmt.Println("PlanStyle")
+	fmt.Println(planMetadata)
 
 	pdf.AddPage()
-	pdf.SetMargins(marginLR, marginTB, marginLR)
-	pdf.SetAutoPageBreak(true, marginTB)
-	pdf.SetHomeXY()
+	pdf.AddPage()
+	pdf.AddPage()
+	for i := 1; i <= pdf.PageCount(); i++ {
+		pdf.SetPage(i)
+		pdf.SetHomeXY()
 
+		// draw page margin
+		x, y := pdf.GetXY()
+		pdf.SetDrawColor(
+			pageStyle.ComplementaryColorRGB[0],
+			pageStyle.ComplementaryColorRGB[1],
+			pageStyle.ComplementaryColorRGB[2])
+		pdf.RoundedRect(x-1, y-1, pageStyle.WW+1, pageStyle.HW+1, 2, "1234", "D")
+		pdf.SetDrawColor(0, 0, 0)
+
+		pdf.SetXY(x, y)
+		fmt.Println(pageStyle)
+
+		pdf = studyPlanHeader(pdf, data, pageStyle)
+
+		// Add cards, card by project
+		x, y = pageStyle.ML+0.5, pageStyle.HH+3
+		pdf.SetXY(x, y)
+		plans, plansOk := data["Planes"]
+		if plansOk {
+			numPlans := len(plans.([]interface{}))
+			fmt.Println(numPlans)
+			totalPeriods := 9
+			totalPeriods = 4
+			widthCard := calculateCardWidth(totalPeriods, 2, 3, 31)
+			fmt.Println(widthCard)
+			pdf = createProjectCard(pdf, data, pageStyle, widthCard, 3)
+			pdf.SetXY(x+widthCard+2, y)
+			pdf = createProjectCard(pdf, data, pageStyle, widthCard, 3)
+			pdf.SetXY(x+(widthCard*2)+4, y)
+			widthCard = calculateCardWidth(totalPeriods-2, 2, 3, 31)
+			//widthCard = 50 //37
+			fmt.Println("Ancho tarjeta min: ", widthCard)
+			pdf = createProjectCard(pdf, data, pageStyle, widthCard, 1)
+		} else {
+			pdf = createProjectCard(pdf, data, pageStyle, 60, 10)
+		}
+
+		// Add footer
+		pdf = studyPlanFooter(pdf, data, pageStyle)
+	}
+
+	return pdf
+}
+
+func getPageStyle(pdf *gofpdf.Fpdf) utils.PageStyle {
 	widthPage, heightPage := pdf.GetPageSize()
-
+	l, t, r, b := pdf.GetMargins()
 	pageStyle := utils.PageStyle{
-		ML: marginLR,
-		MT: marginTB,
-		MR: marginLR,
-		MB: marginTB,
-		WW: widthPage - (2 * marginLR),
-		HW: heightPage - (2 * marginTB),
+		ML: l,
+		MT: t,
+		MR: r,
+		MB: b,
+		WW: widthPage - l - r,
+		HW: heightPage - (2 * t),
 		HH: 30,
 		HB: heightPage - 30,
 		HF: 0}
@@ -64,40 +102,7 @@ func GenerateStudyPlanDocument(data map[string]interface{}) *gofpdf.Fpdf {
 	pageStyle.ComplementaryColorRGB[1] = 149
 	pageStyle.ComplementaryColorRGB[2] = 184
 
-	// draw margin
-	x, y := pdf.GetXY()
-	r, g, b := pdf.GetDrawColor()
-	pdf.SetDrawColor(
-		pageStyle.ComplementaryColorRGB[0],
-		pageStyle.ComplementaryColorRGB[1],
-		pageStyle.ComplementaryColorRGB[2])
-	pdf.RoundedRect(x-1, y-1, pageStyle.WW+1, pageStyle.HW+1, 2, "1234", "D")
-	pdf.SetDrawColor(r, g, b)
-
-	pdf.SetXY(x, y)
-	fmt.Println(pageStyle)
-
-	pdf = studyPlanHeader(pdf, data, pageStyle)
-
-	// Add cards, card by project
-	x, y = pageStyle.ML+2, pageStyle.HH+3
-	pdf.SetXY(x, y)
-	plans, plansOk := data["Planes"]
-	if plansOk {
-		numPlans := len(plans.([]interface{}))
-		fmt.Println(numPlans)
-		totalPeriods := 9
-		totalPeriods = 10
-		widthCard := calculateCardWidth(totalPeriods, 5, 10, 31)
-		fmt.Println(widthCard)
-		pdf = createProjectCard(pdf, data, pageStyle, widthCard)
-	} else {
-		pdf = createProjectCard(pdf, data, pageStyle, 60)
-	}
-
-	// Add footer
-	pdf = studyPlanFooter(pdf, data, pageStyle)
-	return pdf
+	return pageStyle
 }
 
 func studyPlanHeader(pdf *gofpdf.Fpdf, data map[string]interface{}, pageStyle utils.PageStyle) *gofpdf.Fpdf {
@@ -140,7 +145,7 @@ func studyPlanHeader(pdf *gofpdf.Fpdf, data map[string]interface{}, pageStyle ut
 	return pdf
 }
 
-func createProjectCard(pdf *gofpdf.Fpdf, data map[string]interface{}, pageStyle utils.PageStyle, widthCard float64) *gofpdf.Fpdf {
+func createProjectCard(pdf *gofpdf.Fpdf, data map[string]interface{}, pageStyle utils.PageStyle, widthCard float64, p int) *gofpdf.Fpdf {
 	x, y := pdf.GetXY()
 	initX := x
 	fmt.Println("Card")
@@ -151,13 +156,15 @@ func createProjectCard(pdf *gofpdf.Fpdf, data map[string]interface{}, pageStyle 
 		pageStyle.SecondaryColorRGB[0],
 		pageStyle.SecondaryColorRGB[1],
 		pageStyle.SecondaryColorRGB[2])
-	pdf.RoundedRect(x, y-1, widthCard, pageStyle.HB-10, 2, "1234", "D")
-	x = x + widthCard/2.0 - 26.0
-	pdf.SetXY(x, y+0.5)
+	pdf.RoundedRect(x, y-1, widthCard, pageStyle.HB-7.5, 2, "1234", "D")
+	x = x + widthCard/2.0 - 22.0
+	pdf.SetXY(x, y+0.4)
 	pdf = createProjectInformationTable(pdf, data, pageStyle, widthCard)
 	pdf.SetX(initX)
-	pdf = createProjectDetails(pdf, data, pageStyle, widthCard)
-	pdf.SetX(x)
+	pdf = createProjectDetails(pdf, data, pageStyle, widthCard, p)
+	pdf.SetX(x + 1)
+	fmt.Println("Valor footer info")
+	fmt.Println(x)
 	pdf = createTotalProjectCreditTable(pdf, data, pageStyle, widthCard)
 	return pdf
 }
@@ -182,11 +189,19 @@ func createProjectInformationTable(pdf *gofpdf.Fpdf, data map[string]interface{}
 			tr("Study plan")},
 	}
 
-	cellWidth := 50.0
+	x := pdf.GetX()
+	doubleCol := false
+	cellWidth := 46.0
+	doubleColBorder := "B"
+	if doubleCol {
+		cellWidth = 92
+		x = x - 24
+		pdf.SetX(x)
+		doubleColBorder = "BR"
+	}
 	cellHeight := 3.0
 
 	// Header
-	x := pdf.GetX()
 	utils.FontStyle(pdf, "B", 6.5, 255, "Helvetica")
 	pdf.SetFillColor(
 		pageStyle.BaseColorRGB[0],
@@ -202,14 +217,23 @@ func createProjectInformationTable(pdf *gofpdf.Fpdf, data map[string]interface{}
 	utils.FontStyle(pdf, "", 6, 0, "Helvetica")
 
 	pdf.SetX(x)
-	bodyCellWidth := float64(int(cellWidth * 0.6))
+	bodyCellWidth := float64(int(cellWidth * 0.65))
+	if doubleCol {
+		cellWidth = float64(int(cellWidth / 2))
+		bodyCellWidth = float64(int(cellWidth * 0.65))
+	}
+
 	pdf.CellFormat(bodyCellWidth, cellHeight, fmt.Sprintf("%v", infLabels["es"].([]string)[0]), "B", 0, "LM", false, 0, "")
 	pdf.CellFormat(
 		cellWidth-bodyCellWidth, cellHeight,
 		tr(fmt.Sprintf("%v", helpers.DefaultToMapString(data, "Resolucion", "1020 de 2023"))),
-		"B", 1, "LM", false, 0, "")
+		doubleColBorder, 0, "LM", false, 0, "")
 
-	pdf.SetX(x)
+	if !doubleCol {
+		pdf.Ln(-1)
+		pdf.SetX(x)
+	}
+
 	pdf.CellFormat(bodyCellWidth, cellHeight, fmt.Sprintf("%v", infLabels["es"].([]string)[1]), "B", 0, "LM", false, 0, "")
 	pdf.CellFormat(cellWidth-bodyCellWidth, cellHeight,
 		tr(fmt.Sprintf("%v", helpers.DefaultToMapString(data, "Creditos", 0.0))),
@@ -220,25 +244,29 @@ func createProjectInformationTable(pdf *gofpdf.Fpdf, data map[string]interface{}
 	pdf.CellFormat(
 		cellWidth-bodyCellWidth, cellHeight,
 		tr(fmt.Sprintf("%v", helpers.DefaultToMapString(data, "Snies", ""))),
-		"B", 1, "LM", false, 0, "")
+		doubleColBorder, 0, "LM", false, 0, "")
 
-	pdf.SetX(x)
+	if !doubleCol {
+		pdf.Ln(-1)
+		pdf.SetX(x)
+	}
+
 	pdf.CellFormat(bodyCellWidth, cellHeight, fmt.Sprintf("%v", infLabels["es"].([]string)[3]), "B", 0, "LM", false, 0, "")
 	pdf.CellFormat(
 		cellWidth-bodyCellWidth, cellHeight,
 		tr(fmt.Sprintf("%v", helpers.DefaultToMapString(data, "PlanEstudio", ""))),
 		"B", 1, "LM", false, 0, "")
 	y := pdf.GetY()
-	pdf.SetXY(x, y-0.5)
+	pdf.SetXY(x, y-1.5)
 	return pdf
 }
 
-func createProjectDetails(pdf *gofpdf.Fpdf, data map[string]interface{}, pageStyle utils.PageStyle, widthCard float64) *gofpdf.Fpdf {
-	height := 143.0
+func createProjectDetails(pdf *gofpdf.Fpdf, data map[string]interface{}, pageStyle utils.PageStyle, widthCard float64, p int) *gofpdf.Fpdf {
+	height := 142.5
 
 	x, y := pdf.GetXY()
 	initialPointX, initialPointY := x, y
-	x = x + 2
+	x = x + 2 //outerSpace - (outerSpace/2)
 	pdf.SetX(x)
 	fmt.Println("Details")
 	fmt.Println(x, y)
@@ -246,22 +274,23 @@ func createProjectDetails(pdf *gofpdf.Fpdf, data map[string]interface{}, pageSty
 		pageStyle.ComplementaryColorRGB[0],
 		pageStyle.ComplementaryColorRGB[1],
 		pageStyle.ComplementaryColorRGB[2])
-	pdf.RoundedRect(x, y+3, widthCard-8, height, 2, "1234", "D")
+	pdf.RoundedRect(x, y+3, widthCard-4, height, 2, "1234", "D")
 	fmt.Println(pdf.GetXY())
-	totalPeriods := 10
+	totalPeriods := p
 	for numPer := 0; numPer < totalPeriods; numPer++ {
-		pdf.SetXY(initialPointX+(float64(numPer)*36)+7, initialPointY)
+		pdf.SetXY(initialPointX+(float64(numPer)*33)+2, initialPointY)
 		pdf = createPeriod(pdf, data, pageStyle, widthCard, numPer)
 		fmt.Println("Por periodo")
 		fmt.Println(x, y)
 	}
-	pdf.SetXY(initialPointX, initialPointY+height+5)
+	pdf.SetXY(initialPointX, initialPointY+height+4)
 
 	return pdf
 }
 
 func createTotalProjectCreditTable(pdf *gofpdf.Fpdf, data map[string]interface{}, pageStyle utils.PageStyle, widthCard float64) *gofpdf.Fpdf {
 	tr := pdf.UnicodeTranslatorFromDescriptor("")
+	doubleCol := false
 	infLabels := map[string]interface{}{
 		"es": []string{
 			tr("Ítem"),
@@ -278,13 +307,17 @@ func createTotalProjectCreditTable(pdf *gofpdf.Fpdf, data map[string]interface{}
 			tr("Intrinsic Elective"),
 			tr("Extrinsic Elective")},
 	}
+	x := pdf.GetX()
 
-	cellWidth := 50.0
+	if doubleCol {
+		x = x - 20
+		pdf.SetX(x)
+	}
+	cellWidth := 40.0
 	cellHeight := 3.0
 	bodyCellWidth := float64(int(cellWidth * 0.75))
 
 	// Header
-	x := pdf.GetX()
 	utils.FontStyle(pdf, "B", 6, 255, "Helvetica")
 	pdf.SetFillColor(
 		pageStyle.SecondaryColorRGB[0],
@@ -297,7 +330,19 @@ func createTotalProjectCreditTable(pdf *gofpdf.Fpdf, data map[string]interface{}
 	pdf.CellFormat(
 		cellWidth-bodyCellWidth, cellHeight+0.5,
 		fmt.Sprintf("%v", infLabels["es"].([]string)[1]),
-		"", 1, "CM", true, 0, "")
+		"", 0, "CM", true, 0, "")
+
+	if doubleCol {
+		pdf.CellFormat(
+			bodyCellWidth, cellHeight+0.5,
+			fmt.Sprintf("%v", infLabels["es"].([]string)[0]),
+			"", 0, "CM", true, 0, "")
+		pdf.CellFormat(
+			cellWidth-bodyCellWidth, cellHeight+0.5,
+			fmt.Sprintf("%v", infLabels["es"].([]string)[1]),
+			"", 0, "CM", true, 0, "")
+	}
+	pdf.Ln(-1)
 
 	// Body
 	pdf.SetFillColor(0, 0, 0)
@@ -311,9 +356,12 @@ func createTotalProjectCreditTable(pdf *gofpdf.Fpdf, data map[string]interface{}
 	pdf.CellFormat(
 		cellWidth-bodyCellWidth, cellHeight,
 		tr(fmt.Sprintf("%v", helpers.DefaultToMapString(data, "OB", 0))),
-		"B", 1, "CM", false, 0, "")
+		"B", 0, "CM", false, 0, "")
 
-	pdf.SetX(x)
+	if !doubleCol {
+		pdf.Ln(-1)
+		pdf.SetX(x)
+	}
 	pdf.CellFormat(
 		bodyCellWidth, cellHeight,
 		fmt.Sprintf("%v", infLabels["es"].([]string)[3]),
@@ -330,9 +378,12 @@ func createTotalProjectCreditTable(pdf *gofpdf.Fpdf, data map[string]interface{}
 	pdf.CellFormat(
 		cellWidth-bodyCellWidth, cellHeight,
 		tr(fmt.Sprintf("%v", helpers.DefaultToMapString(data, "EI", 0))),
-		"B", 1, "CM", false, 0, "")
+		"B", 0, "CM", false, 0, "")
 
-	pdf.SetX(x)
+	if !doubleCol {
+		pdf.Ln(-1)
+		pdf.SetX(x)
+	}
 	pdf.CellFormat(
 		bodyCellWidth, cellHeight,
 		fmt.Sprintf("%v", infLabels["es"].([]string)[5]),
@@ -353,9 +404,10 @@ func createAcademicSpaceTable(pdf *gofpdf.Fpdf, data map[string]interface{}, pag
 	tr := pdf.UnicodeTranslatorFromDescriptor("")
 	var colorSpace [3]int
 
-	h1 := 6.0
-	h2 := 3.0
-	tableWidth := 31.0
+	h2 := 5.0
+	h1 := h2 * 2
+
+	tableWidth := 42.0 //31.0
 	codWidth := float64(int(tableWidth * 0.3))
 	w2 := tableWidth / 5.0
 	initialPointX := pdf.GetX()
@@ -379,7 +431,7 @@ func createAcademicSpaceTable(pdf *gofpdf.Fpdf, data map[string]interface{}, pag
 		tr(fmt.Sprintf("%v", helpers.DefaultToMapString(data, "Codigo", "CALCIII"))),
 		"LT", 0, "CM", true, 0, "")
 
-	spaceName := helpers.DefaultToMapString(data, "Nombre", "Teoría de Campos Electromagnéticos")
+	spaceName := helpers.DefaultToMapString(data, "Nombrex", "Seminario de historia y teoría de la danza: escenarios y contextos")
 	spaceNameList := pdf.SplitLines(
 		[]byte(fmt.Sprintf("%v", spaceName)),
 		tableWidth-codWidth-2)
@@ -486,13 +538,15 @@ func createPeriod(pdf *gofpdf.Fpdf, data map[string]interface{}, pageStyle utils
 		pageStyle.ComplementaryColorRGB[0],
 		pageStyle.ComplementaryColorRGB[1],
 		pageStyle.ComplementaryColorRGB[2])
-	utils.FontStyle(pdf, "", 5, 255, "Helvetica")
-	for i := 0; i < 10; i++ {
+	utils.FontStyle(pdf, "", 6, 255, "Helvetica")
+	fmt.Println("Valor de Y para Body", pdf.GetY()+5)
+	for i := 0; i < 1; i++ {
 		pdf.SetXY(x+1, y+5+(float64(i)*13.0))
 		pdf = createAcademicSpaceTable(pdf, data, pageStyle, widthCard)
 	}
 
 	// Título Cantidad de créditos
+	fmt.Println("Valor de Y para cantidades", pdf.GetY()+2)
 	pdf.SetXY(x+1, pdf.GetY()+2)
 	utils.FontStyle(pdf, "", 5, 0, "Helvetica")
 	pdf.SetDrawColor(
@@ -510,20 +564,9 @@ func createPeriod(pdf *gofpdf.Fpdf, data map[string]interface{}, pageStyle utils
 	return pdf
 }
 
-// calculateCardWidth calcula el ancho de cada tarjeta a partir del número de
-// columnas (periodos o semestres), el espacio entre columnas, el espacio del
-// borde entre el margen externo y el primer o último periodo y el ancho de
-// cada columna.
-//
-// numCols número de columnas (es la cantidad de periodos o semestres).
-// colSpacing espacio entre cada columna.
-// outerSpace espacio entre el exterior y las columnas de los extremos.
-// colWidth ancho de cada columna.
-func calculateCardWidth(numCols int, colSpacing float64, outerSpace float64, colWidth float64) float64 {
-	cardWidth := ((float64(numCols) - 1) * colSpacing) + (outerSpace * 2) + (float64(numCols) * colWidth)
-	return cardWidth
-}
-
 func studyPlanFooter(pdf *gofpdf.Fpdf, data map[string]interface{}, pageStyle utils.PageStyle) *gofpdf.Fpdf {
+	utils.FontStyle(pdf, "", 8, 0, "Helvetica")
+	pdf.SetXY(pageStyle.WW-8, pageStyle.HW+4)
+	pdf.Cell(5, 3, fmt.Sprintf("PAG %v/%v", pdf.PageNo(), pdf.PageCount()))
 	return pdf
 }
