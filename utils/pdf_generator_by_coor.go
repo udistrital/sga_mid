@@ -28,7 +28,7 @@ type PageStyle struct {
 func EncodePDF(pdf *gofpdf.Fpdf) string {
 	var buffer bytes.Buffer
 	writer := bufio.NewWriter(&buffer)
-	pdf.OutputFileAndClose("plan.pdf") // para guardar el archivo localmente
+	//pdf.OutputFileAndClose("plan.pdf") // para guardar el archivo localmente
 	pdf.Output(writer)
 	writer.Flush()
 	encodedFile := base64.StdEncoding.EncodeToString(buffer.Bytes())
