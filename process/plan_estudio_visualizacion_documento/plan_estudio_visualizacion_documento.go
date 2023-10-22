@@ -49,7 +49,7 @@ func GenerateStudyPlanDocument(data map[string]interface{}) *gofpdf.Fpdf {
 
 		// Add cards, card by project
 		plans, plansOk := data["Planes"]
-		if plansOk {
+		if plans != nil && plansOk {
 			x, y = pageStyle.ML+planMetadata.externalCardSpace, pageStyle.HH+3
 			pdf.SetXY(x, y)
 			widthCard := 0.0
@@ -297,7 +297,7 @@ func createProjectDetails(pdf *gofpdf.Fpdf, data map[string]interface{}, pageSty
 	}
 	infoPeriods, infoPeriodsOk := data["InfoPeriodos"]
 
-	if infoPeriodsOk {
+	if infoPeriods != nil && infoPeriodsOk {
 		currentPeriods := infoPeriods.([]any)[initialPeriod : initialPeriod+totalPeriods]
 
 		nPeriod := 0
@@ -376,7 +376,7 @@ func createTotalProjectCreditTable(pdf *gofpdf.Fpdf, data map[string]interface{}
 	eiValue := 0
 	eeValue := 0
 
-	if summaryDataOk {
+	if summaryData != nil && summaryDataOk {
 		val, valOk := summaryData.(map[string]any)["OB"]
 		if valOk {
 			obValue = int(val.(float64))
@@ -547,7 +547,7 @@ func createAcademicSpaceTable(pdf *gofpdf.Fpdf, data map[string]interface{}, pag
 	// Celda prerequisitos
 	prerequisites, prerequisitesOk := data["Prerequisitos"]
 	prerequisitesStr := ""
-	if prerequisitesOk && len(prerequisites.([]any)) > 0 {
+	if prerequisites != nil && prerequisitesOk && len(prerequisites.([]any)) > 0 {
 		for ipr, preRQ := range prerequisites.([]any) {
 			if ipr == 0 {
 				prerequisitesStr = preRQ.(string)
@@ -620,7 +620,7 @@ func createPeriod(pdf *gofpdf.Fpdf, data map[string]interface{}, pageStyle utils
 
 	spacesData, spacesDataOk := data["Espacios"]
 
-	if spacesDataOk {
+	if spacesData != nil && spacesDataOk {
 		totalSpaces := len(spacesData.([]any))
 		numCurrentSpaces := totalSpaces
 		initialNumSpace := 0
