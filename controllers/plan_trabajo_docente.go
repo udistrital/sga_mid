@@ -825,6 +825,7 @@ func (c *PtdController) CopiarPlanTrabajoDocente() {
 
 	response, err = requestmanager.Get("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+
 		fmt.Sprintf("carga_plan?query=activo:true,plan_docente_id:%s&limit=0", plan_docenteAnterior[0].Id), requestmanager.ParseResponseFormato1)
+
 	if err != nil {
 		logs.Error(err)
 		badAns, code := requestmanager.MidResponseFormat("PlanTrabajoDocenteService (carga_plan)", "GET", false, map[string]interface{}{
@@ -836,7 +837,7 @@ func (c *PtdController) CopiarPlanTrabajoDocente() {
 		c.ServeJSON()
 		return
 	}
-	carga_planAnterior := []data.CargaPlan{}
+	carga_planAnterior := []data.CargaPlanColocacion{}
 	utils.ParseData(response, &carga_planAnterior)
 	//
 	// * ----------
@@ -880,6 +881,28 @@ func (c *PtdController) CopiarPlanTrabajoDocente() {
 		listaCarga := []interface{}{}
 		for _, preasignEspacioAcad := range preasignIgualAnterior {
 			for _, carga := range carga_planAnterior {
+				if carga.Horario == "" && carga.Colocacion_espacio_academico_id != "" {
+					var colocacion map[string]interface{}
+					if errGetColocacion := request.GetJson("http://"+beego.AppConfig.String("HorarioService")+
+						"colocacion_espacio_academico/"+carga.Colocacion_espacio_academico_id, &colocacion); errGetColocacion == nil {
+						if colocacion["Success"].(bool) {
+							var resumenColocacionJSON map[string]interface{}
+							json.Unmarshal([]byte(colocacion["Data"].(map[string]interface{})["ResumenColocacionEspacioFisico"].(string)), &resumenColocacionJSON)
+							carga.Horario = colocacion["Data"].(map[string]interface{})["ColocacionEspacioAcademico"].(string)
+							carga.Sede_id = resumenColocacionJSON["espacio_fisico"].(map[string]any)["sede_id"].(string)
+						}
+					} else {
+						logs.Error(errGetColocacion)
+						badAns, code := requestmanager.MidResponseFormat("HorarioService (colocacion_espacio_academico)", "GET", false, map[string]interface{}{
+							"response": response,
+							"error":    errGetColocacion.Error(),
+						})
+						c.Ctx.Output.SetStatus(code)
+						c.Data["json"] = badAns
+						c.ServeJSON()
+						return
+					}
+				}
 				if preasignEspacioAcad.Id == carga.Espacio_academico_id {
 					encontrado := utils.Find(preasignacionActual, func(valor interface{}) bool {
 						return valor.(data.EspacioAcademico).Espacio_academico_padre == preasignEspacioAcad.Espacio_academico_padre
@@ -951,6 +974,28 @@ func (c *PtdController) CopiarPlanTrabajoDocente() {
 	} else if carga == 2 { // ? Carga -> 2, para Actividades
 		listaCarga := []interface{}{}
 		for _, carga := range carga_planAnterior {
+			if carga.Horario == "" && carga.Colocacion_espacio_academico_id != "" {
+				var colocacion map[string]interface{}
+				if errGetColocacion := request.GetJson("http://"+beego.AppConfig.String("HorarioService")+
+					"colocacion_espacio_academico/"+carga.Colocacion_espacio_academico_id, &colocacion); errGetColocacion == nil {
+					if colocacion["Success"].(bool) {
+						var resumenColocacionJSON map[string]interface{}
+						json.Unmarshal([]byte(colocacion["Data"].(map[string]interface{})["ResumenColocacionEspacioFisico"].(string)), &resumenColocacionJSON)
+						carga.Horario = colocacion["Data"].(map[string]interface{})["ColocacionEspacioAcademico"].(string)
+						carga.Sede_id = resumenColocacionJSON["espacio_fisico"].(map[string]any)["sede_id"].(string)
+					}
+				} else {
+					logs.Error(errGetColocacion)
+					badAns, code := requestmanager.MidResponseFormat("HorarioService (colocacion_espacio_academico)", "GET", false, map[string]interface{}{
+						"response": response,
+						"error":    errGetColocacion.Error(),
+					})
+					c.Ctx.Output.SetStatus(code)
+					c.Data["json"] = badAns
+					c.ServeJSON()
+					return
+				}
+			}
 			if carga.Actividad_id != "" {
 				infoEspacio, err := consultarInfoEspacioFisico(carga.Sede_id, carga.Edificio_id, carga.Salon_id)
 				if err != nil {
