@@ -7,6 +7,7 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/helpers"
 	request "github.com/udistrital/sga_mid/models"
+	"github.com/udistrital/sga_mid/process/plan_estudio_visualizacion_documento"
 	"github.com/udistrital/sga_mid/utils"
 	requestmanager "github.com/udistrital/sga_mid/utils/requestManager"
 	"reflect"
@@ -22,6 +23,7 @@ type Plan_estudiosController struct {
 func (c *Plan_estudiosController) URLMapping() {
 	c.Mapping("PostBaseStudyPlan", c.PostBaseStudyPlan)
 	c.Mapping("GetStudyPlanVisualization", c.GetStudyPlanVisualization)
+	c.Mapping("PostGenerarDocumentoPlanEstudio", c.PostGenerarDocumentoPlanEstudio)
 }
 
 // PostBaseStudyPlan ...
@@ -525,4 +527,43 @@ func getPlanProjectByParent(parentId float64) (map[string]any, error) {
 	} else {
 		return nil, fmt.Errorf("PlanEstudioService: Error in request plan_estudio_proyecto_academico")
 	}
+}
+
+// PostGenerarDocumentoPlanEstudio ...
+// @Title PostGenerarDocumentoPlanEstudio
+// @Description Genera un documento PDF del plan de estudio
+// @Param	body		body 	{}	true		"body Datos del plan de estudio content"
+// @Success 200 {}
+// @Failure 400 body is empty
+// @router /documento_plan_visual [post]
+func (c *Plan_estudiosController) PostGenerarDocumentoPlanEstudio() {
+	var data map[string]interface{}
+
+	if parseErr := json.Unmarshal(c.Ctx.Input.RequestBody, &data); parseErr == nil {
+		pdf := plan_estudio_visualizacion_documento.GenerateStudyPlanDocument(data)
+
+		if pdf.Err() {
+			logs.Error("Failed creating PDF report: %s\n", pdf.Error())
+			c.Ctx.Output.SetStatus(400)
+			c.Data["json"] = map[string]interface{}{
+				"Success": false, "Status": "400",
+				"Message": "Error al generar el documento del plan de estudios",
+			}
+		}
+
+		if pdf.Ok() {
+			encodedFile := utils.EncodePDF(pdf)
+			c.Data["json"] = map[string]interface{}{
+				"Success": true,
+				"Status":  "200",
+				"Message": "Query successful",
+				"Data":    encodedFile}
+		}
+	} else {
+		errResponse, statusCode := requestmanager.MidResponseFormat(
+			"PostGenerarDocumentoPlanEstudio", "POST", false, parseErr.Error())
+		c.Ctx.Output.SetStatus(statusCode)
+		c.Data["json"] = errResponse
+	}
+	c.ServeJSON()
 }
