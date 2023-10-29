@@ -24,6 +24,7 @@ func (c *Plan_estudiosController) URLMapping() {
 	c.Mapping("PostBaseStudyPlan", c.PostBaseStudyPlan)
 	c.Mapping("GetStudyPlanVisualization", c.GetStudyPlanVisualization)
 	c.Mapping("PostGenerarDocumentoPlanEstudio", c.PostGenerarDocumentoPlanEstudio)
+	c.Mapping("GetPlanPorDependenciaVinculacionTercero", c.GetPlanPorDependenciaVinculacionTercero)
 }
 
 // PostBaseStudyPlan ...
@@ -565,5 +566,105 @@ func (c *Plan_estudiosController) PostGenerarDocumentoPlanEstudio() {
 		c.Ctx.Output.SetStatus(statusCode)
 		c.Data["json"] = errResponse
 	}
+	c.ServeJSON()
+}
+
+// GetPlanPorDependenciaVinculacionTercero ...
+// @Title GetPlanPorDependenciaVinculacionTercero
+// @Description get plan de estudio por DependenciaId de vinculación de tercero, verificando cargo
+// @Param	body		body 	{}	true		"body Datos del plan de estudio content"
+// @Success 200 {}
+// @Failure 400 body is empty
+// @router /dependencia_vinculacion_tercero/:tercero_id [get]
+func (c *Plan_estudiosController) GetPlanPorDependenciaVinculacionTercero() {
+	var plans []map[string]interface{}
+	terceroIdStr := c.Ctx.Input.Param(":tercero_id")
+	terceroId, errId := strconv.ParseInt(terceroIdStr, 10, 64)
+	if errId != nil || terceroId <= 0 {
+		if errId == nil {
+			errId = fmt.Errorf("tercero_id: %d <= 0", terceroId)
+		}
+		logs.Error(errId.Error())
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = map[string]interface{}{
+			"Success": false, "Status": "404",
+			"Message": "Error service GetPlanPorDependenciaVinculacionTercero: The request contains an incorrect parameter",
+			"Data":    errId.Error()}
+		c.ServeJSON()
+		return
+	}
+
+	// 1. Consultar dependencias por tercero
+	/*
+		consulta vinculación tercero y check resultado válido
+		DependenciaId__gt:0 -> que tenga id mayor que cero
+		CargoId__in:312|320 -> parametrosId: 312: JEFE OFICINA, 320: Asistente Dependencia
+	*/
+	var estadoVinculacion []map[string]interface{}
+	estadoVinculacionErr := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+
+		fmt.Sprintf("vinculacion?query=Activo:true,DependenciaId__gt:0,CargoId__in:312|320,tercero_principal_id:%v", terceroIdStr), &estadoVinculacion)
+	if estadoVinculacionErr != nil || fmt.Sprintf("%v", estadoVinculacion) == "[map[]]" {
+		if estadoVinculacionErr == nil {
+			estadoVinculacionErr = fmt.Errorf("vinculacion is empty: %v", estadoVinculacion)
+		}
+		logs.Error(estadoVinculacionErr.Error())
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = map[string]interface{}{
+			"Success": false, "Status": "404",
+			"Message": "Error service GetPlanPorDependenciaVinculacionTercero: Tercero relationship is empty",
+			"Data":    errId.Error()}
+		c.ServeJSON()
+		return
+	}
+	/*
+		preparar lista de dependencias, normalmente será una, pero se espera soportar varias por tercero
+	*/
+	var dependencias []int64
+	for _, vinculacion := range estadoVinculacion {
+		dependencias = append(dependencias, int64(vinculacion["DependenciaId"].(float64)))
+	}
+
+	if len(dependencias) == 0 {
+		c.Ctx.Output.SetStatus(404)
+		c.Data["json"] = map[string]interface{}{
+			"Success": false, "Status": "404",
+			"Message": "Error service GetPlanPorDependenciaVinculacionTercero: Tercero without dependencies",
+			"Data":    fmt.Errorf("tercero without dependencies: %v", dependencias).Error()}
+		c.ServeJSON()
+		return
+	}
+	// 2. Consultar planes, revisando cuales despendencias si direron resultado
+	for _, dependencia := range dependencias {
+		var resStudyPlan map[string]interface{}
+		urlStudyPlan := "http://" + beego.AppConfig.String("PlanEstudioService") +
+			fmt.Sprintf("plan_estudio?query=Activo:true,ProyectoAcademicoId:%v", dependencia)
+		errPlan := request.GetJson(urlStudyPlan, &resStudyPlan)
+
+		if errPlan == nil && resStudyPlan["Success"] == true {
+			planData := resStudyPlan["Data"]
+			if len(planData.([]interface{})) > 0 {
+				// 3. Validar que las dependecias esten en proyecto academico, si no están se acepta,
+				// si están se valida que la dependencia sea del tipo proyecto curricular
+				// TipoDependenciaId: 1 -> PROYECTO CURRICULAR
+				var resProject []map[string]interface{}
+				urlStudyPlan := "http://" + beego.AppConfig.String("OikosService") +
+					fmt.Sprintf("dependencia_tipo_dependencia?query=DependenciaId:%v&fields=TipoDependenciaId", dependencia)
+				errProject := request.GetJson(urlStudyPlan, &resProject)
+				if errProject == nil && resProject != nil && fmt.Sprintf("%v", resProject) != "[map[]]" {
+					typeDependencie := resProject[0]
+					if typeDependencie["TipoDependenciaId"].(float64) == 1 {
+						plans = append(plans, planData.([]map[string]interface{})...)
+					}
+				}
+			}
+		}
+	}
+
+	c.Ctx.Output.SetStatus(200)
+	c.Data["json"] = map[string]interface{}{
+		"Success": true,
+		"Status":  "200",
+		"Message": "Query successful",
+		"Data":    plans}
 	c.ServeJSON()
 }
