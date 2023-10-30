@@ -2210,6 +2210,24 @@ paths:
           description: '{}'
         "403":
           description: body is empty
+  /plan_estudios/dependencia_vinculacion_tercero/{tercero_id}:
+    get:
+      tags:
+      - plan_estudios
+      description: get plan de estudio por DependenciaId de vinculación de tercero, verificando cargo
+      operationId: Plan_estudiosController.GetPlanPorDependenciaVinculacionTercero
+      parameters:
+      - in: body
+        name: body
+        description: body Datos del plan de estudio content
+        required: true
+        schema:
+          $ref: '#/definitions/{}'
+      responses:
+        "200":
+          description: '{}'
+        "400":
+          description: body is empty
   /plan_estudios/documento_plan_visual:
     post:
       tags:
