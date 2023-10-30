@@ -651,8 +651,8 @@ func (c *Plan_estudiosController) GetPlanPorDependenciaVinculacionTercero() {
 					fmt.Sprintf("dependencia_tipo_dependencia?query=DependenciaId:%v&fields=TipoDependenciaId", dependencia)
 				errProject := request.GetJson(urlStudyPlan, &resProject)
 				if errProject == nil && resProject != nil && fmt.Sprintf("%v", resProject) != "[map[]]" {
-					typeDependencie := resProject[0]
-					if typeDependencie["TipoDependenciaId"].(float64) == 1 {
+					typeDependencieId, _ := strconv.ParseInt(fmt.Sprintf("%v", resProject[0]["TipoDependenciaId"]), 10, 64)
+					if typeDependencieId == 1 {
 						plans = append(plans, planData.([]map[string]interface{})...)
 					}
 				}
