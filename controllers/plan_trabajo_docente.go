@@ -837,7 +837,7 @@ func (c *PtdController) CopiarPlanTrabajoDocente() {
 		c.ServeJSON()
 		return
 	}
-	carga_planAnterior := []data.CargaPlanColocacion{}
+	carga_planAnterior := []data.CargaPlan{}
 	utils.ParseData(response, &carga_planAnterior)
 	//
 	// * ----------
