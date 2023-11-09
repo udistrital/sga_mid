@@ -165,6 +165,30 @@ func (c *ReportesController) ReporteCargaLectiva() {
 	}
 	datosCargaPlan := []data.CargaPlan{}
 	utils.ParseData(resp, &datosCargaPlan)
+
+	for i := 0; i < len(datosCargaPlan); i++ {
+		resp, err := requestmanager.Get("http://"+beego.AppConfig.String("HorarioService")+
+			fmt.Sprintf("colocacion_espacio_academico/%s", datosCargaPlan[i].Colocacion_espacio_academico_id), requestmanager.ParseResponseFormato1)
+		if err != nil {
+			logs.Error(err)
+			badAns, code := requestmanager.MidResponseFormat("HorarioService (colocacion_espacio_academico)", "GET", false, map[string]interface{}{
+				"response": resp,
+				"error":    err.Error(),
+			})
+			c.Ctx.Output.SetStatus(code)
+			c.Data["json"] = badAns
+			c.ServeJSON()
+			return
+		}
+
+		resumenColocacion := data.ResumenColocacion{}
+		json.Unmarshal([]byte(resp.(map[string]interface{})["ResumenColocacionEspacioFisico"].(string)), &resumenColocacion)
+
+		datosCargaPlan[i].Horario = resumenColocacion.Colocacion
+		datosCargaPlan[i].Sede_id = resumenColocacion.EspacioFisico.SedeId
+		datosCargaPlan[i].Edificio_id = resumenColocacion.EspacioFisico.EdificioId
+		datosCargaPlan[i].Salon_id = resumenColocacion.EspacioFisico.SalonId
+	}
 	//
 	// * ----------
 
