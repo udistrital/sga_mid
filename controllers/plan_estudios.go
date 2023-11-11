@@ -38,7 +38,7 @@ func (c *Plan_estudiosController) URLMapping() {
 // @router /base [post]
 func (c *Plan_estudiosController) PostBaseStudyPlan() {
 	var studyPlanRequest map[string]interface{}
-	const editionApprovalStatus = 3
+	const editionApprovalStatus = 1
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &studyPlanRequest); err == nil {
 		if status, errStatus := getApprovalStatus(editionApprovalStatus); errStatus == nil {
