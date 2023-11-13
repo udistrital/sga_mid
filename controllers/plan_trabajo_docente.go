@@ -584,6 +584,7 @@ func (c *PtdController) PutPlanTrabajoDocente() {
 			}
 			bodyCarga := map[string]interface{}{
 				"espacio_academico_id": carga.(map[string]interface{})["espacio_academico_id"],
+				"actividad_id":         carga.(map[string]interface{})["actividad_id"],
 				"id":                   carga.(map[string]interface{})["id"],
 				"plan_docente_id":      carga.(map[string]interface{})["plan_docente_id"],
 				"hora_inicio":          carga.(map[string]interface{})["hora_inicio"],

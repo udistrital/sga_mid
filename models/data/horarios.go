@@ -17,7 +17,7 @@ type ResumenColocacion struct {
 }
 
 type EspacioFisico struct {
-	SedeId     string `json:"sede_id"`
-	EdificioId string `json:"edificio_id"`
-	SalonId    string `json:"salon_id"`
+	SedeId     int `json:"sede_id"`
+	EdificioId int `json:"edificio_id"`
+	SalonId    int `json:"salon_id"`
 }
