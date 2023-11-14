@@ -6,6 +6,7 @@ import (
 	"github.com/phpdave11/gofpdf"
 	"github.com/udistrital/sga_mid/helpers"
 	"github.com/udistrital/sga_mid/utils"
+	"sort"
 )
 
 func GenerateStudyPlanDocument(data map[string]interface{}) *gofpdf.Fpdf {
@@ -19,12 +20,6 @@ func GenerateStudyPlanDocument(data map[string]interface{}) *gofpdf.Fpdf {
 
 	pageStyle := getPageStyle(pdf)
 	planMetadata := getPlanMetadata(data, pageStyle)
-
-	fmt.Println("PlanStyle")
-	fmt.Println(pageStyle)
-
-	fmt.Println("PlanMetadata")
-	fmt.Println(planMetadata)
 
 	// create pages
 	for i := 0; i < planMetadata.numPages; i++ {
@@ -119,7 +114,7 @@ func studyPlanHeader(pdf *gofpdf.Fpdf, data map[string]interface{}, pageStyle ut
 
 	// Added university logo
 	path := beego.AppConfig.String("StaticPath")
-	x := (pageStyle.WW - 70) / 4
+	x := ((pageStyle.WW - 70) / 4) - 10
 	y := pageStyle.MT
 	pdf = utils.AddImage(pdf, path+"/img/logoud.jpeg", x, y, 0, 20)
 
@@ -131,26 +126,95 @@ func studyPlanHeader(pdf *gofpdf.Fpdf, data map[string]interface{}, pageStyle ut
 	facultyNameSize := float64(len(fmt.Sprintf("%v", facultyName)))
 
 	utils.FontStyle(pdf, "B", 9, 0, "Helvetica")
-	pdf.SetXY((pageStyle.WW+35-facultyNameSize)/4, y+16)
+	pdf.SetXY(((pageStyle.WW+35-facultyNameSize)/4)-20, y+16)
 	pdf.Cell(5, 10, tr(fmt.Sprintf("%v", facultyName)))
 	pdf.Ln(5)
 
 	planName, planNameOk := data["Nombre"]
-	if planNameOk == false || facultyName == nil {
+	if planNameOk == false || planName == nil {
 		planName = ""
 	}
 	planNameSize := float64(len(fmt.Sprintf("%v", planName)))
 
 	utils.FontStyle(pdf, "", 8, 0, "Helvetica")
 	y = pdf.GetY() - 1
-	pdf.SetXY((pageStyle.WW+35-planNameSize)/4, y)
+	pdf.SetXY(((pageStyle.WW+35-planNameSize)/4)-10, y)
 	pdf.Cell(5, 10, tr(fmt.Sprintf("%v", planName)))
 
 	// Added space detail
 	pathDesc := beego.AppConfig.String("StaticPath")
-	x = ((pageStyle.WW - 70) / 2) + 50
+	x = ((pageStyle.WW - 70) / 2) + 20
 	y = pageStyle.MT + 2
-	pdf = utils.AddImage(pdf, pathDesc+"/img/space_academic_detail_footer_es.png", x, y, 0, 23)
+	pdf = utils.AddImage(pdf, pathDesc+"/img/space_academic_detail_footer_es.png", x, y, 0, 24)
+
+	// Added academy colors
+	x = pdf.GetX() + x + 4.5
+	r, g, b := pdf.GetDrawColor()
+	squareWidth := 80.0
+	squareHeight := 22.0
+	pdf.SetDrawColor(
+		pageStyle.SecondaryColorRGB[0],
+		pageStyle.SecondaryColorRGB[1],
+		pageStyle.SecondaryColorRGB[2])
+	pdf.RoundedRect(x, y+0.5, squareWidth, squareHeight, 0, "1234", "D")
+
+	academies, academiesOk := data["Escuelas"]
+	if academiesOk != false || fmt.Sprintf("%v", academies) != "map[]" || academies != nil {
+		// sort academies by quantity
+		keysAcademies := make([]string, 0, len(academies.(map[string]any)))
+		var academiesSort []map[string]any
+
+		for k := range academies.(map[string]any) {
+			keysAcademies = append(keysAcademies, k)
+		}
+		sort.SliceStable(keysAcademies, func(i, j int) bool {
+			return academies.(map[string]any)[keysAcademies[i]].(map[string]any)["Cantidad"].(float64) > academies.(map[string]any)[keysAcademies[j]].(map[string]any)["Cantidad"].(float64)
+		})
+
+		for _, academy := range keysAcademies {
+			academiesSort = append(academiesSort, academies.(map[string]any)[academy].(map[string]any))
+		}
+
+		academyWidth := (squareWidth / 2) - 2
+		academyHeight := (squareHeight - 6) / 5
+		rFont, gFont, bFont := pdf.GetTextColor()
+		x = x + 1.5
+		yInitialAcademy := y + 1.5
+		y = yInitialAcademy
+		yIncrement := 0.0
+		for iAcademy, element := range academiesSort {
+			utils.FontStyle(pdf, "B", 6.5, 255, "Helvetica")
+			colorRGB, err := utils.Hex2RGB(fmt.Sprintf("%v", element["Color"]))
+			if err != nil {
+				colorRGB = [3]int{255, 255, 255}
+			}
+
+			colorFontRGB, errFont := utils.Hex2RGB(fmt.Sprintf("%v", element["TxtColor"]))
+			if errFont != nil {
+				colorFontRGB = [3]int{0, 0, 0}
+			}
+
+			pdf.SetFillColor(
+				colorRGB[0],
+				colorRGB[1],
+				colorRGB[2])
+			pdf.SetTextColor(colorFontRGB[0], colorFontRGB[1], colorFontRGB[2])
+			if iAcademy > 4 {
+				x = x + academyWidth + 1
+				y = yInitialAcademy
+				yIncrement = 0.0
+			}
+
+			pdf.SetXY(x, y+((academyHeight+1.0)*yIncrement))
+			pdf.CellFormat(
+				academyWidth, academyHeight,
+				tr(fmt.Sprintf("%v", helpers.DefaultToMapString(element, "Nombre", ""))),
+				"1", 1, "CM", true, 0, "")
+			yIncrement++
+		}
+		pdf.SetTextColor(rFont, gFont, bFont)
+	}
+	pdf.SetDrawColor(r, g, b)
 	return pdf
 }
 
@@ -459,6 +523,7 @@ func createTotalProjectCreditTable(pdf *gofpdf.Fpdf, data map[string]interface{}
 func createAcademicSpaceTable(pdf *gofpdf.Fpdf, data map[string]interface{}, pageStyle utils.PageStyle, planMetadata PlanMetadata) *gofpdf.Fpdf {
 	tr := pdf.UnicodeTranslatorFromDescriptor("")
 	var colorSpace [3]int
+	var colorText [3]int
 
 	h2 := planMetadata.distributionConfig.rowHeight
 	h1 := h2 * 2
@@ -468,18 +533,29 @@ func createAcademicSpaceTable(pdf *gofpdf.Fpdf, data map[string]interface{}, pag
 	w2 := tableWidth / 5.0
 	initialPointX := pdf.GetX()
 
-	colorRGB, err := utils.Hex2RGB("#715F9D")
+	colorRGBBackground, err := utils.Hex2RGB(
+		fmt.Sprintf("%v", helpers.DefaultToMapString(
+			data, "EscuelaColor", "#FFFFFF")))
 	if err != nil {
-		colorSpace = pageStyle.SecondaryColorRGB
+		colorSpace = [3]int{255, 255, 255}
 	} else {
-		colorSpace = colorRGB
+		colorSpace = colorRGBBackground
+	}
+
+	colorRGBText, err := utils.Hex2RGB(
+		fmt.Sprintf("%v", helpers.DefaultToMapString(
+			data, "EscuelaColorFuente", "#000000")))
+	if err != nil {
+		colorText = [3]int{0, 0, 0}
+	} else {
+		colorText = colorRGBText
 	}
 
 	pdf.SetFillColor(
 		colorSpace[0],
 		colorSpace[1],
 		colorSpace[2])
-
+	pdf.SetTextColor(colorText[0], colorText[1], colorText[2])
 	pdf.CellFormat(
 		codWidth, h1,
 		tr(fmt.Sprintf("%v", helpers.DefaultToMapString(data, "Codigo", ""))),
@@ -561,6 +637,7 @@ func createAcademicSpaceTable(pdf *gofpdf.Fpdf, data map[string]interface{}, pag
 		[]byte(fmt.Sprintf("%v", prerequisitesStr)),
 		tableWidth-2)
 	if len(prerequisitesList) == 0 {
+		borderStr = "LTRB"
 		pdf.SetX(initialPointX)
 		pdf.CellFormat(
 			tableWidth, h2, "",
@@ -659,9 +736,14 @@ func createPeriod(pdf *gofpdf.Fpdf, data map[string]interface{}, pageStyle utils
 			255,
 			255,
 			255)
+
+		totalCredits, creditsOk := data["TotalCreditos"]
+		if !creditsOk {
+			totalCredits = 0
+		}
 		pdf.CellFormat(
 			planMetadata.distributionConfig.colWidth, planMetadata.distributionConfig.rowHeight,
-			tr(fmt.Sprintf("Cantidad de créditos: %v", totalSpaces)),
+			tr(fmt.Sprintf("Cantidad de créditos: %v", totalCredits)),
 			"1", 1, "CM", true, 0, "")
 	} else {
 		// Título Cantidad de créditos

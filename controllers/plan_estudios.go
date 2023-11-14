@@ -11,7 +11,9 @@ import (
 	"github.com/udistrital/sga_mid/utils"
 	requestmanager "github.com/udistrital/sga_mid/utils/requestManager"
 	"reflect"
+	"sort"
 	"strconv"
+	"strings"
 )
 
 // Plan_estudiosController operations for Plan_estudios
@@ -36,7 +38,7 @@ func (c *Plan_estudiosController) URLMapping() {
 // @router /base [post]
 func (c *Plan_estudiosController) PostBaseStudyPlan() {
 	var studyPlanRequest map[string]interface{}
-	const editionApprovalStatus = 3
+	const editionApprovalStatus = 1
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &studyPlanRequest); err == nil {
 		if status, errStatus := getApprovalStatus(editionApprovalStatus); errStatus == nil {
@@ -226,6 +228,7 @@ func (c *Plan_estudiosController) GetStudyPlanVisualization() {
 func getChildStudyPlanVisualization(studyPlanData map[string]interface{}, classificationsData []interface{}) (map[string]interface{}, error) {
 	var facultyName string
 	var totalPlanData []map[string]interface{}
+	academies := map[string]map[string]interface{}{}
 
 	if studyPlanData["ProyectoAcademicoId"] != nil {
 		projectCData, projectErr := utils.GetProyectoCurricular(int(studyPlanData["ProyectoAcademicoId"].(float64)))
@@ -236,7 +239,7 @@ func getChildStudyPlanVisualization(studyPlanData map[string]interface{}, classi
 			}
 
 			planData, errorPlan := getPlanVisualization(studyPlanData, 1,
-				fmt.Sprintf("%v", projectCData["id_snies"]), classificationsData)
+				fmt.Sprintf("%v", projectCData["id_snies"]), classificationsData, academies)
 			if errorPlan == nil {
 				totalPlanData = append(totalPlanData, planData)
 			} else {
@@ -252,14 +255,17 @@ func getChildStudyPlanVisualization(studyPlanData map[string]interface{}, classi
 	dataResult := map[string]any{
 		"Nombre":   studyPlanData["Nombre"],
 		"Facultad": helpers.DefaultTo(facultyName, ""),
-		"Planes":   totalPlanData}
+		"Planes":   totalPlanData,
+		"Escuelas": academies,
+	}
 	return dataResult, nil
 }
 
-func getPlanVisualization(studyPlanData map[string]interface{}, orderNumb int, snies string, classificationsData []interface{}) (map[string]interface{}, error) {
+func getPlanVisualization(studyPlanData map[string]interface{}, orderNumb int, snies string, classificationsData []interface{}, academies map[string]map[string]interface{}) (map[string]interface{}, error) {
 	var resolution string
-	var periodInfoTotal []map[string]interface{}
 	var semesterDistribution map[string]interface{}
+	periodInfoTotal := []map[string]interface{}{}
+	summary := map[string]interface{}{}
 
 	if studyPlanData["NumeroResolucion"] != nil && studyPlanData["AnoResolucion"] != nil {
 		resolution = fmt.Sprintf("%v de %v", studyPlanData["NumeroResolucion"], studyPlanData["AnoResolucion"])
@@ -270,10 +276,13 @@ func getPlanVisualization(studyPlanData map[string]interface{}, orderNumb int, s
 	if semesterDistributionData, semesterDataOk := studyPlanData["EspaciosSemestreDistribucion"]; semesterDataOk && semesterDistributionData != nil {
 		if reflect.TypeOf(semesterDistributionData).Kind() == reflect.String {
 			if err := json.Unmarshal([]byte(semesterDistributionData.(string)), &semesterDistribution); err == nil {
-				spaceVisualizationData, errorSpaceVisualization := semesterDistribution2SpacesVisualization(
-					semesterDistribution, classificationsData)
+				spaceVisualizationData, summaryData, errorSpaceVisualization := semesterDistribution2SpacesVisualization(
+					semesterDistribution, classificationsData, academies)
 				if errorSpaceVisualization == nil {
 					periodInfoTotal = spaceVisualizationData
+					summary = summaryData
+				} else {
+					return nil, errorSpaceVisualization
 				}
 			}
 		}
@@ -287,17 +296,33 @@ func getPlanVisualization(studyPlanData map[string]interface{}, orderNumb int, s
 		"Snies":        helpers.DefaultTo(snies, ""),
 		"PlanEstudio":  helpers.DefaultTo(studyPlanData["Codigo"], ""),
 		"InfoPeriodos": periodInfoTotal,
+		"Resumen":      summary,
 	}
 	return planData, nil
 }
 
-func semesterDistribution2SpacesVisualization(spaceSemesterDistribution map[string]interface{}, classificationsData []interface{}) ([]map[string]any, error) {
+func semesterDistribution2SpacesVisualization(spaceSemesterDistribution map[string]interface{}, classificationsData []interface{}, academies map[string]map[string]interface{}) ([]map[string]any, map[string]any, error) {
 	var periodOrder = 1
 	var totalSpaceVisualizationData []map[string]interface{}
 	var totalPeriodData []map[string]interface{}
+	summary := map[string]interface{}{}
+
+	totalOB := 0
+	totalOC := 0
+	totalEI := 0
+	totalEE := 0
+
+	// Sort spaceSemesterDistribution
+	keysSpace := make([]string, 0, len(spaceSemesterDistribution))
+	for k := range spaceSemesterDistribution {
+		keysSpace = append(keysSpace, k)
+	}
+	sort.Strings(keysSpace)
 
 	// Iterate every semester
-	for _, semesterV := range spaceSemesterDistribution {
+	for _, kSpace := range keysSpace {
+		semesterV := spaceSemesterDistribution[kSpace]
+		totalCredits := 0
 		totalSpaceVisualizationData = []map[string]interface{}{}
 		if spaces, spaceOk := semesterV.(map[string]interface{})["espacios_academicos"]; spaceOk && spaces != nil {
 			if reflect.TypeOf(spaces).Kind() == reflect.Array || reflect.TypeOf(spaces).Kind() == reflect.Slice {
@@ -311,11 +336,23 @@ func semesterDistribution2SpacesVisualization(spaceSemesterDistribution map[stri
 							if spaceField.(map[string]interface{})["Id"] != nil {
 								spaceId = fmt.Sprintf("%v",
 									spaceField.(map[string]interface{})["Id"])
-								spaceVisualizationData, spaceVisualizationErr := getSpaceVisualizationData(spaceId, classificationsData)
+								spaceVisualizationData, spaceVisualizationErr := getSpaceVisualizationData(
+									spaceId, classificationsData, academies)
 
 								if spaceVisualizationErr != nil {
-									return nil, spaceVisualizationErr
+									return nil, nil, spaceVisualizationErr
 								} else {
+									totalCredits = totalCredits + int(spaceVisualizationData["Creditos"].(float64))
+									if spaceVisualizationData["Clasificacion"] == "OB" {
+										totalOB = totalOB + int(spaceVisualizationData["Creditos"].(float64))
+									} else if spaceVisualizationData["Clasificacion"] == "OC" {
+										totalOC = totalOC + int(spaceVisualizationData["Creditos"].(float64))
+									} else if spaceVisualizationData["Clasificacion"] == "EI" {
+										totalEI = totalEI + int(spaceVisualizationData["Creditos"].(float64))
+									} else if spaceVisualizationData["Clasificacion"] == "EE" {
+										totalEE = totalEE + int(spaceVisualizationData["Creditos"].(float64))
+									}
+
 									totalSpaceVisualizationData = append(
 										totalSpaceVisualizationData,
 										spaceVisualizationData)
@@ -327,23 +364,30 @@ func semesterDistribution2SpacesVisualization(spaceSemesterDistribution map[stri
 			}
 		}
 		periodData := map[string]interface{}{
-			"Orden":    periodOrder,
-			"Espacios": totalSpaceVisualizationData,
+			"Orden":         periodOrder,
+			"Espacios":      totalSpaceVisualizationData,
+			"TotalCreditos": totalCredits,
 		}
 
 		totalPeriodData = append(totalPeriodData, periodData)
 		periodOrder++
 	}
-	return totalPeriodData, nil
+	summary = map[string]interface{}{
+		"OB": totalOB,
+		"OC": totalOC,
+		"EI": totalEI,
+		"EE": totalEE,
+	}
+	return totalPeriodData, summary, nil
 }
 
-func getSpaceVisualizationData(academicSpaceId string, classificationsData []interface{}) (map[string]interface{}, error) {
+func getSpaceVisualizationData(academicSpaceId string, classificationsData []interface{}, academies map[string]map[string]interface{}) (map[string]interface{}, error) {
 	var academicSpace map[string]interface{}
 	url := "http://" + beego.AppConfig.String("EspaciosAcademicosService") +
 		fmt.Sprintf("espacio-academico/%v", academicSpaceId)
 
 	academicSpaceError := request.GetJson(url, &academicSpace)
-	if academicSpaceError != nil || academicSpace["Success"] == false {
+	if academicSpaceError != nil || academicSpace == nil || academicSpace["Success"] == false {
 		return nil, fmt.Errorf("EspaciosAcademicosService: %v", academicSpace["Message"])
 	}
 
@@ -367,7 +411,7 @@ func getSpaceVisualizationData(academicSpaceId string, classificationsData []int
 	}
 
 	// Prerequisites
-	var prerequisitesCode []string
+	prerequisitesCode := []string{}
 	if reflect.TypeOf(academicSpaceData["espacios_requeridos"]).Kind() == reflect.Array || reflect.TypeOf(academicSpaceData["espacios_requeridos"]).Kind() == reflect.Slice {
 		for _, prerequisiteId := range academicSpaceData["espacios_requeridos"].([]interface{}) {
 			var prerequisiteResponse map[string]interface{}
@@ -385,16 +429,72 @@ func getSpaceVisualizationData(academicSpaceId string, classificationsData []int
 		}
 	}
 
+	// Get academic space colors
+	var groupingSpace map[string]interface{}
+	var groupingSpaceData map[string]interface{}
+	groupingSpaceId, groupingSpaceOk := academicSpaceData["agrupacion_espacios_id"]
+	if groupingSpaceOk {
+		// Get academic
+		url = "http://" + beego.AppConfig.String("EspaciosAcademicosService") +
+			fmt.Sprintf("agrupacion-espacios/%v", groupingSpaceId)
+
+		groupingSpaceError := request.GetJson(url, &groupingSpace)
+		if groupingSpaceError != nil || groupingSpace["Success"] == false {
+			groupingSpaceData = map[string]interface{}{
+				"color_hex": "#FFFFFF",
+				"nombre":    "---",
+			}
+		} else {
+			groupingSpaceData = groupingSpace["Data"].(map[string]interface{})
+		}
+
+		// Set academies
+		specificAcademic, specificAcademicOk := academies[fmt.Sprintf("%v", groupingSpaceId)]
+		if specificAcademicOk {
+			academies[fmt.Sprintf("%v", groupingSpaceId)]["Cantidad"] = specificAcademic["Cantidad"].(int) + 1
+		} else {
+			academies[fmt.Sprintf("%v", groupingSpaceId)] = map[string]any{
+				"Cantidad": 1,
+				"Color":    groupingSpaceData["color_hex"],
+				"Nombre":   groupingSpaceData["nombre"],
+			}
+		}
+	} else {
+		groupingSpaceId = "sinEscuela"
+
+		groupingSpaceData = map[string]interface{}{
+			"color_hex": "#FFFFFF",
+			"nombre":    "---",
+		}
+
+		// Set academies
+		specificAcademic, specificAcademicOk := academies[fmt.Sprintf("%v", groupingSpaceId)]
+		if specificAcademicOk {
+			academies[fmt.Sprintf("%v", groupingSpaceId)]["Cantidad"] = specificAcademic["Cantidad"].(int) + 1
+		} else {
+			academies[fmt.Sprintf("%v", groupingSpaceId)] = map[string]any{
+				"Cantidad": 1,
+				"Color":    groupingSpaceData["color_hex"],
+				"Nombre":   groupingSpaceData["nombre"],
+			}
+		}
+	}
+
+	fontcolor := getFontColor(fmt.Sprintf("%v", groupingSpaceData["color_hex"]))
+	academies[fmt.Sprintf("%v", groupingSpaceId)]["TxtColor"] = fontcolor
+
 	spaceResult := map[string]interface{}{
-		"Codigo":        academicSpaceData["codigo"],
-		"Nombre":        academicSpaceData["nombre"],
-		"Creditos":      academicSpaceData["creditos"],
-		"Prerequisitos": prerequisitesCode,
-		"HTD":           hoursDistributionData["HTD"],
-		"HTC":           hoursDistributionData["HTC"],
-		"HTA":           hoursDistributionData["HTA"],
-		"Clasificacion": classificationCode["CodigoAbreviacion"],
-		"Escuela":       academicSpaceData["agrupacion_espacios_id"],
+		"Codigo":             academicSpaceData["codigo"],
+		"Nombre":             academicSpaceData["nombre"],
+		"Creditos":           academicSpaceData["creditos"],
+		"Prerequisitos":      prerequisitesCode,
+		"HTD":                hoursDistributionData["HTD"],
+		"HTC":                hoursDistributionData["HTC"],
+		"HTA":                hoursDistributionData["HTA"],
+		"Clasificacion":      classificationCode["CodigoAbreviacion"],
+		"Escuela":            groupingSpaceId,
+		"EscuelaColor":       groupingSpaceData["color_hex"],
+		"EscuelaColorFuente": fontcolor,
 	}
 
 	return spaceResult, nil
@@ -438,6 +538,7 @@ func getParentStudyPlanVisualization(studyPlanData map[string]interface{}, class
 	var facultyName string
 	var totalPlanData []map[string]interface{}
 	var orderPlan map[string]interface{}
+	academies := map[string]map[string]interface{}{}
 
 	if studyPlanData["ProyectoAcademicoId"] != nil {
 		projectCData, projectErr := utils.GetProyectoCurricular(int(studyPlanData["ProyectoAcademicoId"].(float64)))
@@ -452,7 +553,17 @@ func getParentStudyPlanVisualization(studyPlanData map[string]interface{}, class
 				if orderPlanData, orderDataOk := planProjectData["OrdenPlan"]; orderDataOk && orderPlanData != nil {
 					if reflect.TypeOf(orderPlanData).Kind() == reflect.String {
 						if err := json.Unmarshal([]byte(orderPlanData.(string)), &orderPlan); err == nil {
-							for _, planV := range orderPlan {
+							// Sort plans
+							keysPlans := make([]string, 0, len(orderPlan))
+							for k := range orderPlan {
+								keysPlans = append(keysPlans, k)
+							}
+							sort.SliceStable(keysPlans, func(i, j int) bool {
+								return orderPlan[keysPlans[i]].(map[string]any)["Orden"].(float64) < orderPlan[keysPlans[j]].(map[string]any)["Orden"].(float64)
+							})
+
+							for _, kPlan := range keysPlans {
+								planV := orderPlan[kPlan]
 								if idChildPlan, childPlanError := planV.(map[string]interface{})["Id"]; childPlanError {
 									var resChildStudyPlan map[string]interface{}
 									urlChildStudyPlan := "http://" + beego.AppConfig.String("PlanEstudioService") +
@@ -474,9 +585,12 @@ func getParentStudyPlanVisualization(studyPlanData map[string]interface{}, class
 											childStudyPlanData,
 											int(planV.(map[string]interface{})["Orden"].(float64)),
 											fmt.Sprintf("%v", projectCData["id_snies"]),
-											classificationsData)
+											classificationsData,
+											academies)
 										if errorPlan == nil {
 											totalPlanData = append(totalPlanData, childPlanData)
+										} else {
+											return nil, errorPlan
 										}
 									} else {
 										if errChildPlan == nil {
@@ -507,7 +621,9 @@ func getParentStudyPlanVisualization(studyPlanData map[string]interface{}, class
 	dataResult := map[string]any{
 		"Nombre":   studyPlanData["Nombre"],
 		"Facultad": helpers.DefaultTo(facultyName, ""),
-		"Planes":   totalPlanData}
+		"Planes":   totalPlanData,
+		"Escuelas": academies,
+	}
 	return dataResult, nil
 }
 
@@ -530,6 +646,29 @@ func getPlanProjectByParent(parentId float64) (map[string]any, error) {
 	}
 }
 
+func getFontColor(backgroundColor string) string {
+	hexString := strings.Replace(backgroundColor, "#", "", 1)
+
+	var rgb [3]int
+	values, err := strconv.ParseInt(hexString, 16, 32)
+
+	if err != nil {
+		return "#838383"
+	}
+
+	rgb[0] = int(values >> 16)
+	rgb[1] = int((values >> 8) & 0xFF)
+	rgb[2] = int(values & 0xFF)
+
+	brightness := (float64(rgb[0])*0.299 + float64(rgb[1])*587 + float64(rgb[2])*114) / 255
+
+	if brightness > 0.5 {
+		return "#000000"
+	} else {
+		return "#FFFFFF"
+	}
+}
+
 // PostGenerarDocumentoPlanEstudio ...
 // @Title PostGenerarDocumentoPlanEstudio
 // @Description Genera un documento PDF del plan de estudio
@@ -541,6 +680,36 @@ func (c *Plan_estudiosController) PostGenerarDocumentoPlanEstudio() {
 	var data map[string]interface{}
 
 	if parseErr := json.Unmarshal(c.Ctx.Input.RequestBody, &data); parseErr == nil {
+		plans := data["Planes"].([]any)
+		if len(plans) > 0 {
+			// sort plans by order field
+			sort.Slice(plans, func(i, j int) bool {
+				return plans[i].(map[string]any)["Orden"].(float64) < plans[j].(map[string]any)["Orden"].(float64)
+			})
+
+			//	sort periods of each plan by the order field
+			for _, plan := range plans {
+				infoPeriods := plan.(map[string]any)["InfoPeriodos"].([]any)
+				sort.Slice(infoPeriods, func(i, j int) bool {
+					return infoPeriods[i].(map[string]any)["Orden"].(float64) < infoPeriods[j].(map[string]any)["Orden"].(float64)
+				})
+			}
+
+			// sort by academy
+			academies := data["Escuelas"].(map[string]any)
+			for _, plan := range plans {
+				infoPeriods := plan.(map[string]any)["InfoPeriodos"].([]any)
+				for _, period := range infoPeriods {
+					spaces := period.(map[string]any)["Espacios"].([]any)
+					sort.Slice(spaces, func(i, j int) bool {
+						academyA := academies[fmt.Sprintf("%v", spaces[i].(map[string]any)["Escuela"].(string))]
+						academyB := academies[fmt.Sprintf("%v", spaces[j].(map[string]any)["Escuela"].(string))]
+						return academyA.(map[string]any)["Cantidad"].(float64) > academyB.(map[string]any)["Cantidad"].(float64)
+					})
+				}
+			}
+		}
+
 		pdf := plan_estudio_visualizacion_documento.GenerateStudyPlanDocument(data)
 
 		if pdf.Err() {
