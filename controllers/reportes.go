@@ -185,9 +185,9 @@ func (c *ReportesController) ReporteCargaLectiva() {
 		json.Unmarshal([]byte(resp.(map[string]interface{})["ResumenColocacionEspacioFisico"].(string)), &resumenColocacion)
 
 		datosCargaPlan[i].Horario = resumenColocacion.Colocacion
-		datosCargaPlan[i].Sede_id = resumenColocacion.EspacioFisico.SedeId
-		datosCargaPlan[i].Edificio_id = resumenColocacion.EspacioFisico.EdificioId
-		datosCargaPlan[i].Salon_id = resumenColocacion.EspacioFisico.SalonId
+		datosCargaPlan[i].Sede_id = fmt.Sprint(resumenColocacion.EspacioFisico.SedeId)
+		datosCargaPlan[i].Edificio_id = fmt.Sprint(resumenColocacion.EspacioFisico.EdificioId)
+		datosCargaPlan[i].Salon_id = fmt.Sprint(resumenColocacion.EspacioFisico.SalonId)
 	}
 	//
 	// * ----------
