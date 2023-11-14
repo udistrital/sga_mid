@@ -1,6 +1,6 @@
 # sga_mid
 
-API MID del Sistema de Gestión Académica (SGA)
+API MID del Sistema de Gestión Académica (SGA) Prueba 
 
 ## Especificaciones Técnicas
 
