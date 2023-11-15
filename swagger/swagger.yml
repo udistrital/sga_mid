@@ -153,7 +153,8 @@ paths:
     get:
       tags:
       - admision
-      description: get Lista estados aspirantes by id_periodo id_nivel id_proyecto and tipo_lista
+      description: get Lista estados aspirantes by id_periodo id_nivel id_proyecto
+        and tipo_lista
       operationId: AdmisionController.GetListaAspirantesPor
       parameters:
       - in: query
@@ -264,7 +265,8 @@ paths:
         type: string
       - in: query
         name: order
-        description: Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ...
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
         type: string
       - in: query
         name: limit
@@ -302,7 +304,8 @@ paths:
     post:
       tags:
       - calendario_academico
-      description: Proyecto obtener el Id de calendario padre, crear el nuevo calendario (hijo) e inactivar el calendario padre
+      description: Proyecto obtener el Id de calendario padre, crear el nuevo calendario
+        (hijo) e inactivar el calendario padre
       operationId: ConsultaCalendarioAcademicoController.PostCalendarioHijo
       parameters:
       - in: body
@@ -360,7 +363,9 @@ paths:
     post:
       tags:
       - clonar_calendario
-      description: Clona calendario, crea tipo_evento si lo tiene, crea calendario_evento si tiene, crea calendario_evento_tipo_publico si tiene, crea tipo_publico si lo tiene
+      description: Clona calendario, crea tipo_evento si lo tiene, crea calendario_evento
+        si tiene, crea calendario_evento_tipo_publico si tiene, crea tipo_publico
+        si lo tiene
       operationId: CalendarioController.PostCalendario
       parameters:
       - in: body
@@ -378,7 +383,9 @@ paths:
     post:
       tags:
       - clonar_calendario
-      description: Clona calendario para extension, crea tipo_evento si lo tiene, crea calendario_evento si tiene, crea calendario_evento_tipo_publico si tiene, crea tipo_publico si lo tiene
+      description: Clona calendario para extension, crea tipo_evento si lo tiene,
+        crea calendario_evento si tiene, crea calendario_evento_tipo_publico si tiene,
+        crea tipo_publico si lo tiene
       operationId: CalendarioController.PostCalendarioExtension
       parameters:
       - in: body
@@ -396,7 +403,9 @@ paths:
     post:
       tags:
       - clonar_calendario
-      description: Clona calendario padre, crea tipo_evento si lo tiene, crea calendario_evento si tiene, crea calendario_evento_tipo_publico si tiene, crea tipo_publico si lo tiene
+      description: Clona calendario padre, crea tipo_evento si lo tiene, crea calendario_evento
+        si tiene, crea calendario_evento_tipo_publico si tiene, crea tipo_publico
+        si lo tiene
       operationId: CalendarioController.PostCalendarioPadre
       parameters:
       - in: body
@@ -431,7 +440,8 @@ paths:
         type: string
       - in: query
         name: order
-        description: Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ...
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
         type: string
       - in: query
         name: limit
@@ -529,7 +539,8 @@ paths:
         type: string
       - in: query
         name: order
-        description: Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ...
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
         type: string
       - in: query
         name: limit
@@ -611,7 +622,8 @@ paths:
     post:
       tags:
       - crear_actividad_calendario
-      description: Agregar actividad calendario, tipo_publico y tabla de rompimiento calendario_evento_tipo_publico
+      description: Agregar actividad calendario, tipo_publico y tabla de rompimiento
+        calendario_evento_tipo_publico
       operationId: ActividadCalendarioController.PostActividadCalendario
       parameters:
       - in: body
@@ -629,7 +641,8 @@ paths:
     put:
       tags:
       - crear_actividad_calendario
-      description: Actualiza tabla de rompimiento calendario_evento_tipo_publico segun los responsables de una Actividad
+      description: Actualiza tabla de rompimiento calendario_evento_tipo_publico segun
+        los responsables de una Actividad
       operationId: ActividadCalendarioController.UpdateActividadResponsables
       parameters:
       - in: body
@@ -755,7 +768,8 @@ paths:
     get:
       tags:
       - derechos_pecuniarios
-      description: consultar los estados de todos los recibos de derechos pecuniarios generados por el tercero
+      description: consultar los estados de todos los recibos de derechos pecuniarios
+        generados por el tercero
       operationId: DerechosPecuniariosController.GetEstadoRecibo
       parameters:
       - in: path
@@ -1721,7 +1735,8 @@ paths:
     get:
       tags:
       - notas
-      description: Obtener lista de estudiantes con los registros de notas para determinada asignatura
+      description: Obtener lista de estudiantes con los registros de notas para determinada
+        asignatura
       operationId: NotasController.GetCapturaNotas
       parameters:
       - in: path
@@ -2267,7 +2282,8 @@ paths:
     get:
       tags:
       - plan_trabajo_docente
-      description: Listar todas las asignaciones de la vigencia determinada de un docente
+      description: Listar todas las asignaciones de la vigencia determinada de un
+        docente
       operationId: PtdController.GetAsignacionesDocentes
       parameters:
       - in: path
@@ -2472,7 +2488,8 @@ paths:
     get:
       tags:
       - plan_trabajo_docente
-      description: Traer la información de las asignaciones de un docente en la vigencia determinada
+      description: Traer la información de las asignaciones de un docente en la vigencia
+        determinada
       operationId: PtdController.GetPlanTrabajoDocente
       parameters:
       - in: path
@@ -2579,7 +2596,8 @@ paths:
         type: string
       - in: query
         name: order
-        description: Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ...
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
         type: string
       - in: query
         name: limit
@@ -2913,7 +2931,8 @@ paths:
     post:
       tags:
       - proyecto_academico
-      description: Post a de un cordinador de un proyecto existente, cambia estado activo a false a los coordinadores anteriores y crea el nuevo
+      description: Post a de un cordinador de un proyecto existente, cambia estado
+        activo a false a los coordinadores anteriores y crea el nuevo
       operationId: CrearProyectoAcademicoController.PostCoordinadorById
       parameters:
       - in: path
@@ -2938,7 +2957,8 @@ paths:
     post:
       tags:
       - proyecto_academico
-      description: Post a de un registro de un proyecto existente, cambia estado activo a false a los registro anteriores y crea el nuevo
+      description: Post a de un registro de un proyecto existente, cambia estado activo
+        a false a los registro anteriores y crea el nuevo
       operationId: CrearProyectoAcademicoController.PostRegistroAltaCalidadById
       parameters:
       - in: path
@@ -2963,7 +2983,8 @@ paths:
     post:
       tags:
       - proyecto_academico
-      description: Post a de un registro de un proyecto existente, cambia estado activo a false a los registro anteriores y crea el nuevo
+      description: Post a de un registro de un proyecto existente, cambia estado activo
+        a false a los registro anteriores y crea el nuevo
       operationId: CrearProyectoAcademicoController.PostRegistroCalificadoById
       parameters:
       - in: body
@@ -3305,7 +3326,8 @@ paths:
     get:
       tags:
       - solicitud_evaluacion
-      description: Consultar los datos ingresados por el estudiante en su solicitud consultando por id de la solicitud
+      description: Consultar los datos ingresados por el estudiante en su solicitud
+        consultando por id de la solicitud
       operationId: SolicitudEvaluacionController.GetDatosSolicitudById
       parameters:
       - in: path
@@ -3346,7 +3368,8 @@ paths:
       parameters:
       - in: body
         name: body
-        description: body Agregar una evolucion del estado a la solicitud planteada content
+        description: body Agregar una evolucion del estado a la solicitud planteada
+          content
         required: true
         schema:
           $ref: '#/definitions/{}'
