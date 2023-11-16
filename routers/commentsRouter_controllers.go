@@ -502,6 +502,15 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
+	beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:EspaciosAcademicosLegacyController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:EspaciosAcademicosLegacyController"],
+		beego.ControllerComments{
+			Method:           "GetSyllabusLegacy",
+			Router:           "/syllabus/:qp_syllabus",
+			AllowHTTPMethods: []string{"get"},
+			MethodParams:     param.Make(),
+			Filters:          nil,
+			Params:           nil})
+
 	beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:EventoController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:EventoController"],
 		beego.ControllerComments{
 			Method:           "PostEvento",
