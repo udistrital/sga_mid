@@ -13,6 +13,7 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/phpdave11/gofpdf"
 	"github.com/phpdave11/gofpdf/contrib/barcode"
+	"github.com/udistrital/sga_mid/utils"
 	"github.com/udistrital/utils_oas/request"
 )
 
@@ -146,6 +147,23 @@ func (c *GenerarReciboController) PostGenerarComprobanteInscripcion() {
 					if pdf.Ok() {
 						encodedFile := encodePDF(pdf)
 						c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Query successful", "Data": encodedFile}
+						fecha_actual := time.Now()
+						dataEmail := map[string]interface{}{
+							"dia":     fecha_actual.Day(),
+							"mes":     utils.GetNombreMes(fecha_actual.Month()),
+							"anio":    fecha_actual.Year(),
+							"nombre":  data["ASPIRANTE"].(map[string]interface{})["nombre"].(string),
+							"periodo": data["INSCRIPCION"].(map[string]interface{})["periodo"].(string),
+						}
+						fmt.Println("data object", dataEmail)
+						//utils.SendNotificationInscripcionSolicitud(dataEmail, objTransaccion["correo"].(string))
+						attachments := []map[string]interface{}{}
+						attachments = append(attachments, map[string]interface{}{
+							"ContentType": "application/pdf",
+							"FileName":    "Comprobante_inscripcion_" + data["INSCRIPCION"].(map[string]interface{})["nombrePrograma"].(string),
+							"Base64File":  encodedFile,
+						})
+						utils.SendNotificationInscripcionComprobante(dataEmail, data["ASPIRANTE"].(map[string]interface{})["correo"].(string), attachments)
 					}
 
 				} else {

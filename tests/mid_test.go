@@ -25,12 +25,11 @@ import (
 
 	"github.com/udistrital/utils_oas/request"
 
-	"github.com/DATA-DOG/godog"
-	"github.com/DATA-DOG/godog/colors"
 	"github.com/astaxie/beego"
+	"github.com/cucumber/godog"
+	"github.com/cucumber/godog/colors"
 	// "github.com/xeipuuv/gojsonschema"
 )
-
 
 /*------------------------------
   ------ Variables -------------
@@ -38,15 +37,21 @@ import (
 
 //@opt opciones de godog
 var opt = godog.Options{Output: colors.Colored(os.Stdout)}
+
 // @resStatus codigo de respuesta a las solicitudes a la api
 var resStatus string
+
 // @resBody JSON repuesta Delete
 var resDelete string
+
 // @resBody JSON de respuesta a las solicitudesde la api
 var resBody []byte
+
 // @especificacion estructura de la fecha
 const especificacion = "Jan 2, 2006 at 3:04pm (MST)"
+
 var IntentosAPI = 1
+
 // var savepostres map[string]interface{}
 // var Id float64
 
@@ -78,7 +83,7 @@ func deleteFile(path string) {
 func run_bee() {
 	var resultado map[string]interface{}
 	// Comand to run
-	// go get github.com/DATA-DOG/godog/cmd/godog
+	// go get github.com/cucumber/godog/cmd/godog
 	// PROYECTO_SERVICE=localhost:8080/v1  UNIDAD_TIEMPO_SERVICE=localhost:8082/v1/ CORE_SERVICE=api.planestic.udistrital.edu.co:8102/v1/ OIKOS_SERVICE=localhost:8082/v1/ INSCRIPCIONES_SERVICE=localhost:8082/v1/ EVALUACION_INSCRIPCION_SERVICE=localhost:8083/v1/ PERSONAS_SERVICE=api.planestic.udistrital.edu.co:8083/v1/ SGA_MID_HTTP_PORT=8095 SGA_MID_URL=localhost EVENTOS_SERVICE=localhost:8081/v1/ PRODUCCION_ACADEMICA_SERVICE=localhost:8080/v1/ godog
 	parametros := "SGA_MID_HTTP_PORT=" + beego.AppConfig.String("httpport") +
 		" SGA_MID_URL=" + beego.AppConfig.String("appurl") +
@@ -108,8 +113,8 @@ func run_bee() {
 	}
 
 	time.Sleep(20 * time.Second)
-	
-	fmt.Println("Obteniendo respuesta de http://"+beego.AppConfig.String("appurl")+":"+beego.AppConfig.String("httpport"))
+
+	fmt.Println("Obteniendo respuesta de http://" + beego.AppConfig.String("appurl") + ":" + beego.AppConfig.String("httpport"))
 	errApi := request.GetJson("http://"+beego.AppConfig.String("appurl")+":"+beego.AppConfig.String("httpport"), &resultado)
 	if errApi == nil && resultado != nil {
 		fmt.Println("El API se Encuentra en Estado OK")
@@ -201,7 +206,7 @@ func getPages(ruta string) []byte {
 
 // @iSendRequestToWhereBodyIsMultipartformdataWithThisParamsAndTheFileLocatedAt realiza la solicitud a la API
 func iSendRequestToWhereBodyIsMultipartformdataWithThisParamsAndTheFileLocatedAt(method, endpoint, bodyreq string, filename string, bodyfile string) error {
-	
+
 	var url string
 
 	if method == "GET" || method == "POST" {
@@ -215,9 +220,9 @@ func iSendRequestToWhereBodyIsMultipartformdataWithThisParamsAndTheFileLocatedAt
 	extraParams := getPages(bodyreq)
 	var params map[string]string
 	err := json.Unmarshal(extraParams, &params)
-    if err != nil {
-        return err
-    }
+	if err != nil {
+		return err
+	}
 
 	path, _ := os.Getwd()
 	path += "/"
@@ -299,10 +304,10 @@ func iSendRequestToWhereBodyIsJson(method, endpoint, bodyreq string) error {
 
 	// Se almacena el Id del elemento creado
 	/*
-	if method == "POST" && resStatus == "201 Created" {
-		json.Unmarshal([]byte(bodyr), &savepostres)
-		Id = savepostres["Id"].(float64)
-	}
+		if method == "POST" && resStatus == "201 Created" {
+			json.Unmarshal([]byte(bodyr), &savepostres)
+			Id = savepostres["Id"].(float64)
+		}
 	*/
 
 	return nil
@@ -327,33 +332,33 @@ func theResponseShouldMatchJson(arg1 string) error {
 		return fmt.Errorf("Se esperaba el body de respuesta %s y se obtuvo %s", string(pages), resBody)
 	}
 	/*
-	div := strings.Split(arg1, "")
-	pages := getPages(arg1)
-	//areEqual, _ := AreEqualJSON(string(pages), string(resBody))
-	if div[13] == "V" {
-		schemaLoader := gojsonschema.NewStringLoader(string(pages))
-		documentLoader := gojsonschema.NewStringLoader(string(resBody))
-		result, err := gojsonschema.Validate(schemaLoader, documentLoader)
-		if err != nil {
-			fmt.Println(err.Error())
-			os.Exit(1)
-		}
-		if result.Valid() {
-			return nil
-		} else {
-			return fmt.Errorf("Errores : %s", result.Errors())
+		div := strings.Split(arg1, "")
+		pages := getPages(arg1)
+		//areEqual, _ := AreEqualJSON(string(pages), string(resBody))
+		if div[13] == "V" {
+			schemaLoader := gojsonschema.NewStringLoader(string(pages))
+			documentLoader := gojsonschema.NewStringLoader(string(resBody))
+			result, err := gojsonschema.Validate(schemaLoader, documentLoader)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
+			if result.Valid() {
+				return nil
+			} else {
+				return fmt.Errorf("Errores : %s", result.Errors())
 
-			return nil
+				return nil
+			}
 		}
-	}
-	if div[13] == "I" {
-		areEqual, _ := AreEqualJSON(string(pages), string(resBody))
-		if areEqual {
-			return nil
-		} else {
-			return fmt.Errorf(" se esperaba el body de respuesta %s y se obtuvo %s", string(pages), resBody)
-		}
-	}*/
+		if div[13] == "I" {
+			areEqual, _ := AreEqualJSON(string(pages), string(resBody))
+			if areEqual {
+				return nil
+			} else {
+				return fmt.Errorf(" se esperaba el body de respuesta %s y se obtuvo %s", string(pages), resBody)
+			}
+		}*/
 	return nil
 }
 
