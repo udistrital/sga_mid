@@ -183,6 +183,11 @@ func init() {
 				&controllers.Espacios_academicosController{},
 			),
 		),
+		beego.NSNamespace("/espacios_academicos_legacy",
+			beego.NSInclude(
+				&controllers.EspaciosAcademicosLegacyController{},
+			),
+		),
 		beego.NSNamespace("/reportes",
 			beego.NSInclude(
 				&controllers.ReportesController{},
