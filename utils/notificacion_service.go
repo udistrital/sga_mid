@@ -9,21 +9,21 @@ import (
 	"time"
 
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/utils_oas/request"
 )
 
-func SendTemplatedEmail(inputemailtemplated map[string]interface{}) (result error) {
+func SendTemplatedEmail(inputemailtemplated map[string]interface{}) {
 	var resultadoPost map[string]interface{}
 	if errSendTemplatedEmail := request.SendJsonEscapeUnicode("http://"+beego.AppConfig.String("notificacionService")+"email/enviar_templated_email", "POST", &resultadoPost, inputemailtemplated); errSendTemplatedEmail == nil {
 		fmt.Println("resultado", resultadoPost)
-		return nil
+
 	} else {
-		result = errSendTemplatedEmail
+		logs.Error(errSendTemplatedEmail)
 	}
-	return result
 }
 
-func SendNotificationInscripcionSolicitud(data map[string]interface{}, email string) (result error) {
+func SendNotificationInscripcionSolicitud(data map[string]interface{}, email string) {
 	var toAddresses []string
 	var destinations []map[string]interface{}
 
@@ -50,10 +50,10 @@ func SendNotificationInscripcionSolicitud(data map[string]interface{}, email str
 		"DefaultTemplateData": m,
 	}
 
-	return SendTemplatedEmail(dataEmail)
+	SendTemplatedEmail(dataEmail)
 }
 
-func SendNotificationInscripcionComprobante(data map[string]interface{}, email string, attachments []map[string]interface{}) (result error) {
+func SendNotificationInscripcionComprobante(data map[string]interface{}, email string, attachments []map[string]interface{}) {
 	var toAddresses []string
 	var destinations []map[string]interface{}
 
@@ -81,5 +81,5 @@ func SendNotificationInscripcionComprobante(data map[string]interface{}, email s
 		"DefaultTemplateData": m,
 	}
 
-	return SendTemplatedEmail(dataEmail)
+	SendTemplatedEmail(dataEmail)
 }
