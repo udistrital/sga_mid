@@ -1612,6 +1612,8 @@ func consultarDetallePlan(planes []interface{}, idVinculacion string) map[string
 				"id":             planes[0].(map[string]interface{})["docente_id"].(string),
 				"nombre":         cases.Title(language.Spanish).String(resDocente["NombreCompleto"].(string)),
 				"identificacion": resDocumento[0]["Numero"],
+				"nombre1":        cases.Title(language.Spanish).String(resDocente["PrimerNombre"].(string)),
+				"apellido1":      cases.Title(language.Spanish).String(resDocente["PrimerApellido"].(string)),
 			}
 		}
 	}
@@ -1703,6 +1705,10 @@ func consultarDetallePlan(planes []interface{}, idVinculacion string) map[string
 				var resEspacioAcademico map[string]interface{}
 				if memEspaciosDetalle[preasignacion.(map[string]interface{})["espacio_academico_id"].(string)] == nil {
 					if errEspacioAcademico := request.GetJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico/"+preasignacion.(map[string]interface{})["espacio_academico_id"].(string), &resEspacioAcademico); errEspacioAcademico == nil {
+						modular := false
+						if val, ok := resEspacioAcademico["Data"].(map[string]interface{})["espacio_modular"]; ok {
+							modular = val.(bool)
+						}
 						memEspaciosDetalle[preasignacion.(map[string]interface{})["espacio_academico_id"].(string)] = map[string]interface{}{
 							"espacio_academico": resEspacioAcademico["Data"].(map[string]interface{})["nombre"].(string),
 							"nombre":            resEspacioAcademico["Data"].(map[string]interface{})["nombre"].(string) + " - " + resEspacioAcademico["Data"].(map[string]interface{})["grupo"].(string),
@@ -1711,6 +1717,7 @@ func consultarDetallePlan(planes []interface{}, idVinculacion string) map[string
 							"id":                preasignacion.(map[string]interface{})["espacio_academico_id"].(string),
 							"plan_id":           plan.(map[string]interface{})["_id"].(string),
 							"proyecto_id":       resEspacioAcademico["Data"].(map[string]interface{})["proyecto_academico_id"],
+							"espacio_modular":   modular,
 						}
 						espacioPlan = append(espacioPlan, memEspaciosDetalle[preasignacion.(map[string]interface{})["espacio_academico_id"].(string)])
 					}
@@ -1741,6 +1748,25 @@ func consultarDetallePlan(planes []interface{}, idVinculacion string) map[string
 		memPlanDocente = append(memPlanDocente, plan.(map[string]interface{})["_id"].(string))
 	}
 
+	relatedPlans := []string{}
+	for _, espacioAcad := range memEspacios[0].([]interface{}) {
+		if espacioAcad.(map[string]interface{})["espacio_modular"].(bool) {
+			resp, err := requestmanager.Get("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+
+				fmt.Sprintf("pre_asignacion?query=activo:true,aprobacion_proyecto:true,aprobacion_docente:true,periodo_id:%v,espacio_academico_id:%v", planes[0].(map[string]interface{})["periodo_id"], espacioAcad.(map[string]interface{})["id"]), requestmanager.ParseResponseFormato1)
+			if err == nil {
+				for _, preasign := range resp.([]interface{}) {
+					if planes[0].(map[string]interface{})["docente_id"] != preasign.(map[string]interface{})["docente_id"] {
+						relatedPlans = append(relatedPlans, fmt.Sprintf("%v/%v/%v", preasign.(map[string]interface{})["docente_id"], planes[0].(map[string]interface{})["periodo_id"], preasign.(map[string]interface{})["tipo_vinculacion_id"]))
+					}
+				}
+			}
+		}
+	}
+
+	relatedPlansSimple := utils.RemoveDuplicated(relatedPlans, func(item interface{}) interface{} {
+		return item.(string)
+	})
+
 	response["docente"] = memDocente
 	response["tipo_vinculacion"] = memVinculacion
 	response["carga"] = memCarga
@@ -1750,6 +1776,7 @@ func consultarDetallePlan(planes []interface{}, idVinculacion string) map[string
 	response["estado_plan"] = memEstadoPlan
 	response["vigencia"] = planes[0].(map[string]interface{})["periodo_id"].(string)
 	response["resumenes"] = memResumenes
+	response["planes_relacionados_query"] = relatedPlansSimple
 	// response["actividades"] = memActividades
 
 	return response
