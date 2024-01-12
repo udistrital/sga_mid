@@ -143,7 +143,7 @@ func GetSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData m
 func GetSyllabusTemplate(syllabusTemplateData map[string]interface{}, syllabusTemplateResponse *map[string]interface{}) {
 
 	if err := helpers.SendJson(
-		"http://"+beego.AppConfig.String("SyllabusService")+"syllabus/template",
+		"http://"+beego.AppConfig.String("SyllabusService")+"v2/syllabus/template",
 		"POST",
 		&syllabusTemplateResponse,
 		syllabusTemplateData); err != nil {
