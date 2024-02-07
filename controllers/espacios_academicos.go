@@ -563,7 +563,8 @@ func (c *Espacios_academicosController) PostSyllabusTemplate() {
 					spaceData, syllabusData,
 					facultyData, projectData, idiomas)
 
-				utils.GetSyllabusTemplate(syllabusTemplateData, &syllabusTemplateResponse, templateFormat)
+				utils.GetSyllabusTemplate(syllabusTemplateData, &syllabusTemplateResponse,
+					fmt.Sprintf("%v", templateFormat))
 
 				c.Data["json"] = map[string]interface{}{
 					"Success": true,
