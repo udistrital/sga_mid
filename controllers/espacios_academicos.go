@@ -492,6 +492,13 @@ func (c *Espacios_academicosController) PostSyllabusTemplate() {
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &syllabusRequest); err == nil {
 		syllabusCode := syllabusRequest["syllabusCode"]
+		templateFormat, hasFormat := syllabusRequest["format"]
+		if hasFormat {
+			templateFormat = templateFormat.(string)
+		} else {
+			templateFormat = "pdf"
+		}
+
 		if syllabusVersion, hasVersion := syllabusRequest["version"]; hasVersion {
 			syllabusErr := request.GetJson("http://"+beego.AppConfig.String("SyllabusService")+
 				fmt.Sprintf("syllabus?query=syllabus_code:%v,version:%v&limit=1&offset=0", syllabusCode, syllabusVersion), &syllabusResponse)
@@ -556,7 +563,7 @@ func (c *Espacios_academicosController) PostSyllabusTemplate() {
 					spaceData, syllabusData,
 					facultyData, projectData, idiomas)
 
-				utils.GetSyllabusTemplate(syllabusTemplateData, &syllabusTemplateResponse)
+				utils.GetSyllabusTemplate(syllabusTemplateData, &syllabusTemplateResponse, templateFormat)
 
 				c.Data["json"] = map[string]interface{}{
 					"Success": true,
