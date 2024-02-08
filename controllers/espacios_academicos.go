@@ -570,7 +570,8 @@ func (c *Espacios_academicosController) PostSyllabusTemplate() {
 					"Success": true,
 					"Status":  "201",
 					"Message": "Generated Syllabus Template OK",
-					"Data":    syllabusTemplateResponse["Data"].(map[string]interface{})}
+					"Data": map[string]interface{}{
+						"document": syllabusTemplateResponse["body"].(map[string]interface{})["Data"]}}
 			} else {
 				err := fmt.Errorf(
 					"SyllabusTemplateService: Incomplete data to generate the document. Facultad y/o Idioma")
