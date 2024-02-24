@@ -651,7 +651,6 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 											return
 										}
 
-										fmt.Println(concepto.(string))
 										IdConcepto = homologacionMap[concepto.(string)]
 									}
 
