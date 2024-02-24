@@ -3,10 +3,9 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"math/rand"
+	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/httplib"
@@ -633,37 +632,34 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 									Fecha_pago := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["fecha_ordinario"]
 									Cedula_estudiante := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["documento"]
 									ProgramaAcademicoId := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["carrera"]
+									CodConcepto := ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["concepto"]
 									IdConcepto := "0"
 
-									switch concepto {
-									case "CERTIFICADO DE NOTAS":
-										IdConcepto = "40"
-									case "DERECHOS DE GRADO":
-										IdConcepto = "50"
-									case "DUPLICADO DEL DIPLOMA DE GRADO":
-										IdConcepto = "51"
-									case "DUPLICADO DEL CARNET ESTUDIANTIL":
-										IdConcepto = "44"
-									case "CURSOS VACIONALES":
-										IdConcepto = "31"
-									case "CONSTANCIAS DE ESTUDIO":
-										IdConcepto = "41"
-									case "COPIA ACTA DE GRADO":
-										IdConcepto = "49"
-									case "CARNET ESTUDIANTIL":
-										IdConcepto = "42"
-									case "Inscripcion Virtual":
-										conceptos := make([]string, 0)
-										conceptos = append(conceptos, "40", "50", "51", "44", "31", "41", "49", "42")
-										rand.Seed(time.Now().Unix())
-										IdConcepto = conceptos[rand.Intn(len(conceptos))]
+									if CodConcepto != nil {
+										IdConcepto = CodConcepto.(string)
+									} else {
+										jsonData, err := os.ReadFile("resources/homologacion-concepto.json")
+										if err != nil {
+											fmt.Println("Error al leer el archivo:", err)
+											return
+										}
+
+										homologacionMap := make(map[string]string)
+										err = json.Unmarshal(jsonData, &homologacionMap)
+										if err != nil {
+											fmt.Println("Error al decodificar el archivo:", err)
+											return
+										}
+
+										fmt.Println(concepto.(string))
+										IdConcepto = homologacionMap[concepto.(string)]
 									}
 
 									//Nombre del derecho pecuniario
 									errDerecho := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId.CodigoAbreviacion:"+IdConcepto+",PeriodoId.Id:"+id_periodo+",Activo:true", &Derecho)
 									NombreConcepto := "---"
 									if errDerecho == nil {
-										if Derecho != nil && fmt.Sprintf("%v", Derecho["Data"]) != "map[]" {
+										if Derecho != nil && fmt.Sprintf("%v", Derecho["Data"]) != "[map[]]" {
 											/////////////////////////////////////////////////////////////
 											Resultado := Derecho["Data"].([]interface{})[0].(map[string]interface{})["Valor"].(string)
 
