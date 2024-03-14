@@ -3,11 +3,12 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/udistrital/sga_mid/utils"
-	requestmanager "github.com/udistrital/sga_mid/utils/requestManager"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/udistrital/sga_mid/utils"
+	requestmanager "github.com/udistrital/sga_mid/utils/requestManager"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
