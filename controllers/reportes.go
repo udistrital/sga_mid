@@ -226,8 +226,8 @@ func (c *ReportesController) ReporteCargaLectiva() {
 
 	footerstr := fmt.Sprintf("&L%s&C&CPágina &P de &N&R%s", "Oficina Asesora de Tecnologías e Información", "Fecha de generación: "+horaes)
 	template.SetHeaderFooter(sheet, &excelize.HeaderFooterOptions{
-		AlignWithMargins: true,
-		ScaleWithDoc:     true,
+		AlignWithMargins: boolPtr(true),
+		ScaleWithDoc:     boolPtr(true),
 		OddFooter:        footerstr,
 	})
 	// ? información del docente
@@ -820,8 +820,8 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 
 	footerstr := fmt.Sprintf("&L%s&C&CPágina &P de &N&R%s", "Oficina Asesora de Tecnologías e Información", "Fecha de generación: "+horaes)
 	template.SetHeaderFooter(sheet, &excelize.HeaderFooterOptions{
-		AlignWithMargins: true,
-		ScaleWithDoc:     true,
+		AlignWithMargins: boolPtr(true),
+		ScaleWithDoc:     boolPtr(true),
 		OddFooter:        footerstr,
 	})
 
@@ -939,8 +939,8 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 
 	footerstr = fmt.Sprintf("&L%s&C&CPágina &P de &N&R%s", "Oficina Asesora de Tecnologías e Información", "Fecha de generación: "+horaes)
 	template.SetHeaderFooter(sheet, &excelize.HeaderFooterOptions{
-		AlignWithMargins: true,
-		ScaleWithDoc:     true,
+		AlignWithMargins: boolPtr(true),
+		ScaleWithDoc:     boolPtr(true),
 		OddFooter:        footerstr,
 	})
 
@@ -1038,8 +1038,8 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 
 	footerstr = fmt.Sprintf("&L%s&C&CPágina &P de &N&R%s", "Oficina Asesora de Tecnologías e Información", "Fecha de generación: "+horaes)
 	template.SetHeaderFooter(sheet, &excelize.HeaderFooterOptions{
-		AlignWithMargins: true,
-		ScaleWithDoc:     true,
+		AlignWithMargins: boolPtr(true),
+		ScaleWithDoc:     boolPtr(true),
 		OddFooter:        footerstr,
 	})
 
@@ -1255,4 +1255,8 @@ type formatoCumplimiento struct {
 type asignaturaPadreGrupos struct {
 	Nombre string
 	Grupos []string
+}
+
+func boolPtr(b bool) *bool {
+	return &b
 }
