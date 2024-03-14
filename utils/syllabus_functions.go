@@ -2,10 +2,11 @@ package utils
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/astaxie/beego"
 	"github.com/udistrital/sga_mid/helpers"
 	"github.com/udistrital/utils_oas/request"
-	"strings"
 )
 
 func GetSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData map[string]interface{}, languages string) map[string]interface{} {
@@ -75,6 +76,13 @@ func GetSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData m
 		propositos = syllabusData["resultados_aprendizaje"].([]interface{})
 	} else {
 		propositos = []interface{}{}
+	}
+
+	if seguimiento["fechaRevisionConsejo"] == nil {
+		seguimiento["fechaRevisionConsejo"] = "0000-00-00T00:00:00.000Z"
+	}
+	if seguimiento["fechaAprobacionConsejo"] == nil {
+		seguimiento["fechaAprobacionConsejo"] = "0000-00-00T00:00:00.000Z"
 	}
 
 	fechaRevConsejo := strings.Split(

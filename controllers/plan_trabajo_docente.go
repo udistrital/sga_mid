@@ -721,7 +721,7 @@ func (c *PtdController) GetDisponibilidadEspacio() {
 			planes := planTrabajoDocente["Data"].([]interface{})
 
 			for _, plan := range planes {
-				if errGetCargas := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan?query=activo:true,salon_id:"+salon+",plan_docente_id:"+plan.(map[string]interface{})["_id"].(string)+"&fields=horario,plan_docente_id", &cargaPlan); errGetCargas == nil {
+				if errGetCargas := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan?query=activo:true,salon_id:"+salon+",plan_docente_id:"+plan.(map[string]interface{})["_id"].(string)+"&fields=horario,plan_docente_id,colocacion_espacio_academico_id", &cargaPlan); errGetCargas == nil {
 					if fmt.Sprintf("%v", cargaPlan["Data"]) != "[]" {
 						for _, carga := range cargaPlan["Data"].([]interface{}) {
 							if carga.(map[string]interface{})["plan_docente_id"] != planId {
