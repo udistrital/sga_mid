@@ -9,6 +9,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/plugins/cors"
 	"github.com/udistrital/auditoria"
+	"github.com/udistrital/utils_oas/xray"
 )
 
 func main() {
@@ -37,6 +38,7 @@ func main() {
 
 	// notificacionlib.InitMiddleware()
 	fmt.Println("Print Inicial")
+	xray.InitXRay()
 	apistatus.Init()
 	auditoria.InitMiddleware()
 	beego.Run()
