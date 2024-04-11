@@ -519,7 +519,7 @@ func GenerarReciboAspirante(datos map[string]interface{}) *gofpdf.Fpdf {
 		numComprobante = "0" + numComprobante
 	}
 
-	datos["ProyectoAspirante"] = strings.ToUpper(datos["ProyectoAspirante"].(string))
+	//datos["ProyectoAspirante"] = strings.ToUpper(datos["ProyectoAspirante"].(string))
 	datos["Descripcion"] = strings.ToUpper(datos["Descripcion"].(string))
 
 	// características de página
@@ -743,20 +743,21 @@ func agregarDatosAspirante(pdf *gofpdf.Fpdf, datos map[string]interface{}) *gofp
 
 	fontStyle(pdf, "B", 9, 70)
 	pdf.SetXY(142.9, ynow)
-	pdf.CellFormat(66, 5, "Proyecto Curricular", "B", 0, "C", false, 0, "")
 
-	fontStyle(pdf, "B", 7.5, 0)
-	lineasProyecto := dividirTexto(pdf, datos["ProyectoAspirante"].(string), 67)
+	//pdf.CellFormat(66, 5, "Proyecto Curricular", "B", 0, "C", false, 0, "")
+
+	// fontStyle(pdf, "B", 7.5, 0)
+	//lineasProyecto := dividirTexto(pdf, datos["ProyectoAspirante"].(string), 67)
 	var alturaRecuadro float64 = 20
 
 	pdf.SetXY(142.9, pdf.GetY()+5)
-	pdf.CellFormat(66, 5, tr(lineasProyecto[0]), "", 0, "L", false, 0, "")
+	//pdf.CellFormat(66, 5, tr(lineasProyecto[0]), "", 0, "L", false, 0, "")
 
-	if len(lineasProyecto) > 1 {
-		pdf.SetXY(142.9, pdf.GetY()+5)
-		pdf.CellFormat(66, 5, tr(lineasProyecto[1]), "", 0, "L", false, 0, "")
-		alturaRecuadro = 25
-	}
+	// if len(lineasProyecto) > 1 {
+	// 	pdf.SetXY(142.9, pdf.GetY()+5)
+	// 	pdf.CellFormat(66, 5, tr(lineasProyecto[1]), "", 0, "L", false, 0, "")
+	// 	alturaRecuadro = 25
+	// }
 
 	pdf.SetXY(142.9, pdf.GetY()+5)
 	fontStyle(pdf, "B", 9, 70)
@@ -847,20 +848,20 @@ func agregarDatosEstudianteRecibo(pdf *gofpdf.Fpdf, datos map[string]interface{}
 
 	fontStyle(pdf, "B", 9, 70)
 	pdf.SetXY(142.9, ynow)
-	pdf.CellFormat(66, 5, "Proyecto Curricular", "B", 0, "C", false, 0, "")
+	//pdf.CellFormat(66, 5, "Proyecto Curricular", "B", 0, "C", false, 0, "")
 
-	fontStyle(pdf, "B", 7.5, 0)
-	lineasProyecto := dividirTexto(pdf, datos["ProyectoEstudiante"].(string), 67)
+	//fontStyle(pdf, "B", 7.5, 0)
+	// lineasProyecto := dividirTexto(pdf, datos["ProyectoEstudiante"].(string), 67)
 	var alturaRecuadro float64 = 20
 
 	pdf.SetXY(142.9, pdf.GetY()+5)
-	pdf.CellFormat(66, 5, tr(lineasProyecto[0]), "", 0, "L", false, 0, "")
+	// pdf.CellFormat(66, 5, tr(lineasProyecto[0]), "", 0, "L", false, 0, "")
 
-	if len(lineasProyecto) > 1 {
-		pdf.SetXY(142.9, pdf.GetY()+5)
-		pdf.CellFormat(66, 5, tr(lineasProyecto[1]), "", 0, "L", false, 0, "")
-		alturaRecuadro = 25
-	}
+	// if len(lineasProyecto) > 1 {
+	// 	pdf.SetXY(142.9, pdf.GetY()+5)
+	// 	pdf.CellFormat(66, 5, tr(lineasProyecto[1]), "", 0, "L", false, 0, "")
+	// 	alturaRecuadro = 25
+	// }
 
 	pdf.SetXY(142.9, pdf.GetY()+5)
 	fontStyle(pdf, "B", 9, 70)
@@ -939,20 +940,20 @@ func agregarDatosCopiaBancoProyectoAspirante(pdf *gofpdf.Fpdf, datos map[string]
 
 	fontStyle(pdf, "B", 9, 70)
 	pdf.SetXY(142.9, ynow)
-	pdf.CellFormat(66, 5, "Proyecto Curricular", "B", 0, "C", false, 0, "")
+	//pdf.CellFormat(66, 5, "Proyecto Curricular", "B", 0, "C", false, 0, "")
 
-	fontStyle(pdf, "B", 7.5, 0)
-	lineasProyecto := dividirTexto(pdf, datos["ProyectoAspirante"].(string), 67)
+	//fontStyle(pdf, "B", 7.5, 0)
+	// lineasProyecto := dividirTexto(pdf, datos["ProyectoAspirante"].(string), 67)
 	var alturaRecuadro float64 = 20
 
 	pdf.SetXY(142.9, pdf.GetY()+5)
-	pdf.CellFormat(66, 5, tr(lineasProyecto[0]), "", 0, "L", false, 0, "")
+	// pdf.CellFormat(66, 5, tr(lineasProyecto[0]), "", 0, "L", false, 0, "")
 
-	if len(lineasProyecto) > 1 {
-		pdf.SetXY(142.9, pdf.GetY()+5)
-		pdf.CellFormat(66, 5, tr(lineasProyecto[1]), "", 0, "L", false, 0, "")
-		alturaRecuadro = 25
-	}
+	// if len(lineasProyecto) > 1 {
+	// 	pdf.SetXY(142.9, pdf.GetY()+5)
+	// 	pdf.CellFormat(66, 5, tr(lineasProyecto[1]), "", 0, "L", false, 0, "")
+	// 	alturaRecuadro = 25
+	// }
 
 	pdf.SetXY(142.9, pdf.GetY()+5)
 	fontStyle(pdf, "B", 9, 70)
@@ -1063,17 +1064,17 @@ func agregarDatosCopiaBancoProyectoEstudianteRecibo(pdf *gofpdf.Fpdf, datos map[
 	pdf.CellFormat(66, 5, "Proyecto Curricular", "B", 0, "C", false, 0, "")
 
 	fontStyle(pdf, "B", 7.5, 0)
-	lineasProyecto := dividirTexto(pdf, datos["ProyectoEstudiante"].(string), 67)
+	// lineasProyecto := dividirTexto(pdf, datos["ProyectoEstudiante"].(string), 67)
 	var alturaRecuadro float64 = 20
 
 	pdf.SetXY(142.9, pdf.GetY()+5)
-	pdf.CellFormat(66, 5, tr(lineasProyecto[0]), "", 0, "L", false, 0, "")
+	// pdf.CellFormat(66, 5, tr(lineasProyecto[0]), "", 0, "L", false, 0, "")
 
-	if len(lineasProyecto) > 1 {
-		pdf.SetXY(142.9, pdf.GetY()+5)
-		pdf.CellFormat(66, 5, tr(lineasProyecto[1]), "", 0, "L", false, 0, "")
-		alturaRecuadro = 25
-	}
+	// if len(lineasProyecto) > 1 {
+	// 	pdf.SetXY(142.9, pdf.GetY()+5)
+	// 	pdf.CellFormat(66, 5, tr(lineasProyecto[1]), "", 0, "L", false, 0, "")
+	// 	alturaRecuadro = 25
+	// }
 
 	pdf.SetXY(142.9, pdf.GetY()+5)
 	fontStyle(pdf, "B", 9, 70)
