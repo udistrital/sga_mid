@@ -492,6 +492,7 @@ func (c *Espacios_academicosController) PostSyllabusTemplate() {
 		"Data":    nil}
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &syllabusRequest); err == nil {
+
 		syllabusCode := syllabusRequest["syllabusCode"]
 		templateFormat, hasFormat := syllabusRequest["format"]
 		if hasFormat {
@@ -540,6 +541,20 @@ func (c *Espacios_academicosController) PostSyllabusTemplate() {
 			}
 			syllabusData = syllabusResponse["Data"].(map[string]interface{})
 		}
+
+		//TOMAR LOS DATOS DE PLANID Y PROYEID
+		if syllabusRequest["planId"] == nil || syllabusRequest["proyectoId"] == nil {
+			err := fmt.Errorf("SyllabusTemplateService: Incomplete data to generate the document. Plan de estudios y/o Proyecto Curricular")
+			logs.Error(err.Error())
+			c.Ctx.Output.SetStatus(404)
+			failureAsn["Data"] = err.Error()
+			c.Data["json"] = failureAsn
+			c.ServeJSON()
+			return
+		}
+
+		syllabusData["proyecto_curricular_id"] = syllabusRequest["proyectoId"]
+		syllabusData["plan_estudios_id"] = syllabusRequest["planId"]
 
 		spaceData, spaceErr := utils.GetAcademicSpaceData(
 			int(syllabusData["plan_estudios_id"].(float64)),
