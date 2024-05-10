@@ -168,6 +168,10 @@ func (c *EspaciosAcademicosLegacyController) GetSyllabusLegacy() {
 			}
 		}
 
+		if syllabusData["plan_estudios_id"] == nil {
+			syllabusData["plan_estudios_id"] = planEstudioString
+		}
+
 		if facultyErr == nil {
 			syllabusTemplateData = utils.GetSyllabusTemplateData(
 				spaceData, syllabusData,
