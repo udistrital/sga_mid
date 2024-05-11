@@ -214,6 +214,9 @@ func DefaultTo[T any](value, defaultValue T) T {
 
 func DefaultToMapString(objMap map[string]any, key string, defaultValue any) any {
 	if value, hasKey := objMap[key]; hasKey {
+		if value == nil {
+			return defaultValue
+		}
 		return value
 	} else {
 		return defaultValue
