@@ -95,12 +95,12 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 								}
 
 								resultadoAux[i] = map[string]interface{}{
-									"Id":                  Inscripciones[i]["Id"],
-									"ProgramaAcademicoId": Inscripciones[i]["ProgramaAcademicoId"],
-									"ReciboInscripcion":   Inscripciones[i]["ReciboInscripcion"],
-									"FechaCreacion":       Inscripciones[i]["FechaCreacion"],
-									"Estado":              Estado,
-									"EstadoInscripcion":   Inscripciones[i]["EstadoInscripcionId"].(map[string]interface{})["Nombre"],
+									"Id": Inscripciones[i]["Id"],
+									// "ProgramaAcademicoId": Inscripciones[i]["ProgramaAcademicoId"],
+									"ReciboInscripcion": Inscripciones[i]["ReciboInscripcion"],
+									"FechaCreacion":     Inscripciones[i]["FechaCreacion"],
+									"Estado":            Estado,
+									"EstadoInscripcion": Inscripciones[i]["EstadoInscripcionId"].(map[string]interface{})["Nombre"],
 								}
 							} else {
 								if fmt.Sprintf("%v", resultadoAux) != "map[]" {
@@ -1295,11 +1295,11 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &SolicitudInscripcion); err == nil {
 		objTransaccion := map[string]interface{}{
-			"codigo":              SolicitudInscripcion["Id"].(float64),
-			"nombre":              SolicitudInscripcion["Nombre"].(string),
-			"apellido":            SolicitudInscripcion["Apellido"].(string),
-			"correo":              SolicitudInscripcion["Correo"].(string),
-			"proyecto":            SolicitudInscripcion["ProgramaAcademicoId"].(float64),
+			"codigo":   SolicitudInscripcion["Id"].(float64),
+			"nombre":   SolicitudInscripcion["Nombre"].(string),
+			"apellido": SolicitudInscripcion["Apellido"].(string),
+			"correo":   SolicitudInscripcion["Correo"].(string),
+			//"proyecto":            28,
 			"tiporecibo":          15, // se define 15 por que es el id definido en el api de recibos para inscripcion
 			"concepto":            "",
 			"valorordinario":      0,
@@ -1312,8 +1312,8 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 		}
 
 		inscripcion := map[string]interface{}{
-			"PersonaId":           SolicitudInscripcion["PersonaId"].(float64),
-			"ProgramaAcademicoId": SolicitudInscripcion["ProgramaAcademicoId"].(float64),
+			"PersonaId": SolicitudInscripcion["PersonaId"].(float64),
+			//"ProgramaAcademicoId": 28,
 			"ReciboInscripcion":   "",
 			"PeriodoId":           SolicitudInscripcion["PeriodoId"].(float64),
 			"AceptaTerminos":      true,
@@ -1389,7 +1389,7 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 					logs.Error(errJson)
 					respuesta.Type = "error"
 					respuesta.Code = "403"
-					respuesta.Body = errJson.Error()
+					// respuesta.Body = errJson.Error()
 				}
 			} else {
 				//var resDelete string
@@ -1398,7 +1398,7 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 				logs.Error(errParam)
 				respuesta.Type = "error"
 				respuesta.Code = "400"
-				respuesta.Body = errParam.Error()
+				//respuesta.Body = errParam.Error()
 			}
 
 		} else {

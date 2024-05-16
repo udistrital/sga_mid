@@ -1619,32 +1619,6 @@
                 }
             }
         },
-        "/espacios_academicos_legacy/syllabus/{qp_syllabus}": {
-            "get": {
-                "tags": [
-                    "espacios_academicos_legacy"
-                ],
-                "description": "get syllabus",
-                "operationId": "EspaciosAcademicosLegacyController.GetSyllabusLegacy",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "qp_syllabus",
-                        "description": "Parámetros de consulta cifrados (id proyecto curricular, plan de estudio, id espacio académico) syllabus",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{}"
-                    },
-                    "404": {
-                        "description": "not found resource"
-                    }
-                }
-            }
-        },
         "/evento/": {
             "post": {
                 "tags": [
