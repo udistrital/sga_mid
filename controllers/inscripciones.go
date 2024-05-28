@@ -1298,7 +1298,7 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 			"nombre":              SolicitudInscripcion["Nombre"].(string),
 			"apellido":            SolicitudInscripcion["Apellido"].(string),
 			"correo":              SolicitudInscripcion["Correo"].(string),
-			"proyecto":            SolicitudInscripcion["ProgramaAcademicoId"].(float64),
+			"proyecto":            SolicitudInscripcion["ProgramaAcademicoCodigo"].(float64),
 			"tiporecibo":          15, // se define 15 por que es el id definido en el api de recibos para inscripcion
 			"concepto":            "",
 			"valorordinario":      0,
