@@ -1343,10 +1343,16 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 			resultadoHomologacion := HomologacionXML["proyecto_snies"].(map[string]interface{})
 			if errHomologacion == nil && fmt.Sprintf("%v", resultadoHomologacion) != "map[]" {
 				proyectosSnies := resultadoHomologacion["proyectos"].([]interface{})
-				proyectoSnies := proyectosSnies[0].(map[string]interface{})
 
-				codigoProyectoHomologacion := fmt.Sprintf("%.0f", proyectoSnies["codigo_proyecto"].(float64))
-				coincideCodigoSnies = codigoProyectoHomologacion == codigoProyecto
+				for _, proyectoSnies := range proyectosSnies {
+					proyectoSnies := proyectoSnies.(map[string]interface{})
+					codigoProyectoHomologacion := fmt.Sprintf("%.0f", proyectoSnies["codigo_proyecto"].(float64))
+					coincideCodigoSnies = codigoProyectoHomologacion == codigoProyecto
+
+					if coincideCodigoSnies {
+						break
+					}
+				}
 			}
 		}
 
