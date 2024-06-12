@@ -1421,7 +1421,7 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 			}
 		} else {
 			respuesta.Type = "error"
-			respuesta.Code = "400"
+			respuesta.Code = "409"
 			respuesta.Body = "Los códigos del proyecto curricular no coinciden, favor comunicarse con el administrador de sistema."
 		}
 	} else {
