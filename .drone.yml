@@ -50,6 +50,8 @@ steps:
 - name: go_build
   image: golang:1.18
   commands:
+  - apt-get update
+  - apt-get install libmcrypt-dev -y
   - go mod init
   - go get -t
   - GOOS=linux GOARCH=amd64 go build -o main

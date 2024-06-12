@@ -1236,6 +1236,17 @@ func (c *AdmisionController) GetListaAspirantesPor() {
 							"Nombre":         datoIdentif1[0]["TerceroId"].(map[string]interface{})["NombreCompleto"],
 							"Estado":         inscrip1["EstadoInscripcionId"].(map[string]interface{})["Nombre"],
 						})
+					} else {
+						var datoIdentif1_2intento []map[string]interface{}
+						errDatoIdentif1_2intento := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+fmt.Sprintf("tercero?query=Id:%v", inscrip1["PersonaId"]), &datoIdentif1_2intento)
+						if errDatoIdentif1_2intento == nil && fmt.Sprintf("%v", datoIdentif1_2intento) != "[map[]]" {
+							listado = append(listado, map[string]interface{}{
+								"Credencial":     inscrip1["Id"],
+								"Identificacion": "",
+								"Nombre":         datoIdentif1_2intento[0]["NombreCompleto"],
+								"Estado":         inscrip1["EstadoInscripcionId"].(map[string]interface{})["Nombre"],
+							})
+						}
 					}
 				}
 			}
@@ -1252,6 +1263,17 @@ func (c *AdmisionController) GetListaAspirantesPor() {
 							"Nombre":         datoIdentif2[0]["TerceroId"].(map[string]interface{})["NombreCompleto"],
 							"Estado":         inscrip2["EstadoInscripcionId"].(map[string]interface{})["Nombre"],
 						})
+					} else {
+						var datoIdentif2_2intento []map[string]interface{}
+						errDatoIdentif2_2intento := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+fmt.Sprintf("tercero?query=Id:%v", inscrip2["PersonaId"]), &datoIdentif2_2intento)
+						if errDatoIdentif2_2intento == nil && fmt.Sprintf("%v", datoIdentif2_2intento) != "[map[]]" {
+							listado = append(listado, map[string]interface{}{
+								"Credencial":     inscrip2["Id"],
+								"Identificacion": "",
+								"Nombre":         datoIdentif2_2intento[0]["NombreCompleto"],
+								"Estado":         inscrip2["EstadoInscripcionId"].(map[string]interface{})["Nombre"],
+							})
+						}
 					}
 				}
 			}
@@ -1268,6 +1290,17 @@ func (c *AdmisionController) GetListaAspirantesPor() {
 							"Nombre":         datoIdentif3[0]["TerceroId"].(map[string]interface{})["NombreCompleto"],
 							"Estado":         inscrip3["EstadoInscripcionId"].(map[string]interface{})["Nombre"],
 						})
+					} else {
+						var datoIdentif3_2intento []map[string]interface{}
+						errDatoIdentif3_2intento := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+fmt.Sprintf("tercero?query=Id:%v", inscrip3["PersonaId"]), &datoIdentif3_2intento)
+						if errDatoIdentif3_2intento == nil && fmt.Sprintf("%v", datoIdentif3_2intento) != "[map[]]" {
+							listado = append(listado, map[string]interface{}{
+								"Credencial":     inscrip3["Id"],
+								"Identificacion": "",
+								"Nombre":         datoIdentif3_2intento[0]["NombreCompleto"],
+								"Estado":         inscrip3["EstadoInscripcionId"].(map[string]interface{})["Nombre"],
+							})
+						}
 					}
 				}
 			}
@@ -1284,6 +1317,15 @@ func (c *AdmisionController) GetListaAspirantesPor() {
 							"Id":         inscrip1["PersonaId"],
 							"Aspirantes": datoIdentif1[0]["TerceroId"].(map[string]interface{})["NombreCompleto"],
 						})
+					} else {
+						var datoIdentif1_2intento []map[string]interface{}
+						errDatoIdentif1_2intento := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+fmt.Sprintf("tercero?query=Id:%v", inscrip1["PersonaId"]), &datoIdentif1_2intento)
+						if errDatoIdentif1_2intento == nil && fmt.Sprintf("%v", datoIdentif1_2intento) != "[map[]]" {
+							listado = append(listado, map[string]interface{}{
+								"Id":         inscrip1["PersonaId"],
+								"Aspirantes": datoIdentif1_2intento[0]["NombreCompleto"],
+							})
+						}
 					}
 				}
 			}
@@ -1298,6 +1340,15 @@ func (c *AdmisionController) GetListaAspirantesPor() {
 							"Id":         inscrip2["PersonaId"],
 							"Aspirantes": datoIdentif2[0]["TerceroId"].(map[string]interface{})["NombreCompleto"],
 						})
+					} else {
+						var datoIdentif2_2intento []map[string]interface{}
+						errDatoIdentif2_2intento := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+fmt.Sprintf("tercero?query=Id:%v", inscrip2["PersonaId"]), &datoIdentif2_2intento)
+						if errDatoIdentif2_2intento == nil && fmt.Sprintf("%v", datoIdentif2_2intento) != "[map[]]" {
+							listado = append(listado, map[string]interface{}{
+								"Id":         inscrip2["PersonaId"],
+								"Aspirantes": datoIdentif2_2intento[0]["NombreCompleto"],
+							})
+						}
 					}
 				}
 			}
@@ -1308,74 +1359,93 @@ func (c *AdmisionController) GetListaAspirantesPor() {
 				errInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+fmt.Sprintf("inscripcion?query=Activo:true,ProgramaAcademicoId:%v,PeriodoId:%v&sortby=NotaFinal&order=desc&limit=0", params[id_proyecto].valor, params[id_periodo].valor), &inscripcion)
 				if errInscripcion == nil && fmt.Sprintf("%v", inscripcion) != "[map[]]" {
 					for _, inscrip := range inscripcion {
+
+						datoIdentTercero := map[string]interface{}{
+							"nombre": "",
+							"numero": "",
+							"correo": "",
+						}
+
 						var datoIdentif []map[string]interface{}
 						errDatoIdentif := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+fmt.Sprintf("datos_identificacion?query=TerceroId:%v", inscrip["PersonaId"]), &datoIdentif)
 						if errDatoIdentif == nil && fmt.Sprintf("%v", datoIdentif) != "[map[]]" {
-
-							var enfasis map[string]interface{}
-							errEnfasis := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+fmt.Sprintf("enfasis/%v", inscrip["EnfasisId"]), &enfasis)
-							if errEnfasis != nil || enfasis["Status"] == "404" {
-								enfasis = map[string]interface{}{
-									"Nombre": "Por definir",
-								}
+							datoIdentTercero["nombre"] = datoIdentif[0]["TerceroId"].(map[string]interface{})["NombreCompleto"]
+							datoIdentTercero["numero"] = datoIdentif[0]["Numero"]
+							datoIdentTercero["correo"] = datoIdentif[0]["TerceroId"].(map[string]interface{})["UsuarioWSO2"]
+						} else {
+							var datoIdentif_2intento []map[string]interface{}
+							errDatoIdentif_2intento := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+fmt.Sprintf("tercero?query=Id:%v", inscrip["PersonaId"]), &datoIdentif_2intento)
+							if errDatoIdentif_2intento == nil && fmt.Sprintf("%v", datoIdentif_2intento) != "[map[]]" {
+								datoIdentTercero["nombre"] = datoIdentif_2intento[0]["NombreCompleto"]
+								datoIdentTercero["numero"] = ""
+								datoIdentTercero["correo"] = datoIdentif_2intento[0]["UsuarioWSO2"]
 							}
+						}
 
-							var telefono []map[string]interface{}
-							var telefonoPrincipal string = ""
-							errTelefono := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+fmt.Sprintf("info_complementaria_tercero?query=TerceroId.Id:%v,InfoComplementariaId.Id:%v&sortby=Id&order=desc&fields=Dato&limit=1", inscrip["PersonaId"], idTelefono), &telefono)
-							if errTelefono == nil && fmt.Sprintf("%v", telefono) != "[map[]]" {
-								var telefonos map[string]interface{}
-								if err := json.Unmarshal([]byte(telefono[0]["Dato"].(string)), &telefonos); err == nil {
-									telefonoPrincipal = fmt.Sprintf("%.f", telefonos["principal"])
-								}
+						var enfasis map[string]interface{}
+						errEnfasis := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+fmt.Sprintf("enfasis/%v", inscrip["EnfasisId"]), &enfasis)
+						if errEnfasis != nil || enfasis["Status"] == "404" {
+							enfasis = map[string]interface{}{
+								"Nombre": "Por definir",
 							}
+						}
 
-							ReciboInscripcion := inscrip["ReciboInscripcion"].(string)
-							var recibo map[string]interface{}
-							var Estado string
-							if ReciboInscripcion != "0/<nil>" {
-								errRecibo := request.GetJsonWSO2("http://"+beego.AppConfig.String("ConsultarReciboJbpmService")+"consulta_recibo/"+ReciboInscripcion, &recibo)
-								if errRecibo == nil {
-									if recibo != nil && fmt.Sprintf("%v", recibo) != "map[reciboCollection:map[]]" && fmt.Sprintf("%v", recibo) != "map[]" {
-										//Fecha límite de pago extraordinario
-										FechaLimite := recibo["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["fecha_extraordinario"].(string)
-										EstadoRecibo := recibo["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["estado"].(string)
-										PagoRecibo := recibo["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["pago"].(string)
-										//Verificación si el recibo de pago se encuentra activo y pago
-										if EstadoRecibo == "A" && PagoRecibo == "S" {
-											Estado = "Pago"
-										} else {
-											//Verifica si el recibo está vencido o no
-											ATiempo, err := models.VerificarFechaLimite(FechaLimite)
-											if err == nil {
-												if ATiempo {
-													Estado = "Pendiente pago"
-												} else {
-													Estado = "Vencido"
-												}
+						var telefono []map[string]interface{}
+						var telefonoPrincipal string = ""
+						errTelefono := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+fmt.Sprintf("info_complementaria_tercero?query=TerceroId.Id:%v,InfoComplementariaId.Id:%v&sortby=Id&order=desc&fields=Dato&limit=1", inscrip["PersonaId"], idTelefono), &telefono)
+						if errTelefono == nil && fmt.Sprintf("%v", telefono) != "[map[]]" {
+							var telefonos map[string]interface{}
+							if err := json.Unmarshal([]byte(telefono[0]["Dato"].(string)), &telefonos); err == nil {
+								telefonoPrincipal = fmt.Sprintf("%.f", telefonos["principal"])
+							}
+						}
+
+						ReciboInscripcion := inscrip["ReciboInscripcion"].(string)
+						var recibo map[string]interface{}
+						var Estado string
+						if ReciboInscripcion != "0/<nil>" {
+							errRecibo := request.GetJsonWSO2("http://"+beego.AppConfig.String("ConsultarReciboJbpmService")+"consulta_recibo/"+ReciboInscripcion, &recibo)
+							if errRecibo == nil {
+								if recibo != nil && fmt.Sprintf("%v", recibo) != "map[reciboCollection:map[]]" && fmt.Sprintf("%v", recibo) != "map[]" {
+									//Fecha límite de pago extraordinario
+									FechaLimite := recibo["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["fecha_extraordinario"].(string)
+									EstadoRecibo := recibo["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["estado"].(string)
+									PagoRecibo := recibo["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["pago"].(string)
+									//Verificación si el recibo de pago se encuentra activo y pago
+									if EstadoRecibo == "A" && PagoRecibo == "S" {
+										Estado = "Pago"
+									} else {
+										//Verifica si el recibo está vencido o no
+										ATiempo, err := models.VerificarFechaLimite(FechaLimite)
+										if err == nil {
+											if ATiempo {
+												Estado = "Pendiente pago"
 											} else {
 												Estado = "Vencido"
 											}
+										} else {
+											Estado = "Vencido"
 										}
 									}
 								}
 							}
-
-							listado = append(listado, map[string]interface{}{
-								"Inscripcion":         inscrip,
-								"NumeroDocumento":     datoIdentif[0]["Numero"],
-								"NombreAspirante":     datoIdentif[0]["TerceroId"].(map[string]interface{})["NombreCompleto"],
-								"Telefono":            telefonoPrincipal,
-								"Email":               datoIdentif[0]["TerceroId"].(map[string]interface{})["UsuarioWSO2"],
-								"NotaFinal":           inscrip["NotaFinal"],
-								"TipoInscripcionId":   inscrip["TipoInscripcionId"],
-								"TipoInscripcion":     inscrip["TipoInscripcionId"].(map[string]interface{})["Nombre"],
-								"EstadoInscripcionId": inscrip["EstadoInscripcionId"],
-								"EstadoRecibo":        Estado,
-								"EnfasisId":           enfasis,
-								"Enfasis":             enfasis["Nombre"],
-							})
 						}
+
+						listado = append(listado, map[string]interface{}{
+							"Inscripcion":         inscrip,
+							"NumeroDocumento":     datoIdentTercero["numero"],
+							"NombreAspirante":     datoIdentTercero["nombre"],
+							"Telefono":            telefonoPrincipal,
+							"Email":               datoIdentTercero["correo"],
+							"NotaFinal":           inscrip["NotaFinal"],
+							"TipoInscripcionId":   inscrip["TipoInscripcionId"],
+							"TipoInscripcion":     inscrip["TipoInscripcionId"].(map[string]interface{})["Nombre"],
+							"EstadoInscripcionId": inscrip["EstadoInscripcionId"],
+							"EstadoRecibo":        Estado,
+							"EnfasisId":           enfasis,
+							"Enfasis":             enfasis["Nombre"],
+						})
+
 					}
 				}
 			}
