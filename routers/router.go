@@ -163,6 +163,11 @@ func init() {
 				&controllers.NotasController{},
 			),
 		),
+		beego.NSNamespace("/plan_estudios",
+			beego.NSInclude(
+				&controllers.Plan_estudiosController{},
+			),
+		),
 		beego.NSNamespace("/plan_trabajo_docente",
 			beego.NSInclude(
 				&controllers.PtdController{},
@@ -176,6 +181,16 @@ func init() {
 		beego.NSNamespace("/espacios_academicos",
 			beego.NSInclude(
 				&controllers.Espacios_academicosController{},
+			),
+		),
+		beego.NSNamespace("/espacios_academicos_legacy",
+			beego.NSInclude(
+				&controllers.EspaciosAcademicosLegacyController{},
+			),
+		),
+		beego.NSNamespace("/reportes",
+			beego.NSInclude(
+				&controllers.ReportesController{},
 			),
 		),
 	)

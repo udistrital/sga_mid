@@ -1385,6 +1385,16 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 								respuesta.Type = "success"
 								respuesta.Code = "200"
 								respuesta.Body = inscripcionUpdate
+
+								// fecha_actual := time.Now()
+								// dataEmail := map[string]interface{}{
+								// 	"dia":    fecha_actual.Day(),
+								// 	"mes":    utils.GetNombreMes(fecha_actual.Month()),
+								// 	"anio":   fecha_actual.Year(),
+								// 	"nombre": SolicitudInscripcion["Nombre"].(string) + " " + SolicitudInscripcion["Apellido"].(string),
+								// 	"estado": "inscripción solicitada",
+								// }
+								// utils.SendNotificationInscripcionSolicitud(dataEmail, objTransaccion["correo"].(string))
 							} else {
 								logs.Error(errInscripcionUpdate)
 								respuesta.Type = "error"

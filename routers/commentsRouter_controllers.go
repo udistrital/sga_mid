@@ -466,11 +466,47 @@ func init() {
             Filters: nil,
             Params: nil})
 
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:EspaciosAcademicosLegacyController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:EspaciosAcademicosLegacyController"],
+        beego.ControllerComments{
+            Method: "GetSyllabusLegacy",
+            Router: "/syllabus/:qp_syllabus",
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Espacios_academicosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Espacios_academicosController"],
         beego.ControllerComments{
             Method: "GetAcademicSpacesByProject",
             Router: "/byProject/:id_proyecto",
             AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Espacios_academicosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Espacios_academicosController"],
+        beego.ControllerComments{
+            Method: "PostAcademicSpacesBySon",
+            Router: "/espacio_academico_hijos",
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Espacios_academicosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Espacios_academicosController"],
+        beego.ControllerComments{
+            Method: "PutAcademicSpaceAssignPeriod",
+            Router: "/espacio_academico_hijos/asignar_periodo",
+            AllowHTTPMethods: []string{"put"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Espacios_academicosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Espacios_academicosController"],
+        beego.ControllerComments{
+            Method: "PostSyllabusTemplate",
+            Router: "/syllabus_template",
+            AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
@@ -1033,6 +1069,42 @@ func init() {
             Filters: nil,
             Params: nil})
 
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Plan_estudiosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Plan_estudiosController"],
+        beego.ControllerComments{
+            Method: "PostBaseStudyPlan",
+            Router: "/base",
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Plan_estudiosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Plan_estudiosController"],
+        beego.ControllerComments{
+            Method: "GetPlanPorDependenciaVinculacionTercero",
+            Router: "/dependencia_vinculacion_tercero/:tercero_id",
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Plan_estudiosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Plan_estudiosController"],
+        beego.ControllerComments{
+            Method: "PostGenerarDocumentoPlanEstudio",
+            Router: "/documento_plan_visual",
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Plan_estudiosController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:Plan_estudiosController"],
+        beego.ControllerComments{
+            Method: "GetStudyPlanVisualization",
+            Router: "/study_plan_visualization/:id_plan",
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PracticasAcademicasController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PracticasAcademicasController"],
         beego.ControllerComments{
             Method: "Post",
@@ -1251,8 +1323,26 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"],
         beego.ControllerComments{
+            Method: "GetEspaciosFisicosDependencia",
+            Router: "/espacios_fisicos_dependencia/:dependencia",
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"],
+        beego.ControllerComments{
             Method: "GetGruposEspacioAcademico",
             Router: "/grupos_espacio_academico/:padre/:vigencia",
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"],
+        beego.ControllerComments{
+            Method: "GetGruposEspacioAcademicoPadre",
+            Router: "/grupos_espacio_academico/padre/:padre",
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
@@ -1278,6 +1368,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"],
         beego.ControllerComments{
+            Method: "GetPlanesPreaprobados",
+            Router: "/planes_preaprobados/:vigencia/:proyecto",
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:PtdController"],
+        beego.ControllerComments{
             Method: "GetPreasignaciones",
             Router: "/preasignaciones/:vigencia",
             AllowHTTPMethods: []string{"get"},
@@ -1290,6 +1389,24 @@ func init() {
             Method: "GetPreasignacionesDocente",
             Router: "/preasignaciones_docente/:docente/:vigencia",
             AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ReportesController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ReportesController"],
+        beego.ControllerComments{
+            Method: "ReporteCargaLectiva",
+            Router: "/plan_trabajo_docente/:docente_id/:vinculacion_id/:periodo_id/:carga",
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ReportesController"] = append(beego.GlobalControllerRouter["github.com/udistrital/sga_mid/controllers:ReportesController"],
+        beego.ControllerComments{
+            Method: "ReporteVerifCumpPTD",
+            Router: "/verif_cump_ptd/:vigencia/:proyecto",
+            AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})

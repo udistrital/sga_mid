@@ -37,7 +37,6 @@ func main() {
 	logs.SetLogger(logs.AdapterFile, logPath)*/
 
 	// notificacionlib.InitMiddleware()
-	fmt.Println("Print Inicial")
 	xray.InitXRay()
 	apistatus.Init()
 	auditoria.InitMiddleware()
