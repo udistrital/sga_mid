@@ -474,6 +474,7 @@ func (c *ProduccionAcademicaController) GetProduccionAcademica() {
 // @Failure 404 not found resource
 // @router /:id [delete]
 func (c *ProduccionAcademicaController) DeleteProduccionAcademica() {
+	fmt.Println("> > > Go inside DeleteProduccionAcademica < < <")
 	idStr := c.Ctx.Input.Param(":id")
 	//resultados eliminacion
 	var borrado map[string]interface{}

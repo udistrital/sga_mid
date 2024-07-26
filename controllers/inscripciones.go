@@ -934,28 +934,28 @@ func (c *InscripcionesController) GetInfoComplementariaTercero() {
 			}
 		} else {
 			if resultadoEstrato[0]["Message"] == "Not found resource" {
-				errorGetAll = true
+				/*errorGetAll = true
 				alertas = append(alertas, "Not found resource")
 				alerta.Code = "404"
 				alerta.Type = "error"
 				alerta.Body = alertas
-				c.Data["json"] = map[string]interface{}{"Response": alerta}
+				c.Data["json"] = map[string]interface{}{"Response": alerta}*/
 			} else {
-				errorGetAll = true
+				/*errorGetAll = true
 				alertas = append(alertas, errEstratoResidencia)
 				alerta.Code = "404"
 				alerta.Type = "error"
 				alerta.Body = alertas
-				c.Data["json"] = map[string]interface{}{"Response": alerta}
+				c.Data["json"] = map[string]interface{}{"Response": alerta}*/
 			}
 		}
 	} else {
-		errorGetAll = true
+		/*errorGetAll = true
 		alertas = append(alertas, errEstratoResidencia)
 		alerta.Code = "404"
 		alerta.Type = "error"
 		alerta.Body = alertas
-		c.Data["json"] = map[string]interface{}{"Response": alerta}
+		c.Data["json"] = map[string]interface{}{"Response": alerta}*/
 	}
 
 	// 55 = codigo postal
@@ -974,28 +974,28 @@ func (c *InscripcionesController) GetInfoComplementariaTercero() {
 			}
 		} else {
 			if resultadoCodigoPostal[0]["Message"] == "Not found resource" {
-				errorGetAll = true
+				/*errorGetAll = true
 				alertas = append(alertas, "Not found resource")
 				alerta.Code = "404"
 				alerta.Type = "error"
 				alerta.Body = alertas
-				c.Data["json"] = map[string]interface{}{"Response": alerta}
+				c.Data["json"] = map[string]interface{}{"Response": alerta}*/
 			} else {
-				errorGetAll = true
+				/*errorGetAll = true
 				alertas = append(alertas, errCodigoPostal)
 				alerta.Code = "404"
 				alerta.Type = "error"
 				alerta.Body = alertas
-				c.Data["json"] = map[string]interface{}{"Response": alerta}
+				c.Data["json"] = map[string]interface{}{"Response": alerta}*/
 			}
 		}
 	} else {
-		errorGetAll = true
+		/*errorGetAll = true
 		alertas = append(alertas, errCodigoPostal)
 		alerta.Code = "404"
 		alerta.Type = "error"
 		alerta.Body = alertas
-		c.Data["json"] = map[string]interface{}{"Response": alerta}
+		c.Data["json"] = map[string]interface{}{"Response": alerta}*/
 	}
 
 	// 51 = telefono
@@ -1016,20 +1016,20 @@ func (c *InscripcionesController) GetInfoComplementariaTercero() {
 			}
 		} else {
 			if resultadoTelefono[0]["Message"] == "Not found resource" {
-				errorGetAll = true
+				/*errorGetAll = true
 				alertas = append(alertas, "Not found resource")
 				alerta.Code = "404"
 				alerta.Type = "error"
 				alerta.Body = alertas
-				c.Data["json"] = map[string]interface{}{"Response": alerta}
+				c.Data["json"] = map[string]interface{}{"Response": alerta}*/
 			} else {
-				errorGetAll = true
+				/*errorGetAll = true
 				errorGetAll = true
 				alertas = append(alertas, errTelefono)
 				alerta.Code = "404"
 				alerta.Type = "error"
 				alerta.Body = alertas
-				c.Data["json"] = map[string]interface{}{"Response": alerta}
+				c.Data["json"] = map[string]interface{}{"Response": alerta}*/
 			}
 		}
 	} else {
@@ -1064,27 +1064,27 @@ func (c *InscripcionesController) GetInfoComplementariaTercero() {
 			}
 		} else {
 			if resultadoDireccion[0]["Message"] == "Not found resource" {
-				errorGetAll = true
+				/*errorGetAll = true
 				alertas = append(alertas, "Not found resource")
 				alerta.Code = "404"
 				alerta.Type = "error"
 				alerta.Body = alertas
-				c.Data["json"] = map[string]interface{}{"Response": alerta}
+				c.Data["json"] = map[string]interface{}{"Response": alerta}*/
 			} else {
-				errorGetAll = true
+				/*errorGetAll = true
 				alertas = append(alertas, errDireccion)
 				alerta.Code = "404"
 				alerta.Type = "error"
-				alerta.Body = alertas
+				alerta.Body = alertas*/
 			}
 		}
 	} else {
-		errorGetAll = true
+		/*errorGetAll = true
 		alertas = append(alertas, errDireccion)
 		alerta.Code = "404"
 		alerta.Type = "error"
 		alerta.Body = alertas
-		c.Data["json"] = map[string]interface{}{"Response": alerta}
+		c.Data["json"] = map[string]interface{}{"Response": alerta}*/
 	}
 
 	// Correo registro
