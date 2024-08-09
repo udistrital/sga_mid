@@ -1147,7 +1147,8 @@ func encodePDF(pdf *gofpdf.Fpdf) string {
 // Fecha de expedición del recibo
 func fechaActual() string {
 	hoy := time.Now()
-	return fmt.Sprintf("%02d/%02d/%d", hoy.Day(), hoy.Month(), hoy.Year())
+	inBog, _ := time.LoadLocation("America/Bogota")
+	return fmt.Sprintf("%02d/%02d/%d", hoy.In(inBog).Day(), hoy.In(inBog).Month(), hoy.In(inBog).Year())
 }
 
 // Estilo de fuente usando Helvetica
