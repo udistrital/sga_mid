@@ -1291,6 +1291,7 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 	var Valor map[string]interface{}
 	var NuevoRecibo map[string]interface{}
 	var inscripcionRealizada map[string]interface{}
+	var AnioParametro float64
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &SolicitudInscripcion); err == nil {
 		objTransaccion := map[string]interface{}{
@@ -1328,6 +1329,12 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 			TipoParametro = "12"
 		}
 
+		if SolicitudInscripcion["Periodo"].(float64) == 1 {
+			AnioParametro = SolicitudInscripcion["Year"].(float64) - 1
+		} else {
+			AnioParametro = SolicitudInscripcion["Year"].(float64)
+		}
+
 		coincideCodigoSnies := false
 		var proyectos []map[string]interface{}
 		idProyecto := fmt.Sprintf("%.0f", SolicitudInscripcion["ProgramaAcademicoId"].(float64))
@@ -1359,7 +1366,7 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 		if coincideCodigoSnies {
 			errInscripcion := request.SendJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion", "POST", &inscripcionRealizada, inscripcion)
 			if errInscripcion == nil && inscripcionRealizada["Status"] != "400" {
-				errParam := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=Activo:true,ParametroId.TipoParametroId.Id:2,ParametroId.CodigoAbreviacion:"+TipoParametro+",PeriodoId.Year:"+fmt.Sprintf("%v", objTransaccion["aniopago"])+",PeriodoId.CodigoAbreviacion:VG", &parametro)
+				errParam := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=Activo:true,ParametroId.TipoParametroId.Id:2,ParametroId.CodigoAbreviacion:"+TipoParametro+",PeriodoId.Year:"+fmt.Sprintf("%v", AnioParametro)+",PeriodoId.CodigoAbreviacion:VG", &parametro)
 				if errParam == nil && fmt.Sprintf("%v", parametro["Data"].([]interface{})[0]) != "map[]" {
 					Dato := parametro["Data"].([]interface{})[0]
 					if errJson := json.Unmarshal([]byte(Dato.(map[string]interface{})["Valor"].(string)), &Valor); errJson == nil {
