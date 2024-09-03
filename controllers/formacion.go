@@ -782,13 +782,13 @@ func (c *FormacionController) PostTercero() {
 						}
 
 						InfoComplementariaTelefono := map[string]interface{}{
-							"Id": 51,
+							"Id": 48,
 						}
 						InfoComplementariaCorreo := map[string]interface{}{
-							"Id": 53,
+							"Id": 50,
 						}
 						InfoComplementariaDireccion := map[string]interface{}{
-							"Id": 54,
+							"Id": 51,
 						}
 
 						Telefono := map[string]interface{}{
