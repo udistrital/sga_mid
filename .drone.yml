@@ -48,7 +48,7 @@ steps:
     - push
 
 - name: go_build
-  image: golang:1.18
+  image: golang:1.21
   commands:
   - apt-get update
   - apt-get install libmcrypt-dev -y
