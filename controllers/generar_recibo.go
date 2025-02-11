@@ -513,11 +513,16 @@ func docsCarpeta(pdf *gofpdf.Fpdf, data map[string]interface{}, tagSuite string,
 func GenerarReciboAspirante(datos map[string]interface{}) *gofpdf.Fpdf {
 
 	// aqui el numero consecutivo de comprobante
+	documento := datos["DocumentoDelAspirante"].(string)
+	for len(documento) < 12 {
+		documento = "0" + documento
+	}
 	numComprobante := datos["Comprobante"].(string)
-
 	for len(numComprobante) < 6 {
 		numComprobante = "0" + numComprobante
 	}
+
+	idComprobante := documento + numComprobante
 
 	datos["ProyectoAspirante"] = strings.ToUpper(datos["ProyectoAspirante"].(string))
 	datos["Descripcion"] = strings.ToUpper(datos["Descripcion"].(string))
@@ -529,17 +534,17 @@ func GenerarReciboAspirante(datos map[string]interface{}) *gofpdf.Fpdf {
 	pdf.SetAutoPageBreak(true, 7) // margen inferior
 	pdf.SetHomeXY()
 
-	pdf = header(pdf, numComprobante, true)
+	pdf = header(pdf, idComprobante, true)
 	pdf = agregarDatosAspirante(pdf, datos)
 	pdf = footer(pdf, "-COPIA ASPIRANTE-")
 	pdf = separador(pdf)
 
-	pdf = header(pdf, numComprobante, false)
+	pdf = header(pdf, idComprobante, false)
 	pdf = agregarDatosCopiaBancoProyectoAspirante(pdf, datos)
 	pdf = footer(pdf, "-COPIA PROYECTO CURRICULAR-")
 	pdf = separador(pdf)
 
-	pdf = header(pdf, numComprobante, false)
+	pdf = header(pdf, idComprobante, false)
 	pdf = agregarDatosCopiaBancoProyectoAspirante(pdf, datos)
 	pdf = footer(pdf, "-COPIA BANCO-")
 	//pdf = separador(pdf)
@@ -608,7 +613,7 @@ func header(pdf *gofpdf.Fpdf, comprobante string, banco bool) *gofpdf.Fpdf {
 	pdf.Ln(4)
 	pdf.Cell(13, 10, "")
 	pdf.Cell(60, 10, tr("Francisco José de Caldas"))
-	pdf.Cell(80, 10, "COMPROBANTE DE PAGO No "+comprobante)
+	pdf.Cell(80, 10, "COMPROBANTE DE PAGO No")
 
 	if banco {
 		fontStyle(pdf, "B", 8, 0)
@@ -622,6 +627,9 @@ func header(pdf *gofpdf.Fpdf, comprobante string, banco bool) *gofpdf.Fpdf {
 	fontStyle(pdf, "", 8, 0)
 	pdf.Cell(13, 10, "")
 	pdf.Cell(50, 10, "NIT 899.999.230-7")
+	fontStyle(pdf, "B", 10, 0)
+	pdf.SetX(88)
+	pdf.Cell(80, 10, comprobante)
 	pdf.Ln(10)
 	return pdf
 }
