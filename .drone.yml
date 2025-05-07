@@ -61,6 +61,7 @@ steps:
     - release/*
     - feature/*
     - master
+    - hotfix/*
     event:
     - push
 
