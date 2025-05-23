@@ -1307,24 +1307,6 @@ paths:
         default:
           description: '{object} map[string]interface{} "Respuesta de error del servicio externo"'
   /facturacion_electronica/{id}:
-    get:
-      tags:
-      - facturacion_electronica
-      description: Obtiene un registro por su ID
-      operationId: FacturacionElectronicaController.GetOne
-      parameters:
-      - in: path
-        name: id
-        description: ID del registro
-        required: true
-        type: string
-      responses:
-        "200":
-          description: ""
-          schema:
-            $ref: '#/definitions/map[string]interface{}'
-        "404":
-          description: No se encontró el registro
     put:
       tags:
       - facturacion_electronica
@@ -1363,6 +1345,30 @@ paths:
           description: '{object} map[string]interface{} "Error interno del servidor o error inesperado del servicio externo"'
         default:
           description: '{object} map[string]interface{} "Respuesta de error del servicio externo"'
+  /facturacion_electronica/{id}/{anio}:
+    get:
+      tags:
+      - facturacion_electronica
+      description: Obtiene un registro por su ID y año
+      operationId: FacturacionElectronicaController.GetOne
+      parameters:
+      - in: path
+        name: id
+        description: ID del registro
+        required: true
+        type: string
+      - in: path
+        name: anio
+        description: Año de consulta
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/map[string]interface{}'
+        "404":
+          description: No se encontró el registro
   /formacion_academica/:
     get:
       tags:
