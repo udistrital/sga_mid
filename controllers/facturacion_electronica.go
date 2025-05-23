@@ -57,16 +57,18 @@ func (c *FacturacionElectronicaController) GetAll() {
 
 // GetOne obtiene un registro específico
 // @Title GetOne
-// @Description Obtiene un registro por su ID
+// @Description Obtiene un registro por su ID y año
 // @Param id path string true "ID del registro"
+// @Param anio path string true "Año de consulta"
 // @Success 200 {object} map[string]interface{}
 // @Failure 404 No se encontró el registro
-// @router /:id [get]
+// @router /:id/:anio [get]
 func (c *FacturacionElectronicaController) GetOne() {
 	id := c.Ctx.Input.Param(":id")
+	anio := c.Ctx.Input.Param(":anio")
 	var resultado map[string]interface{}
 
-	url := "http://" + beego.AppConfig.String("FacturacionElectronicaService") + "/" + id
+	url := "http://" + beego.AppConfig.String("FacturacionElectronicaService") + "/" + id + "/" + anio
 
 	err := request.GetJsonWSO2(url, &resultado)
 
