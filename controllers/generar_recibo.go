@@ -163,7 +163,7 @@ func (c *GenerarReciboController) PostGenerarComprobanteInscripcion() {
 							"FileName":    "Comprobante_inscripcion_" + data["INSCRIPCION"].(map[string]interface{})["nombrePrograma"].(string),
 							"Base64File":  encodedFile,
 						})
-						utils.SendNotificationInscripcionComprobante(dataEmail, data["ASPIRANTE"].(map[string]interface{})["correo"].(string), attachments)
+						// utils.SendNotificationInscripcionComprobante(dataEmail, data["ASPIRANTE"].(map[string]interface{})["correo"].(string), attachments)
 					}
 
 				} else {
