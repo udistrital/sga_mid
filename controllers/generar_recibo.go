@@ -790,10 +790,10 @@ func agregarDatosAspirante(pdf *gofpdf.Fpdf, datos map[string]interface{}) *gofp
 	pdf.CellFormat(66, 3, tr(datos["Descripcion"].(string)), "", 0, "TL", false, 0, "")
 	pdf.SetXY(142.9, pdf.GetY()+5)
 	fontStyle(pdf, "", 6.75, 0)
-	pdf.CellFormat(66, 3, "PAGOS EN CORRESPONSAL BANCARIO UNICAMENTE", "", 0, "TL", false, 0, "")
+	pdf.CellFormat(66, 3, "PAGOS UNICAMENTE POR CODIGO DE BARRAS", "", 0, "TL", false, 0, "")
 	pdf.SetXY(142.9, pdf.GetY()+3)
 	fontStyle(pdf, "", 6.75, 0)
-	pdf.CellFormat(66, 3, "POR CODIGO DE BARRAS Y EN EFECTIVO", "", 0, "TL", false, 0, "")
+	pdf.CellFormat(66, 3, "Y EN EFECTIVO", "", 0, "TL", false, 0, "")
 
 	pdf.SetXY(7, ynow+45)
 
@@ -900,10 +900,10 @@ func agregarDatosEstudianteRecibo(pdf *gofpdf.Fpdf, datos map[string]interface{}
 	pdf.CellFormat(66, 3, tr(datos["Descripcion"].(string)), "", 0, "TL", false, 0, "")
 	pdf.SetXY(142.9, pdf.GetY()+5)
 	fontStyle(pdf, "", 6.75, 0)
-	pdf.CellFormat(66, 3, "PAGOS EN CORRESPONSAL BANCARIO UNICAMENTE", "", 0, "TL", false, 0, "")
+	pdf.CellFormat(66, 3, "PAGOS UNICAMENTE POR CODIGO DE BARRAS", "", 0, "TL", false, 0, "")
 	pdf.SetXY(142.9, pdf.GetY()+3)
 	fontStyle(pdf, "", 6.75, 0)
-	pdf.CellFormat(66, 3, "POR CODIGO DE BARRAS Y EN EFECTIVO", "", 0, "TL", false, 0, "")
+	pdf.CellFormat(66, 3, "Y EN EFECTIVO", "", 0, "TL", false, 0, "")
 
 	pdf.SetXY(7, ynow+45)
 
