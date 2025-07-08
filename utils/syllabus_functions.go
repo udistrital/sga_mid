@@ -47,14 +47,12 @@ func GetSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData m
 
 	evaluacion := syllabusData["evaluacion"]
 	if evaluacion != nil {
-		evaluacionDescripcion = fmt.Sprintf(
-			"%v",
-			helpers.DefaultToMapString(evaluacion.(map[string]interface{}), "descripcion", ""))
 
-		if evaluacion.(map[string]interface{})["evaluaciones"] == nil {
-			evaluacionDetalle = []any{}
+		evaluacionMap := evaluacion.(map[string]interface{})
+		if tiposEval, exists := evaluacionMap["tipos_evaluacion"]; exists {
+			evaluacionDetalle = tiposEval.([]interface{})
 		} else {
-			evaluacionDetalle = evaluacion.(map[string]interface{})["evaluaciones"].([]interface{})
+			evaluacionDetalle = []interface{}{}
 		}
 	}
 
@@ -72,8 +70,29 @@ func GetSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData m
 		seguimiento = map[string]interface{}{}
 	}
 
+	// Procesar resultados de aprendizaje - formato jerárquico nuevo
 	if syllabusData["resultados_aprendizaje"] != nil {
-		propositos = syllabusData["resultados_aprendizaje"].([]interface{})
+		resultados := syllabusData["resultados_aprendizaje"].([]interface{})
+		// Convertir estructura jerárquica a formato plano que esperan las plantillas
+		for _, resultado := range resultados {
+			resMap := resultado.(map[string]interface{})
+			competencia := resMap["competencia"]
+
+			if subResultados, exists := resMap["resultados"]; exists {
+				subRes := subResultados.([]interface{})
+				for _, subResultado := range subRes {
+					subMap := subResultado.(map[string]interface{})
+					// Crear entrada en formato plano para cada resultado específico
+					proposito := map[string]interface{}{
+						"competencia":         competencia,
+						"resultado_detallado": subMap["resultado_detallado"],
+						"dominio":             subMap["dominio"],
+						"id":                  subMap["id"],
+					}
+					propositos = append(propositos, proposito)
+				}
+			}
+		}
 	} else {
 		propositos = []interface{}{}
 	}
