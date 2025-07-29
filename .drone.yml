@@ -49,6 +49,7 @@ steps:
 
 - name: go_build
   image: golang:1.23
+
   commands:
   - apt-get update
   - apt-get install libmcrypt-dev -y
@@ -101,7 +102,7 @@ steps:
     - release/*
 
 - name: publish_to_ecr_release
-  image: plugins/ecr
+  image: plugins/ecr:20.18.5
   settings:
     access_key:
       from_secret: AWS_ACCESS_KEY_ID
