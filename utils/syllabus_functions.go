@@ -2,12 +2,256 @@ package utils
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/helpers"
 	"github.com/udistrital/utils_oas/request"
 )
+
+// isLegacyFormat detecta si el syllabus tiene formato legacy
+func isLegacyFormat(syllabusData map[string]interface{}) bool {
+	// Verificar si objetivos_especificos es un array de strings (legacy)
+	if objetivos, exists := syllabusData["objetivos_especificos"]; exists {
+		if objetivosSlice, ok := objetivos.([]interface{}); ok && len(objetivosSlice) > 0 {
+			// Si el primer elemento es string, es formato legacy
+			if _, isString := objetivosSlice[0].(string); isString {
+				return true
+			}
+		}
+	}
+
+	// Verificar si resultados_aprendizaje es un array de strings (legacy)
+	if resultados, exists := syllabusData["resultados_aprendizaje"]; exists {
+		if resultadosSlice, ok := resultados.([]interface{}); ok && len(resultadosSlice) > 0 {
+			// Si el primer elemento es string, es formato legacy
+			if _, isString := resultadosSlice[0].(string); isString {
+				return true
+			}
+		}
+	}
+
+	// Verificar si estrategias es un array (legacy) en lugar de un objeto
+	if estrategias, exists := syllabusData["estrategias"]; exists {
+		if reflect.TypeOf(estrategias).Kind() == reflect.Slice {
+			return true
+		}
+	}
+
+	// Verificar si evaluacion tiene estructura legacy
+	if evaluacion, exists := syllabusData["evaluacion"]; exists {
+		if evaluacionMap, ok := evaluacion.(map[string]interface{}); ok {
+			// Si tiene "evaluaciones" en lugar de "tipos_evaluacion", es legacy
+			if _, hasEvaluaciones := evaluacionMap["evaluaciones"]; hasEvaluaciones {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+// transformLegacyEstrategias convierte estrategias legacy al nuevo formato
+func transformLegacyEstrategias(estrategiasLegacy []interface{}) map[string]interface{} {
+	// Crear estructura dummy con valores por defecto
+	estrategiasNuevas := map[string]interface{}{
+		"tradicional":         false,
+		"basado_problemas":    false,
+		"aprendizaje_activo":  false,
+		"basado_proyectos":    false,
+		"colaborativo":        false,
+		"autodirigido":        false,
+		"basado_tecnologia":   false,
+		"basado_experiencias": false,
+		"centrado_estudiante": false,
+	}
+
+	// Si hay estrategias legacy, marcar como tradicional por defecto
+	if len(estrategiasLegacy) > 0 {
+		estrategiasNuevas["tradicional"] = true
+	}
+
+	return estrategiasNuevas
+}
+
+// transformLegacyEvaluacion convierte evaluacion legacy al nuevo formato
+func transformLegacyEvaluacion(evaluacionLegacy map[string]interface{}) map[string]interface{} {
+	// Crear estructura dummy con evaluación por defecto
+	evaluacionNueva := map[string]interface{}{
+		"tipos_evaluacion": []interface{}{
+			map[string]interface{}{
+				"nombre":                           "Evaluación General",
+				"tipo_evaluacion":                  "EF",
+				"porcentaje":                       100,
+				"trabajo_tipo":                     "I",
+				"tipo_nota":                        "0-5",
+				"resultados_aprendizaje_asociados": []interface{}{},
+			},
+		},
+	}
+
+	// Si hay evaluaciones legacy, intentar convertirlas
+	if evaluacionesLegacy, exists := evaluacionLegacy["evaluaciones"]; exists {
+		if evaluacionesSlice, ok := evaluacionesLegacy.([]interface{}); ok {
+			var tiposEvaluacion []interface{}
+			for _, eval := range evaluacionesSlice {
+				if evalMap, ok := eval.(map[string]interface{}); ok {
+					tipoEval := map[string]interface{}{
+						"nombre":                           helpers.DefaultToMapString(evalMap, "nombre", "Evaluación"),
+						"tipo_evaluacion":                  "EF",
+						"porcentaje":                       helpers.DefaultToMapString(evalMap, "porcentaje", 0),
+						"trabajo_tipo":                     "I",
+						"tipo_nota":                        "0-5",
+						"resultados_aprendizaje_asociados": []interface{}{},
+					}
+					tiposEvaluacion = append(tiposEvaluacion, tipoEval)
+				}
+			}
+			if len(tiposEvaluacion) > 0 {
+				evaluacionNueva["tipos_evaluacion"] = tiposEvaluacion
+			}
+		}
+	}
+
+	return evaluacionNueva
+}
+
+// transformLegacyResultadosAprendizaje convierte resultados_aprendizaje legacy al nuevo formato
+func transformLegacyResultadosAprendizaje(resultadosLegacy []interface{}) []interface{} {
+	var resultadosNuevos []interface{}
+
+	// Crear estructura dummy con un resultado por defecto
+	if len(resultadosLegacy) == 0 {
+		resultadosNuevos = []interface{}{
+			map[string]interface{}{
+				"competencia": "Competencia general del espacio académico",
+				"resultados": []interface{}{
+					map[string]interface{}{
+						"id":                  "01",
+						"dominio":             "Cognitivo - Conocer",
+						"resultado_detallado": "Resultado de aprendizaje por definir",
+					},
+				},
+			},
+		}
+	} else {
+		// Convertir cada resultado legacy a la nueva estructura
+		for i, resultado := range resultadosLegacy {
+			if resultadoStr, ok := resultado.(string); ok {
+				competencia := map[string]interface{}{
+					"competencia": resultadoStr,
+					"resultados": []interface{}{
+						map[string]interface{}{
+							"id":                  fmt.Sprintf("%02d", i+1),
+							"dominio":             "Cognitivo - Conocer",
+							"resultado_detallado": resultadoStr,
+						},
+					},
+				}
+				resultadosNuevos = append(resultadosNuevos, competencia)
+			}
+		}
+	}
+
+	return resultadosNuevos
+}
+
+// transformLegacyObjetivosEspecificos convierte objetivos_especificos legacy al nuevo formato
+func transformLegacyObjetivosEspecificos(objetivosLegacy []interface{}) []interface{} {
+	var objetivosNuevos []interface{}
+
+	// Convertir cada objetivo legacy a la nueva estructura
+	for _, objetivo := range objetivosLegacy {
+		if objetivoStr, ok := objetivo.(string); ok {
+			objetivoNuevo := map[string]interface{}{
+				"objetivo": objetivoStr,
+			}
+			objetivosNuevos = append(objetivosNuevos, objetivoNuevo)
+		}
+	}
+
+	return objetivosNuevos
+}
+
+// transformLegacySyllabusData transforma un syllabus legacy al nuevo formato
+func transformLegacySyllabusData(syllabusData map[string]interface{}) map[string]interface{} {
+	// Crear una copia del syllabus para no modificar el original
+	syllabusTransformed := make(map[string]interface{})
+	for k, v := range syllabusData {
+		syllabusTransformed[k] = v
+	}
+
+	logs.Info("Transformando syllabus legacy al nuevo formato")
+
+	// Transformar objetivos_especificos si es legacy
+	if objetivos, exists := syllabusTransformed["objetivos_especificos"]; exists {
+		if objetivosSlice, ok := objetivos.([]interface{}); ok && len(objetivosSlice) > 0 {
+			if _, isString := objetivosSlice[0].(string); isString {
+				logs.Info("Transformando objetivos_especificos legacy")
+				syllabusTransformed["objetivos_especificos"] = transformLegacyObjetivosEspecificos(objetivosSlice)
+			}
+		}
+	}
+
+	// Transformar resultados_aprendizaje si es legacy
+	if resultados, exists := syllabusTransformed["resultados_aprendizaje"]; exists {
+		if resultadosSlice, ok := resultados.([]interface{}); ok && len(resultadosSlice) > 0 {
+			if _, isString := resultadosSlice[0].(string); isString {
+				logs.Info("Transformando resultados_aprendizaje legacy")
+				syllabusTransformed["resultados_aprendizaje"] = transformLegacyResultadosAprendizaje(resultadosSlice)
+			}
+		}
+	}
+
+	// Transformar estrategias si es legacy
+	if estrategias, exists := syllabusTransformed["estrategias"]; exists {
+		if reflect.TypeOf(estrategias).Kind() == reflect.Slice {
+			if estrategiasSlice, ok := estrategias.([]interface{}); ok {
+				logs.Info("Transformando estrategias legacy")
+				syllabusTransformed["estrategias"] = transformLegacyEstrategias(estrategiasSlice)
+			}
+		}
+	}
+
+	// Transformar evaluacion si es legacy
+	if evaluacion, exists := syllabusTransformed["evaluacion"]; exists {
+		if evaluacionMap, ok := evaluacion.(map[string]interface{}); ok {
+			if _, hasEvaluaciones := evaluacionMap["evaluaciones"]; hasEvaluaciones {
+				logs.Info("Transformando evaluacion legacy")
+				syllabusTransformed["evaluacion"] = transformLegacyEvaluacion(evaluacionMap)
+			}
+		}
+	}
+
+	// Normalizar subtemas en contenidos temáticos (legacy)
+	if contenido, ok := syllabusTransformed["contenido"].(map[string]interface{}); ok {
+		if temas, ok := contenido["temas"].([]interface{}); ok {
+			for i, tema := range temas {
+				if temaMap, ok := tema.(map[string]interface{}); ok {
+					if subtemas, ok := temaMap["subtemas"].([]interface{}); ok {
+						var subtemasStr []interface{}
+						for _, subtema := range subtemas {
+							// Si es un mapa con campo nombre, extraer el nombre
+							if subtemaMap, ok := subtema.(map[string]interface{}); ok {
+								if nombre, ok := subtemaMap["nombre"].(string); ok {
+									subtemasStr = append(subtemasStr, nombre)
+								}
+							} else if subtemaStr, ok := subtema.(string); ok {
+								subtemasStr = append(subtemasStr, subtemaStr)
+							}
+						}
+						syllabusTransformed["contenido"].(map[string]interface{})["temas"].([]interface{})[i].(map[string]interface{})["subtemas"] = subtemasStr
+					}
+				}
+			}
+		}
+	}
+
+	logs.Info("Transformación de syllabus legacy completada")
+	return syllabusTransformed
+}
 
 func GetSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData map[string]interface{}, languages string) map[string]interface{} {
 	var propositos []interface{}
@@ -20,6 +264,12 @@ func GetSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData m
 	var seguimiento map[string]interface{}
 	var objetivosEspecificos []string
 	var versionSyllabus string
+
+	// Detectar si es formato legacy y transformar si es necesario
+	if isLegacyFormat(syllabusData) {
+		logs.Info("Syllabus detectado como formato legacy - iniciando transformación")
+		syllabusData = transformLegacySyllabusData(syllabusData)
+	}
 
 	if syllabusData["objetivos_especificos"] != nil {
 		objetivos := syllabusData["objetivos_especificos"].([]any)
@@ -47,14 +297,12 @@ func GetSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData m
 
 	evaluacion := syllabusData["evaluacion"]
 	if evaluacion != nil {
-		evaluacionDescripcion = fmt.Sprintf(
-			"%v",
-			helpers.DefaultToMapString(evaluacion.(map[string]interface{}), "descripcion", ""))
 
-		if evaluacion.(map[string]interface{})["evaluaciones"] == nil {
-			evaluacionDetalle = []any{}
+		evaluacionMap := evaluacion.(map[string]interface{})
+		if tiposEval, exists := evaluacionMap["tipos_evaluacion"]; exists {
+			evaluacionDetalle = tiposEval.([]interface{})
 		} else {
-			evaluacionDetalle = evaluacion.(map[string]interface{})["evaluaciones"].([]interface{})
+			evaluacionDetalle = []interface{}{}
 		}
 	}
 
@@ -64,6 +312,24 @@ func GetSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData m
 
 	if syllabusData["bibliografia"] != nil {
 		bibliografia = syllabusData["bibliografia"].(map[string]interface{})
+	} else {
+		// Crear estructura dummy para bibliografía si no existe
+		bibliografia = map[string]interface{}{
+			"basicas":         []interface{}{},
+			"complementarias": []interface{}{},
+			"paginasWeb":      []interface{}{},
+		}
+	}
+
+	// Validar que la bibliografía tenga la estructura correcta
+	if _, hasBasicas := bibliografia["basicas"]; !hasBasicas {
+		bibliografia["basicas"] = []interface{}{}
+	}
+	if _, hasComplementarias := bibliografia["complementarias"]; !hasComplementarias {
+		bibliografia["complementarias"] = []interface{}{}
+	}
+	if _, hasPaginasWeb := bibliografia["paginasWeb"]; !hasPaginasWeb {
+		bibliografia["paginasWeb"] = []interface{}{}
 	}
 
 	if syllabusData["seguimiento"] != nil {
@@ -72,8 +338,29 @@ func GetSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData m
 		seguimiento = map[string]interface{}{}
 	}
 
+	// Procesar resultados de aprendizaje - formato jerárquico nuevo
 	if syllabusData["resultados_aprendizaje"] != nil {
-		propositos = syllabusData["resultados_aprendizaje"].([]interface{})
+		resultados := syllabusData["resultados_aprendizaje"].([]interface{})
+		// Convertir estructura jerárquica a formato plano que esperan las plantillas
+		for _, resultado := range resultados {
+			resMap := resultado.(map[string]interface{})
+			competencia := resMap["competencia"]
+
+			if subResultados, exists := resMap["resultados"]; exists {
+				subRes := subResultados.([]interface{})
+				for _, subResultado := range subRes {
+					subMap := subResultado.(map[string]interface{})
+					// Crear entrada en formato plano para cada resultado específico
+					proposito := map[string]interface{}{
+						"competencia":         competencia,
+						"resultado_detallado": subMap["resultado_detallado"],
+						"dominio":             subMap["dominio"],
+						"id":                  subMap["id"],
+					}
+					propositos = append(propositos, proposito)
+				}
+			}
+		}
 	} else {
 		propositos = []interface{}{}
 	}

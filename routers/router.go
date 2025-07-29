@@ -193,6 +193,11 @@ func init() {
 				&controllers.ReportesController{},
 			),
 		),
+		beego.NSNamespace("/facturacion_electronica",
+			beego.NSInclude(
+				&controllers.FacturacionElectronicaController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
