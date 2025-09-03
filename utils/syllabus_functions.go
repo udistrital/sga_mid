@@ -14,6 +14,7 @@ import (
 // isLegacyFormat detecta si el syllabus tiene formato legacy
 func isLegacyFormat(syllabusData map[string]interface{}) bool {
 	// Verificar si objetivos_especificos es un array de strings (legacy)
+	// NO, ESTA PARTE NO ES CIERTA. SIN EMBARGO SE DEJA PARA MODIFICAR LUEGO
 	if objetivos, exists := syllabusData["objetivos_especificos"]; exists {
 		if objetivosSlice, ok := objetivos.([]interface{}); ok && len(objetivosSlice) > 0 {
 			// Si el primer elemento es string, es formato legacy
@@ -158,21 +159,44 @@ func transformLegacyResultadosAprendizaje(resultadosLegacy []interface{}) []inte
 	return resultadosNuevos
 }
 
-// transformLegacyObjetivosEspecificos convierte objetivos_especificos legacy al nuevo formato
-func transformLegacyObjetivosEspecificos(objetivosLegacy []interface{}) []interface{} {
-	var objetivosNuevos []interface{}
+// // transformLegacyObjetivosEspecificos convierte objetivos_especificos legacy al nuevo formato
+// func transformLegacyObjetivosEspecificos(objetivosLegacy []interface{}) []interface{} {
+// 	var objetivosNuevos []interface{}
+//
+// 	// Convertir cada objetivo legacy a la nueva estructura
+// 	for _, objetivo := range objetivosLegacy {
+// 		if objetivoStr, ok := objetivo.(string); ok {
+// 			objetivoNuevo := map[string]interface{}{
+// 				"objetivo": objetivoStr,
+// 			}
+// 			objetivosNuevos = append(objetivosNuevos, objetivoNuevo)
+// 		}
+// 	}
+//
+// 	return objetivosNuevos
+// }
 
-	// Convertir cada objetivo legacy a la nueva estructura
-	for _, objetivo := range objetivosLegacy {
-		if objetivoStr, ok := objetivo.(string); ok {
-			objetivoNuevo := map[string]interface{}{
-				"objetivo": objetivoStr,
-			}
-			objetivosNuevos = append(objetivosNuevos, objetivoNuevo)
+func isInvalidText(llave string) bool {
+	// crea una lista de valores a no tomar en cuenta
+	var noAplica = []string{"No aplica", "No aplica.", "Información no disponible", "Información no Disponible", "No aplica. "}
+
+	for _, inval := range noAplica {
+		if strings.TrimSpace(strings.ToLower(llave)) == strings.TrimSpace(strings.ToLower(inval)) {
+			return true
 		}
 	}
-
-	return objetivosNuevos
+	return false
+}
+func leerPropositosAprendizajeLegacy(resultadosSlice []interface{}, slice_str_resultados []string) []string {
+	for _, result_obj := range resultadosSlice {
+		if res, ok := result_obj.(map[string]interface{}); ok {
+			pfa_p := helpers.DefaultToMapString(res, "pfa_programa", "").(string)
+			pfa_a := helpers.DefaultToMapString(res, "pfa_asignatura", "").(string)
+			comp := helpers.DefaultToMapString(res, "competencias", "").(string)
+			slice_str_resultados = append(slice_str_resultados, pfa_p, pfa_a, comp)
+		}
+	}
+	return slice_str_resultados
 }
 
 // transformLegacySyllabusData transforma un syllabus legacy al nuevo formato
@@ -186,29 +210,81 @@ func transformLegacySyllabusData(syllabusData map[string]interface{}) map[string
 	logs.Info("Transformando syllabus legacy al nuevo formato")
 
 	// Transformar objetivos_especificos si es legacy
-	if objetivos, exists := syllabusTransformed["objetivos_especificos"]; exists {
-		if objetivosSlice, ok := objetivos.([]interface{}); ok && len(objetivosSlice) > 0 {
-			if _, isString := objetivosSlice[0].(string); isString {
-				logs.Info("Transformando objetivos_especificos legacy")
-				syllabusTransformed["objetivos_especificos"] = transformLegacyObjetivosEspecificos(objetivosSlice)
-			}
-		}
-	}
+	// if objetivos, exists := syllabusTransformed["objetivos_especificos"]; exists {
+	// 	if objetivosSlice, ok := objetivos.([]interface{}); ok && len(objetivosSlice) > 0 {
+	// 		if _, isString := objetivosSlice[0].(string); isString {
+	// 			logs.Info("Transformando objetivos_especificos legacy")
+	// 			syllabusTransformed["objetivos_especificos"] = transformLegacyObjetivosEspecificos(objetivosSlice)
+	// 		}
+	// 	}
+	// }
 
 	// Transformar resultados_aprendizaje si es legacy
 	if resultados, exists := syllabusTransformed["resultados_aprendizaje"]; exists {
-		if resultadosSlice, ok := resultados.([]interface{}); ok && len(resultadosSlice) > 0 {
-			if _, isString := resultadosSlice[0].(string); isString {
-				logs.Info("Transformando resultados_aprendizaje legacy")
-				syllabusTransformed["resultados_aprendizaje"] = transformLegacyResultadosAprendizaje(resultadosSlice)
+
+		var resultados_vacio []interface{}
+		var slice_str_resultados []string
+
+		resultadosSlice, ok := resultados.([]interface{})
+
+		// Si es un slice de estructuras y hay más de una, se asume que son datos válidos
+		if ok && len(resultadosSlice) > 1 {
+			slice_str_resultados = leerPropositosAprendizajeLegacy(resultadosSlice, slice_str_resultados)
+			syllabusTransformed["resultados_aprendizaje"] = slice_str_resultados
+
+		} else if len(resultadosSlice) == 1 {
+			// si es uno puede ser dato válido o NO APLICA, en cuyo caso se modifica a la versión 3 con datos genéricos
+			if comp, ok := resultadosSlice[0].(map[string]interface{}); ok {
+				compStr := func(key string) string {
+					if valor, ok := comp[key].(string); ok {
+						return valor
+					}
+					return ""
+				}
+				if isInvalidText(compStr("pfa_programa")) && isInvalidText(compStr("pfa_asignatura")) && isInvalidText(compStr("competencias")) {
+					// Información no válida, enviando datos genericos
+					logs.Info("Información no válida en resultados, enviando datos genericos")
+					syllabusTransformed["resultados_aprendizaje"] = transformLegacyResultadosAprendizaje(resultados_vacio)
+				} else {
+					slice_str_resultados = leerPropositosAprendizajeLegacy(resultadosSlice, slice_str_resultados)
+					syllabusTransformed["resultados_aprendizaje"] = slice_str_resultados
+				}
 			}
+			// logs.Info(pfa_a)
+		} else {
+			syllabusTransformed["resultados_aprendizaje"] = transformLegacyResultadosAprendizaje(resultadosSlice)
 		}
+
+		// if resultadosSlice, ok := resultados.([]interface{}); ok && len(resultadosSlice) > 0 {
+		// 	if _, isString := resultadosSlice[0].(string); isString {
+		// 		logs.Info("Transformando resultados_aprendizaje legacy")
+		// 		syllabusTransformed["resultados_aprendizaje"] = transformLegacyResultadosAprendizaje(resultadosSlice)
+		// 	}else{
+		// 		logs.Info("Resultados de aprendizaje no es un Array de textos")
+		// 	}
+		// }
 	}
 
 	// Transformar estrategias si es legacy
 	if estrategias, exists := syllabusTransformed["estrategias"]; exists {
+
+		var slice_str_estragegias []string
+
 		if reflect.TypeOf(estrategias).Kind() == reflect.Slice {
-			if estrategiasSlice, ok := estrategias.([]interface{}); ok {
+			// vincula la generación de estrategias v2 si hay propositos de aprendizaje legacy
+			_, v2_exist := syllabusTransformed["resultados_aprendizaje"].([]string)
+			estrategiasSlice, estrategias_ok := estrategias.([]interface{})
+			// fmt.Printf("Estrategias: es slice %v, y pfa v2: %v", estrategias_ok, v2_exist)
+			if estrategias_ok && v2_exist {
+				for _, item := range estrategiasSlice {
+					if estr, ok := item.(map[string]interface{}); ok {
+						slice_str_estragegias = append(slice_str_estragegias, estr["descripcion"].(string))
+					}
+				}
+				logs.Info("Enviando estrategias legacy")
+				syllabusTransformed["estrategias"] = slice_str_estragegias
+			} else if estrategias_ok {
+				// sino hay prop v2 prodece de forma nomal con estrategias v3
 				logs.Info("Transformando estrategias legacy")
 				syllabusTransformed["estrategias"] = transformLegacyEstrategias(estrategiasSlice)
 			}
@@ -218,9 +294,15 @@ func transformLegacySyllabusData(syllabusData map[string]interface{}) map[string
 	// Transformar evaluacion si es legacy
 	if evaluacion, exists := syllabusTransformed["evaluacion"]; exists {
 		if evaluacionMap, ok := evaluacion.(map[string]interface{}); ok {
-			if _, hasEvaluaciones := evaluacionMap["evaluaciones"]; hasEvaluaciones {
-				logs.Info("Transformando evaluacion legacy")
-				syllabusTransformed["evaluacion"] = transformLegacyEvaluacion(evaluacionMap)
+			if eval, hasEvaluaciones := evaluacionMap["evaluaciones"]; hasEvaluaciones {
+				if ev, ok := eval.([]interface{}); ok {
+					if len(ev) > 1 {
+						logs.Info("Mantenieno evaluaciones legacy")
+					} else {
+						logs.Info("Transformando evaluacion legacy")
+						syllabusTransformed["evaluacion"] = transformLegacyEvaluacion(evaluacionMap)
+					}
+				}
 			}
 		}
 	}
@@ -301,6 +383,9 @@ func GetSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData m
 		evaluacionMap := evaluacion.(map[string]interface{})
 		if tiposEval, exists := evaluacionMap["tipos_evaluacion"]; exists {
 			evaluacionDetalle = tiposEval.([]interface{})
+		} else if tiposEval, exists := evaluacionMap["evaluaciones"]; exists {
+			evaluacionDetalle = tiposEval.([]interface{})
+			evaluacionDescripcion = evaluacionMap["descripcion"].(string)
 		} else {
 			evaluacionDetalle = []interface{}{}
 		}
@@ -340,26 +425,38 @@ func GetSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData m
 
 	// Procesar resultados de aprendizaje - formato jerárquico nuevo
 	if syllabusData["resultados_aprendizaje"] != nil {
-		resultados := syllabusData["resultados_aprendizaje"].([]interface{})
-		// Convertir estructura jerárquica a formato plano que esperan las plantillas
-		for _, resultado := range resultados {
-			resMap := resultado.(map[string]interface{})
-			competencia := resMap["competencia"]
+		resultados, ok := syllabusData["resultados_aprendizaje"].([]interface{})
+		if ok {
+			// Convertir estructura jerárquica a formato plano que esperan las plantillas
+			for _, resultado := range resultados {
+				resMap := resultado.(map[string]interface{})
+				competencia := resMap["competencia"]
 
-			if subResultados, exists := resMap["resultados"]; exists {
-				subRes := subResultados.([]interface{})
-				for _, subResultado := range subRes {
-					subMap := subResultado.(map[string]interface{})
-					// Crear entrada en formato plano para cada resultado específico
-					proposito := map[string]interface{}{
-						"competencia":         competencia,
-						"resultado_detallado": subMap["resultado_detallado"],
-						"dominio":             subMap["dominio"],
-						"id":                  subMap["id"],
+				if subResultados, exists := resMap["resultados"]; exists {
+					subRes := subResultados.([]interface{})
+					for _, subResultado := range subRes {
+						subMap := subResultado.(map[string]interface{})
+						// Crear entrada en formato plano para cada resultado específico
+						proposito := map[string]interface{}{
+							"competencia":         competencia,
+							"resultado_detallado": subMap["resultado_detallado"],
+							"dominio":             subMap["dominio"],
+							"id":                  subMap["id"],
+						}
+						propositos = append(propositos, proposito)
 					}
-					propositos = append(propositos, proposito)
 				}
 			}
+		} else {
+			resultados, _ := syllabusData["resultados_aprendizaje"].([]string)
+			// logs.Info("GetSyllabusTemplateData resultados de aprendizaje legacy")
+			// for _, value := range resultados{
+			// 	propositos = append(propositos, value)
+			// }
+			proposito := map[string]interface{}{
+				"propositos_formación_legacy": resultados,
+			}
+			propositos = append(propositos, proposito)
 		}
 	} else {
 		propositos = []interface{}{}
@@ -430,8 +527,9 @@ func GetSyllabusTemplateData(spaceData, syllabusData, facultyData, projectData m
 		"fecha_rev_consejo":              fechaRevConsejo,
 		"fecha_aprob_consejo":            fechaAprobConsejo,
 		"num_acta":                       numActa,
-		"version_syllabus":               versionSyllabus}
-
+		"version_syllabus":               versionSyllabus,
+	}
+	// logs.Info(syllabusTemplateData["evaluacion_descripcion"])
 	return syllabusTemplateData
 }
 
@@ -487,10 +585,10 @@ func GetAcademicSpaceData(pensumId, carreraCod, asignaturaCod int) (map[string]a
 			}
 			return spaceData, nil
 		} else {
-			return nil, fmt.Errorf("Espacio académico no encontrado")
+			return nil, fmt.Errorf("espacio académico no encontrado")
 		}
 	} else {
-		return nil, fmt.Errorf("Espacio académico no encontrado")
+		return nil, fmt.Errorf("espacio académico no encontrado")
 	}
 }
 
@@ -517,6 +615,6 @@ func GetIdiomas(idiomaIds []interface{}) (string, error) {
 		}
 		return idiomasStr, nil
 	} else {
-		return "", fmt.Errorf("Idiomas no encontrados")
+		return "", fmt.Errorf("idiomas no encontrados")
 	}
 }
