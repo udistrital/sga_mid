@@ -1299,7 +1299,7 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 			"nombre":              SolicitudInscripcion["Nombre"].(string),
 			"apellido":            SolicitudInscripcion["Apellido"].(string),
 			"correo":              SolicitudInscripcion["Correo"].(string),
-			"proyecto":            SolicitudInscripcion["ProgramaAcademicoId"].(float64),
+			"proyecto":            SolicitudInscripcion["ProgramaAcademicoCodigo"].(float64),
 			"tiporecibo":          15, // se define 15 por que es el id definido en el api de recibos para inscripcion
 			"concepto":            "",
 			"valorordinario":      0,
@@ -1313,7 +1313,7 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 
 		inscripcion := map[string]interface{}{
 			"PersonaId":           SolicitudInscripcion["PersonaId"].(float64),
-			"ProgramaAcademicoId": SolicitudInscripcion["ProgramaAcademicoId"].(float64),
+			"ProgramaAcademicoId": SolicitudInscripcion["ProgramaAcademicoCodigo"].(float64),
 			"ReciboInscripcion":   "",
 			"PeriodoId":           SolicitudInscripcion["PeriodoId"].(float64),
 			"AceptaTerminos":      true,
@@ -1337,7 +1337,7 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 
 		coincideCodigoSnies := false
 		var proyectos []map[string]interface{}
-		idProyecto := fmt.Sprintf("%.0f", SolicitudInscripcion["ProgramaAcademicoId"].(float64))
+		idProyecto := fmt.Sprintf("%.0f", SolicitudInscripcion["ProgramaAcademicoCodigo"].(float64))
 		errproyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/tr_proyecto_academico/"+idProyecto, &proyectos)
 		if errproyecto == nil {
 			proyecto := proyectos[0]
@@ -1345,7 +1345,7 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 			codigoSnies := proyectoAcademico["CodigoSnies"].(string)
 
 			var HomologacionXML map[string]interface{}
-			codigoProyecto := fmt.Sprintf("%.0f", SolicitudInscripcion["ProgramaAcademicoCodigo"].(float64))
+			codigoProyecto := proyectoAcademico["Codigo"].(string)
 			errHomologacion := request.GetJsonWSO2("http://"+beego.AppConfig.String("HomologacionDependenciaService")+"proyecto_acad_snies/"+codigoSnies, &HomologacionXML)
 			resultadoHomologacion := HomologacionXML["proyecto_snies"].(map[string]interface{})
 			if errHomologacion == nil && fmt.Sprintf("%v", resultadoHomologacion) != "map[]" {
