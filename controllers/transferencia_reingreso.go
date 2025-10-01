@@ -1183,6 +1183,12 @@ func (c *Transferencia_reingresoController) GetInscripcion() {
 							continue
 						}
 
+						codigoEstudiante, err := strconv.Atoi(codigo)
+						if err != nil {
+							fmt.Printf("Error converting codigoProyecto to int: %v\n", err)
+							continue
+						}
+
 						errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Codigo:"+codigoProyectoStr, &proyectoGet)
 						if errProyecto == nil && fmt.Sprintf("%v", proyectoGet) != "[map[]]" {
 							if calendarioGet[indice]["DependenciaId"] != nil {
@@ -1192,7 +1198,7 @@ func (c *Transferencia_reingresoController) GetInscripcion() {
 											"IdProyectoAcademico": proyectoGet[0]["Id"],
 											"IdProyectoCondor":    codigoProyecto,
 											"NombreProyecto":      proyectoGet[0]["Nombre"],
-											"Codigo":              codigo,
+											"Codigo":              codigoEstudiante,
 										}
 										codigosRes = append(codigosRes, codigoAux)
 									}
