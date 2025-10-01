@@ -1171,6 +1171,29 @@ func (c *Transferencia_reingresoController) GetInscripcion() {
 						codigosGet = append(codigosGet, dato.Numero)
 					}
 
+					for _, codigo := range codigosGet {
+						codigoProyectoStr := codigo[5:8]
+						if codigoProyectoStr[0] == '0' && len(codigoProyectoStr) == 3 {
+							codigoProyectoStr = codigoProyectoStr[1:]
+						}
+
+						codigoProyecto, err := strconv.Atoi(codigoProyectoStr)
+						if err != nil {
+							fmt.Printf("Error converting codigoProyecto to int: %v\n", err)
+							continue
+						}
+
+						errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Codigo:"+codigoProyectoStr, &proyectoGet)
+						if errProyecto == nil && fmt.Sprintf("%v", proyectoGet) != "[map[]]" {
+							if calendarioGet[indice]["DependenciaId"] != nil {
+								for _, proyectoCalendario := range calendarioGet[indice]["DependenciaId"].([]interface{}) {
+									if proyectoGet[0]["Id"] == proyectoCalendario {
+										codigoAux := map[string]interface{}{
+											"IdProyectoAcademico": proyectoGet[0]["Id"],
+											"IdProyectoCondor":    codigoProyecto,
+											"NombreProyecto":      proyectoGet[0]["Nombre"],
+											"Codigo":              codigo,
+										}
 										codigosRes = append(codigosRes, codigoAux)
 									}
 								}
@@ -1178,7 +1201,7 @@ func (c *Transferencia_reingresoController) GetInscripcion() {
 						}
 					}
 				}
-				resultado["CodigoEstudiante"] = codigosGet[0]
+				resultado["CodigoEstudiante"] = codigosRes
 
 				// información del estudiante
 				errIdentificacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=Activo:true,TerceroId.Id:"+fmt.Sprintf("%v", inscripcionGet[0]["PersonaId"]), &identificacionGet)
