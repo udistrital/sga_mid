@@ -184,7 +184,8 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 							errEvento := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento/?query=TipoEventoId__CalendarioID__Id:"+proyectosArrMap[i]["CalendarioID"].(string)+",Activo:true&limit=0", &calendarioEventos)
 							if errEvento == nil && fmt.Sprintf("%v", calendarioEventos) != "[map[]]" {
 
-								for ind, Evento := range calendarioEventos {
+								var lista_eventos []map[string]interface{}
+								for _, Evento := range calendarioEventos {
 									nombreEvento := strings.ToUpper(fmt.Sprintf(Evento["Nombre"].(string)))
 									codAbrEvento := Evento["TipoEventoId"].(map[string]interface{})["CodigoAbreviacion"].(string)
 									pago := strings.Contains(nombreEvento, "PAGO")
@@ -196,7 +197,7 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 											if int(project.(map[string]interface{})["Id"].(float64)) == proyectosArrMap[i]["ProyectoId"].(int) {
 												if project.(map[string]interface{})["Activo"].(bool) {
 													// datos_respuesta := map[string]interface{}{
-													proyectosArrMap[i][fmt.Sprintf("Evento_%d",ind)] = map[string]interface{}{
+													evento_x := map[string]interface{}{
 														"ActividadParticular": true,
 														"NombreEvento":        Evento["Descripcion"],
 														"FechaInicioEvento":   project.(map[string]interface{})["Inicio"],
@@ -204,6 +205,7 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 														"CodigoAbreviacion":   codAbrEvento,
 														"Pago": 			   pago,
 													}
+													lista_eventos = append(lista_eventos, evento_x)
 												}
 												aplicaParticular = true
 												break
@@ -211,7 +213,7 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 										}
 									}
 									if !aplicaParticular {
-										proyectosArrMap[i][fmt.Sprintf("Evento_%d",ind)] = map[string]interface{}{
+										evento_x := map[string]interface{}{
 											"ActividadParticular": false,
 											"NombreEvento":        Evento["Descripcion"],
 											"FechaInicioEvento":   Evento["FechaInicio"],
@@ -219,19 +221,10 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 											"CodigoAbreviacion":   codAbrEvento,
 											"Pago":				   pago,
 										}
-										// if strings.Contains(nombreEvento, "REINGR") || strings.Contains(nombreEvento, "REING") {
-										// 	proyectosArrMap[i]["Evento_reint"] = datos_respuesta
-										// } else if strings.Contains(nombreEvento, "INSCRIPCI") && strings.Contains(nombreEvento, "ASPIRANTE") && strings.Contains(nombreEvento, "PAGO") {
-										// 	proyectosArrMap[i]["Evento"] = datos_respuesta
-										// } else if strings.Contains(nombreEvento, "INSCRIPCI") && strings.Contains(nombreEvento, "ASPIRANTE") && !strings.Contains(nombreEvento, "PAGO") {
-										// 	proyectosArrMap[i]["EventoInscripcion"] = datos_respuesta
-										// } else if strings.Contains(nombreEvento, "GENERACION") && strings.Contains(nombreEvento, "SOLICITUD") {
-										// 	proyectosArrMap[i]["EventoReintegro"] = datos_respuesta
-										// }
-										// proyectosArrMap[i][fmt.Sprintf("Evento_%d",ind)] = datos_respuesta
+										lista_eventos = append(lista_eventos, evento_x)
 									}
-
 								}
+								proyectosArrMap[i]["Evento"] = lista_eventos
 							}
 						}
 					}
