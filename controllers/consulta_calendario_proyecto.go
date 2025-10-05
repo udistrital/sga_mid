@@ -184,9 +184,10 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 							errEvento := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento/?query=TipoEventoId__CalendarioID__Id:"+proyectosArrMap[i]["CalendarioID"].(string)+",Activo:true&limit=0", &calendarioEventos)
 							if errEvento == nil && fmt.Sprintf("%v", calendarioEventos) != "[map[]]" {
 
-								for _, Evento := range calendarioEventos {
+								for ind, Evento := range calendarioEventos {
 									nombreEvento := strings.ToUpper(fmt.Sprintf(Evento["Nombre"].(string)))
 									codAbrEvento := Evento["TipoEventoId"].(map[string]interface{})["CodigoAbreviacion"].(string)
+									pago := strings.Contains(nombreEvento, "PAGO")
 									var aplicaParticular bool = false
 									if fmt.Sprintf("%v", Evento["DependenciaId"]) != "" && fmt.Sprintf("%v", Evento["DependenciaId"]) != "{}" {
 										var listaProyectos map[string]interface{}
@@ -194,22 +195,14 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 										for _, project := range listaProyectos["fechas"].([]interface{}) {
 											if int(project.(map[string]interface{})["Id"].(float64)) == proyectosArrMap[i]["ProyectoId"].(int) {
 												if project.(map[string]interface{})["Activo"].(bool) {
-													datos_respuesta := map[string]interface{}{
+													// datos_respuesta := map[string]interface{}{
+													proyectosArrMap[i][fmt.Sprintf("Evento_%d",ind)] = map[string]interface{}{
 														"ActividadParticular": true,
 														"NombreEvento":        Evento["Descripcion"],
 														"FechaInicioEvento":   project.(map[string]interface{})["Inicio"],
 														"FechaFinEvento":      project.(map[string]interface{})["Fin"],
 														"CodigoAbreviacion":   codAbrEvento,
-													}
-													if strings.Contains(nombreEvento, "REINGR") && strings.Contains(codAbrEvento, "REIN") { //&& strings.Contains(nombreEvento, "PAGO")
-														// fmt.Println("   <<<<----------          ------------------- ------------------     --------------->>>>")
-														proyectosArrMap[i]["Evento_reint"] = datos_respuesta
-													} else if strings.Contains(codAbrEvento, "INSCR") && strings.Contains(nombreEvento, "ASPIRANTE") && strings.Contains(nombreEvento, "PAGO") {
-														proyectosArrMap[i]["Evento"] = datos_respuesta
-													} else if strings.Contains(codAbrEvento, "INSCR") && strings.Contains(nombreEvento, "ASPIRANTE") && !strings.Contains(nombreEvento, "PAGO") {
-														proyectosArrMap[i]["EventoInscripcion"] = datos_respuesta
-													} else if strings.Contains(nombreEvento, "GENERACION") && strings.Contains(codAbrEvento, "REIN") {
-														proyectosArrMap[i]["EventoReintegro"] = datos_respuesta
+														"Pago": 			   pago,
 													}
 												}
 												aplicaParticular = true
@@ -218,22 +211,24 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 										}
 									}
 									if !aplicaParticular {
-										datos_respuesta := map[string]interface{}{
+										proyectosArrMap[i][fmt.Sprintf("Evento_%d",ind)] = map[string]interface{}{
 											"ActividadParticular": false,
 											"NombreEvento":        Evento["Descripcion"],
 											"FechaInicioEvento":   Evento["FechaInicio"],
 											"FechaFinEvento":      Evento["FechaFin"],
 											"CodigoAbreviacion":   codAbrEvento,
+											"Pago":				   pago,
 										}
-										if strings.Contains(nombreEvento, "REINGR") || strings.Contains(nombreEvento, "REING") {
-											proyectosArrMap[i]["Evento_reint"] = datos_respuesta
-										} else if strings.Contains(nombreEvento, "INSCRIPCI") && strings.Contains(nombreEvento, "ASPIRANTE") && strings.Contains(nombreEvento, "PAGO") {
-											proyectosArrMap[i]["Evento"] = datos_respuesta
-										} else if strings.Contains(nombreEvento, "INSCRIPCI") && strings.Contains(nombreEvento, "ASPIRANTE") && !strings.Contains(nombreEvento, "PAGO") {
-											proyectosArrMap[i]["EventoInscripcion"] = datos_respuesta
-										} else if strings.Contains(nombreEvento, "GENERACION") && strings.Contains(nombreEvento, "SOLICITUD") {
-											proyectosArrMap[i]["EventoReintegro"] = datos_respuesta
-										}
+										// if strings.Contains(nombreEvento, "REINGR") || strings.Contains(nombreEvento, "REING") {
+										// 	proyectosArrMap[i]["Evento_reint"] = datos_respuesta
+										// } else if strings.Contains(nombreEvento, "INSCRIPCI") && strings.Contains(nombreEvento, "ASPIRANTE") && strings.Contains(nombreEvento, "PAGO") {
+										// 	proyectosArrMap[i]["Evento"] = datos_respuesta
+										// } else if strings.Contains(nombreEvento, "INSCRIPCI") && strings.Contains(nombreEvento, "ASPIRANTE") && !strings.Contains(nombreEvento, "PAGO") {
+										// 	proyectosArrMap[i]["EventoInscripcion"] = datos_respuesta
+										// } else if strings.Contains(nombreEvento, "GENERACION") && strings.Contains(nombreEvento, "SOLICITUD") {
+										// 	proyectosArrMap[i]["EventoReintegro"] = datos_respuesta
+										// }
+										// proyectosArrMap[i][fmt.Sprintf("Evento_%d",ind)] = datos_respuesta
 									}
 
 								}
