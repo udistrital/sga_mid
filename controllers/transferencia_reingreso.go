@@ -1905,6 +1905,7 @@ func (c *Transferencia_reingresoController) GetEstadoInscripcion() {
 						"IdTipoInscripcion": Inscripciones[i]["TipoInscripcionId"].(map[string]interface{})["Id"],
 						"Recibo":            ReciboInscripcion,
 						"FechaGeneracion":   Inscripciones[i]["FechaCreacion"],
+						"EstadoSolicitud":   Inscripciones[i]["EstadoInscripcionId"],
 						"Estado":            Estado,
 						"NivelNombre":       nivelGet["Nombre"],
 						"Nivel":             nivelGet["Id"],
