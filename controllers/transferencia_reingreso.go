@@ -186,6 +186,22 @@ func (c *Transferencia_reingresoController) PostSolicitud() {
 				alerta.Code = "200"
 				alerta.Type = "OK"
 				alerta.Body = alertas
+				if inscripcionRealizada != nil {
+					if idInscripcion, ok := inscripcionRealizada["InscripcionId"]; ok {
+						var inscripcion map[string]interface{}
+						errGetInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion/"+fmt.Sprintf("%v", idInscripcion), &inscripcion)
+						if errGetInscripcion == nil && inscripcion != nil {
+							var estadoInscripcion []map[string]interface{}
+							errGetEstado := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"estado_inscripcion?query=CodigoAbreviacion:INSCREAL", &estadoInscripcion)
+							if errGetEstado == nil && len(estadoInscripcion) > 0 {
+								inscripcion["EstadoInscripcionId"] = estadoInscripcion[0]
+								var inscripcionPut map[string]interface{}
+								request.SendJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion/"+fmt.Sprintf("%v", idInscripcion), "PUT", &inscripcionPut, inscripcion)
+							}
+						}
+					}
+				}
+
 				c.Data["json"] = map[string]interface{}{"Response": alerta}
 			}
 			c.ServeJSON()
@@ -1889,6 +1905,7 @@ func (c *Transferencia_reingresoController) GetEstadoInscripcion() {
 						"IdTipoInscripcion": Inscripciones[i]["TipoInscripcionId"].(map[string]interface{})["Id"],
 						"Recibo":            ReciboInscripcion,
 						"FechaGeneracion":   Inscripciones[i]["FechaCreacion"],
+						"EstadoSolicitud":   Inscripciones[i]["EstadoInscripcionId"],
 						"Estado":            Estado,
 						"NivelNombre":       nivelGet["Nombre"],
 						"Nivel":             nivelGet["Id"],
