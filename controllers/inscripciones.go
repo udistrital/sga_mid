@@ -1323,10 +1323,23 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 			"TipoInscripcionId":   map[string]interface{}{"Id": SolicitudInscripcion["TipoInscripcionId"]},
 		}
 
-		if SolicitudInscripcion["Nivel"].(float64) == 1 {
+		switch SolicitudInscripcion["Nivel"].(float64) {
+		case 1:
+			// pregrado
 			TipoParametro = "13"
-		} else if SolicitudInscripcion["Nivel"].(float64) == 2 {
-			TipoParametro = "12"
+		case 2:
+			// verifica si es solicitud de postgrados
+			switch SolicitudInscripcion["TipoInscripcionId"].(float64) {
+			case 15:
+				// Inscripciones nuevas
+				TipoParametro = "12"
+			case 11:
+				// Reingresos
+				TipoParametro = "14"
+			default:
+				// por defecto se deja inscripciones
+				TipoParametro = "12"
+			}
 		}
 
 		if SolicitudInscripcion["Periodo"].(float64) == 1 {
