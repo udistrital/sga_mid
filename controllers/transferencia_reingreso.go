@@ -130,8 +130,8 @@ func (c *Transferencia_reingresoController) PostSolicitud() {
 				"CodigoEstudiante": SolicitudInscripcion["CodigoEstudiante"],
 				"MotivoRetiro":     fmt.Sprintf("%v", SolicitudInscripcion["MotivoRetiro"]),
 				"Activo":           true,
-				"Telefono1":        fmt.Sprintf("%v", SolicitudInscripcion["Telefono1"]),
-				"Telefono2":        fmt.Sprintf("%v", SolicitudInscripcion["Telefono2"]),
+				"Telefono1":        SolicitudInscripcion["Telefono1"],
+				"Telefono2":        SolicitudInscripcion["Telefono2"],
 			}
 
 			errInscripcion := request.SendJson("http://"+beego.AppConfig.String("InscripcionService")+"reintegro", "POST", &inscripcionRealizada, reingreso)
