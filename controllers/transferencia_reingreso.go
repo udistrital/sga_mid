@@ -1261,13 +1261,6 @@ func (c *Transferencia_reingresoController) GetInscripcion() {
 
 				if errCodigoEst == nil {
 
-					jsonCodigos, _ := json.MarshalIndent(datosEstudiante, "", "  ")
-					fmt.Println(string(jsonCodigos))
-
-					for _, dato := range datosEstudiante {
-						codigosGet = append(codigosGet, dato.Numero)
-					}
-
 					for _, codigo := range codigosGet {
 						codigoProyectoStr := codigo[5:8]
 						if codigoProyectoStr[0] == '0' && len(codigoProyectoStr) == 3 {
@@ -1674,10 +1667,11 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 	var jsondata map[string]interface{}
 	var tipoRes []map[string]interface{}
 	var identificacion []map[string]interface{}
-	var codigos []map[string]interface{}
+	var codigos []string
 	var codigosRes []map[string]interface{}
 	var proyectoGet []map[string]interface{}
 	var proyectos []map[string]interface{}
+	var datosEstudiante []models.DatosIdentificacion
 
 	idCalendario := c.Ctx.Input.Param(":id_calendario")
 	idPersona := c.Ctx.Input.Param(":persona_id")
@@ -1705,49 +1699,79 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 					if errIdentificacion == nil && fmt.Sprintf("%v", identificacion[0]) != "map[]" {
 						if identificacion[0]["Status"] != 404 {
 
-							errCodigoEst := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+
-								fmt.Sprintf("%v", idPersona)+",InfoComplementariaId.Id:93&limit=0", &codigos)
-							if errCodigoEst == nil && fmt.Sprintf("%v", codigos[0]) != "map[]" {
+							errCodigoEst := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=TerceroId.Id:"+
+								fmt.Sprintf("%v", idPersona)+",TipoDocumentoId.CodigoAbreviacion:CODE&limit=0", &datosEstudiante)
+							if errCodigoEst == nil && fmt.Sprintf("%v", datosEstudiante[0]) != "map[]" {
+
+								for _, dato := range datosEstudiante {
+									codigos = append(codigos, dato.Numero)
+								}
 
 								for _, codigo := range codigos {
-									errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Codigo:"+codigo["Dato"].(string)[5:8], &proyectoGet)
-									if errProyecto == nil && fmt.Sprintf("%v", proyectoGet[0]) != "map[]" {
-										for _, proyectoCalendario := range calendario["DependenciaId"].([]interface{}) {
-											if proyectoGet[0]["Id"] == proyectoCalendario {
 
-												codigo["Nombre"] = codigo["Dato"].(string) + " Proyecto: " + codigo["Dato"].(string)[5:8] + " - " + proyectoGet[0]["Nombre"].(string)
-												codigo["IdProyecto"] = proyectoGet[0]["Id"]
-
-												codigosRes = append(codigosRes, codigo)
-											}
-										}
+									codigoProyectoStr := codigo[5:8]
+									if codigoProyectoStr[0] == '0' && len(codigoProyectoStr) == 3 {
+										codigoProyectoStr = codigoProyectoStr[1:]
 									}
+
+									codigoProyecto, err := strconv.Atoi(codigoProyectoStr)
+									if err != nil {
+										fmt.Printf("Error converting codigoProyecto to int: %v\n", err)
+										continue
+									}
+
+									codigoEstudiante, err := strconv.Atoi(codigo)
+									if err != nil {
+										fmt.Printf("Error converting codigoProyecto to int: %v\n", err)
+										continue
+									}
+
+									codigoAux := map[string]interface{}{
+										"IdProyectoCondor": codigoProyecto,
+										"Codigo":           codigoEstudiante,
+									}
+
+									codigosRes = append(codigosRes, codigoAux)
+
 								}
 							}
 
 							errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=NivelFormacionId.Id:"+fmt.Sprintf("%v", calendario["Nivel"]), &proyectoGet)
 							if errProyecto == nil && fmt.Sprintf("%v", proyectoGet[0]) != "map[]" {
-								if calendario["DependenciaId"] != nil {
-									for _, proyectoAux := range proyectoGet {
-										for _, proyectoCalendario := range calendario["DependenciaId"].([]interface{}) {
-											if proyectoAux["Id"] == proyectoCalendario {
-												proyecto := map[string]interface{}{
-													"Id":          proyectoAux["Id"],
-													"Nombre":      proyectoAux["Nombre"],
-													"Codigo":      proyectoAux["Codigo"],
-													"CodigoSnies": proyectoAux["CodigoSnies"],
+								if len(codigosRes) > 0 {
+
+									if calendario["DependenciaId"] != nil {
+										for _, proyectoAux := range proyectoGet {
+											for _, proyectoCalendario := range calendario["DependenciaId"].([]interface{}) {
+												for codigo := range codigosRes {
+
+													if proyectoAux["Id"] == proyectoCalendario && proyectoAux["Codigo"] == fmt.Sprintf("%v", codigosRes[codigo]["IdProyectoCondor"]) {
+														proyecto := map[string]interface{}{
+															"Id":          proyectoAux["Id"],
+															"Nombre":      proyectoAux["Nombre"],
+															"Codigo":      proyectoAux["Codigo"],
+															"CodigoSnies": proyectoAux["CodigoSnies"],
+														}
+
+														proyectos = append(proyectos, proyecto)
+													}
 												}
 
-												proyectos = append(proyectos, proyecto)
 											}
 										}
+									} else {
+										logs.Error(calendario)
+										c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": "No se encuentran proyectos", "Data": nil}
+										c.ServeJSON()
 									}
+
 								} else {
 									logs.Error(calendario)
-									c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": "No se encuentran proyectos", "Data": nil}
+									c.Data["json"] = map[string]interface{}{"Success": false, "Status": "404", "Message": "No se encuentran codigos del estudiante", "Data": nil}
 
 									c.ServeJSON()
 								}
+
 							}
 
 							resultado["CodigoEstudiante"] = codigosRes
@@ -1769,7 +1793,7 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 						c.Abort("404")
 					}
 
-					if codigosRes == nil {
+					if codigosRes != nil {
 						i := 0
 						for i < len(tipoRes) {
 							if tipoRes[i]["CodigoAbreviacion"] != "TRANSEXT" {
