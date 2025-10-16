@@ -1261,6 +1261,10 @@ func (c *Transferencia_reingresoController) GetInscripcion() {
 
 				if errCodigoEst == nil {
 
+					for _, dato := range datosEstudiante {
+						codigosGet = append(codigosGet, dato.Numero)
+					}
+
 					for _, codigo := range codigosGet {
 						codigoProyectoStr := codigo[5:8]
 						if codigoProyectoStr[0] == '0' && len(codigoProyectoStr) == 3 {
