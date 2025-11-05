@@ -1863,8 +1863,6 @@ func (c *Transferencia_reingresoController) GetEstadoInscripcion() {
 	var ReciboXML map[string]interface{}
 	var resultadoAux []map[string]interface{}
 	var resultado []map[string]interface{}
-	var Solicitudes []map[string]interface{}
-	var tipoSolicitud map[string]interface{}
 	var Estado string
 	var alerta models.Alert
 	var errorGetAll bool
@@ -1968,49 +1966,6 @@ func (c *Transferencia_reingresoController) GetEstadoInscripcion() {
 			resultadoAux = append(resultadoAux[:i], resultadoAux[i+1:]...)
 		} else {
 			i++
-		}
-	}
-
-	errTipoSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"tipo_solicitud?query=CodigoAbreviacion:TrnRe", &tipoSolicitud)
-	if errTipoSolicitud == nil && fmt.Sprintf("%v", tipoSolicitud["Data"].([]interface{})[0]) != "map[]" {
-		var id = fmt.Sprintf("%v", tipoSolicitud["Data"].([]interface{})[0].(map[string]interface{})["Id"])
-
-		errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=TerceroId:"+persona_id+",SolicitudId.EstadoTipoSolicitudId.TipoSolicitud.Id:"+id, &Solicitudes)
-		if errSolicitud == nil {
-			if fmt.Sprintf("%v", Solicitudes) != "[map[]]" {
-
-				for _, solicitud := range Solicitudes {
-					referencia := solicitud["SolicitudId"].(map[string]interface{})["Referencia"].(string)
-
-					var solicitudJson map[string]interface{}
-					if err := json.Unmarshal([]byte(referencia), &solicitudJson); err == nil {
-						for i := 0; i < len(resultadoAux); i++ {
-
-							if fmt.Sprintf("%v", solicitudJson["InscripcionId"]) == fmt.Sprintf("%v", Inscripciones[i]["Id"]) {
-								resultadoAux[i]["SolicitudId"] = fmt.Sprintf("%v", solicitudJson["TransferenciaReingresoId"])
-
-								estadoId := solicitud["SolicitudId"].(map[string]interface{})["EstadoTipoSolicitudId"].(map[string]interface{})["EstadoId"].(map[string]interface{})["Id"]
-								var estado map[string]interface{}
-
-								errEstado := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"estado/"+fmt.Sprintf("%v", estadoId), &estado)
-								if errEstado == nil {
-									resultadoAux[i]["Estado"] = estado["Data"].(map[string]interface{})["Nombre"]
-								}
-
-								resultadoAux[i]["SolicitudFinalizada"] = solicitud["SolicitudId"].(map[string]interface{})["SolicitudFinalizada"]
-								if resultadoAux[i]["SolicitudFinalizada"].(bool) {
-									resultado := solicitud["SolicitudId"].(map[string]interface{})["Resultado"].(string)
-
-									var resultadoJson map[string]interface{}
-									if err := json.Unmarshal([]byte(resultado), &resultadoJson); err == nil {
-										resultadoAux[i]["VerRespuesta"] = resultadoJson
-									}
-								}
-							}
-						}
-					}
-				}
-			}
 		}
 	}
 
