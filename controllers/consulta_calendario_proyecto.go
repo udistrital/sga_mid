@@ -131,7 +131,7 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 			}
 
 			if len(proyectos) > 0 {
-				errCalendarios := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Activo:true,Nivel:"+fmt.Sprintf("%v", idNiv)+",PeriodoId:"+fmt.Sprintf("%v", idPer)+"&limit=0&sortby=Id&order=desc", &calendarios)
+				errCalendarios := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Activo:true,Nivel:2,PeriodoId:"+fmt.Sprintf("%v", idPer)+"&limit=0&sortby=Id&order=desc", &calendarios)
 				if errCalendarios == nil && fmt.Sprintf("%v", calendarios) != "[map[]]" {
 
 					for _, proyecto := range proyectos {
@@ -203,7 +203,7 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 														"FechaInicioEvento":   project.(map[string]interface{})["Inicio"],
 														"FechaFinEvento":      project.(map[string]interface{})["Fin"],
 														"CodigoAbreviacion":   codAbrEvento,
-														"Pago": 			   pago,
+														"Pago":                pago,
 													}
 													lista_eventos = append(lista_eventos, evento_x)
 												}
@@ -219,7 +219,7 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 											"FechaInicioEvento":   Evento["FechaInicio"],
 											"FechaFinEvento":      Evento["FechaFin"],
 											"CodigoAbreviacion":   codAbrEvento,
-											"Pago":				   pago,
+											"Pago":                pago,
 										}
 										lista_eventos = append(lista_eventos, evento_x)
 									}
