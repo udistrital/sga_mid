@@ -1687,7 +1687,7 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 				calendario["DependenciaId"] = jsondata["proyectos"]
 			}
 
-			errTipoInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"tipo_inscripcion?query=NivelId:"+fmt.Sprintf("%v", calendario["Nivel"]), &tipoInscripcion)
+			errTipoInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"tipo_inscripcion?query=Activo:True,NivelId:"+fmt.Sprintf("%v", calendario["Nivel"]), &tipoInscripcion)
 			if errTipoInscripcion == nil {
 				if tipoInscripcion != nil {
 
