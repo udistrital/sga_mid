@@ -1692,7 +1692,8 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 				if tipoInscripcion != nil {
 
 					for _, tipo := range tipoInscripcion {
-						if tipo["CodigoAbreviacion"] == "TRANSINT" || tipo["CodigoAbreviacion"] == "TRANSEXT" || tipo["CodigoAbreviacion"] == "REING" {
+						if tipo["CodigoAbreviacion"] == "REING" {
+
 							tipoRes = append(tipoRes, tipo)
 						}
 					}
@@ -1740,7 +1741,7 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 								}
 							}
 
-							errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=NivelFormacionId.Id:"+fmt.Sprintf("%v", calendario["Nivel"]), &proyectoGet)
+							errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?limit=0&query=Activo:true", &proyectoGet)
 							if errProyecto == nil && fmt.Sprintf("%v", proyectoGet[0]) != "map[]" {
 								if len(codigosRes) > 0 {
 
@@ -1795,23 +1796,6 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 						logs.Error(identificacion)
 						c.Data["Message"] = errIdentificacion
 						c.Abort("404")
-					}
-
-					if codigosRes != nil {
-						i := 0
-						for i < len(tipoRes) {
-							if tipoRes[i]["CodigoAbreviacion"] != "TRANSEXT" {
-								tipoRes = append(tipoRes[:i], tipoRes[i+1:]...)
-								i++
-							}
-						}
-					} else {
-
-						for i := 0; i < len(tipoRes); i++ {
-							if tipoRes[i]["CodigoAbreviacion"] == "TRANSEXT" {
-								tipoRes = append(tipoRes[:i], tipoRes[i+1:]...)
-							}
-						}
 					}
 
 					resultado["TipoInscripcion"] = tipoRes
