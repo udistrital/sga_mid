@@ -1727,17 +1727,25 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 
 									codigoEstudiante, err := strconv.Atoi(codigo)
 									if err != nil {
-										fmt.Printf("Error converting codigoProyecto to int: %v\n", err)
+										fmt.Printf("Error converting codigoEstudiante to int: %v\n", err)
 										continue
 									}
 
-									codigoAux := map[string]interface{}{
-										"IdProyectoCondor": codigoProyecto,
-										"Codigo":           codigoEstudiante,
+									existe := false
+									for _, existente := range codigosRes {
+										if existente["IdProyectoCondor"] == codigoProyecto && existente["Codigo"] == codigoEstudiante {
+											existe = true
+											break
+										}
 									}
 
-									codigosRes = append(codigosRes, codigoAux)
-
+									if !existe {
+										codigoAux := map[string]interface{}{
+											"IdProyectoCondor": codigoProyecto,
+											"Codigo":           codigoEstudiante,
+										}
+										codigosRes = append(codigosRes, codigoAux)
+									}
 								}
 							}
 
