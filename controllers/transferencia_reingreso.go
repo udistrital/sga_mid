@@ -1326,7 +1326,7 @@ func (c *Transferencia_reingresoController) GetInscripcion() {
 				}
 
 				// Proyecto asociado al código
-				errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=NivelFormacionId.Id:"+fmt.Sprintf("%v", calendarioGet[indice]["Nivel"]), &proyectoGet)
+				errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Activo:true&limit=-1", &proyectoGet)
 				if errProyecto == nil && fmt.Sprintf("%v", proyectoGet[0]) != "map[]" {
 					for _, proyectoAux := range proyectoGet {
 						if calendarioGet[indice]["DependenciaId"] != nil {
