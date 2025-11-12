@@ -57,7 +57,7 @@ func (c *DescuentoController) PostDescuentoAcademico() {
 			// }
 
 			solicituddescuento := map[string]interface{}{
-				"Id":                      0,
+				//"Id":                      0,
 				"TerceroId":               solicitud["PersonaId"],
 				"Estado":                  "Por aprobar",
 				"PeriodoId":               solicitud["PeriodoId"],
@@ -65,7 +65,7 @@ func (c *DescuentoController) PostDescuentoAcademico() {
 				"DescuentosDependenciaId": tipoDescuento[0],
 			}
 			formatdata.JsonPrint(solicituddescuento)
-			// fmt.Println(solicituddescuento)
+			fmt.Println("primer get")
 
 			errSolicitud := request.SendJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"solicitud_descuento", "POST", &solicitudPost, solicituddescuento)
 			if errSolicitud == nil && fmt.Sprintf("%v", solicitudPost["System"]) != "map[]" && solicitudPost["Id"] != nil {
@@ -78,6 +78,8 @@ func (c *DescuentoController) PostDescuentoAcademico() {
 						"Activo":               true,
 						"DocumentoId":          solicitud["DocumentoId"],
 					}
+					fmt.Println("primer post solicitud_descuento")
+					formatdata.JsonPrint(soportedescuento)
 
 					errSoporte := request.SendJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"soporte_descuento", "POST", &soporte, soportedescuento)
 					if errSoporte == nil && fmt.Sprintf("%v", soporte["System"]) != "map[]" && soporte["Id"] != nil {
@@ -85,6 +87,8 @@ func (c *DescuentoController) PostDescuentoAcademico() {
 							resultado = map[string]interface{}{"Id": solicitudPost["Id"], "PersonaId": solicitudPost["PersonaId"], "Estado": solicitudPost["Estado"], "PeriodoId": solicitudPost["PeriodoId"], "DescuentosDependenciaId": solicitudPost["DescuentosDependenciaId"]}
 							resultado["DocumentoId"] = soporte["DocumentoId"]
 							c.Data["json"] = resultado
+							fmt.Println("Segundo post soporte_descuento")
+							formatdata.JsonPrint(soporte)
 
 						} else {
 							//resultado solicitud de descuento

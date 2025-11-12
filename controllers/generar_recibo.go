@@ -163,7 +163,7 @@ func (c *GenerarReciboController) PostGenerarComprobanteInscripcion() {
 							"FileName":    "Comprobante_inscripcion_" + data["INSCRIPCION"].(map[string]interface{})["nombrePrograma"].(string),
 							"Base64File":  encodedFile,
 						})
-						utils.SendNotificationInscripcionComprobante(dataEmail, data["ASPIRANTE"].(map[string]interface{})["correo"].(string), attachments)
+						// utils.SendNotificationInscripcionComprobante(dataEmail, data["ASPIRANTE"].(map[string]interface{})["correo"].(string), attachments)
 					}
 
 				} else {
@@ -513,11 +513,16 @@ func docsCarpeta(pdf *gofpdf.Fpdf, data map[string]interface{}, tagSuite string,
 func GenerarReciboAspirante(datos map[string]interface{}) *gofpdf.Fpdf {
 
 	// aqui el numero consecutivo de comprobante
+	documento := datos["DocumentoDelAspirante"].(string)
+	for len(documento) < 12 {
+		documento = "0" + documento
+	}
 	numComprobante := datos["Comprobante"].(string)
-
 	for len(numComprobante) < 6 {
 		numComprobante = "0" + numComprobante
 	}
+
+	idComprobante := documento + numComprobante
 
 	datos["ProyectoAspirante"] = strings.ToUpper(datos["ProyectoAspirante"].(string))
 	datos["Descripcion"] = strings.ToUpper(datos["Descripcion"].(string))
@@ -529,17 +534,17 @@ func GenerarReciboAspirante(datos map[string]interface{}) *gofpdf.Fpdf {
 	pdf.SetAutoPageBreak(true, 7) // margen inferior
 	pdf.SetHomeXY()
 
-	pdf = header(pdf, numComprobante, true)
+	pdf = header(pdf, idComprobante, true)
 	pdf = agregarDatosAspirante(pdf, datos)
 	pdf = footer(pdf, "-COPIA ASPIRANTE-")
 	pdf = separador(pdf)
 
-	pdf = header(pdf, numComprobante, false)
+	pdf = header(pdf, idComprobante, false)
 	pdf = agregarDatosCopiaBancoProyectoAspirante(pdf, datos)
 	pdf = footer(pdf, "-COPIA PROYECTO CURRICULAR-")
 	pdf = separador(pdf)
 
-	pdf = header(pdf, numComprobante, false)
+	pdf = header(pdf, idComprobante, false)
 	pdf = agregarDatosCopiaBancoProyectoAspirante(pdf, datos)
 	pdf = footer(pdf, "-COPIA BANCO-")
 	//pdf = separador(pdf)
@@ -588,41 +593,48 @@ func GenerarEstudianteRecibo(datos map[string]interface{}) *gofpdf.Fpdf {
 // Description: genera el encabezado reutilizable del recibo de pago
 func header(pdf *gofpdf.Fpdf, comprobante string, banco bool) *gofpdf.Fpdf {
 	tr := pdf.UnicodeTranslatorFromDescriptor("")
-
 	path := beego.AppConfig.String("StaticPath")
-	pdf = image(pdf, path+"/img/UDEscudo2.png", 7, pdf.GetY(), 0, 17.5)
 
-	if banco {
-		pdf = image(pdf, path+"/img/banco.PNG", 198, pdf.GetY(), 0, 12.5)
-	}
+	initialY := pdf.GetY()
 
-	pdf.SetXY(7, pdf.GetY())
+	pdf = image(pdf, path+"/img/UDEscudo2.png", 7, initialY, 0, 17.5)
+
+	pdf.SetXY(20, initialY)
 	fontStyle(pdf, "B", 10, 0)
-	pdf.Cell(13, 10, "")
 	pdf.Cell(140, 10, "UNIVERSIDAD DISTRITAL")
-	if banco {
-		fontStyle(pdf, "B", 8, 0)
-		pdf.Cell(50, 10, "PAGUE UNICAMENTE EN")
-		fontStyle(pdf, "B", 10, 0)
-	}
-	pdf.Ln(4)
-	pdf.Cell(13, 10, "")
+
+	pdf.SetXY(20, initialY+4)
+	fontStyle(pdf, "B", 10, 0)
 	pdf.Cell(60, 10, tr("Francisco José de Caldas"))
-	pdf.Cell(80, 10, "COMPROBANTE DE PAGO No "+comprobante)
+	pdf.Cell(80, 10, "COMPROBANTE DE PAGO No")
+
+	pdf.SetXY(20, initialY+8)
+	fontStyle(pdf, "", 8, 0)
+	pdf.Cell(50, 10, "NIT 899.999.230-7")
+
+	pdf.SetXY(88, initialY+8)
+	fontStyle(pdf, "B", 10, 0)
+	pdf.Cell(80, 10, comprobante)
 
 	if banco {
-		fontStyle(pdf, "B", 8, 0)
-		pdf.Cell(50, 10, "BANCO DE OCCIDENTE")
-	} /* else {
-		fontStyle(pdf, "", 8, 70)
-		pdf.Cell(50, 10, "espacio para serial")
-	} */
+		// Subir la sección derecha completa (ajustando initialY para esta sección)
+		rightSectionY := initialY - 6 // Subir 6mm toda la sección derecha
 
-	pdf.Ln(4)
-	fontStyle(pdf, "", 8, 0)
-	pdf.Cell(13, 10, "")
-	pdf.Cell(50, 10, "NIT 899.999.230-7")
-	pdf.Ln(10)
+		// Agregar título de corresponsales
+		pdf.SetXY(142, rightSectionY)
+		fontStyle(pdf, "B", 6, 0)
+		pdf.Cell(90, 10, "BANCO DE OCCIDENTE - CONVENIO CORRESPONSALES 25458")
+
+		pdf.SetXY(158, rightSectionY+6)
+		pdf.Cell(60, 3, "CORRESPONSALES HABILITADOS:")
+
+		pdf = image(pdf, path+"/img/corresponsales.png", 144, rightSectionY+9, 0, 8)
+		pdf = image(pdf, path+"/img/banco.PNG", 204, rightSectionY+11, 0, 5)
+		pdf = image(pdf, path+"/img/corresponsales-exito.png", 153, rightSectionY+16, 0, 9)
+	}
+
+	pdf.SetY(initialY + 19)
+
 	return pdf
 }
 
@@ -776,6 +788,12 @@ func agregarDatosAspirante(pdf *gofpdf.Fpdf, datos map[string]interface{}) *gofp
 	pdf.SetXY(142.9, pdf.GetY()+4)
 	fontStyle(pdf, "", 6.75, 0)
 	pdf.CellFormat(66, 3, tr(datos["Descripcion"].(string)), "", 0, "TL", false, 0, "")
+	pdf.SetXY(142.9, pdf.GetY()+5)
+	fontStyle(pdf, "", 6.75, 0)
+	pdf.CellFormat(66, 3, "PAGOS UNICAMENTE POR CODIGO DE BARRAS", "", 0, "TL", false, 0, "")
+	pdf.SetXY(142.9, pdf.GetY()+3)
+	fontStyle(pdf, "", 6.75, 0)
+	pdf.CellFormat(66, 3, "Y EN EFECTIVO", "", 0, "TL", false, 0, "")
 
 	pdf.SetXY(7, ynow+45)
 
@@ -880,6 +898,12 @@ func agregarDatosEstudianteRecibo(pdf *gofpdf.Fpdf, datos map[string]interface{}
 	pdf.SetXY(142.9, pdf.GetY()+4)
 	fontStyle(pdf, "", 6.75, 0)
 	pdf.CellFormat(66, 3, tr(datos["Descripcion"].(string)), "", 0, "TL", false, 0, "")
+	pdf.SetXY(142.9, pdf.GetY()+5)
+	fontStyle(pdf, "", 6.75, 0)
+	pdf.CellFormat(66, 3, "PAGOS UNICAMENTE POR CODIGO DE BARRAS", "", 0, "TL", false, 0, "")
+	pdf.SetXY(142.9, pdf.GetY()+3)
+	fontStyle(pdf, "", 6.75, 0)
+	pdf.CellFormat(66, 3, "Y EN EFECTIVO", "", 0, "TL", false, 0, "")
 
 	pdf.SetXY(7, ynow+45)
 
@@ -1147,7 +1171,8 @@ func encodePDF(pdf *gofpdf.Fpdf) string {
 // Fecha de expedición del recibo
 func fechaActual() string {
 	hoy := time.Now()
-	return fmt.Sprintf("%02d/%02d/%d", hoy.Day(), hoy.Month(), hoy.Year())
+	inBog, _ := time.LoadLocation("America/Bogota")
+	return fmt.Sprintf("%02d/%02d/%d", hoy.In(inBog).Day(), hoy.In(inBog).Month(), hoy.In(inBog).Year())
 }
 
 // Estilo de fuente usando Helvetica

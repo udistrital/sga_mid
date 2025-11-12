@@ -50,12 +50,12 @@ func (c *CrearProyectoAcademicoController) PostProyecto() {
 			"Titulaciones":                 Proyecto_academico["Titulaciones"],
 		}
 
-		Proyecto_academico_oikosPost := Proyecto_academico["Oikos"]
+		// Proyecto_academico_oikosPost := Proyecto_academico["Oikos"]
 
-		var resultadoOikos map[string]interface{}
+		//var resultadoOikos map[string]interface{}
 		var resultadoProyecto map[string]interface{}
 
-		errOikos := request.SendJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia_padre/tr_dependencia_padre", "POST", &resultadoOikos, Proyecto_academico_oikosPost)
+		/* errOikos := request.SendJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia_padre/tr_dependencia_padre", "POST", &resultadoOikos, Proyecto_academico_oikosPost)
 		if resultadoOikos["Type"] == "error" || errOikos != nil || resultadoOikos["Status"] == "404" || resultadoOikos["Message"] != nil {
 			alertas = append(alertas, errOikos)
 			alertas = append(alertas, resultadoOikos)
@@ -68,7 +68,7 @@ func (c *CrearProyectoAcademicoController) PostProyecto() {
 			alertas = append(alertas, Proyecto_academico)
 			idDependenciaProyecto := resultadoOikos["HijaId"].(map[string]interface{})["Id"]
 			Proyecto_academicoPost["ProyectoAcademicoInstitucion"].(map[string]interface{})["DependenciaId"] = idDependenciaProyecto
-		}
+		} */
 
 		errProyecto := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/tr_proyecto_academico", "POST", &resultadoProyecto, Proyecto_academicoPost)
 		if resultadoProyecto["Type"] == "error" || errProyecto != nil || resultadoProyecto["Status"] == "404" || resultadoProyecto["Message"] != nil {
@@ -287,7 +287,7 @@ func (c *CrearProyectoAcademicoController) PostCoordinadorById() {
 	var alerta models.Alert
 
 	alertas := []interface{}{"Response:"}
-	
+
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &CoordinadorNuevo); err == nil {
 		if resultado["Type"] != "error" {
 			var CoordinadorAntiguos []map[string]interface{}
