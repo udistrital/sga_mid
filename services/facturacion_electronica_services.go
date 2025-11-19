@@ -6,16 +6,28 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/httplib"
+	"github.com/udistrital/sga_mid/models"
 	"github.com/udistrital/utils_oas/requestresponse"
 )
 
-func GuardarDatosTerceroAcademica(inputData interface{}) requestresponse.APIResponse {
+func GuardarDatosTerceroPago(terceroPago models.TerceroPagoRequest) requestresponse.APIResponse {
+	//Se debe adicionar el body con los datos adicionales consultando dueño del recibo y datos adicionales
+
+	// terceroPago.PostTerceroPago.TERPA_DATOS_ADICIONALES = "TEST ADICIONALES"
+
+	jsonBytes, err := json.MarshalIndent(terceroPago, "", "  ")
+	if err != nil {
+		beego.Warning("GuardarDatosTerceroPago: error al convertir inputData a JSON:", err)
+	} else {
+		beego.Info("GuardarDatosTerceroPago - inputData JSON:\n", string(jsonBytes))
+	}
+
 	serviceURL := "http://" + beego.AppConfig.String("FacturacionElectronicaService")
 
 	req := httplib.Post(serviceURL)
 	req.Header("Content-Type", "application/json")
 	req.Header("Accept", "application/json")
-	req.JSONBody(inputData)
+	req.JSONBody(terceroPago)
 
 	resp, err := req.Response()
 	if err != nil {
@@ -83,4 +95,16 @@ func GuardarDatosTerceroAcademica(inputData interface{}) requestresponse.APIResp
 			Data:    nil,
 		}
 	}
+}
+
+func obtenerDatosDuenoRecibo(reciboID int, anio int) (map[string]interface{}, error) {
+	// Implementar la lógica para obtener los datos del dueño del recibo
+	// Retornar un mapa con los datos necesarios o un error en caso de fallo
+	return nil, nil
+}
+
+func obtenerDatosConceptosRecibo(reciboID int, anio int) (map[string]interface{}, error) {
+	// Implementar la lógica para obtener los datos del dueño del recibo
+	// Retornar un mapa con los datos necesarios o un error en caso de fallo
+	return nil, nil
 }

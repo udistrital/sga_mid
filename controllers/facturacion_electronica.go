@@ -7,6 +7,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/httplib"
 	"github.com/astaxie/beego/logs"
+	"github.com/udistrital/sga_mid/models"
 	"github.com/udistrital/sga_mid/services"
 	"github.com/udistrital/utils_oas/errorhandler"
 	"github.com/udistrital/utils_oas/request"
@@ -109,9 +110,9 @@ func (c *FacturacionElectronicaController) Post() {
 
 	defer errorhandler.HandlePanic(&c.Controller)
 
-	var inputData interface{}
+	var terceroPago models.TerceroPagoRequest
 
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &inputData); err != nil {
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &terceroPago); err != nil {
 		c.Ctx.Output.SetStatus(400)
 		c.Data["json"] = requestresponse.APIResponseDTO(false, 400, nil, "Datos erroneos")
 		c.ServeJSON()
@@ -119,7 +120,7 @@ func (c *FacturacionElectronicaController) Post() {
 	}
 
 	// Llamar al service
-	response := services.GuardarDatosTerceroAcademica(inputData)
+	response := services.GuardarDatosTerceroPago(terceroPago)
 	c.Ctx.Output.SetStatus(response.Status)
 	c.Data["json"] = response
 	c.ServeJSON()
