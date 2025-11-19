@@ -23,3 +23,5 @@ type TerceroPago struct {
 type TerceroPagoRequest struct {
 	PostTerceroPago TerceroPago `json:"_posttercero_pago"`
 }
+
+type DatosERP map[string]interface{}

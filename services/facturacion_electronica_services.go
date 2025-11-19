@@ -97,14 +97,25 @@ func GuardarDatosTerceroPago(terceroPago models.TerceroPagoRequest) requestrespo
 	}
 }
 
-func obtenerDatosDuenoRecibo(reciboID int, anio int) (map[string]interface{}, error) {
+func obtenerDatosDuenoRecibo(reciboID int, anio int, tipoUsuario int) (map[string]interface{}, error) {
 	// Implementar la lógica para obtener los datos del dueño del recibo
 	// Retornar un mapa con los datos necesarios o un error en caso de fallo
 	return nil, nil
 }
 
-func obtenerDatosConceptosRecibo(reciboID int, anio int) (map[string]interface{}, error) {
+func obtenerDatosConceptosRecibo(reciboID int, anio int, tipoUsuario int) (map[string]interface{}, error) {
 	// Implementar la lógica para obtener los datos del dueño del recibo
 	// Retornar un mapa con los datos necesarios o un error en caso de fallo
 	return nil, nil
+}
+
+func enviarDatosErp(inputData map[string]interface{}) requestresponse.APIResponse {
+
+	return requestresponse.APIResponse{
+		Success: false,
+		Status:  501,
+		Message: "Funcionalidad no implementada",
+		Data:    nil,
+	}
+
 }
