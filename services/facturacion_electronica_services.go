@@ -13,7 +13,7 @@ import (
 func GuardarDatosTerceroPago(terceroPago models.TerceroPagoRequest) requestresponse.APIResponse {
 	//Se debe adicionar el body con los datos adicionales consultando dueño del recibo y datos adicionales
 
-	// terceroPago.PostTerceroPago.TERPA_DATOS_ADICIONALES = "TEST ADICIONALES"
+	terceroPago.PostTerceroPago.TERPA_DATOS_ADICIONALES = "TEST ADICIONALES"
 
 	jsonBytes, err := json.MarshalIndent(terceroPago, "", "  ")
 	if err != nil {
