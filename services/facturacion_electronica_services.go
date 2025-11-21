@@ -175,11 +175,10 @@ func enviarDatosErp(inputData map[string]interface{}) requestresponse.APIRespons
 }
 
 func enviarTerceroOra(terceroPago models.TerceroPagoRequest, serviceURL string) (interface{}, error) {
-	// Se ajusta la fecha de creacion del registro a la fecha actual
+	// Se ajusta la fecha de creacion del registro a la fecha actual en zona horaria de Bogotá
 	// Formato: DD/MM/YYYY HH24:MI:SS
-	// Quitar cuando se haga el ajuste desde WSO2 para permitir hora
-	terceroPago.PostTerceroPago.TERPA_FECHA_REGISTRO = time.Now().Format("02/01/2006")
-	// terceroPago.PostTerceroPago.TERPA_FECHA_REGISTRO = time.Now().Format("02/01/2006 15:04:05")
+	bogotaLocation, _ := time.LoadLocation("America/Bogota")
+	terceroPago.PostTerceroPago.TERPA_FECHA_REGISTRO = time.Now().In(bogotaLocation).Format("02/01/2006 15:04:05")
 
 	// Crear el objeto a enviar con el wrapper _posttercero_pago
 	payload := map[string]interface{}{
