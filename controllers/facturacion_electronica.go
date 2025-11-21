@@ -106,21 +106,16 @@ func (c *FacturacionElectronicaController) GetOne() {
 // @Failure default {object} map[string]interface{} "Respuesta de error del servicio externo"
 // @router / [post]
 func (c *FacturacionElectronicaController) Post() {
-	// En el controller
-
 	defer errorhandler.HandlePanic(&c.Controller)
-
 	var terceroPago models.TerceroPagoRequest
-
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &terceroPago); err != nil {
 		c.Ctx.Output.SetStatus(400)
 		c.Data["json"] = requestresponse.APIResponseDTO(false, 400, nil, "Datos erroneos")
 		c.ServeJSON()
 		return
 	}
-
 	// Llamar al service
-	response := services.GuardarDatosTerceroPago(terceroPago)
+	response := services.GuardarDatosTerceroPago(terceroPago, terceroPago.TipoUsuario, terceroPago.IdTipoDocumentoDuenoRecibo)
 	c.Ctx.Output.SetStatus(response.Status)
 	c.Data["json"] = response
 	c.ServeJSON()

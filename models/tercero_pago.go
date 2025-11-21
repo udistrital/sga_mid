@@ -21,7 +21,26 @@ type TerceroPago struct {
 }
 
 type TerceroPagoRequest struct {
-	PostTerceroPago TerceroPago `json:"_posttercero_pago"`
+	PostTerceroPago            TerceroPago `json:"_posttercero_pago"`
+	TipoUsuario                int         `json:"tipo_usuario"`
+	IdTipoDocumentoDuenoRecibo int         `json:"id_tipo_documento_dueno_recibo"`
+}
+
+type DatosAdicionales struct {
+	Identificacion        int     `json:"identificacion"`
+	CodTipoIdentificacion string  `json:"cod_tipo_identificacion"`
+	Nombre                string  `json:"nombre"`
+	CorreoElectronico     string  `json:"correo_electronico"`
+	CodEstudiante         int     `json:"cod_estudiante"`
+	CodCarrera            int     `json:"cod_carrera"`
+	Carrera               string  `json:"carrera"`
+	CodConcepto           int     `json:"cod_concepto"`
+	Concepto              string  `json:"concepto"`
+	NumeroConcepto        int     `json:"numero_concepto"`
+	Valor                 float64 `json:"valor"`
+	CantidadConceptos     int     `json:"cantidad_conceptos"`
+	ValorTotal            float64 `json:"valor_total"`
+	Nivel                 string  `json:"nivel"`
 }
 
 type DatosERP map[string]interface{}
