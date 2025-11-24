@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -16,10 +17,13 @@ import (
 	"github.com/udistrital/utils_oas/requestresponse"
 )
 
-func GuardarDatosTerceroPago(terceroPago models.TerceroPagoRequest, tipoUsuario int, idTipoDocumentoDuenoRecibo int) requestresponse.APIResponse {
+func GuardarDatosTerceroPago(terceroPago models.TerceroPagoRequest, tipoUsuario int, idTipoDocumentoDuenoRecibo int, terceroDuenoId int) requestresponse.APIResponse {
+	/* Tipos usuario
+	1: aspirante
+	2: admitido
+	*/
 
 	var duenoRecibo models.DuenoRecibo
-	// var tipoDocumento string
 
 	// 1. Mapeo de tipo de documento con el id tipo documento de terceros
 	tipoDocumento, _ := utils.ObtenerTipoDocumentoSGA(terceroPago.IdTipoDocumentoDuenoRecibo)
@@ -37,7 +41,7 @@ func GuardarDatosTerceroPago(terceroPago models.TerceroPagoRequest, tipoUsuario 
 		}
 	}
 
-	// 2. Obtener datos de los conceptos del recibo
+	// 3. Obtener datos de los conceptos del recibo
 	conceptosRecibo, err := obtenerDatosConceptosRecibo(terceroPago, tipoUsuario)
 
 	if err != nil {
@@ -50,7 +54,7 @@ func GuardarDatosTerceroPago(terceroPago models.TerceroPagoRequest, tipoUsuario 
 		}
 	}
 
-	// 3. Se arma el array de los json de datos adicionales
+	// 4. Se arma el array de los json de datos adicionales de ACTERCERO_PAGO
 	datosAdicionales, err := armarDatosAdicionalesPorConcepto(duenoRecibo, conceptosRecibo)
 	if err != nil {
 		beego.Warning("GuardarDatosTerceroPago: error al armar datos adicionales:", err)
@@ -62,8 +66,8 @@ func GuardarDatosTerceroPago(terceroPago models.TerceroPagoRequest, tipoUsuario 
 		}
 	}
 
-	// 4. Crear un array de TerceroPago, uno por cada dato adicional, y enviarlos a ACTERCERO_PAGO
-	serviceURL := "http://" + beego.AppConfig.String("FacturacionElectronicaService")
+	// 5. Crear un array de TerceroPago, uno por cada dato adicional, y enviarlos a ACTERCERO_PAGO
+	serviceActerceroUrl := "http://" + beego.AppConfig.String("FacturacionElectronicaService")
 	var respuestas []interface{}
 	var errores []string
 
@@ -82,7 +86,7 @@ func GuardarDatosTerceroPago(terceroPago models.TerceroPagoRequest, tipoUsuario 
 		terceroPagoCopia.PostTerceroPago.TERPA_DATOS_ADICIONALES = string(datoAdicionalJSON)
 
 		// Enviar a ACTERCERO_PAGO
-		respuesta, err := enviarTerceroOra(terceroPagoCopia, serviceURL)
+		respuesta, err := enviarTerceroOra(terceroPagoCopia, serviceActerceroUrl)
 		if err != nil {
 			beego.Warning("GuardarDatosTerceroPago: error al enviar concepto %d: %v", index+1, err)
 			errores = append(errores, fmt.Sprintf("Concepto %d: %v", index+1, err))
@@ -117,6 +121,65 @@ func GuardarDatosTerceroPago(terceroPago models.TerceroPagoRequest, tipoUsuario 
 			},
 		}
 	}
+
+	// Se hace el envio al ERP
+
+	respuestasSofia, err := enviarDatosSofia(terceroPago.PostTerceroPago, duenoRecibo, conceptosRecibo, terceroDuenoId)
+
+	fmt.Println(respuestasSofia, err)
+
+	// log.Fatal("DIEEEE")
+
+	if err != nil {
+		beego.Warning("GuardarDatosERP: error al enviar datos a ERP", err)
+	}
+
+	// Guardado de las respuestas de ERP en ACTERCERO_PAGO
+
+	terceroPagoRespuestas := terceroPago
+
+	jsonRespuestasERP := make(map[string]int)
+
+	for _, respuesta := range respuestasSofia {
+		var key string
+
+		message, ok := respuesta.Message.(string)
+		if !ok {
+			logs.Error("respuesta.Message no es de tipo string")
+			continue
+		}
+
+		// Use a tagged switch to determine the key
+		switch message {
+		case "respSofiaTerceroP":
+			key = "respSofiaTerceroP"
+		case "respSofiaTerceroD":
+			key = "respSofiaTerceroD"
+		default:
+			key = message
+		}
+
+		// Add to the map
+		jsonRespuestasERP[key] = respuesta.Status
+	}
+
+	// Convertir el mapa a JSON (si es necesario)
+	jsonData, err := json.Marshal(jsonRespuestasERP)
+	if err != nil {
+		fmt.Println("Error al generar el JSON:", err)
+	} else {
+		fmt.Println(string(jsonData))
+	}
+
+	terceroPagoRespuestas.PostTerceroPago.TERPA_DATOS_ADICIONALES = string(jsonData)
+
+	// Enviar respuestas de ERP a ACTERCERO_PAGO
+	respuestaEnvio, err := enviarTerceroOra(terceroPagoRespuestas, serviceActerceroUrl)
+	if err != nil {
+		beego.Warning("GuardarDatosTerceroPago: error al enviar respuestad de ERP", err)
+	}
+
+	respuestas = append(respuestas, respuestaEnvio)
 
 	// Todos exitosos
 	return requestresponse.APIResponse{
@@ -163,14 +226,136 @@ func obtenerDatosConceptosRecibo(terceroPago models.TerceroPagoRequest, tipoUsua
 	return conceptosResponse.ReciboCollection.Recibo, nil
 }
 
-func enviarDatosErp(inputData map[string]interface{}) requestresponse.APIResponse {
+func enviarDatosSofia(pagador models.TerceroPago, dueno models.DuenoRecibo, conceptosRecibo []models.ConceptoRecibo, terceroDuenoId int) ([]requestresponse.APIResponse, error) {
 
-	return requestresponse.APIResponse{
-		Success: false,
-		Status:  501,
-		Message: "Funcionalidad no implementada",
-		Data:    nil,
+	var respuestasERP []requestresponse.APIResponse
+
+	SofiaTerceroD, SofiaTerceroP, SofiaTerceroConceptos, err := utils.GenerarDatosSofia(pagador, dueno, conceptosRecibo, terceroDuenoId)
+	if err != nil {
+		return nil, err
 	}
+
+	var datosSofiaPost models.DatosSofiaPost
+
+	datosSofiaPost.TerceroD = SofiaTerceroD
+	datosSofiaPost.TerceroP = SofiaTerceroP
+	datosSofiaPost.ConceptoList = SofiaTerceroConceptos
+
+	// Enviar datos a ERP
+
+	client := &http.Client{}
+	urlSofia := beego.AppConfig.String("SofiaService")
+
+	//PAGADOR
+	jsonDataTerceroP, err := json.Marshal(datosSofiaPost.TerceroP)
+	if err != nil {
+		logs.Error("Error al convertir datosSofiaPost a JSON: %v", err)
+		// return nil, err
+	}
+
+	// Configurar la solicitud HTTP Pagador
+	requestPagador, err := http.NewRequest("POST", urlSofia, bytes.NewBuffer(jsonDataTerceroP))
+	if err != nil {
+		logs.Error("Error al crear la solicitud HTTP: %v", err)
+		return nil, err
+	}
+	requestPagador.Header.Set("Content-Type", "application/json")
+
+	// Enviar la solicitud HTTP pagador y guardado de la respuesta
+	responsePagador, err := client.Do(requestPagador)
+	if err != nil {
+		respuestasERP = append(respuestasERP, requestresponse.APIResponse{
+			Success: false,
+			Status:  responsePagador.StatusCode,
+			Message: "respSofiaTerceroP",
+			Data:    "",
+		})
+		logs.Error("Error al enviar la solicitud HTTP dueno recibo: %v", err)
+		// return nil, err
+	} else {
+		respuestasERP = append(respuestasERP, requestresponse.APIResponse{
+			Success: true,
+			Status:  responsePagador.StatusCode,
+			Message: "respSofiaTerceroP",
+			Data:    responsePagador.Body,
+		})
+	}
+	defer responsePagador.Body.Close()
+
+	// DUENO
+	jsonDataTerceroD, err := json.Marshal(datosSofiaPost.TerceroD)
+	if err != nil {
+		logs.Error("Error al convertir datosSofiaPost a JSON: %v", err)
+		return nil, err
+	}
+
+	requestDueno, err := http.NewRequest("POST", urlSofia, bytes.NewBuffer(jsonDataTerceroD))
+	if err != nil {
+		logs.Error("Error al crear la solicitud HTTP: %v", err)
+		return nil, err
+	}
+	requestDueno.Header.Set("Content-Type", "application/json")
+
+	// Enviar la solicitud HTTP dueno recibo y guardado de la respuesta
+	responseDueno, err := client.Do(requestDueno)
+	if err != nil {
+		respuestasERP = append(respuestasERP, requestresponse.APIResponse{
+			Success: false,
+			Status:  responseDueno.StatusCode,
+			Message: "respSofiaTerceroD",
+			Data:    "",
+		})
+		logs.Error("Error al enviar la solicitud HTTP dueno recibo: %v", err)
+		// return nil, err
+	} else {
+		respuestasERP = append(respuestasERP, requestresponse.APIResponse{
+			Success: true,
+			Status:  responseDueno.StatusCode,
+			Message: "respSofiaTerceroD",
+			Data:    responseDueno.Body,
+		})
+	}
+	defer responseDueno.Body.Close()
+
+	// CONCEPTOS
+	for i, concepto := range datosSofiaPost.ConceptoList {
+		jsonDataConcepto, err := json.Marshal(concepto)
+		if err != nil {
+			logs.Error("Error al convertir datosSofiaPost a JSON: %v", err)
+			// return nil, err
+		}
+
+		// Configurar la solicitud HTTP Dueno recibo
+		requestConcepto, err := http.NewRequest("POST", urlSofia, bytes.NewBuffer(jsonDataConcepto))
+		if err != nil {
+			logs.Error("Error al crear la solicitud HTTP: %v", err)
+			return nil, err
+		}
+		requestConcepto.Header.Set("Content-Type", "application/json")
+
+		// Enviar la solicitud HTTP dueno recibo y guardado de la respuesta
+		responseConcepto, err := client.Do(requestConcepto)
+		if err != nil {
+			respuestasERP = append(respuestasERP, requestresponse.APIResponse{
+				Success: false,
+				Status:  responseConcepto.StatusCode,
+				Message: fmt.Sprintf("respSofiaTerceroConcepto %d", i+1),
+				Data:    "",
+			})
+			logs.Error("Error al enviar la solicitud HTTP dueno recibo: %v", err)
+			// return nil, err
+		} else {
+			respuestasERP = append(respuestasERP, requestresponse.APIResponse{
+				Success: true,
+				Status:  responseConcepto.StatusCode,
+				Message: fmt.Sprintf("respSofiaConcepto%d", i+1),
+				Data:    responseConcepto.Body,
+			})
+		}
+		defer responseConcepto.Body.Close()
+	}
+
+	return respuestasERP, nil
 
 }
 

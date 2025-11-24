@@ -24,6 +24,7 @@ type TerceroPagoRequest struct {
 	PostTerceroPago            TerceroPago `json:"_posttercero_pago"`
 	TipoUsuario                int         `json:"tipo_usuario"`
 	IdTipoDocumentoDuenoRecibo int         `json:"id_tipo_documento_dueno_recibo"`
+	TerceroId                  int         `json:"tercero_id"`
 }
 
 type DatosAdicionales struct {
@@ -43,4 +44,16 @@ type DatosAdicionales struct {
 	Nivel                 string  `json:"nivel"`
 }
 
-type DatosERP map[string]interface{}
+type DatosSofiaPagador map[string]interface{}
+
+type DatosSofiaDueno map[string]interface{}
+
+type DatosSofiaConcepto map[string]interface{}
+
+type RespuestasERP map[string]int
+
+type DatosSofiaPost struct {
+	TerceroD     DatosSofiaDueno      `json:"tercero_d"`
+	TerceroP     DatosSofiaPagador    `json:"tercero_p"`
+	ConceptoList []DatosSofiaConcepto `json:"concepto_list"`
+}

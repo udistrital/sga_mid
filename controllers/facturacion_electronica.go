@@ -115,7 +115,7 @@ func (c *FacturacionElectronicaController) Post() {
 		return
 	}
 	// Llamar al service
-	response := services.GuardarDatosTerceroPago(terceroPago, terceroPago.TipoUsuario, terceroPago.IdTipoDocumentoDuenoRecibo)
+	response := services.GuardarDatosTerceroPago(terceroPago, terceroPago.TipoUsuario, terceroPago.IdTipoDocumentoDuenoRecibo, terceroPago.TerceroId)
 	c.Ctx.Output.SetStatus(response.Status)
 	c.Data["json"] = response
 	c.ServeJSON()
