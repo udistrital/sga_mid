@@ -7,7 +7,11 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/httplib"
 	"github.com/astaxie/beego/logs"
+	"github.com/udistrital/sga_mid/models"
+	"github.com/udistrital/sga_mid/services"
+	"github.com/udistrital/utils_oas/errorhandler"
 	"github.com/udistrital/utils_oas/request"
+	"github.com/udistrital/utils_oas/requestresponse"
 )
 
 type FacturacionElectronicaController struct {
@@ -102,99 +106,18 @@ func (c *FacturacionElectronicaController) GetOne() {
 // @Failure default {object} map[string]interface{} "Respuesta de error del servicio externo"
 // @router / [post]
 func (c *FacturacionElectronicaController) Post() {
-	var inputData map[string]interface{}
-	var serviceResponse map[string]interface{}
-
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &inputData); err != nil {
-		c.Data["json"] = map[string]interface{}{
-			"Success": false,
-			"Status":  "400",
-			"Message": "Error en el formato JSON de la solicitud: " + err.Error(),
-			"Data":    nil,
-		}
-		c.Ctx.Output.SetStatus(http.StatusBadRequest)
+	defer errorhandler.HandlePanic(&c.Controller)
+	var terceroPago models.TerceroPagoRequest
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &terceroPago); err != nil {
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = requestresponse.APIResponseDTO(false, 400, nil, "Datos erroneos")
 		c.ServeJSON()
 		return
 	}
-
-	serviceURL := "http://" + beego.AppConfig.String("FacturacionElectronicaService")
-
-	req := httplib.Post(serviceURL)
-	req.Header("Content-Type", "application/json")
-	req.Header("Accept", "application/json")
-	req.JSONBody(inputData)
-
-	resp, err := req.Response() // Obtener la respuesta HTTP completa
-
-	if err != nil {
-		c.Data["json"] = map[string]interface{}{
-			"Success": false,
-			"Status":  "503", // Service Unavailable o similar
-			"Message": "Error de comunicación con el servicio externo: " + err.Error(),
-			"Data":    nil,
-		}
-		c.Ctx.Output.SetStatus(http.StatusServiceUnavailable)
-		c.ServeJSON()
-		return
-	}
-
-	defer resp.Body.Close() // Asegurarse de cerrar el cuerpo de la respuesta
-
-	statusCode := resp.StatusCode
-	statusString := resp.Status
-
-	switch {
-	case statusCode == http.StatusCreated: // 201
-		err = json.NewDecoder(resp.Body).Decode(&serviceResponse)
-		if err != nil {
-			c.Data["json"] = map[string]interface{}{
-				"Success": true,
-				"Status":  statusString,
-				"Message": "Registro creado por el servicio externo, pero su respuesta no pudo ser interpretada.",
-			}
-		} else {
-			c.Data["json"] = map[string]interface{}{
-				"Success": true,
-				"Status":  statusString,
-				"Message": "Registro creado correctamente por el servicio externo.",
-			}
-		}
-		c.Ctx.Output.SetStatus(statusCode) // 201
-
-	case statusCode == http.StatusAccepted: // 202
-		c.Data["json"] = map[string]interface{}{
-			"Success": true, // ¡Marcar como éxito!
-			"Status":  statusString,
-			"Message": "Solicitud aceptada para procesamiento por el servicio externo.",
-		}
-		c.Ctx.Output.SetStatus(statusCode) // 202
-
-	case statusCode == http.StatusOK:
-		err = json.NewDecoder(resp.Body).Decode(&serviceResponse)
-		if err != nil {
-			c.Data["json"] = map[string]interface{}{
-				"Success": true,
-				"Status":  statusString,
-				"Message": "Solicitud procesada por el servicio externo (200 OK), pero su respuesta no pudo ser interpretada.",
-			}
-		} else {
-			c.Data["json"] = map[string]interface{}{
-				"Success": true,
-				"Status":  statusString,
-				"Message": "Solicitud procesada correctamente por el servicio externo (200 OK).",
-			}
-		}
-		c.Ctx.Output.SetStatus(statusCode) // 200
-
-	default: // Cualquier otro código (>=300) es un error
-		c.Data["json"] = map[string]interface{}{
-			"Success": false,
-			"Status":  statusString,
-			"Message": "Error reportado por el servicio externo.",
-		}
-		c.Ctx.Output.SetStatus(statusCode)
-	}
-
+	// Llamar al service
+	response := services.GuardarDatosTerceroPago(terceroPago, terceroPago.TipoUsuario, terceroPago.IdTipoDocumentoDuenoRecibo, terceroPago.TerceroId)
+	c.Ctx.Output.SetStatus(response.Status)
+	c.Data["json"] = response
 	c.ServeJSON()
 }
 
