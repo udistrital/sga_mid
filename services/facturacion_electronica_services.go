@@ -138,7 +138,12 @@ func GuardarDatosTerceroPago(terceroPago models.TerceroPagoRequest, tipoUsuario 
 
 	terceroPagoRespuestas := terceroPago
 
-	jsonRespuestasERP := make(map[string]int)
+	orderedKeys := []string{"respSofiaTerceroP", "respSofiaTerceroD"}
+	for i := 1; i <= len(conceptosRecibo); i++ {
+		orderedKeys = append(orderedKeys, fmt.Sprintf("respSofiaConcepto%d", i))
+	}
+
+	jsonRespuestasERP := make(models.RespuestasERP)
 
 	for _, respuesta := range respuestasSofia {
 		var key string
@@ -164,12 +169,17 @@ func GuardarDatosTerceroPago(terceroPago models.TerceroPagoRequest, tipoUsuario 
 	}
 
 	// Convertir el mapa a JSON (si es necesario)
-	jsonData, err := json.Marshal(jsonRespuestasERP)
-	if err != nil {
-		fmt.Println("Error al generar el JSON:", err)
-	} else {
-		fmt.Println(string(jsonData))
+	// Construye el JSON manualmente en el orden deseado
+	jsonData := "{"
+	for i, k := range orderedKeys {
+		if val, ok := jsonRespuestasERP[k]; ok {
+			if i > 0 {
+				jsonData += ","
+			}
+			jsonData += fmt.Sprintf("\"%s\":%d", k, val)
+		}
 	}
+	jsonData += "}"
 
 	terceroPagoRespuestas.PostTerceroPago.TERPA_DATOS_ADICIONALES = string(jsonData)
 
@@ -185,7 +195,7 @@ func GuardarDatosTerceroPago(terceroPago models.TerceroPagoRequest, tipoUsuario 
 	return requestresponse.APIResponse{
 		Success: true,
 		Status:  http.StatusOK,
-		Message: fmt.Sprintf("Todos los conceptos (%d) se enviaron correctamente", totalConceptos),
+		Message: "Se guardaron los datos en ACTERCERO_PAGO correctamente",
 		Data:    respuestas,
 	}
 }

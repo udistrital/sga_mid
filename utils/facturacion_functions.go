@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/astaxie/beego"
 	"github.com/udistrital/sga_mid/models"
@@ -16,8 +17,6 @@ func GenerarDatosSofia(terceroPago models.TerceroPago, duenoRecibo models.DuenoR
 			return
 		}
 	}()
-
-	// Obtenemos nombres y apellidos por separado del dueño del recibo si es admitido: tipoUsuario == 2
 
 	var terceroDuenoData models.TerceroId
 
@@ -151,6 +150,15 @@ func GenerarDatosSofia(terceroPago models.TerceroPago, duenoRecibo models.DuenoR
 	// Llenar SofiaTerceroConceptos con datos de conceptos
 
 	// 1.) Calcular el valor total de los conceptos para asignarlo al campo correspondiente del objeto SofiaTerceroConcepto
+	var valorTotalConceptos int
+	for _, concepto := range conceptos {
+		valor, err := strconv.ParseInt(concepto.Valor, 10, 64)
+		if err != nil {
+			beego.Error("Error convirtiendo concepto.Valor a int64:", err)
+			continue
+		}
+		valorTotalConceptos += int(valor)
+	}
 
 	for i, concepto := range conceptos {
 		SofiaTerceroConcepto := make(models.DatosSofiaConcepto) // Crear una nueva instancia
@@ -165,8 +173,8 @@ func GenerarDatosSofia(terceroPago models.TerceroPago, duenoRecibo models.DuenoR
 		SofiaTerceroConcepto["campo5"] = formattedDate
 		SofiaTerceroConcepto["campo6"] = terceroPago.TERPA_TDO_CODVAR
 		SofiaTerceroConcepto["campo7"] = terceroPago.TERPA_NRO_DOCUMENTO
-		SofiaTerceroConcepto["campo8"] = "total de los conceptos" // Aquí se debe asignar el valor total calculado
-		SofiaTerceroConcepto["campo9"] = i + 1                    // Número secuencial del concepto
+		SofiaTerceroConcepto["campo8"] = valorTotalConceptos
+		SofiaTerceroConcepto["campo9"] = i + 1 // Número secuencial del concepto
 		SofiaTerceroConcepto["campo10"] = concepto.CodConcepto
 		SofiaTerceroConcepto["campo11"] = concepto.Concepto
 		SofiaTerceroConcepto["campo12"] = concepto.Valor
