@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/astaxie/beego"
 	"github.com/udistrital/sga_mid/models"
@@ -44,10 +45,10 @@ func GenerarDatosSofia(terceroPago models.TerceroPago, duenoRecibo models.DuenoR
 	sofiaTerceroP["campo6"] = terceroPago.TERPA_NRO_DOCUMENTO
 	sofiaTerceroP["campo7"] = terceroPago.TERPA_DIGITO_CHEQUEO
 	sofiaTerceroP["campo8"] = terceroPago.TERPA_RAZON_SOCIAL
-	sofiaTerceroP["campo9"] = terceroPago.TERPA_PRIMER_APELLIDO
-	sofiaTerceroP["campo10"] = terceroPago.TERPA_SEGUNDO_APELLIDO
-	sofiaTerceroP["campo11"] = terceroPago.TERPA_PRIMER_NOMBRE
-	sofiaTerceroP["campo12"] = terceroPago.TERPA_SEGUNDO_NOMBRE
+	sofiaTerceroP["campo9"] = strings.ToUpper(strings.TrimSpace(terceroPago.TERPA_PRIMER_APELLIDO))
+	sofiaTerceroP["campo10"] = strings.ToUpper(strings.TrimSpace(terceroPago.TERPA_SEGUNDO_APELLIDO))
+	sofiaTerceroP["campo11"] = strings.ToUpper(strings.TrimSpace(terceroPago.TERPA_PRIMER_NOMBRE))
+	sofiaTerceroP["campo12"] = strings.ToUpper(strings.TrimSpace(terceroPago.TERPA_SEGUNDO_NOMBRE))
 	sofiaTerceroP["campo13"] = terceroPago.TERPA_DIRECCION
 	sofiaTerceroP["campo14"] = terceroPago.TERPA_TELEFONO
 	sofiaTerceroP["campo15"] = terceroPago.TERPA_EMAIL
@@ -121,10 +122,10 @@ func GenerarDatosSofia(terceroPago models.TerceroPago, duenoRecibo models.DuenoR
 	sofiaTerceroD["campo6"] = duenoRecibo.Identificacion
 	sofiaTerceroD["campo7"] = ""
 	sofiaTerceroD["campo8"] = ""
-	sofiaTerceroD["campo9"] = terceroDuenoData.PrimerApellido
-	sofiaTerceroD["campo10"] = terceroDuenoData.SegundoApellido
-	sofiaTerceroD["campo11"] = terceroDuenoData.PrimerNombre
-	sofiaTerceroD["campo12"] = terceroDuenoData.SegundoNombre
+	sofiaTerceroD["campo9"] = strings.ToUpper(strings.TrimSpace(terceroDuenoData.PrimerApellido))
+	sofiaTerceroD["campo10"] = strings.ToUpper(strings.TrimSpace(terceroDuenoData.SegundoApellido))
+	sofiaTerceroD["campo11"] = strings.ToUpper(strings.TrimSpace(terceroDuenoData.PrimerNombre))
+	sofiaTerceroD["campo12"] = strings.ToUpper(strings.TrimSpace(terceroDuenoData.SegundoNombre))
 	sofiaTerceroD["campo13"] = ""
 	sofiaTerceroD["campo14"] = ""
 	sofiaTerceroD["campo15"] = duenoRecibo.CorreoElectronico

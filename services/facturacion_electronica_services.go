@@ -128,8 +128,6 @@ func GuardarDatosTerceroPago(terceroPago models.TerceroPagoRequest, tipoUsuario 
 
 	fmt.Println(respuestasSofia, err)
 
-	// log.Fatal("DIEEEE")
-
 	if err != nil {
 		beego.Warning("GuardarDatosERP: error al enviar datos a ERP", err)
 	}
@@ -164,12 +162,9 @@ func GuardarDatosTerceroPago(terceroPago models.TerceroPagoRequest, tipoUsuario 
 			key = message
 		}
 
-		// Add to the map
 		jsonRespuestasERP[key] = respuesta.Status
 	}
 
-	// Convertir el mapa a JSON (si es necesario)
-	// Construye el JSON manualmente en el orden deseado
 	jsonData := "{"
 	for i, k := range orderedKeys {
 		if val, ok := jsonRespuestasERP[k]; ok {
@@ -191,7 +186,6 @@ func GuardarDatosTerceroPago(terceroPago models.TerceroPagoRequest, tipoUsuario 
 
 	respuestas = append(respuestas, respuestaEnvio)
 
-	// Todos exitosos
 	return requestresponse.APIResponse{
 		Success: true,
 		Status:  http.StatusOK,
