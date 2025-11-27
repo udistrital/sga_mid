@@ -1682,6 +1682,8 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 	var proyectoGet []map[string]interface{}
 	var proyectos []map[string]interface{}
 	var datosEstudiante []models.DatosIdentificacion
+	var datosEstudianteXML map[string]interface{}
+	var datosEstidianteJBMP []map[string]interface{}
 
 	idCalendario := c.Ctx.Input.Param(":id_calendario")
 	idPersona := c.Ctx.Input.Param(":persona_id")
@@ -1749,6 +1751,36 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 										codigoAux := map[string]interface{}{
 											"IdProyectoCondor": codigoProyecto,
 											"Codigo":           codigoEstudiante,
+										}
+										codigosRes = append(codigosRes, codigoAux)
+									}
+								}
+
+								for _, codigo := range codigosRes {
+									errCodigoEstJBPM := request.GetJsonWSO2("http://"+beego.AppConfig.String("AcademicaEspacioAcademicoService")+"datos_estudiante/"+fmt.Sprint(codigo["Codigo"]), &datosEstudianteXML)
+
+									if errCodigoEstJBPM == nil && datosEstudianteXML != nil && fmt.Sprintf("%v", datosEstudianteXML) != "map[reciboCollection:map[]]" && fmt.Sprintf("%v", datosEstudianteXML) != "map[]" {
+										dataACEST := datosEstudianteXML["estudianteCollection"].(map[string]interface{})["datosEstudiante"].([]interface{})[0]
+										datosEstidianteJBMP = append(datosEstidianteJBMP, dataACEST.(map[string]interface{}))
+										// logs.Info("Carga correcta desde jbpm")
+										// fmt.Println(datosEstidianteJBMP)
+									}
+								}
+
+								for _, codJBPM := range datosEstidianteJBMP {
+									existe := false
+									for _, codigo := range codigosRes {
+										if fmt.Sprintf("%v", codigo["IdProyectoCondor"]) == codJBPM["carrera"] && fmt.Sprintf("%v", codigo["Codigo"]) == codJBPM["codigo"] {
+											existe = true
+											break
+											// logs.Info("Iguales")
+											// fmt.Println(codJBPM["carrera"])
+										}
+									}
+									if !existe {
+										codigoAux := map[string]interface{}{
+											"IdProyectoCondor": codJBPM["carrera"],
+											"Codigo":           codJBPM["codigo"],
 										}
 										codigosRes = append(codigosRes, codigoAux)
 									}
