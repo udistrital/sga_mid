@@ -1826,11 +1826,31 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 															proyectosJBPM = append(proyectosJBPM, proyect.(map[string]interface{}))
 														}
 													}
+												} else if errProyectos != nil {
+													logs.Error("Error getting carrera ID %v. Error :%v", codEst["IdProyectoCondor"], errProyectos)
+												}
+												if len(proyectoXML["proyectos"].(map[string]interface{})) == 0 {
+													fmt.Printf("No projects retrieved with code: %v", codEst["IdProyectoCondor"])
 												}
 											}
-											// logs.Info(proyectosJBPM)
-											// buscar por codigo SNIES de JBPM
 
+											// buscar por codigo SNIES de JBPM
+											for _, proyectoAux := range proyectoGet {
+												for _, proyectoCalendario := range calendario["DependenciaId"].([]interface{}) {
+													for _, proyect := range proyectosJBPM {
+														if proyectoAux["Id"] == proyectoCalendario && proyectoAux["CodigoSnies"] == proyect["AS_CRA_COD_SNIES"] {
+															proyecto := map[string]interface{}{
+																"Id":          proyectoAux["Id"],
+																"Nombre":      proyectoAux["Nombre"],
+																"Codigo":      proyectoAux["Codigo"],
+																"CodigoSnies": proyectoAux["CodigoSnies"],
+															}
+
+															proyectos = append(proyectos, proyecto)
+														}
+													}
+												}
+											}
 										}
 									} else {
 										logs.Error(calendario)
