@@ -1684,6 +1684,8 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 	var datosEstudiante []models.DatosIdentificacion
 	var datosEstudianteXML map[string]interface{}
 	var datosEstidianteJBMP []map[string]interface{}
+	var proyectoXML map[string]interface{}
+	var proyectosJBPM []map[string]interface{}
 
 	idCalendario := c.Ctx.Input.Param(":id_calendario")
 	idPersona := c.Ctx.Input.Param(":persona_id")
@@ -1809,6 +1811,26 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 												}
 
 											}
+										}
+
+										if len(proyectos) == 0 || proyectos == nil {
+											// buscar proyectos con los que se tiene relación según el código de estudiante y ACEST
+											for _, codEst := range codigosRes {
+												errProyectos := request.GetJsonWSO2("http://"+beego.AppConfig.String("AcademicaEspacioAcademicoService")+"proyectos_snies/"+fmt.Sprint(codEst["IdProyectoCondor"]), &proyectoXML)
+
+												// si existe contenido en la respuesta hay al menos un proyecto valido
+												if errProyectos == nil && len(proyectoXML["proyectos"].(map[string]interface{})) > 0 {
+													// almacenar cada proyecto para comparar códigos SNIES
+													if auxProyecto, ok := proyectoXML["proyectos"].(map[string]interface{})["proyecto"].([]interface{}); ok {
+														for _, proyect := range auxProyecto {
+															proyectosJBPM = append(proyectosJBPM, proyect.(map[string]interface{}))
+														}
+													}
+												}
+											}
+											// logs.Info(proyectosJBPM)
+											// buscar por codigo SNIES de JBPM
+
 										}
 									} else {
 										logs.Error(calendario)
