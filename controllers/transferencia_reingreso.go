@@ -1761,9 +1761,7 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 								for _, codigo := range codigosRes {
 									errCodigoEstJBPM := request.GetJsonWSO2("http://"+beego.AppConfig.String("AcademicaEspacioAcademicoService")+"datos_estudiante/"+fmt.Sprint(codigo["Codigo"]), &datosEstudianteXML)
 
-									logs.Info(datosEstudianteXML)
-
-									if errCodigoEstJBPM == nil && datosEstudianteXML != nil && fmt.Sprintf("%v", datosEstudianteXML) != "map[]" { //&& fmt.Sprintf("%v", datosEstudianteXML) != "map[estudianteCollection:map[]]" && fmt.Sprintf("%v", datosEstudianteXML) != "map[]" {
+									if errCodigoEstJBPM == nil && datosEstudianteXML != nil && fmt.Sprintf("%v", datosEstudianteXML) != "map[]" {
 										dataACEST, _ := datosEstudianteXML["estudianteCollection"].(map[string]interface{})
 										dataEstudianteACEST, _ := dataACEST["datosEstudiante"].([]interface{})
 
