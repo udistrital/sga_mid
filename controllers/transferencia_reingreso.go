@@ -1682,6 +1682,10 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 	var proyectoGet []map[string]interface{}
 	var proyectos []map[string]interface{}
 	var datosEstudiante []models.DatosIdentificacion
+	var datosEstudianteXML map[string]interface{}
+	var datosEstidianteJBMP []map[string]interface{}
+	var proyectoXML map[string]interface{}
+	var proyectosJBPM []map[string]interface{}
 
 	idCalendario := c.Ctx.Input.Param(":id_calendario")
 	idPersona := c.Ctx.Input.Param(":persona_id")
@@ -1711,7 +1715,7 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 						if identificacion[0]["Status"] != 404 {
 
 							errCodigoEst := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=TerceroId.Id:"+
-								fmt.Sprintf("%v", idPersona)+",TipoDocumentoId.CodigoAbreviacion:CODE&limit=0", &datosEstudiante)
+								fmt.Sprintf("%v", idPersona)+",Activo:true,TipoDocumentoId.CodigoAbreviacion:CODE&limit=0", &datosEstudiante)
 							if errCodigoEst == nil && fmt.Sprintf("%v", datosEstudiante[0]) != "map[]" {
 
 								for _, dato := range datosEstudiante {
@@ -1753,6 +1757,48 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 										codigosRes = append(codigosRes, codigoAux)
 									}
 								}
+
+								for _, codigo := range codigosRes {
+									errCodigoEstJBPM := request.GetJsonWSO2("http://"+beego.AppConfig.String("AcademicaEspacioAcademicoService")+"datos_estudiante/"+fmt.Sprint(codigo["Codigo"]), &datosEstudianteXML)
+
+									if errCodigoEstJBPM == nil && datosEstudianteXML != nil && fmt.Sprintf("%v", datosEstudianteXML) != "map[]" {
+										dataACEST, _ := datosEstudianteXML["estudianteCollection"].(map[string]interface{})
+										dataEstudianteACEST, _ := dataACEST["datosEstudiante"].([]interface{})
+
+										if len(dataACEST) > 0 && len(dataEstudianteACEST) > 0 {
+											datosEstidianteJBMP = append(datosEstidianteJBMP, dataEstudianteACEST[0].(map[string]interface{}))
+										}
+									}
+								}
+
+								for _, codJBPM := range datosEstidianteJBMP {
+									existe := false
+									for _, codigo := range codigosRes {
+										if fmt.Sprintf("%v", codigo["IdProyectoCondor"]) == codJBPM["carrera"] && fmt.Sprintf("%v", codigo["Codigo"]) == codJBPM["codigo"] {
+											existe = true
+											break
+										}
+									}
+									codigoProyecto, err := strconv.Atoi(codJBPM["carrera"].(string))
+									if err != nil {
+										fmt.Printf("Error converting codigoProyecto to int: %v\n", err)
+										continue
+									}
+
+									codigoEstudiante, err := strconv.Atoi(codJBPM["codigo"].(string))
+									if err != nil {
+										fmt.Printf("Error converting codigoEstudiante to int: %v\n", err)
+										continue
+									}
+
+									if !existe {
+										codigoAux := map[string]interface{}{
+											"IdProyectoCondor": codigoProyecto,
+											"Codigo":           codigoEstudiante,
+										}
+										codigosRes = append(codigosRes, codigoAux)
+									}
+								}
 							}
 
 							errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?limit=0&query=Activo:true", &proyectoGet)
@@ -1760,11 +1806,31 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 								if len(codigosRes) > 0 {
 
 									if calendario["DependenciaId"] != nil {
+										// buscar proyectos con los que se tiene relación según el código de estudiante y ACEST
+										for _, codEst := range codigosRes {
+											errProyectos := request.GetJsonWSO2("http://"+beego.AppConfig.String("AcademicaEspacioAcademicoService")+"proyectos_snies/"+fmt.Sprint(codEst["IdProyectoCondor"]), &proyectoXML)
+
+											// si existe contenido en la respuesta hay al menos un proyecto valido
+											if errProyectos == nil && len(proyectoXML["proyectos"].(map[string]interface{})) > 0 {
+												// almacenar cada proyecto para comparar códigos SNIES
+												if auxProyecto, ok := proyectoXML["proyectos"].(map[string]interface{})["proyecto"].([]interface{}); ok {
+													for _, proyect := range auxProyecto {
+														proyectosJBPM = append(proyectosJBPM, proyect.(map[string]interface{}))
+													}
+												}
+											} else if errProyectos != nil {
+												logs.Error("Error getting carrera ID %v. Error :%v", codEst["IdProyectoCondor"], errProyectos)
+											}
+											if len(proyectoXML["proyectos"].(map[string]interface{})) == 0 {
+												fmt.Printf("No projects retrieved with code: %v", codEst["IdProyectoCondor"])
+											}
+										}
+
+										// buscar por codigo SNIES de JBPM
 										for _, proyectoAux := range proyectoGet {
 											for _, proyectoCalendario := range calendario["DependenciaId"].([]interface{}) {
-												for codigo := range codigosRes {
-
-													if proyectoAux["Id"] == proyectoCalendario && proyectoAux["Codigo"] == fmt.Sprintf("%v", codigosRes[codigo]["IdProyectoCondor"]) {
+												for _, proyect := range proyectosJBPM {
+													if proyectoAux["Id"] == proyectoCalendario && proyectoAux["CodigoSnies"] == proyect["AS_CRA_COD_SNIES"] {
 														proyecto := map[string]interface{}{
 															"Id":          proyectoAux["Id"],
 															"Nombre":      proyectoAux["Nombre"],
@@ -1775,7 +1841,6 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 														proyectos = append(proyectos, proyecto)
 													}
 												}
-
 											}
 										}
 									} else {
