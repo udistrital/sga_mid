@@ -1186,7 +1186,7 @@ func (c *Transferencia_reingresoController) GetInscripcion() {
 	var Solicitudes []map[string]interface{}
 	var tipoSolicitud map[string]interface{}
 	var datosEstudiante []models.DatosIdentificacion
-	// var datosEstudianteXML map[string]interface{}
+	var datosEstudianteXML map[string]interface{}
 	var codigoProyectoStr string
 	var proyectoXML map[string]interface{}
 
@@ -1272,25 +1272,17 @@ func (c *Transferencia_reingresoController) GetInscripcion() {
 						}
 					}
 
-					logs.Info(codigosGet)
-
 					for _, codigo := range codigosGet {
-						codigoProyectoStr = codigo[5:8]
-						if codigoProyectoStr[0] == '0' && len(codigoProyectoStr) == 3 {
-							codigoProyectoStr = codigoProyectoStr[1:]
-						}
 
-						// errCodigoEstJBPM := request.GetJsonWSO2("http://"+beego.AppConfig.String("AcademicaEspacioAcademicoService2")+"datos_estudiante/"+fmt.Sprint(codigo), &datosEstudianteXML)
-						// // logs.Info(datosEstudianteXML)
-						// if errCodigoEstJBPM == nil && datosEstudianteXML != nil && fmt.Sprintf("%v", datosEstudianteXML) != "map[]" {
-						// 	dataACEST, _ := datosEstudianteXML["estudianteCollection"].(map[string]interface{})
-						// 	dataEstudianteACEST, _ := dataACEST["datosEstudiante"].([]interface{})
-						// 	if len(dataACEST) > 0 && len(dataEstudianteACEST) > 0 {
-						// 		// logs.Info("------------------data estudiantes ACEST -----------------")
-						// 		// logs.Info(dataEstudianteACEST[0].(map[string]interface{})["carrera"])
-						// 		codigoProyectoStr = dataEstudianteACEST[0].(map[string]interface{})["carrera"].(string)
-						// 	}
-						// }
+						errCodigoEstJBPM := request.GetJsonWSO2("http://"+beego.AppConfig.String("AcademicaEspacioAcademicoService2")+"datos_estudiante/"+fmt.Sprint(codigo), &datosEstudianteXML)
+
+						if errCodigoEstJBPM == nil && datosEstudianteXML != nil && fmt.Sprintf("%v", datosEstudianteXML) != "map[]" {
+							dataACEST, _ := datosEstudianteXML["estudianteCollection"].(map[string]interface{})
+							dataEstudianteACEST, _ := dataACEST["datosEstudiante"].([]interface{})
+							if len(dataACEST) > 0 && len(dataEstudianteACEST) > 0 {
+								codigoProyectoStr = dataEstudianteACEST[0].(map[string]interface{})["carrera"].(string)
+							}
+						}
 
 						codigoProyecto, err := strconv.Atoi(codigoProyectoStr)
 						if err != nil {
@@ -1306,15 +1298,13 @@ func (c *Transferencia_reingresoController) GetInscripcion() {
 
 						errProyectos := request.GetJsonWSO2("http://"+beego.AppConfig.String("AcademicaEspacioAcademicoService")+"proyectos_snies/"+codigoProyectoStr, &proyectoXML)
 
-						logs.Info(proyectoXML)
-
 						// si existe contenido en la respuesta hay al menos un proyecto valido
 						if errProyectos == nil && len(proyectoXML["proyectos"].(map[string]interface{})) > 0 {
 							// códigos SNIES para comparar
 							if auxProyecto, ok := proyectoXML["proyectos"].(map[string]interface{})["proyecto"].([]interface{}); ok {
 								codigoProyectoSnies := fmt.Sprintf("%v", auxProyecto[0].(map[string]interface{})["AS_CRA_COD_SNIES"])
 								errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=CodigoSnies:"+codigoProyectoSnies, &proyectoGet)
-								logs.Info(proyectoGet)
+
 								if errProyecto == nil && fmt.Sprintf("%v", proyectoGet) != "[map[]]" {
 									if calendarioGet[indice]["DependenciaId"] != nil {
 										for _, proyectoCalendario := range calendarioGet[indice]["DependenciaId"].([]interface{}) {
@@ -1327,8 +1317,6 @@ func (c *Transferencia_reingresoController) GetInscripcion() {
 														"Codigo":              codigoEstudiante,
 													}
 													codigosRes = append(codigosRes, codigoAux)
-													// logs.Info("resultado de codigo snies")
-													// logs.Info(codigoAux)
 												}
 											}
 										}
