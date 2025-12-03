@@ -1274,7 +1274,7 @@ func (c *Transferencia_reingresoController) GetInscripcion() {
 
 					for _, codigo := range codigosGet {
 
-						errCodigoEstJBPM := request.GetJsonWSO2("http://"+beego.AppConfig.String("AcademicaEspacioAcademicoService2")+"datos_estudiante/"+fmt.Sprint(codigo), &datosEstudianteXML)
+						errCodigoEstJBPM := request.GetJsonWSO2("http://"+beego.AppConfig.String("AcademicaEspacioAcademicoService")+"datos_estudiante/"+fmt.Sprint(codigo), &datosEstudianteXML)
 
 						if errCodigoEstJBPM == nil && datosEstudianteXML != nil && fmt.Sprintf("%v", datosEstudianteXML) != "map[]" {
 							dataACEST, _ := datosEstudianteXML["estudianteCollection"].(map[string]interface{})
