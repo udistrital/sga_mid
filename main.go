@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/joho/godotenv"
 	_ "github.com/udistrital/sga_mid/routers"
 	apistatus "github.com/udistrital/utils_oas/apiStatusLib"
 
@@ -12,14 +11,6 @@ import (
 	"github.com/udistrital/auditoria"
 	"github.com/udistrital/utils_oas/xray"
 )
-
-func init() {
-	// Simple check to validate environment variables loading
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error loading .env file")
-	}
-}
 
 func main() {
 	if beego.BConfig.RunMode == "dev" {
