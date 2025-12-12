@@ -57,7 +57,7 @@ func (c *InscripcionesController) GetEstadoInscripcion() {
 	alertas := []interface{}{"Response:"}
 
 	//Se consultan todas las inscripciones relacionadas a ese tercero
-	errInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion?query=Activo:true,PersonaId:"+persona_id+",PeriodoId:"+id_periodo, &Inscripciones)
+	errInscripcion := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion?limit=-1&query=Activo:true,PersonaId:"+persona_id+",PeriodoId:"+id_periodo, &Inscripciones)
 	if errInscripcion == nil {
 		if Inscripciones != nil && fmt.Sprintf("%v", Inscripciones[0]) != "map[]" {
 			// Ciclo for que recorre todas las inscripciones del tercero
@@ -1299,7 +1299,7 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 			"nombre":              SolicitudInscripcion["Nombre"].(string),
 			"apellido":            SolicitudInscripcion["Apellido"].(string),
 			"correo":              SolicitudInscripcion["Correo"].(string),
-			"proyecto":            SolicitudInscripcion["ProgramaAcademicoCodigo"].(float64),
+			"proyecto":            SolicitudInscripcion["ProgramaAcademicoId"].(float64),
 			"tiporecibo":          15, // se define 15 por que es el id definido en el api de recibos para inscripcion
 			"concepto":            "",
 			"valorordinario":      0,
@@ -1323,10 +1323,23 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 			"TipoInscripcionId":   map[string]interface{}{"Id": SolicitudInscripcion["TipoInscripcionId"]},
 		}
 
-		if SolicitudInscripcion["Nivel"].(float64) == 1 {
+		switch SolicitudInscripcion["Nivel"].(float64) {
+		case 1:
+			// pregrado
 			TipoParametro = "13"
-		} else if SolicitudInscripcion["Nivel"].(float64) == 2 {
-			TipoParametro = "12"
+		case 2:
+			// verifica si es solicitud de postgrados
+			switch SolicitudInscripcion["TipoInscripcionId"].(float64) {
+			case 15:
+				// Inscripciones nuevas
+				TipoParametro = "12"
+			case 11:
+				// Reingresos
+				TipoParametro = "14"
+			default:
+				// por defecto se deja inscripciones
+				TipoParametro = "12"
+			}
 		}
 
 		if SolicitudInscripcion["Periodo"].(float64) == 1 {
@@ -1345,7 +1358,7 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 			codigoSnies := proyectoAcademico["CodigoSnies"].(string)
 
 			var HomologacionXML map[string]interface{}
-			codigoProyecto := fmt.Sprintf("%.0f", SolicitudInscripcion["ProgramaAcademicoCodigo"].(float64))
+			codigoProyecto := proyectoAcademico["Codigo"].(string)
 			errHomologacion := request.GetJsonWSO2("http://"+beego.AppConfig.String("HomologacionDependenciaService")+"proyecto_acad_snies/"+codigoSnies, &HomologacionXML)
 			resultadoHomologacion := HomologacionXML["proyecto_snies"].(map[string]interface{})
 			if errHomologacion == nil && fmt.Sprintf("%v", resultadoHomologacion) != "map[]" {
@@ -1376,6 +1389,8 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 						objTransaccion["concepto"] = Dato.(map[string]interface{})["ParametroId"].(map[string]interface{})["Nombre"].(string)
 
 						SolicitudRecibo := objTransaccion
+
+						SolicitudRecibo["proyecto"] = SolicitudInscripcion["ProgramaAcademicoCodigo"]
 
 						reciboSolicitud := httplib.Post("http://" + beego.AppConfig.String("GenerarReciboJbpmService") + "recibos_pago_proxy")
 						reciboSolicitud.Header("Accept", "application/json")
