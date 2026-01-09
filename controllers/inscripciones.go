@@ -1342,11 +1342,8 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 			}
 		}
 
-		if SolicitudInscripcion["Periodo"].(float64) == 1 {
-			AnioParametro = SolicitudInscripcion["Year"].(float64) - 1
-		} else {
-			AnioParametro = SolicitudInscripcion["Year"].(float64)
-		}
+		// Se usa siempre el año actual
+		AnioParametro = SolicitudInscripcion["Year"].(float64)
 
 		coincideCodigoSnies := false
 		var proyectos []map[string]interface{}
@@ -1379,7 +1376,15 @@ func (c *InscripcionesController) PostGenerarInscripcion() {
 		if coincideCodigoSnies {
 			errInscripcion := request.SendJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion", "POST", &inscripcionRealizada, inscripcion)
 			if errInscripcion == nil && inscripcionRealizada["Status"] != "400" {
-				errParam := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=Activo:true,ParametroId.TipoParametroId.Id:2,ParametroId.CodigoAbreviacion:"+TipoParametro+",PeriodoId.Year:"+fmt.Sprintf("%v", AnioParametro)+",PeriodoId.CodigoAbreviacion:VG", &parametro)
+				// Primero intenta con el año actual
+				errParam := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=Activo:true,ParametroId.TipoParametroId.Id:2,ParametroId.CodigoAbreviacion:"+TipoParametro+",PeriodoId.Year:"+fmt.Sprintf("%v", AnioParametro)+",PeriodoId.CodigoAbreviacion:VG,PeriodoId.Activo:true", &parametro)
+
+				// Si no encuentra datos, intenta con el año anterior
+				if errParam != nil || fmt.Sprintf("%v", parametro["Data"].([]interface{})[0]) == "map[]" {
+					AnioParametro = AnioParametro - 1
+					errParam = request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=Activo:true,ParametroId.TipoParametroId.Id:2,ParametroId.CodigoAbreviacion:"+TipoParametro+",PeriodoId.Year:"+fmt.Sprintf("%v", AnioParametro)+",PeriodoId.CodigoAbreviacion:VG,PeriodoId.Activo:true", &parametro)
+				}
+
 				if errParam == nil && fmt.Sprintf("%v", parametro["Data"].([]interface{})[0]) != "map[]" {
 					Dato := parametro["Data"].([]interface{})[0]
 					if errJson := json.Unmarshal([]byte(Dato.(map[string]interface{})["Valor"].(string)), &Valor); errJson == nil {
