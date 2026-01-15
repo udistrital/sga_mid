@@ -610,7 +610,7 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 				var poblacionPost2 map[string]interface{}
 				comprobantePoblacion := map[string]interface{}{
 					"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
-					"InfoComplementariaId": map[string]interface{}{"Id": 315},
+					"InfoComplementariaId": map[string]interface{}{"Id": 138}, // cod en master 138, pruebas 315
 					"Activo":               true,
 					"Dato":                 `{"value":` + fmt.Sprintf("%v", tercero["ComprobantePoblacion"].(map[string]interface{})["Id"]) + `}`,
 				}
@@ -1101,7 +1101,7 @@ func (c *PersonaController) ActualizarDatosComplementarios() {
 					if fmt.Sprintf("%v", reflect.TypeOf(persona["ComprobantePoblacion"])) == "map[string]interface {}" {
 						comprobantePoblacion := map[string]interface{}{
 							"TerceroId":            map[string]interface{}{"Id": idPersona.(float64)},
-							"InfoComplementariaId": map[string]interface{}{"Id": 315},
+							"InfoComplementariaId": map[string]interface{}{"Id": 138}, // cod en master 138, pruebas 315
 							"Activo":               true,
 							"Dato":                 `{"value":` + fmt.Sprintf("%v", persona["ComprobantePoblacion"].(map[string]interface{})["Id"]) + `}`,
 						}
