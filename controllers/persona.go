@@ -570,11 +570,21 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 			poblaciones := tercero["TipoPoblacion"].([]interface{})
 			for i := 0; i < len(poblaciones); i++ {
 				var poblacionPost1 map[string]interface{}
+				var nuevaPoblacion map[string]interface{}
 				TipoPoblacion := poblaciones[i].(map[string]interface{})
-				nuevaPoblacion := map[string]interface{}{
-					"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
-					"InfoComplementariaId": map[string]interface{}{"Id": TipoPoblacion["Id"].(float64)},
-					"Activo":               true,
+				if fmt.Sprintf("%v", reflect.TypeOf(tercero["ComprobantePoblacion"])) == "map[string]interface {}" {
+					nuevaPoblacion = map[string]interface{}{
+						"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
+						"InfoComplementariaId": map[string]interface{}{"Id": TipoPoblacion["Id"].(float64)},
+						"Activo":               true,
+						"Dato":                 `{"value":` + fmt.Sprintf("%v", tercero["ComprobantePoblacion"].(map[string]interface{})["Id"]) + `}`,
+					}
+				} else {
+					nuevaPoblacion = map[string]interface{}{
+						"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
+						"InfoComplementariaId": map[string]interface{}{"Id": TipoPoblacion["Id"].(float64)},
+						"Activo":               true,
+					}
 				}
 				errPoblacionPost1 := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &poblacionPost1, nuevaPoblacion)
 				if errPoblacionPost1 == nil && fmt.Sprintf("%v", poblacionPost1) != "map[]" && poblacionPost1["Id"] != nil {
@@ -653,11 +663,21 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 			discapacidades := tercero["TipoDiscapacidad"].([]interface{})
 			for i := 0; i < len(discapacidades); i++ {
 				var discapacidadPost1 map[string]interface{}
+				var nuevadiscapacidad map[string]interface{}
 				discapacidad := discapacidades[i].(map[string]interface{})
-				nuevadiscapacidad := map[string]interface{}{
-					"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
-					"InfoComplementariaId": map[string]interface{}{"Id": discapacidad["Id"].(float64)},
-					"Activo":               true,
+				if fmt.Sprintf("%v", reflect.TypeOf(tercero["ComprobanteDiscapacidad"])) == "map[string]interface {}" {
+					nuevadiscapacidad = map[string]interface{}{
+						"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
+						"InfoComplementariaId": map[string]interface{}{"Id": discapacidad["Id"].(float64)},
+						"Activo":               true,
+						"Dato":                 `{"value":` + fmt.Sprintf("%v", tercero["ComprobanteDiscapacidad"].(map[string]interface{})["Id"]) + `}`,
+					}
+				} else {
+					nuevadiscapacidad = map[string]interface{}{
+						"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
+						"InfoComplementariaId": map[string]interface{}{"Id": discapacidad["Id"].(float64)},
+						"Activo":               true,
+					}
 				}
 				errDiscapacidadPost1 := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &discapacidadPost1, nuevadiscapacidad)
 				if errDiscapacidadPost1 == nil && fmt.Sprintf("%v", discapacidadPost1) != "map[]" && discapacidadPost1["Id"] != nil {
@@ -1045,11 +1065,21 @@ func (c *PersonaController) ActualizarDatosComplementarios() {
 					}
 				}
 				if OkInactive1 {
+					var nuevaPoblacion map[string]interface{}
 					for _, poblaciones := range poblacion {
-						nuevaPoblacion := map[string]interface{}{
-							"TerceroId":            map[string]interface{}{"Id": idPersona.(float64)},
-							"InfoComplementariaId": map[string]interface{}{"Id": poblaciones.(map[string]interface{})["Id"].(float64)},
-							"Activo":               true,
+						if fmt.Sprintf("%v", reflect.TypeOf(persona["ComprobantePoblacion"])) == "map[string]interface {}" {
+							nuevaPoblacion = map[string]interface{}{
+								"TerceroId":            map[string]interface{}{"Id": idPersona.(float64)},
+								"InfoComplementariaId": map[string]interface{}{"Id": poblaciones.(map[string]interface{})["Id"].(float64)},
+								"Activo":               true,
+								"Dato":                 `{"value":` + fmt.Sprintf("%v", persona["ComprobantePoblacion"].(map[string]interface{})["Id"]) + `}`,
+							}
+						} else {
+							nuevaPoblacion = map[string]interface{}{
+								"TerceroId":            map[string]interface{}{"Id": idPersona.(float64)},
+								"InfoComplementariaId": map[string]interface{}{"Id": poblaciones.(map[string]interface{})["Id"].(float64)},
+								"Activo":               true,
+							}
 						}
 
 						errPoblacionPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &Poblacion, nuevaPoblacion)
@@ -1141,11 +1171,21 @@ func (c *PersonaController) ActualizarDatosComplementarios() {
 					}
 				}
 				if OkInactive2 {
+					var nuevadiscapacidad map[string]interface{}
 					for _, discapacidades := range discapacidad {
-						nuevadiscapacidad := map[string]interface{}{
-							"TerceroId":            map[string]interface{}{"Id": idPersona.(float64)},
-							"InfoComplementariaId": map[string]interface{}{"Id": discapacidades.(map[string]interface{})["Id"].(float64)},
-							"Activo":               true,
+						if fmt.Sprintf("%v", reflect.TypeOf(persona["ComprobanteDiscapacidad"])) == "map[string]interface {}" {
+							nuevadiscapacidad = map[string]interface{}{
+								"TerceroId":            map[string]interface{}{"Id": idPersona.(float64)},
+								"InfoComplementariaId": map[string]interface{}{"Id": discapacidades.(map[string]interface{})["Id"].(float64)},
+								"Activo":               true,
+								"Dato":                 `{"value":` + fmt.Sprintf("%v", persona["ComprobanteDiscapacidad"].(map[string]interface{})["Id"]) + `}`,
+							}
+						} else {
+							nuevadiscapacidad = map[string]interface{}{
+								"TerceroId":            map[string]interface{}{"Id": idPersona.(float64)},
+								"InfoComplementariaId": map[string]interface{}{"Id": discapacidades.(map[string]interface{})["Id"].(float64)},
+								"Activo":               true,
+							}
 						}
 
 						errDiscapacidadPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero", "POST", &Discapacidad, nuevadiscapacidad)
