@@ -610,7 +610,7 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 				}
 			}
 			if fmt.Sprintf("%v", reflect.TypeOf(tercero["ComprobantePoblacion"])) == "map[string]interface {}" {
-				// si existe un comprobante poblacional se llama el id por cod_abreviacion
+				// si existe un comprobante poblacional por cod_abreviacion
 				err_tipo_doc := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria?query=Activo:True,CodigoAbreviacion:DOC_POBLACION", &poblacion_info_complementaria)
 
 				if err_tipo_doc != nil {
@@ -711,7 +711,7 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 				}
 			}
 			if fmt.Sprintf("%v", reflect.TypeOf(tercero["ComprobanteDiscapacidad"])) == "map[string]interface {}" {
-				// si existe un comprobante de discapacidad se llama el id por cod_abreviacion
+				// si existe un comprobante de discapacidad por cod_abreviacion
 				err_tipo_doc := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria?query=Activo:True,CodigoAbreviacion:DOC_DISCAPACIDAD", &discapacidad_info_complementaria)
 
 				if err_tipo_doc != nil {
@@ -1121,7 +1121,7 @@ func (c *PersonaController) ActualizarDatosComplementarios() {
 					}
 
 					if fmt.Sprintf("%v", reflect.TypeOf(persona["ComprobantePoblacion"])) == "map[string]interface {}" {
-						// si existe un comprobante poblacional se llama el id por cod_abreviacion
+						// si existe un comprobante poblacional por cod_abreviacion
 						err_tipo_doc := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria?query=Activo:True,CodigoAbreviacion:DOC_POBLACION", &poblacion_info_complementaria)
 
 						if err_tipo_doc != nil {
@@ -1235,7 +1235,7 @@ func (c *PersonaController) ActualizarDatosComplementarios() {
 					}
 
 					if fmt.Sprintf("%v", reflect.TypeOf(persona["ComprobanteDiscapacidad"])) == "map[string]interface {}" {
-						// si existe un comprobante de discapacidad se llama el id por cod_abreviacion
+						// si existe un comprobante de discapacidad por cod_abreviacion
 						err_tipo_doc := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria?query=Activo:True,CodigoAbreviacion:DOC_DISCAPACIDAD", &discapacidad_info_complementaria)
 
 						if err_tipo_doc != nil {
