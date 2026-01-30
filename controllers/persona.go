@@ -490,6 +490,7 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 
 	var poblacion_info_complementaria []map[string]interface{}    // almacena tipo de documento soporte
 	var discapacidad_info_complementaria []map[string]interface{} // almacena tipo de documento soporte
+	var err_tipo_doc error
 
 	var alerta models.Alert
 	alertas := []interface{}{"Response:"}
@@ -611,13 +612,28 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 			}
 			if fmt.Sprintf("%v", reflect.TypeOf(tercero["ComprobantePoblacion"])) == "map[string]interface {}" {
 				// si existe un comprobante poblacional por cod_abreviacion
-				err_tipo_doc := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria?query=Activo:True,CodigoAbreviacion:DOC_POBLACION", &poblacion_info_complementaria)
+				ok_tipo_doc := false
+				for intento := 1; intento <= 2; intento++ {
+					err_tipo_doc = request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria?query=Activo:True,CodigoAbreviacion:DOC_POBLACION", &poblacion_info_complementaria)
 
-				if err_tipo_doc != nil {
-					logs.Error(err_tipo_doc)
-					c.Data["system"] = err_tipo_doc
-					c.Abort("400")
+					if err_tipo_doc != nil {
+						logs.Error("Error calling DOC_POBLACION on TercerosService: ", err_tipo_doc)
+						continue
+					}
+					if len(poblacion_info_complementaria) == 0 {
+						logs.Error("Fail in TercerosService: DOC_POBLACION, empty array response. ")
+						continue
+					}
+					// si todo va bien
+					ok_tipo_doc = true
+					break
 				}
+				if !ok_tipo_doc {
+					logs.Error("Fatal error calling DOC_POBLACION on TercerosService, empty or not response", err_tipo_doc)
+					c.Data["system"] = err_tipo_doc
+					c.Abort("502") // badgateway
+				}
+
 				var poblacionPost2 map[string]interface{}
 				comprobantePoblacion := map[string]interface{}{
 					"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
@@ -712,13 +728,28 @@ func (c *PersonaController) GuardarDatosComplementarios() {
 			}
 			if fmt.Sprintf("%v", reflect.TypeOf(tercero["ComprobanteDiscapacidad"])) == "map[string]interface {}" {
 				// si existe un comprobante de discapacidad por cod_abreviacion
-				err_tipo_doc := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria?query=Activo:True,CodigoAbreviacion:DOC_DISCAPACIDAD", &discapacidad_info_complementaria)
+				ok_tipo_doc := false
+				for intento := 1; intento <= 2; intento++ {
+					err_tipo_doc := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria?query=Activo:True,CodigoAbreviacion:DOC_DISCAPACIDAD", &discapacidad_info_complementaria)
 
-				if err_tipo_doc != nil {
-					logs.Error(err_tipo_doc)
-					c.Data["system"] = err_tipo_doc
-					c.Abort("400")
+					if err_tipo_doc != nil {
+						logs.Error("Error calling DOC_DISCAPACIDAD on TercerosService: ", err_tipo_doc)
+						continue
+					}
+					if len(poblacion_info_complementaria) == 0 {
+						logs.Error("Fail in TercerosService: DOC_DISCAPACIDAD, empty array response. ")
+						continue
+					}
+					// si todo va bien
+					ok_tipo_doc = true
+					break
 				}
+				if !ok_tipo_doc {
+					logs.Error("Fatal error calling DOC_DISCAPACIDAD on TercerosService, empty or not response", err_tipo_doc)
+					c.Data["system"] = err_tipo_doc
+					c.Abort("502") // badgateway
+				}
+
 				var discapacidadPost2 map[string]interface{}
 				comprobanteDiscapacidad := map[string]interface{}{
 					"TerceroId":            map[string]interface{}{"Id": tercero["Tercero"].(float64)},
@@ -1062,6 +1093,7 @@ func (c *PersonaController) ActualizarDatosComplementarios() {
 	var resultado8 map[string]interface{}
 	//acumulado de errores
 	errores := []interface{}{"acumulado de alertas"}
+	var err_tipo_doc error
 
 	var poblacion_info_complementaria []map[string]interface{}    // almacena tipo de documento soporte
 	var discapacidad_info_complementaria []map[string]interface{} // almacena tipo de documento soporte
@@ -1122,12 +1154,26 @@ func (c *PersonaController) ActualizarDatosComplementarios() {
 
 					if fmt.Sprintf("%v", reflect.TypeOf(persona["ComprobantePoblacion"])) == "map[string]interface {}" {
 						// si existe un comprobante poblacional por cod_abreviacion
-						err_tipo_doc := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria?query=Activo:True,CodigoAbreviacion:DOC_POBLACION", &poblacion_info_complementaria)
+						ok_tipo_doc := false
+						for intento := 1; intento <= 2; intento++ {
+							err_tipo_doc = request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria?query=Activo:True,CodigoAbreviacion:DOC_POBLACION", &poblacion_info_complementaria)
 
-						if err_tipo_doc != nil {
-							logs.Error(err_tipo_doc)
+							if err_tipo_doc != nil {
+								logs.Error("Error calling DOC_POBLACION on TercerosService: ", err_tipo_doc)
+								continue
+							}
+							if len(poblacion_info_complementaria) == 0 {
+								logs.Error("Fail in TercerosService: DOC_POBLACION, empty array response. ")
+								continue
+							}
+							// si todo va bien
+							ok_tipo_doc = true
+							break
+						}
+						if !ok_tipo_doc {
+							logs.Error("Fatal error calling DOC_POBLACION on TercerosService, empty or not response", err_tipo_doc)
 							c.Data["system"] = err_tipo_doc
-							c.Abort("400")
+							c.Abort("502") // badgateway
 						}
 						comprobantePoblacion := map[string]interface{}{
 							"TerceroId":            map[string]interface{}{"Id": idPersona.(float64)},
@@ -1236,12 +1282,26 @@ func (c *PersonaController) ActualizarDatosComplementarios() {
 
 					if fmt.Sprintf("%v", reflect.TypeOf(persona["ComprobanteDiscapacidad"])) == "map[string]interface {}" {
 						// si existe un comprobante de discapacidad por cod_abreviacion
-						err_tipo_doc := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria?query=Activo:True,CodigoAbreviacion:DOC_DISCAPACIDAD", &discapacidad_info_complementaria)
+						ok_tipo_doc := false
+						for intento := 1; intento <= 2; intento++ {
+							err_tipo_doc := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria?query=Activo:True,CodigoAbreviacion:DOC_DISCAPACIDAD", &discapacidad_info_complementaria)
 
-						if err_tipo_doc != nil {
-							logs.Error(err_tipo_doc)
+							if err_tipo_doc != nil {
+								logs.Error("Error calling DOC_DISCAPACIDAD on TercerosService: ", err_tipo_doc)
+								continue
+							}
+							if len(poblacion_info_complementaria) == 0 {
+								logs.Error("Fail in TercerosService: DOC_DISCAPACIDAD, empty array response. ")
+								continue
+							}
+							// si todo va bien
+							ok_tipo_doc = true
+							break
+						}
+						if !ok_tipo_doc {
+							logs.Error("Fatal error calling DOC_DISCAPACIDAD on TercerosService, empty or not response", err_tipo_doc)
 							c.Data["system"] = err_tipo_doc
-							c.Abort("400")
+							c.Abort("502") // badgateway
 						}
 						comprobanteDiscapacidad := map[string]interface{}{
 							"TerceroId":            map[string]interface{}{"Id": idPersona.(float64)},
