@@ -216,7 +216,7 @@ func (c *SolicitudEvaluacionController) PostSolicitudEvolucionEstado() {
 						EstadoTipoSolicitudId = 32
 					}
 				}
-					
+
 				//JSON de la nueva evolución del estado de la solicitud
 				SolicitudEvolucionEstadoNuevo := map[string]interface{}{
 					"TerceroId": TerceroId,
@@ -576,7 +576,7 @@ func (c *SolicitudEvaluacionController) GetAllSolicitudActualizacionDatos() {
 											"Tipo":        TipoSolicitud["Data"].(map[string]interface{})["Nombre"],
 											"Estado":      Estado["Data"].(map[string]interface{})["Nombre"],
 											"Observacion": Observacion[0]["Valor"],
-											"TerceroId": Solicitudes[i]["TerceroId"],
+											"TerceroId":   Solicitudes[i]["TerceroId"],
 										}
 									} else {
 										respuesta[i] = map[string]interface{}{
@@ -585,7 +585,7 @@ func (c *SolicitudEvaluacionController) GetAllSolicitudActualizacionDatos() {
 											"Tipo":        TipoSolicitud["Data"].(map[string]interface{})["Nombre"],
 											"Estado":      Estado["Data"].(map[string]interface{})["Nombre"],
 											"Observacion": "",
-											"TerceroId": Solicitudes[i]["TerceroId"],
+											"TerceroId":   Solicitudes[i]["TerceroId"],
 										}
 									}
 								} else {
@@ -764,7 +764,7 @@ func (c *SolicitudEvaluacionController) GetSolicitudActualizacionDatos() {
 	var alerta models.Alert
 	var errorGetAll bool
 	alertas := append([]interface{}{})
-	
+
 	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=TerceroId:"+id_persona+"&sortby=Id&order=asc&limit=0", &Solicitudes)
 	if errSolicitud == nil {
 		if Solicitudes != nil && fmt.Sprintf("%v", Solicitudes[0]) != "map[]" {
@@ -792,7 +792,7 @@ func (c *SolicitudEvaluacionController) GetSolicitudActualizacionDatos() {
 											"Tipo":        TipoSolicitud["Data"].(map[string]interface{})["Nombre"],
 											"Estado":      Estado["Data"].(map[string]interface{})["Nombre"],
 											"Observacion": Observacion[0]["Valor"],
-											"TerceroId": id_persona,
+											"TerceroId":   id_persona,
 										}
 									} else {
 										respuesta[i] = map[string]interface{}{
@@ -801,7 +801,7 @@ func (c *SolicitudEvaluacionController) GetSolicitudActualizacionDatos() {
 											"Tipo":        TipoSolicitud["Data"].(map[string]interface{})["Nombre"],
 											"Estado":      Estado["Data"].(map[string]interface{})["Nombre"],
 											"Observacion": "",
-											"TerceroId": id_persona,
+											"TerceroId":   id_persona,
 										}
 									}
 								} else {
@@ -919,7 +919,7 @@ func (c *SolicitudEvaluacionController) PostSolicitudActualizacionDatos() {
 		SolicitudActualizacion := map[string]interface{}{}
 		IdSolicutudPadre := string("")
 
-		if (Solicitud["SolicitudPadreId"] != nil){
+		if Solicitud["SolicitudPadreId"] != nil {
 			IdSolicutudPadre = Solicitud["SolicitudPadreId"].(string)
 			errSolicitudPadre := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+IdSolicutudPadre, &SolicitudPadre)
 			if errSolicitudPadre == nil {

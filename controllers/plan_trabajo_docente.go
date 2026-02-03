@@ -508,7 +508,7 @@ func (c *PtdController) GetAsignacionesDocente() {
 
 // GetPlanTrabajoDocente ...
 // @Title GetPlanTrabajoDocente
-// @Description Traer la información de las asignaciones de un docente en la vigencia determinada
+// @Description Traer la información de las asignaciones de un docente en la vigencia determinadaPost
 // @Param	docente		path 	string	true		"Id docente"
 // @Param	vigencia	path 	string	true		"Vigencia de las asignaciones"
 // @Param	vinculacion	path 	string	true		"Id vinculacion"

@@ -35,7 +35,7 @@ import (
   ------ Variables -------------
   ------------------------------*/
 
-//@opt opciones de godog
+// @opt opciones de godog
 var opt = godog.Options{Output: colors.Colored(os.Stdout)}
 
 // @resStatus codigo de respuesta a las solicitudes a la api
@@ -59,7 +59,7 @@ var IntentosAPI = 1
   --- Preparación de entorno ---
   ------------------------------*/
 
-//@exe_cmd Ejecuta comandos en la terminal
+// @exe_cmd Ejecuta comandos en la terminal
 func exe_cmd(cmd string, wg *sync.WaitGroup) {
 	parts := strings.Fields(cmd)
 	out, err := exec.Command(parts[0], parts[1]).Output()
@@ -159,7 +159,7 @@ func TestMain(m *testing.M) {
   ---- Ejecución de pruebas ----
   ------------------------------*/
 
-//@AreEqualJSON comparar dos JSON si son iguales retorna true de lo contrario false
+// @AreEqualJSON comparar dos JSON si son iguales retorna true de lo contrario false
 func AreEqualJSON(s1, s2 string) (bool, error) {
 
 	var o1 interface{}

@@ -29,7 +29,7 @@ func (c *ArchivoIcfesController) URLMapping() {
 // PostArchivoIcfes ...
 // @Title PostArchivoIcfes
 // @Description Agregar ArchivoIcfes
-//@Param id path int	true "el id del periodo"
+// @Param id path int	true "el id del periodo"
 // @Param   archivo_icfes	formData  file	true   "body Agregar ArchivoIcfes content"
 // @Success 200 {}
 // @Failure 403 body is empty

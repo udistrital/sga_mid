@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"strings"
 	"fmt"
+	"strings"
 
 	"github.com/astaxie/beego"
 	"github.com/udistrital/sga_mid/models"
@@ -55,16 +55,15 @@ func (c *ConsultaProyectoAcademicoController) GetAll() {
 				proyecto["FechaVenimientoAcreditacion"] = nil
 				proyecto["FechaVenimientoCalidad"] = nil
 
-				
 				// errdependencia := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia_tipo_dependencia/?query=TipoDependenciaId:2", &dependencia)
 				/*
-					for _, dependencia := range dependencias {
-					dependenciaTemp := dependencia["DependenciaId"].(map[string]interface{})
-					idOikos = dependenciaTemp["Id"].(float64)
-					if proyectobase["DependenciaId"].(float64) == idOikos {
-						proyecto["NombreDependencia"] = dependenciaTemp["Nombre"]
+						for _, dependencia := range dependencias {
+						dependenciaTemp := dependencia["DependenciaId"].(map[string]interface{})
+						idOikos = dependenciaTemp["Id"].(float64)
+						if proyectobase["DependenciaId"].(float64) == idOikos {
+							proyecto["NombreDependencia"] = dependenciaTemp["Nombre"]
+						}
 					}
-				}
 				*/
 
 				// Información de la facultad
@@ -165,15 +164,15 @@ func (c *ConsultaProyectoAcademicoController) GetOnePorId() {
 					proyecto["EnlaceActoAdministrativoAltaCalidad"] = nil
 
 					/*
-					for _, dependencia := range dependencias {
-						proyectotem := dependencia["DependenciaId"].(map[string]interface{})
-						idOikos = proyectotem["Id"].(float64)
-						if proyectobase["DependenciaId"].(float64) == idOikos {
-							proyecto["NombreDependencia"] = proyectotem["Nombre"]
-							proyecto["IdDependenciaFacultad"] = proyectotem["Id"]
-							proyecto["TelefonoDependencia"] = proyectotem["TelefonoDependencia"]
+						for _, dependencia := range dependencias {
+							proyectotem := dependencia["DependenciaId"].(map[string]interface{})
+							idOikos = proyectotem["Id"].(float64)
+							if proyectobase["DependenciaId"].(float64) == idOikos {
+								proyecto["NombreDependencia"] = proyectotem["Nombre"]
+								proyecto["IdDependenciaFacultad"] = proyectotem["Id"]
+								proyecto["TelefonoDependencia"] = proyectotem["TelefonoDependencia"]
+							}
 						}
-					}
 					*/
 
 					// Información de la facultad
