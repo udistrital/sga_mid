@@ -36,7 +36,7 @@ func (c *EventoController) PostEvento() {
 
 	var Evento map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &Evento); err == nil {
 
 		EventoPost := make(map[string]interface{})
@@ -104,7 +104,7 @@ func (c *EventoController) PutEvento() {
 	idStr := c.Ctx.Input.Param(":id")
 	var Evento map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &Evento); err == nil {
 
 		EventoPut := make(map[string]interface{})
@@ -183,7 +183,7 @@ func (c *EventoController) PutEvento() {
 func (c *EventoController) GetEvento() {
 	var eventos []map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	persona := c.Ctx.Input.Param(":persona")
 	fmt.Println("Get Evento")
 	personaId, _ := strconv.ParseFloat(persona, 64)
@@ -269,9 +269,9 @@ func (c *EventoController) GetEvento() {
 func (c *EventoController) DeleteEvento() {
 	var eventoDeleted map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	id := c.Ctx.Input.Param(":id")
-	errEvento := request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("EventoService")+"/tr_evento/"+id), "DELETE", &eventoDeleted, nil)
+	errEvento := request.SendJson(fmt.Sprintf("%s", "http://"+beego.AppConfig.String("EventoService")+"/tr_evento/"+id), "DELETE", &eventoDeleted, nil)
 	if errEvento != nil || eventoDeleted["Message"] != nil {
 		alertas = append(alertas, errEvento)
 		alerta.Body = alertas

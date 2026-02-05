@@ -39,7 +39,7 @@ func (c *ConsultaProyectoAcademicoController) URLMapping() {
 func (c *ConsultaProyectoAcademicoController) GetAll() {
 	var resultado map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 
 	if resultado["Type"] != "error" {
 		var proyectos []map[string]interface{}
@@ -132,7 +132,7 @@ func (c *ConsultaProyectoAcademicoController) GetAll() {
 func (c *ConsultaProyectoAcademicoController) GetOnePorId() {
 	var resultado map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	idStr := c.Ctx.Input.Param(":id")
 
 	if resultado["Type"] != "error" {
@@ -273,7 +273,7 @@ func (c *ConsultaProyectoAcademicoController) PutInhabilitarProyecto() {
 	idStr := c.Ctx.Input.Param(":id")
 	var ProyectoAcademico map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &ProyectoAcademico); err == nil {
 
 		var resultadoProyecto map[string]interface{}
@@ -306,7 +306,7 @@ func (c *ConsultaProyectoAcademicoController) PutInhabilitarProyecto() {
 func (c *ConsultaProyectoAcademicoController) GetOneRegistroPorId() {
 	var resultado map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	idStr := c.Ctx.Input.Param(":id")
 
 	if resultado["Type"] != "error" {

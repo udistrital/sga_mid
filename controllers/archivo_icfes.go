@@ -38,7 +38,7 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 	periodo_id := c.Ctx.Input.Param(":id")
 	ArchivoIcfes := "Archivo procesado"
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	fmt.Println("name", c.GetString("name"))
 	fmt.Println("periodo", periodo_id)
 	multipartFile, _, err := c.GetFile("archivo_icfes")

@@ -36,7 +36,7 @@ func (c *GeneradorCodigoBarrasController) URLMapping() {
 func (c *GeneradorCodigoBarrasController) GenerarCodigoBarras() {
 	var InformacionCodigo map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &InformacionCodigo); err == nil {
 		fmt.Println(InformacionCodigo["Prueba"])
 		alertas = append(alertas, InformacionCodigo)

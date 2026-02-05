@@ -75,7 +75,7 @@ func exe_cmd(cmd string, wg *sync.WaitGroup) {
 func deleteFile(path string) {
 	err := os.Remove(path)
 	if err != nil {
-		fmt.Errorf("Error: No se pudo eliminar el archivo")
+		fmt.Println("Error: No se pudo eliminar el archivo")
 	}
 }
 

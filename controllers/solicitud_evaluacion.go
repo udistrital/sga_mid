@@ -51,7 +51,7 @@ func (c *SolicitudEvaluacionController) GetDatosSolicitudById() {
 	resultado = make(map[string]interface{})
 	var alerta models.Alert
 	var errorGetAll bool
-	alertas := append([]interface{}{})
+	alertas := []interface{}{}
 
 	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+id_solicitud, &Solicitud)
 	if errSolicitud == nil {
@@ -180,7 +180,7 @@ func (c *SolicitudEvaluacionController) PostSolicitudEvolucionEstado() {
 	resultado = make(map[string]interface{})
 	var alerta models.Alert
 	var errorGetAll bool
-	alertas := append([]interface{}{})
+	alertas := []interface{}{}
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &Solicitud); err == nil {
 		SolicitudId := fmt.Sprintf("%v", Solicitud["SolicitudId"])
@@ -548,7 +548,7 @@ func (c *SolicitudEvaluacionController) GetAllSolicitudActualizacionDatos() {
 	resultado = make(map[string]interface{})
 	var alerta models.Alert
 	var errorGetAll bool
-	alertas := append([]interface{}{})
+	alertas := []interface{}{}
 
 	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=SolicitudId.EstadoTipoSolicitudId.Id:"+fmt.Sprintf("%v", id_estado_tipo_sol)+"&sortby:Id&order:asc&limit=0", &Solicitudes)
 	if errSolicitud == nil {
@@ -676,7 +676,7 @@ func (c *SolicitudEvaluacionController) GetDatosSolicitud() {
 	resultado = make(map[string]interface{})
 	var alerta models.Alert
 	var errorGetAll bool
-	alertas := append([]interface{}{})
+	alertas := []interface{}{}
 
 	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=TerceroId:"+id_persona+",SolicitudId.EstadoTipoSolicitudId.Id:"+id_estado_tipo_solicitud+"&limit=0", &Solicitudes)
 	if errSolicitud == nil {
@@ -763,7 +763,7 @@ func (c *SolicitudEvaluacionController) GetSolicitudActualizacionDatos() {
 	resultado = make(map[string]interface{})
 	var alerta models.Alert
 	var errorGetAll bool
-	alertas := append([]interface{}{})
+	alertas := []interface{}{}
 
 	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=TerceroId:"+id_persona+"&sortby=Id&order=asc&limit=0", &Solicitudes)
 	if errSolicitud == nil {
@@ -893,7 +893,7 @@ func (c *SolicitudEvaluacionController) PostSolicitudActualizacionDatos() {
 	resultado = make(map[string]interface{})
 	var alerta models.Alert
 	var errorGetAll bool
-	alertas := append([]interface{}{})
+	alertas := []interface{}{}
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &Solicitud); err == nil {
 		IdTercero := Solicitud["Solicitante"]

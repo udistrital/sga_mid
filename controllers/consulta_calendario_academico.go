@@ -271,7 +271,7 @@ func (c *ConsultaCalendarioAcademicoController) GetOnePorId() {
 
 												responsableTipoP = map[string]interface{}{
 													"responsableID": responsablesID["Id"].(float64),
-													"Nombre":        fmt.Sprintf(responsablesID["Nombre"].(string)),
+													"Nombre":        fmt.Sprintf("%s", responsablesID["Nombre"].(string)),
 												}
 												responsableList = append(responsableList, responsableTipoP)
 											}
@@ -820,7 +820,7 @@ func (c *ConsultaCalendarioAcademicoController) GetCalendarInfo() {
 
 												responsableTipoP = map[string]interface{}{
 													"responsableID": responsablesID["Id"].(float64),
-													"Nombre":        fmt.Sprintf(responsablesID["Nombre"].(string)),
+													"Nombre":        fmt.Sprintf("%s", responsablesID["Nombre"].(string)),
 												}
 												responsableList = append(responsableList, responsableTipoP)
 											}
