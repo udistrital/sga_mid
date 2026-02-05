@@ -43,7 +43,7 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarByProjectId() {
 			AplicaExtension := calendario["AplicaExtension"].(bool)
 			if AplicaExtension {
 				DependenciaParticularId := calendario["DependenciaParticularId"].(string)
-				if DependenciaParticularId != "{}" || DependenciaParticularId != "" {
+				if DependenciaParticularId != "{}" && DependenciaParticularId != "" {
 					var listaProyectos map[string][]int
 					json.Unmarshal([]byte(DependenciaParticularId), &listaProyectos)
 					for _, Id := range listaProyectos["proyectos"] {
@@ -141,7 +141,7 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 							AplicaExtension := calendario["AplicaExtension"].(bool)
 							if AplicaExtension {
 								DependenciaParticularId := calendario["DependenciaParticularId"].(string)
-								if DependenciaParticularId != "{}" || DependenciaParticularId != "" {
+								if DependenciaParticularId != "{}" && DependenciaParticularId != "" {
 									var listaProyectos map[string][]int
 									json.Unmarshal([]byte(DependenciaParticularId), &listaProyectos)
 									for _, Id := range listaProyectos["proyectos"] {

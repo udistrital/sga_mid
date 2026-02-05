@@ -49,5 +49,5 @@ func GetOneProduccionAcademica(idProduccion string) (result []interface{}, outpu
 		logs.Error(producciones)
 		return nil, errProduccion
 	}
-	return v, nil
+	// return v, nil
 }
