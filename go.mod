@@ -11,7 +11,7 @@ require (
 	github.com/phpdave11/gofpdf v1.4.3
 	github.com/udistrital/utils_oas v0.1.0
 	github.com/xuri/excelize/v2 v2.9.1
-	golang.org/x/text v0.29.0
+	golang.org/x/text v0.31.0
 )
 
 require (
@@ -50,9 +50,9 @@ require (
 	github.com/valyala/fasthttp v1.34.0 // indirect
 	github.com/xuri/efp v0.0.1 // indirect
 	github.com/xuri/nfp v0.0.1 // indirect
-	golang.org/x/crypto v0.38.0 // indirect
-	golang.org/x/net v0.40.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/crypto v0.45.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
 	google.golang.org/genproto v0.0.0-20210114201628-6edceaf6022f // indirect
 	google.golang.org/grpc v1.35.0 // indirect
 	google.golang.org/protobuf v1.26.0 // indirect
