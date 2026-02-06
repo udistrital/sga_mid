@@ -39,7 +39,7 @@ func (c *CrearProyectoAcademicoController) PostProyecto() {
 
 	var Proyecto_academico map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &Proyecto_academico); err == nil {
 
 		Proyecto_academicoPost := make(map[string]interface{})
@@ -185,7 +185,7 @@ func (c *CrearProyectoAcademicoController) PostRegistroAltaCalidadById() {
 	var resultado map[string]interface{}
 	var alerta models.Alert
 
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	idStr := c.Ctx.Input.Param(":id")
 
 	if resultado["Type"] != "error" {

@@ -92,7 +92,7 @@ func PutSolicitudDocente(SolicitudDocente map[string]interface{}, idStr string) 
 	SolicitudDocentePut := make(map[string]interface{})
 	fechaRadicacion := time_bogota.TiempoCorreccionFormato(fmt.Sprintf("%v", SolicitudDocente["FechaRadicacion"]))
 	yesterday, _ := strconv.Atoi(fmt.Sprintf("%v", SolicitudDocente["EstadoTipoSolicitudId"].(map[string]interface{})["Id"]))
-	if (yesterday == 1) {
+	if yesterday == 1 {
 		SolicitudDocentePut["Solicitud"] = map[string]interface{}{
 			"Resultado":             SolicitudDocente["Resultado"],
 			"Referencia":            SolicitudDocente["Referencia"],

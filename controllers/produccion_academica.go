@@ -323,7 +323,7 @@ func (c *ProduccionAcademicaController) GetIdProduccionAcademica() {
 	var producciones []map[string]interface{}
 	var alerta models.Alert
 	var errorGetAll bool
-	alertas := append([]interface{}{})
+	alertas := []interface{}{}
 
 	errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"tr_produccion_academica/"+idTercero, &producciones)
 	fmt.Println("//////////// ProduccionAcademicaService() Err: ", errProduccion, "Resp: ", producciones)

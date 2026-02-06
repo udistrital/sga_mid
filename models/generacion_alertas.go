@@ -12,7 +12,7 @@ import (
 	"github.com/udistrital/utils_oas/request"
 )
 
-//CheckCriteriaData is...
+// CheckCriteriaData is...
 func CheckCriteriaData(SolicitudProduccion map[string]interface{}, idTipoProduccion int, idTercero string) (result map[string]interface{}, outputError interface{}) {
 	var producciones []map[string]interface{}
 	errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idTercero, &producciones)

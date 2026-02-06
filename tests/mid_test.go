@@ -35,7 +35,7 @@ import (
   ------ Variables -------------
   ------------------------------*/
 
-//@opt opciones de godog
+// @opt opciones de godog
 var opt = godog.Options{Output: colors.Colored(os.Stdout)}
 
 // @resStatus codigo de respuesta a las solicitudes a la api
@@ -59,7 +59,7 @@ var IntentosAPI = 1
   --- Preparación de entorno ---
   ------------------------------*/
 
-//@exe_cmd Ejecuta comandos en la terminal
+// @exe_cmd Ejecuta comandos en la terminal
 func exe_cmd(cmd string, wg *sync.WaitGroup) {
 	parts := strings.Fields(cmd)
 	out, err := exec.Command(parts[0], parts[1]).Output()
@@ -75,7 +75,7 @@ func exe_cmd(cmd string, wg *sync.WaitGroup) {
 func deleteFile(path string) {
 	err := os.Remove(path)
 	if err != nil {
-		fmt.Errorf("Error: No se pudo eliminar el archivo")
+		fmt.Println("Error: No se pudo eliminar el archivo")
 	}
 }
 
@@ -142,24 +142,31 @@ func init() {
 
 // @TestMain Para ejecutar pruebas con comando go test ./test
 func TestMain(m *testing.M) {
-	status := godog.RunWithOptions("godogs", func(s *godog.Suite) {
-		FeatureContext(s)
-	}, godog.Options{
-		Format: "progress",
-		Paths:  []string{"features"},
-		//Randomize: time.Now().UTC().UnixNano(), // randomize scenario execution order
-	})
+	status := godog.TestSuite{
+		Name:                "godogs",
+		ScenarioInitializer: InitializeScenario,
+		Options: &godog.Options{
+			Format: "progress",
+			Paths:  []string{"features"},
+			// Randomize: time.Now().UTC().UnixNano(),
+		},
+	}.Run()
+
 	if st := m.Run(); st > status {
 		status = st
 	}
+
 	os.Exit(status)
+}
+func InitializeScenario(ctx *godog.ScenarioContext) {
+	// register steps here
 }
 
 /*------------------------------
   ---- Ejecución de pruebas ----
   ------------------------------*/
 
-//@AreEqualJSON comparar dos JSON si son iguales retorna true de lo contrario false
+// @AreEqualJSON comparar dos JSON si son iguales retorna true de lo contrario false
 func AreEqualJSON(s1, s2 string) (bool, error) {
 
 	var o1 interface{}
@@ -359,10 +366,10 @@ func theResponseShouldMatchJson(arg1 string) error {
 				return fmt.Errorf(" se esperaba el body de respuesta %s y se obtuvo %s", string(pages), resBody)
 			}
 		}*/
-	return nil
+	// return nil
 }
 
-func FeatureContext(s *godog.Suite) {
+func FeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^I send "([^"]*)" request to "([^"]*)" where body is multipart\/form-data with this params "([^"]*)" and the file "([^"]*)" located at "([^"]*)"$`, iSendRequestToWhereBodyIsMultipartformdataWithThisParamsAndTheFileLocatedAt)
 	s.Step(`^I send "([^"]*)" request to "([^"]*)" where body is json "([^"]*)"$`, iSendRequestToWhereBodyIsJson)
 	s.Step(`^the response code should be "([^"]*)"$`, theResponseCodeShouldBe)

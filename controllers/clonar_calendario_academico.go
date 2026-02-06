@@ -40,7 +40,7 @@ func (c *CalendarioController) PostCalendario() {
 	var errCalendarioParam = errors.New("")
 	var alerta models.Alert
 	var errorGetAll bool
-	alertas := append([]interface{}{"Data:"})
+	alertas := []interface{}{"Data:"}
 
 	var dataPost map[string]interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &dataPost); err == nil {
@@ -250,7 +250,7 @@ func (c *CalendarioController) PostCalendarioPadre() {
 	var errCalendarioParam = errors.New("")
 	var alerta models.Alert
 	var errorGetAll bool
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 
 	var dataPost map[string]interface{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &dataPost); err == nil {

@@ -162,7 +162,7 @@ func (c *SolicitudDocenteController) GetAllSolicitudDocente() {
 // @router /active/ [get]
 func (c *SolicitudDocenteController) GetAllSolicitudDocenteActive() {
 	fmt.Println("Consultando todas las solicitudes Activas")
-	
+
 	var limit int64 = 0
 	var offset int64 = 0
 
@@ -174,7 +174,7 @@ func (c *SolicitudDocenteController) GetAllSolicitudDocenteActive() {
 	if v, err := c.GetInt64("offset"); err == nil {
 		offset = v
 	}
-	
+
 	//resultado resultado final
 	var resultadoGetSolicitud []map[string]interface{}
 	if resultado, err := models.GetAllSolicitudDocente(0, offset, limit); err == nil {

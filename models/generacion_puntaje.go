@@ -128,7 +128,7 @@ func findGradePoints(SolicitudProduccion map[string]interface{}, idSubtipoInt in
 	} else if idSubtipoInt == 6 {
 		if numMaestria >= 1 && numDoctorado == 0 {
 			valorNum = 1
-		} else if numMaestria == 0 && numDoctorado == 0{
+		} else if numMaestria == 0 && numDoctorado == 0 {
 			valorNum = 2
 		} else {
 			valorNum = -1

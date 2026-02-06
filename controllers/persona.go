@@ -2901,7 +2901,7 @@ func (c *PersonaController) ConsultarDatosFormacionPregrado() {
 	resultado = make(map[string]interface{})
 	var alerta models.Alert
 	var errorGetAll bool
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 
 	errPersona := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"/inscripcion_pregrado?query=Activo:true,InscripcionId.PersonaId:"+idStr, &personaInscrita)
 	if errPersona == nil {
