@@ -1742,43 +1742,7 @@ func (c *Transferencia_reingresoController) GetConsultarParametros() {
 								}
 
 								for _, codigo := range codigos {
-
-									codigoProyectoStr := codigo[5:8]
-									if codigoProyectoStr[0] == '0' && len(codigoProyectoStr) == 3 {
-										codigoProyectoStr = codigoProyectoStr[1:]
-									}
-
-									codigoProyecto, err := strconv.Atoi(codigoProyectoStr)
-									if err != nil {
-										fmt.Printf("Error converting codigoProyecto to int: %v\n", err)
-										continue
-									}
-
-									codigoEstudiante, err := strconv.Atoi(codigo)
-									if err != nil {
-										fmt.Printf("Error converting codigoEstudiante to int: %v\n", err)
-										continue
-									}
-
-									existe := false
-									for _, existente := range codigosRes {
-										if existente["IdProyectoCondor"] == codigoProyecto && existente["Codigo"] == codigoEstudiante {
-											existe = true
-											break
-										}
-									}
-
-									if !existe {
-										codigoAux := map[string]interface{}{
-											"IdProyectoCondor": codigoProyecto,
-											"Codigo":           codigoEstudiante,
-										}
-										codigosRes = append(codigosRes, codigoAux)
-									}
-								}
-
-								for _, codigo := range codigosRes {
-									errCodigoEstJBPM := request.GetJsonWSO2("http://"+beego.AppConfig.String("AcademicaEspacioAcademicoService")+"datos_estudiante/"+fmt.Sprint(codigo["Codigo"]), &datosEstudianteXML)
+									errCodigoEstJBPM := request.GetJsonWSO2("http://"+beego.AppConfig.String("AcademicaEspacioAcademicoService")+"datos_estudiante/"+fmt.Sprint(codigo), &datosEstudianteXML)
 
 									if errCodigoEstJBPM == nil && datosEstudianteXML != nil && fmt.Sprintf("%v", datosEstudianteXML) != "map[]" {
 										dataACEST, _ := datosEstudianteXML["estudianteCollection"].(map[string]interface{})
