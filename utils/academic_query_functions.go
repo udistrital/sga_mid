@@ -7,6 +7,7 @@ package utils
 
 import (
 	"fmt"
+
 	"github.com/astaxie/beego"
 	"github.com/udistrital/sga_mid/helpers"
 	request "github.com/udistrital/sga_mid/models"
@@ -45,6 +46,6 @@ func UpdateAcademicSpace(id string, spaceData interface{}) (map[string]interface
 	if errUpdate := helpers.SendJson(urlAcademicSpaces, "PUT", &updatedSpace, spaceData); errUpdate == nil {
 		return updatedSpace["Data"].(map[string]interface{}), nil
 	} else {
-		return nil, fmt.Errorf(fmt.Sprintf("Error actualizando espacio académico %v", id))
+		return nil, fmt.Errorf("%s", fmt.Sprintf("Error actualizando espacio académico %v", id))
 	}
 }

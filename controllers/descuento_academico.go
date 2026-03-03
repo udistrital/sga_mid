@@ -331,7 +331,7 @@ func (c *DescuentoController) GetDescuentoAcademicoByDependenciaID() {
 	var solicitud []map[string]interface{}
 	var alerta models.Alert
 	var errorGetAll bool
-	alertas := append([]interface{}{"Data:"})
+	alertas := []interface{}{"Data:"}
 
 	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"descuentos_dependencia?limit=0&query=Activo:true,DependenciaId:"+idStr, &solicitud)
 	if errSolicitud == nil && fmt.Sprintf("%v", solicitud[0]["System"]) != "map[]" {
@@ -579,7 +579,7 @@ func (c *DescuentoController) GetDescuentoByPersonaPeriodoDependencia() {
 	var solicitud []map[string]interface{}
 	var alerta models.Alert
 	var errorGetAll bool
-	alertas := append([]interface{}{"Data:"})
+	alertas := []interface{}{"Data:"}
 
 	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"solicitud_descuento?query=Activo:true,TerceroId:"+idPersona+",PeriodoId:"+idPeriodo+",DescuentosDependenciaId.DependenciaId:"+idDependencia+"&fields=Id,TerceroId,Estado,PeriodoId,DescuentosDependenciaId", &solicitud)
 	if errSolicitud == nil && fmt.Sprintf("%v", solicitud[0]["System"]) != "map[]" {

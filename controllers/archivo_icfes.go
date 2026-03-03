@@ -29,7 +29,7 @@ func (c *ArchivoIcfesController) URLMapping() {
 // PostArchivoIcfes ...
 // @Title PostArchivoIcfes
 // @Description Agregar ArchivoIcfes
-//@Param id path int	true "el id del periodo"
+// @Param id path int	true "el id del periodo"
 // @Param   archivo_icfes	formData  file	true   "body Agregar ArchivoIcfes content"
 // @Success 200 {}
 // @Failure 403 body is empty
@@ -38,7 +38,7 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 	periodo_id := c.Ctx.Input.Param(":id")
 	ArchivoIcfes := "Archivo procesado"
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	fmt.Println("name", c.GetString("name"))
 	fmt.Println("periodo", periodo_id)
 	multipartFile, _, err := c.GetFile("archivo_icfes")

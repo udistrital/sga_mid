@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"strings"
 	"fmt"
+	"strings"
 
 	"github.com/astaxie/beego"
 	"github.com/udistrital/sga_mid/models"
@@ -39,7 +39,7 @@ func (c *ConsultaProyectoAcademicoController) URLMapping() {
 func (c *ConsultaProyectoAcademicoController) GetAll() {
 	var resultado map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 
 	if resultado["Type"] != "error" {
 		var proyectos []map[string]interface{}
@@ -55,16 +55,15 @@ func (c *ConsultaProyectoAcademicoController) GetAll() {
 				proyecto["FechaVenimientoAcreditacion"] = nil
 				proyecto["FechaVenimientoCalidad"] = nil
 
-				
 				// errdependencia := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia_tipo_dependencia/?query=TipoDependenciaId:2", &dependencia)
 				/*
-					for _, dependencia := range dependencias {
-					dependenciaTemp := dependencia["DependenciaId"].(map[string]interface{})
-					idOikos = dependenciaTemp["Id"].(float64)
-					if proyectobase["DependenciaId"].(float64) == idOikos {
-						proyecto["NombreDependencia"] = dependenciaTemp["Nombre"]
+						for _, dependencia := range dependencias {
+						dependenciaTemp := dependencia["DependenciaId"].(map[string]interface{})
+						idOikos = dependenciaTemp["Id"].(float64)
+						if proyectobase["DependenciaId"].(float64) == idOikos {
+							proyecto["NombreDependencia"] = dependenciaTemp["Nombre"]
+						}
 					}
-				}
 				*/
 
 				// Información de la facultad
@@ -133,7 +132,7 @@ func (c *ConsultaProyectoAcademicoController) GetAll() {
 func (c *ConsultaProyectoAcademicoController) GetOnePorId() {
 	var resultado map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	idStr := c.Ctx.Input.Param(":id")
 
 	if resultado["Type"] != "error" {
@@ -165,15 +164,15 @@ func (c *ConsultaProyectoAcademicoController) GetOnePorId() {
 					proyecto["EnlaceActoAdministrativoAltaCalidad"] = nil
 
 					/*
-					for _, dependencia := range dependencias {
-						proyectotem := dependencia["DependenciaId"].(map[string]interface{})
-						idOikos = proyectotem["Id"].(float64)
-						if proyectobase["DependenciaId"].(float64) == idOikos {
-							proyecto["NombreDependencia"] = proyectotem["Nombre"]
-							proyecto["IdDependenciaFacultad"] = proyectotem["Id"]
-							proyecto["TelefonoDependencia"] = proyectotem["TelefonoDependencia"]
+						for _, dependencia := range dependencias {
+							proyectotem := dependencia["DependenciaId"].(map[string]interface{})
+							idOikos = proyectotem["Id"].(float64)
+							if proyectobase["DependenciaId"].(float64) == idOikos {
+								proyecto["NombreDependencia"] = proyectotem["Nombre"]
+								proyecto["IdDependenciaFacultad"] = proyectotem["Id"]
+								proyecto["TelefonoDependencia"] = proyectotem["TelefonoDependencia"]
+							}
 						}
-					}
 					*/
 
 					// Información de la facultad
@@ -274,7 +273,7 @@ func (c *ConsultaProyectoAcademicoController) PutInhabilitarProyecto() {
 	idStr := c.Ctx.Input.Param(":id")
 	var ProyectoAcademico map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &ProyectoAcademico); err == nil {
 
 		var resultadoProyecto map[string]interface{}
@@ -307,7 +306,7 @@ func (c *ConsultaProyectoAcademicoController) PutInhabilitarProyecto() {
 func (c *ConsultaProyectoAcademicoController) GetOneRegistroPorId() {
 	var resultado map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	idStr := c.Ctx.Input.Param(":id")
 
 	if resultado["Type"] != "error" {

@@ -52,7 +52,7 @@ func (c *AdmisionController) PutNotaFinalAspirantes() {
 	resultado = make(map[string]interface{})
 	var alerta models.Alert
 	var errorGetAll bool
-	alertas := append([]interface{}{})
+	alertas := []interface{}{}
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &Evaluacion); err == nil {
 		IdPersona := Evaluacion["IdPersona"].([]interface{})
@@ -177,7 +177,7 @@ func (c *AdmisionController) GetEvaluacionAspirantes() {
 	resultado = make(map[string]interface{})
 	var alerta models.Alert
 	var errorGetAll bool
-	alertas := append([]interface{}{})
+	alertas := []interface{}{}
 
 	//GET a la tabla detalle_evaluacion
 	errDetalleEvaluacion := request.GetJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"detalle_evaluacion?query=RequisitoProgramaAcademicoId__RequisitoId__Id:"+id_requisito+",RequisitoProgramaAcademicoId__PeriodoId:"+id_periodo+",RequisitoProgramaAcademicoId__ProgramaAcademicoId:"+id_programa+"&sortby=InscripcionId&order=asc", &DetalleEvaluacion)
@@ -304,7 +304,7 @@ func (c *AdmisionController) PostEvaluacionAspirantes() {
 	resultado = make(map[string]interface{})
 	var alerta models.Alert
 	var errorGetAll bool
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	//Calificacion = append([]interface{}{"areas"})
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &Evaluacion); err == nil {
@@ -511,7 +511,7 @@ func (c *AdmisionController) PostEvaluacionAspirantes() {
 func (c *AdmisionController) PostCriterioIcfes() {
 	var CriterioIcfes map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &CriterioIcfes); err == nil {
 
 		criterioProyecto := make([]map[string]interface{}, 0)
@@ -823,7 +823,7 @@ func (c *AdmisionController) CambioEstadoAspiranteByPeriodoByProyecto() {
 	var consultaestado map[string]interface{}
 	EstadoActulizado := "Estados Actualizados"
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &consultaestado); err == nil {
 		Id_periodo := consultaestado["Periodo"].(map[string]interface{})["Id"]

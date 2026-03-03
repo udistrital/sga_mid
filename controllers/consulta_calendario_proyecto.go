@@ -34,7 +34,7 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarByProjectId() {
 	var CalendarioId string = "0"
 	var Calendario map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	idStr, _ := strconv.Atoi(c.Ctx.Input.Param(":id"))
 
 	errCalendarios := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Activo:true&limit=0&sortby=Id&order=desc", &calendarios)
@@ -43,7 +43,7 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarByProjectId() {
 			AplicaExtension := calendario["AplicaExtension"].(bool)
 			if AplicaExtension {
 				DependenciaParticularId := calendario["DependenciaParticularId"].(string)
-				if DependenciaParticularId != "{}" || DependenciaParticularId != "" {
+				if DependenciaParticularId != "{}" && DependenciaParticularId != "" {
 					var listaProyectos map[string][]int
 					json.Unmarshal([]byte(DependenciaParticularId), &listaProyectos)
 					for _, Id := range listaProyectos["proyectos"] {
@@ -113,7 +113,7 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 	var proyectosFilter []map[string]interface{}
 	var proyectosArr map[string]interface{}
 	var salidaFilter []map[string]interface{} */
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	idNiv := c.Ctx.Input.Param(":idNiv")
 	idPer := c.Ctx.Input.Param(":idPer")
 
@@ -141,7 +141,7 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 							AplicaExtension := calendario["AplicaExtension"].(bool)
 							if AplicaExtension {
 								DependenciaParticularId := calendario["DependenciaParticularId"].(string)
-								if DependenciaParticularId != "{}" || DependenciaParticularId != "" {
+								if DependenciaParticularId != "{}" && DependenciaParticularId != "" {
 									var listaProyectos map[string][]int
 									json.Unmarshal([]byte(DependenciaParticularId), &listaProyectos)
 									for _, Id := range listaProyectos["proyectos"] {
@@ -186,7 +186,7 @@ func (c *ConsultaCalendarioProyectoController) GetCalendarProject() {
 
 								var lista_eventos []map[string]interface{}
 								for _, Evento := range calendarioEventos {
-									nombreEvento := strings.ToUpper(fmt.Sprintf(Evento["Nombre"].(string)))
+									nombreEvento := strings.ToUpper(fmt.Sprintf("%s", Evento["Nombre"].(string)))
 									codAbrEvento := Evento["TipoEventoId"].(map[string]interface{})["CodigoAbreviacion"].(string)
 									pago := strings.Contains(nombreEvento, "PAGO")
 									var aplicaParticular bool = false

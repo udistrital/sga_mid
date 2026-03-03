@@ -340,7 +340,7 @@ func (c *ExperienciaLaboralController) GetExperienciaLaboralByTercero() {
 	var empresaTercero map[string]interface{}
 	var alerta models.Alert
 	var errorGetAll bool
-	alertas := append([]interface{}{"Data:"})
+	alertas := []interface{}{"Data:"}
 
 	var Data []map[string]interface{}
 
@@ -591,7 +591,7 @@ func (c *ExperienciaLaboralController) PutExperienciaLaboral() {
 	resultado = make(map[string]interface{})
 	var alerta models.Alert
 	var errorGetAll bool
-	alertas := append([]interface{}{"Data:"})
+	alertas := []interface{}{"Data:"}
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &Experiencia); err == nil {
 		InfoComplementariaTercero := Experiencia["InfoComplementariaTercero"].([]interface{})[0]
@@ -775,7 +775,7 @@ func (c *ExperienciaLaboralController) DeleteExperienciaLaboral() {
 	resultado = make(map[string]interface{})
 	var alerta models.Alert
 	var errorGetAll bool
-	alertas := append([]interface{}{"Data:"})
+	alertas := []interface{}{"Data:"}
 
 	errData := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=Id:"+Id, &Data)
 	if errData == nil {

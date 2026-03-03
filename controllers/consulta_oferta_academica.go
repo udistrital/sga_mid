@@ -31,7 +31,7 @@ func (c *ConsultaOfertaAcademicaController) GetOneEventoPorPeriodo() {
 	var resultado map[string]interface{}
 	var Result interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"error"})
+	alertas := []interface{}{"error"}
 	idStr := c.Ctx.Input.Param(":id")
 
 	errResultado := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento/"+idStr, &resultado)
@@ -112,7 +112,7 @@ func (c *ConsultaOfertaAcademicaController) GetOneEventoPorPeriodo() {
 func (c *ConsultaOfertaAcademicaController) GetAll() {
 	var resultado map[string]interface{}
 	var alerta models.Alert
-	alertas := append([]interface{}{"Response:"})
+	alertas := []interface{}{"Response:"}
 	fmt.Println("entro a getall")
 
 	if resultado["Type"] != "error" {

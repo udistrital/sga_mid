@@ -10,7 +10,7 @@ import (
 	"github.com/udistrital/utils_oas/request"
 )
 
-//CheckCoincidenceProduction is...
+// CheckCoincidenceProduction is...
 func CheckCoincidenceProduction(SolicitudProduccion map[string]interface{}, idTipoProduccion int, idTercero string) (result map[string]interface{}, outputError interface{}) {
 	var idSolicitudesList []float64
 	var solicitudes []map[string]interface{}
@@ -85,7 +85,7 @@ func generateAlertCoincidences(SolicitudDocente map[string]interface{}, idCoinci
 	}
 }
 
-//GenerateEvaluationsCloning is ...
+// GenerateEvaluationsCloning is ...
 func GenerateEvaluationsCloning(SolicitudProduccion map[string]interface{}, idSolicitud string, idSolicitudCoincidencia string, idTerceroSrt string) (result []map[string]interface{}, outputError interface{}) {
 	idTercero, _ := strconv.Atoi(idTerceroSrt)
 	var solicitudesEvaluaciones []map[string]interface{}

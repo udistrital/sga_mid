@@ -475,16 +475,16 @@ func (c *PracticasAcademicasController) Put() {
 								// Búsqueda de estado relacionado con las prácticas académicas
 								idEstado := fmt.Sprintf("%v", RespuestaSolicitud["Estado"].(map[string]interface{})["Id"])
 								errTipoSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"tipo_solicitud?query=CodigoAbreviacion:SoPA", &tipoSolicitud)
-								if errTipoSolicitud == nil && fmt.Sprintf("%v", tipoSolicitud["Data"].([]interface{})[0]) != "map[]"{
+								if errTipoSolicitud == nil && fmt.Sprintf("%v", tipoSolicitud["Data"].([]interface{})[0]) != "map[]" {
 									var id = fmt.Sprintf("%v", tipoSolicitud["Data"].([]interface{})[0].(map[string]interface{})["Id"])
 
 									errEstado := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"estado_tipo_solicitud?query=EstadoId.Id:"+
 										idEstado+",TipoSolicitud.Id:"+id, &NuevoEstado)
-	
+
 									if errEstado == nil {
-	
+
 										estadoId := NuevoEstado["Data"]
-	
+
 										id, _ := strconv.Atoi(id_practica)
 										SolicitudEvolucionEstado := map[string]interface{}{
 											"TerceroId": int(RespuestaSolicitud["IdTercero"].(float64)),
@@ -500,25 +500,25 @@ func (c *PracticasAcademicasController) Put() {
 											"Activo":      true,
 											"FechaLimite": RespuestaSolicitud["FechaRespuesta"],
 										}
-	
+
 										errSolicitudEvolucionEstado := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado", "POST", &SolicitudEvolucionEstadoPost, SolicitudEvolucionEstado)
 										if errSolicitudEvolucionEstado == nil {
 											if SolicitudEvolucionEstadoPost != nil && fmt.Sprintf("%v", SolicitudEvolucionEstadoPost) != "map[]" {
-	
+
 												Solicitud["Resultado"] = "{\"Periodo\":\"" + fmt.Sprintf("%v", string(RespuestaSolicitud["Comentario"].(string))) + "\"}"
 												Solicitud["EstadoTipoSolicitudId"] = SolicitudEvolucionEstadoPost["Data"].(map[string]interface{})["EstadoTipoSolicitudId"]
 												Solicitud["EstadoTipoSolicitudId"].(map[string]interface{})["Activo"] = true
-	
+
 												// Si hay modificaciones en la información de la solicitud
 												if len(Referencia) > 0 || Referencia != "" {
 													Solicitud["Referencia"] = Referencia
 												}
-	
+
 												// Si la practica es ejecutada, se da por finalizada la solicitud
 												if idEstado == "23" {
 													Solicitud["SolicitudFinalizada"] = true
 												}
-	
+
 												Observacion := map[string]interface{}{
 													"TerceroId": RespuestaSolicitud["IdTercero"],
 													"TipoObservacionId": map[string]interface{}{
@@ -531,12 +531,12 @@ func (c *PracticasAcademicasController) Put() {
 													"Titulo": fmt.Sprintf("%v", SolicitudEvolucionEstadoPost["Data"].(map[string]interface{})["Id"]),
 													"Activo": true,
 												}
-	
+
 												errObservacion := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"observacion", "POST", &observacionPost, Observacion)
 												if errObservacion == nil {
-	
+
 													errPutEstado := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+id_practica, "PUT", &SolicitudPut, Solicitud)
-	
+
 													if errPutEstado == nil {
 														if SolicitudPut["Status"] != "400" {
 															resultado = SolicitudPut
@@ -1198,7 +1198,7 @@ func (c *PracticasAcademicasController) ConsultarParametros() {
 	}
 
 	errTipoSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"tipo_solicitud?query=CodigoAbreviacion:SoPA", &tipoSolicitud)
-	if errTipoSolicitud == nil && fmt.Sprintf("%v", tipoSolicitud["Data"].([]interface{})[0]) != "map[]"{
+	if errTipoSolicitud == nil && fmt.Sprintf("%v", tipoSolicitud["Data"].([]interface{})[0]) != "map[]" {
 		var id = fmt.Sprintf("%v", tipoSolicitud["Data"].([]interface{})[0].(map[string]interface{})["Id"])
 
 		errTipoEstados := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"estado_tipo_solicitud?query=TipoSolicitud.Id:"+id, &tipoEstados)
