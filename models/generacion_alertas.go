@@ -15,7 +15,7 @@ import (
 // CheckCriteriaData is...
 func CheckCriteriaData(SolicitudProduccion map[string]interface{}, idTipoProduccion int, idTercero string) (result map[string]interface{}, outputError interface{}) {
 	var producciones []map[string]interface{}
-	errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idTercero, &producciones)
+	errProduccion := request.GetJson("https://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idTercero, &producciones)
 	if errProduccion == nil && fmt.Sprintf("%v", producciones[0]["System"]) != "map[]" {
 		if producciones[0]["Status"] != 404 && producciones[0]["Id"] != nil {
 			var ProduccionAcademica map[string]interface{}
