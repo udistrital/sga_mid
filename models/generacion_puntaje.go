@@ -84,7 +84,7 @@ func findGradePoints(SolicitudProduccion map[string]interface{}, idSubtipoInt in
 	numDoctorado = 0
 	numEspecializacion = 0
 	numMaestria = 0
-	errProduccion := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idTercero, &producciones)
+	errProduccion := request.GetJson(beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idTercero, &producciones)
 	if errProduccion == nil && fmt.Sprintf("%v", producciones[0]["System"]) != "map[]" {
 		if producciones[0]["Status"] != 404 && producciones[0]["Id"] != nil {
 			for _, produccion := range producciones {
@@ -146,7 +146,7 @@ func addResult(SolicitudProduccion map[string]interface{}, idSubtipoStr string, 
 		resultadoStr := strconv.FormatFloat(resultado, 'f', -1, 64)
 		SolicitudProduccion["Resultado"] = `{"Puntaje":` + resultadoStr + `}`
 	} else {
-		errPuntaje := request.GetJson("http://"+beego.AppConfig.String("ProduccionAcademicaService")+"/puntaje_subtipo_produccion/?query=SubTipoProduccionId:"+idSubtipoStr+"&sortby=Id&order=asc", &puntajes)
+		errPuntaje := request.GetJson(beego.AppConfig.String("ProduccionAcademicaService")+"/puntaje_subtipo_produccion/?query=SubTipoProduccionId:"+idSubtipoStr+"&sortby=Id&order=asc", &puntajes)
 		if errPuntaje == nil && fmt.Sprintf("%v", puntajes[0]["System"]) != "map[]" {
 			if puntajes[0]["Status"] != 404 && puntajes[0]["Id"] != nil {
 

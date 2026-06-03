@@ -49,16 +49,16 @@ func (c *NotasController) GetEspaciosAcademicosDocente() {
 	var calendarios []interface{}
 	var periodos map[string]interface{}
 
-	errEspaciosAcademicosRegistros := request.GetJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico?query=activo:true,docente_id:"+fmt.Sprintf("%v", id_docente), &EspaciosAcademicosRegistros)
+	errEspaciosAcademicosRegistros := request.GetJson(beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico?query=activo:true,docente_id:"+fmt.Sprintf("%v", id_docente), &EspaciosAcademicosRegistros)
 	if errEspaciosAcademicosRegistros == nil && fmt.Sprintf("%v", EspaciosAcademicosRegistros["Status"]) == "200" {
 
-		errProyectos := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Activo:true&fields=Id,Nombre,NivelFormacionId&limit=0", &proyectos)
+		errProyectos := request.GetJson(beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Activo:true&fields=Id,Nombre,NivelFormacionId&limit=0", &proyectos)
 		if errProyectos == nil && fmt.Sprintf("%v", proyectos[0]) != "map[]" {
 
-			errCalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Activo:true&fields=Id,Nombre,PeriodoId&limit=0", &calendarios)
+			errCalendario := request.GetJson(beego.AppConfig.String("EventoService")+"calendario?query=Activo:true&fields=Id,Nombre,PeriodoId&limit=0", &calendarios)
 			if errCalendario == nil && fmt.Sprintf("%v", calendarios[0]) != "map[]" {
 
-				errPeriodos := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"periodo?query=Activo:true&fields=Id,Nombre&limit=0", &periodos)
+				errPeriodos := request.GetJson(beego.AppConfig.String("ParametroService")+"periodo?query=Activo:true&fields=Id,Nombre&limit=0", &periodos)
 				if errPeriodos == nil && fmt.Sprintf("%v", periodos["Status"]) == "200" && fmt.Sprintf("%v", periodos["Data"]) != "[map[]]" {
 
 					for _, espacioAcademicoRegistro := range EspaciosAcademicosRegistros["Data"].([]interface{}) {
@@ -127,7 +127,7 @@ func (c *NotasController) GetModificacionExtemporanea() {
 	id_asignatura := c.Ctx.Input.Param(":id_asignatura")
 
 	var RegistroAsignatura map[string]interface{}
-	errRegistroAsignatura := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"registro?query=activo:true,espacio_academico_id:"+fmt.Sprintf("%v", id_asignatura)+"&fields=estado_registro_id,modificacion_extemporanea&limit=0", &RegistroAsignatura)
+	errRegistroAsignatura := request.GetJson(beego.AppConfig.String("CalificacionesService")+"registro?query=activo:true,espacio_academico_id:"+fmt.Sprintf("%v", id_asignatura)+"&fields=estado_registro_id,modificacion_extemporanea&limit=0", &RegistroAsignatura)
 	if errRegistroAsignatura == nil && fmt.Sprintf("%v", RegistroAsignatura["Status"]) == "200" {
 
 		c.Ctx.Output.SetStatus(200)
@@ -161,19 +161,19 @@ func (c *NotasController) GetDatosDocenteAsignatura() {
 	var calendario []interface{}
 	var periodo map[string]interface{}
 
-	errEspacioAcademicoRegistro := request.GetJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico/"+fmt.Sprintf("%v", id_asignatura), &EspacioAcademicoRegistro)
+	errEspacioAcademicoRegistro := request.GetJson(beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico/"+fmt.Sprintf("%v", id_asignatura), &EspacioAcademicoRegistro)
 	if errEspacioAcademicoRegistro == nil && fmt.Sprintf("%v", EspacioAcademicoRegistro["Status"]) == "200" {
 
-		errDocenteInfo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=Activo:true,TerceroId:"+fmt.Sprintf("%v", EspacioAcademicoRegistro["Data"].(map[string]interface{})["docente_id"])+"&sortby=Id&order=desc&limit=1", &DocenteInfo)
+		errDocenteInfo := request.GetJson(beego.AppConfig.String("TercerosService")+"datos_identificacion?query=Activo:true,TerceroId:"+fmt.Sprintf("%v", EspacioAcademicoRegistro["Data"].(map[string]interface{})["docente_id"])+"&sortby=Id&order=desc&limit=1", &DocenteInfo)
 		if errDocenteInfo == nil && fmt.Sprintf("%v", DocenteInfo[0]) != "map[]" {
 
-			errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Activo:true,Id:"+fmt.Sprintf("%v", EspacioAcademicoRegistro["Data"].(map[string]interface{})["proyecto_academico_id"]), &proyecto)
+			errProyecto := request.GetJson(beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Activo:true,Id:"+fmt.Sprintf("%v", EspacioAcademicoRegistro["Data"].(map[string]interface{})["proyecto_academico_id"]), &proyecto)
 			if errProyecto == nil && fmt.Sprintf("%v", proyecto[0]) != "map[]" {
 
-				errCalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Activo:true,Id:"+fmt.Sprintf("%v", EspacioAcademicoRegistro["Data"].(map[string]interface{})["periodo_id"]), &calendario)
+				errCalendario := request.GetJson(beego.AppConfig.String("EventoService")+"calendario?query=Activo:true,Id:"+fmt.Sprintf("%v", EspacioAcademicoRegistro["Data"].(map[string]interface{})["periodo_id"]), &calendario)
 				if errCalendario == nil && fmt.Sprintf("%v", calendario[0]) != "map[]" {
 
-					errPeriodo := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"periodo/"+fmt.Sprintf("%v", calendario[0].(map[string]interface{})["PeriodoId"]), &periodo)
+					errPeriodo := request.GetJson(beego.AppConfig.String("ParametroService")+"periodo/"+fmt.Sprintf("%v", calendario[0].(map[string]interface{})["PeriodoId"]), &periodo)
 					if errPeriodo == nil && fmt.Sprintf("%v", periodo["Status"]) == "200" {
 
 						resultado = append(resultado, map[string]interface{}{
@@ -236,7 +236,7 @@ func (c *NotasController) GetPorcentajesAsignatura() {
 		resultados := []interface{}{}
 
 		var RegistroAsignatura map[string]interface{}
-		errRegistroAsignatura := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"registro?query=activo:true,espacio_academico_id:"+fmt.Sprintf("%v", id_asignatura)+",periodo_id:"+fmt.Sprintf("%v", id_periodo), &RegistroAsignatura)
+		errRegistroAsignatura := request.GetJson(beego.AppConfig.String("CalificacionesService")+"registro?query=activo:true,espacio_academico_id:"+fmt.Sprintf("%v", id_asignatura)+",periodo_id:"+fmt.Sprintf("%v", id_periodo), &RegistroAsignatura)
 		if errRegistroAsignatura == nil {
 
 			if fmt.Sprintf("%v", RegistroAsignatura["Status"]) == "200" {
@@ -357,7 +357,7 @@ func (c *NotasController) PutPorcentajesAsignatura() {
 						}
 
 						var PorcentajeAsignaturaNew map[string]interface{}
-						errPorcentajeAsignaturaNew := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"registro", "POST", &PorcentajeAsignaturaNew, formato)
+						errPorcentajeAsignaturaNew := request.SendJson(beego.AppConfig.String("CalificacionesService")+"registro", "POST", &PorcentajeAsignaturaNew, formato)
 						if errPorcentajeAsignaturaNew == nil && fmt.Sprintf("%v", PorcentajeAsignaturaNew["Status"]) == "201" {
 							crearRegistrosReporte = append(crearRegistrosReporte, PorcentajeAsignaturaNew["Data"])
 						} else {
@@ -369,7 +369,7 @@ func (c *NotasController) PutPorcentajesAsignatura() {
 						estructura_nota := map[string]interface{}{
 							"estructura_nota": fields,
 						}
-						errPorcentajeAsignatura := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"registro/"+fmt.Sprintf("%v", id), "PUT", &PorcentajeAsignatura, estructura_nota)
+						errPorcentajeAsignatura := request.SendJson(beego.AppConfig.String("CalificacionesService")+"registro/"+fmt.Sprintf("%v", id), "PUT", &PorcentajeAsignatura, estructura_nota)
 						if errPorcentajeAsignatura == nil && fmt.Sprintf("%v", PorcentajeAsignatura["Status"]) == "200" {
 							guardarRegistroReporte = PorcentajeAsignatura["Data"]
 						} else {
@@ -385,7 +385,7 @@ func (c *NotasController) PutPorcentajesAsignatura() {
 					for _, reporte := range crearRegistrosReporte {
 						id := fmt.Sprintf("%v", reporte.(map[string]interface{})["_id"])
 						var PorcentajeAsignaturaDel map[string]interface{}
-						errPorcentajeAsignaturaDel := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"registro/"+id, "DELETE", &PorcentajeAsignaturaDel, nil)
+						errPorcentajeAsignaturaDel := request.SendJson(beego.AppConfig.String("CalificacionesService")+"registro/"+id, "DELETE", &PorcentajeAsignaturaDel, nil)
 						if errPorcentajeAsignaturaDel == nil && fmt.Sprintf("%v", PorcentajeAsignaturaDel["Status"]) == "200" {
 							logs.Error(PorcentajeAsignaturaDel)
 						} else {
@@ -444,7 +444,7 @@ func (c *NotasController) GetCapturaNotas() {
 
 	if InformacionCalificaciones, ok := EstadosRegistroIDs(); ok {
 
-		errRegistroCalificacion := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"registro?query=activo:true,periodo_id:"+fmt.Sprintf("%v", id_periodo)+",espacio_academico_id:"+fmt.Sprintf("%v", id_espacio_academico), &RegistroCalificacion)
+		errRegistroCalificacion := request.GetJson(beego.AppConfig.String("CalificacionesService")+"registro?query=activo:true,periodo_id:"+fmt.Sprintf("%v", id_periodo)+",espacio_academico_id:"+fmt.Sprintf("%v", id_espacio_academico), &RegistroCalificacion)
 		if errRegistroCalificacion == nil && fmt.Sprintf("%v", RegistroCalificacion["Status"]) == "200" {
 			for _, EstadosRegistro := range RegistroCalificacion["Data"].([]interface{}) {
 				if fmt.Sprintf("%v", EstadosRegistro.(map[string]interface{})["estado_registro_id"]) == InformacionCalificaciones.Corte1.IdEstado {
@@ -474,14 +474,14 @@ func (c *NotasController) GetCapturaNotas() {
 				}
 			}
 
-			errEspaciosAcademicosEstudiantes := request.GetJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico-estudiantes?query=activo:true,espacio_academico_id:"+fmt.Sprintf("%v", id_espacio_academico)+",periodo_id:"+fmt.Sprintf("%v", id_periodo), &EspaciosAcademicosEstudiantes)
+			errEspaciosAcademicosEstudiantes := request.GetJson(beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico-estudiantes?query=activo:true,espacio_academico_id:"+fmt.Sprintf("%v", id_espacio_academico)+",periodo_id:"+fmt.Sprintf("%v", id_periodo), &EspaciosAcademicosEstudiantes)
 			if errEspaciosAcademicosEstudiantes == nil && fmt.Sprintf("%v", EspaciosAcademicosEstudiantes["Status"]) == "200" {
 
 				for _, espaciosAcademicoEstudiante := range EspaciosAcademicosEstudiantes["Data"].([]interface{}) {
 
 					id_estudiante := espaciosAcademicoEstudiante.(map[string]interface{})["estudiante_id"]
 
-					errEstudianteInformacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=InfoComplementariaId.Id:93,TerceroId.Id:"+fmt.Sprintf("%v", id_estudiante), &EstudianteInformacion)
+					errEstudianteInformacion := request.GetJson(beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=InfoComplementariaId.Id:93,TerceroId.Id:"+fmt.Sprintf("%v", id_estudiante), &EstudianteInformacion)
 					if errEstudianteInformacion == nil && fmt.Sprintf("%v", EstudianteInformacion[0]) != "map[]" {
 
 						Codigo := EstudianteInformacion[0].(map[string]interface{})["Dato"]
@@ -492,7 +492,7 @@ func (c *NotasController) GetCapturaNotas() {
 
 						if InformacionCalificaciones.Corte1.Existe {
 							var InfoNota map[string]interface{}
-							errInfoNota := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota?query=activo:true,registro_id:"+InformacionCalificaciones.Corte1.IdRegistroNota+",estudiante_id:"+fmt.Sprintf("%v", id_estudiante), &InfoNota)
+							errInfoNota := request.GetJson(beego.AppConfig.String("CalificacionesService")+"nota?query=activo:true,registro_id:"+InformacionCalificaciones.Corte1.IdRegistroNota+",estudiante_id:"+fmt.Sprintf("%v", id_estudiante), &InfoNota)
 							if errInfoNota == nil && fmt.Sprintf("%v", InfoNota["Status"]) == "200" {
 								InformacionCalificaciones.Corte1.informacion = passNotaInf(InfoNota)
 							} else {
@@ -504,7 +504,7 @@ func (c *NotasController) GetCapturaNotas() {
 
 						if InformacionCalificaciones.Corte2.Existe {
 							var InfoNota map[string]interface{}
-							errInfoNota := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota?query=activo:true,registro_id:"+InformacionCalificaciones.Corte2.IdRegistroNota+",estudiante_id:"+fmt.Sprintf("%v", id_estudiante), &InfoNota)
+							errInfoNota := request.GetJson(beego.AppConfig.String("CalificacionesService")+"nota?query=activo:true,registro_id:"+InformacionCalificaciones.Corte2.IdRegistroNota+",estudiante_id:"+fmt.Sprintf("%v", id_estudiante), &InfoNota)
 							if errInfoNota == nil && fmt.Sprintf("%v", InfoNota["Status"]) == "200" {
 								InformacionCalificaciones.Corte2.informacion = passNotaInf(InfoNota)
 							} else {
@@ -516,7 +516,7 @@ func (c *NotasController) GetCapturaNotas() {
 
 						if InformacionCalificaciones.Examen.Existe {
 							var InfoNota map[string]interface{}
-							errInfoNota := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota?query=activo:true,registro_id:"+InformacionCalificaciones.Examen.IdRegistroNota+",estudiante_id:"+fmt.Sprintf("%v", id_estudiante), &InfoNota)
+							errInfoNota := request.GetJson(beego.AppConfig.String("CalificacionesService")+"nota?query=activo:true,registro_id:"+InformacionCalificaciones.Examen.IdRegistroNota+",estudiante_id:"+fmt.Sprintf("%v", id_estudiante), &InfoNota)
 							if errInfoNota == nil && fmt.Sprintf("%v", InfoNota["Status"]) == "200" {
 								InformacionCalificaciones.Examen.informacion = passNotaInf(InfoNota)
 							} else {
@@ -528,7 +528,7 @@ func (c *NotasController) GetCapturaNotas() {
 
 						if InformacionCalificaciones.Habilit.Existe {
 							var InfoNota map[string]interface{}
-							errInfoNota := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota?query=activo:true,registro_id:"+InformacionCalificaciones.Habilit.IdRegistroNota+",estudiante_id:"+fmt.Sprintf("%v", id_estudiante), &InfoNota)
+							errInfoNota := request.GetJson(beego.AppConfig.String("CalificacionesService")+"nota?query=activo:true,registro_id:"+InformacionCalificaciones.Habilit.IdRegistroNota+",estudiante_id:"+fmt.Sprintf("%v", id_estudiante), &InfoNota)
 							if errInfoNota == nil && fmt.Sprintf("%v", InfoNota["Status"]) == "200" {
 								InformacionCalificaciones.Habilit.informacion = passNotaInf(InfoNota)
 							} else {
@@ -540,7 +540,7 @@ func (c *NotasController) GetCapturaNotas() {
 
 						if InformacionCalificaciones.Definitiva.Existe {
 							var InfoNota map[string]interface{}
-							errInfoNota := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota?query=activo:true,registro_id:"+InformacionCalificaciones.Definitiva.IdRegistroNota+",estudiante_id:"+fmt.Sprintf("%v", id_estudiante), &InfoNota)
+							errInfoNota := request.GetJson(beego.AppConfig.String("CalificacionesService")+"nota?query=activo:true,registro_id:"+InformacionCalificaciones.Definitiva.IdRegistroNota+",estudiante_id:"+fmt.Sprintf("%v", id_estudiante), &InfoNota)
 							if errInfoNota == nil && fmt.Sprintf("%v", InfoNota["Status"]) == "200" {
 								InformacionCalificaciones.Definitiva.informacion = passNotaInf(InfoNota)
 							} else {
@@ -629,7 +629,7 @@ func (c *NotasController) PutCapturaNotas() {
 				periodo := inputData["Periodo"]
 
 				var InfoRegistro map[string]interface{}
-				errInfoRegistro := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"registro?query=activo:true,periodo_id:"+fmt.Sprintf("%v", periodo)+",espacio_academico_id:"+fmt.Sprintf("%v", espacioAcademico), &InfoRegistro)
+				errInfoRegistro := request.GetJson(beego.AppConfig.String("CalificacionesService")+"registro?query=activo:true,periodo_id:"+fmt.Sprintf("%v", periodo)+",espacio_academico_id:"+fmt.Sprintf("%v", espacioAcademico), &InfoRegistro)
 				if errInfoRegistro == nil && fmt.Sprintf("%v", InfoRegistro["Status"]) == "200" {
 
 					for _, registro := range InfoRegistro["Data"].([]interface{}) {
@@ -694,7 +694,7 @@ func (c *NotasController) PutCapturaNotas() {
 								nota_json.(map[string]interface{})["homologado"] = false
 								nota_json.(map[string]interface{})["activo"] = true
 								var NotaNew map[string]interface{}
-								errNotaNew := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota", "POST", &NotaNew, nota_json)
+								errNotaNew := request.SendJson(beego.AppConfig.String("CalificacionesService")+"nota", "POST", &NotaNew, nota_json)
 								if errNotaNew == nil && fmt.Sprintf("%v", NotaNew["Status"]) == "201" {
 									crearNotasReporte = append(crearNotasReporte, NotaNew["Data"])
 								} else {
@@ -708,7 +708,7 @@ func (c *NotasController) PutCapturaNotas() {
 								nota_json.(map[string]interface{})["observacion_nota_id"] = Observ
 
 								var respaldo map[string]interface{}
-								errrespaldo := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), &respaldo)
+								errrespaldo := request.GetJson(beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), &respaldo)
 								if errrespaldo == nil && fmt.Sprintf("%v", respaldo["Status"]) == "200" {
 									respaldoNotas = append(respaldoNotas, respaldo["Data"])
 								} else {
@@ -716,7 +716,7 @@ func (c *NotasController) PutCapturaNotas() {
 								}
 
 								var Nota map[string]interface{}
-								errNota := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), "PUT", &Nota, nota_json)
+								errNota := request.SendJson(beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), "PUT", &Nota, nota_json)
 								if errNota == nil && fmt.Sprintf("%v", Nota["Status"]) == "200" {
 									guardarNotasReporte = append(guardarNotasReporte, Nota["Data"])
 								} else {
@@ -742,7 +742,7 @@ func (c *NotasController) PutCapturaNotas() {
 								nota_json.(map[string]interface{})["homologado"] = false
 								nota_json.(map[string]interface{})["activo"] = true
 								var NotaNew map[string]interface{}
-								errNotaNew := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota", "POST", &NotaNew, nota_json)
+								errNotaNew := request.SendJson(beego.AppConfig.String("CalificacionesService")+"nota", "POST", &NotaNew, nota_json)
 								if errNotaNew == nil && fmt.Sprintf("%v", NotaNew["Status"]) == "201" {
 									crearNotasReporte = append(crearNotasReporte, NotaNew["Data"])
 								} else {
@@ -756,7 +756,7 @@ func (c *NotasController) PutCapturaNotas() {
 								nota_json.(map[string]interface{})["observacion_nota_id"] = Observ
 
 								var respaldo map[string]interface{}
-								errrespaldo := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), &respaldo)
+								errrespaldo := request.GetJson(beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), &respaldo)
 								if errrespaldo == nil && fmt.Sprintf("%v", respaldo["Status"]) == "200" {
 									respaldoNotas = append(respaldoNotas, respaldo["Data"])
 								} else {
@@ -764,7 +764,7 @@ func (c *NotasController) PutCapturaNotas() {
 								}
 
 								var Nota map[string]interface{}
-								errNota := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), "PUT", &Nota, nota_json)
+								errNota := request.SendJson(beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), "PUT", &Nota, nota_json)
 								if errNota == nil && fmt.Sprintf("%v", Nota["Status"]) == "200" {
 									guardarNotasReporte = append(guardarNotasReporte, Nota["Data"])
 								} else {
@@ -790,7 +790,7 @@ func (c *NotasController) PutCapturaNotas() {
 								nota_json.(map[string]interface{})["homologado"] = false
 								nota_json.(map[string]interface{})["activo"] = true
 								var NotaNew map[string]interface{}
-								errNotaNew := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota", "POST", &NotaNew, nota_json)
+								errNotaNew := request.SendJson(beego.AppConfig.String("CalificacionesService")+"nota", "POST", &NotaNew, nota_json)
 								if errNotaNew == nil && fmt.Sprintf("%v", NotaNew["Status"]) == "201" {
 									crearNotasReporte = append(crearNotasReporte, NotaNew["Data"])
 								} else {
@@ -804,7 +804,7 @@ func (c *NotasController) PutCapturaNotas() {
 								nota_json.(map[string]interface{})["observacion_nota_id"] = Observ
 
 								var respaldo map[string]interface{}
-								errrespaldo := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), &respaldo)
+								errrespaldo := request.GetJson(beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), &respaldo)
 								if errrespaldo == nil && fmt.Sprintf("%v", respaldo["Status"]) == "200" {
 									respaldoNotas = append(respaldoNotas, respaldo["Data"])
 								} else {
@@ -812,7 +812,7 @@ func (c *NotasController) PutCapturaNotas() {
 								}
 
 								var Nota map[string]interface{}
-								errNota := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), "PUT", &Nota, nota_json)
+								errNota := request.SendJson(beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), "PUT", &Nota, nota_json)
 								if errNota == nil && fmt.Sprintf("%v", Nota["Status"]) == "200" {
 									guardarNotasReporte = append(guardarNotasReporte, Nota["Data"])
 								} else {
@@ -838,7 +838,7 @@ func (c *NotasController) PutCapturaNotas() {
 								nota_json.(map[string]interface{})["homologado"] = false
 								nota_json.(map[string]interface{})["activo"] = true
 								var NotaNew map[string]interface{}
-								errNotaNew := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota", "POST", &NotaNew, nota_json)
+								errNotaNew := request.SendJson(beego.AppConfig.String("CalificacionesService")+"nota", "POST", &NotaNew, nota_json)
 								if errNotaNew == nil && fmt.Sprintf("%v", NotaNew["Status"]) == "201" {
 									crearNotasReporte = append(crearNotasReporte, NotaNew["Data"])
 								} else {
@@ -852,7 +852,7 @@ func (c *NotasController) PutCapturaNotas() {
 								nota_json.(map[string]interface{})["observacion_nota_id"] = Observ
 
 								var respaldo map[string]interface{}
-								errrespaldo := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), &respaldo)
+								errrespaldo := request.GetJson(beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), &respaldo)
 								if errrespaldo == nil && fmt.Sprintf("%v", respaldo["Status"]) == "200" {
 									respaldoNotas = append(respaldoNotas, respaldo["Data"])
 								} else {
@@ -860,7 +860,7 @@ func (c *NotasController) PutCapturaNotas() {
 								}
 
 								var Nota map[string]interface{}
-								errNota := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), "PUT", &Nota, nota_json)
+								errNota := request.SendJson(beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), "PUT", &Nota, nota_json)
 								if errNota == nil && fmt.Sprintf("%v", Nota["Status"]) == "200" {
 									guardarNotasReporte = append(guardarNotasReporte, Nota["Data"])
 								} else {
@@ -887,7 +887,7 @@ func (c *NotasController) PutCapturaNotas() {
 								nota_json.(map[string]interface{})["homologado"] = false
 								nota_json.(map[string]interface{})["activo"] = true
 								var NotaNew map[string]interface{}
-								errNotaNew := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota", "POST", &NotaNew, nota_json)
+								errNotaNew := request.SendJson(beego.AppConfig.String("CalificacionesService")+"nota", "POST", &NotaNew, nota_json)
 								if errNotaNew == nil && fmt.Sprintf("%v", NotaNew["Status"]) == "201" {
 									crearNotasReporte = append(crearNotasReporte, NotaNew["Data"])
 								} else {
@@ -915,7 +915,7 @@ func (c *NotasController) PutCapturaNotas() {
 								nota_json.(map[string]interface{})["valor_nota"].([]interface{})[0].(map[string]interface{})["value"] = def
 
 								var respaldo map[string]interface{}
-								errrespaldo := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), &respaldo)
+								errrespaldo := request.GetJson(beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), &respaldo)
 								if errrespaldo == nil && fmt.Sprintf("%v", respaldo["Status"]) == "200" {
 									respaldoNotas = append(respaldoNotas, respaldo["Data"])
 								} else {
@@ -923,7 +923,7 @@ func (c *NotasController) PutCapturaNotas() {
 								}
 
 								var Nota map[string]interface{}
-								errNota := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), "PUT", &Nota, nota_json)
+								errNota := request.SendJson(beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", idnota), "PUT", &Nota, nota_json)
 								if errNota == nil && fmt.Sprintf("%v", Nota["Status"]) == "200" {
 									guardarNotasReporte = append(guardarNotasReporte, Nota["Data"])
 								} else {
@@ -939,7 +939,7 @@ func (c *NotasController) PutCapturaNotas() {
 							for _, reporte := range crearNotasReporte {
 								id := fmt.Sprintf("%v", reporte.(map[string]interface{})["_id"])
 								var NotaEstudianteDel map[string]interface{}
-								errNotaEstudianteDel := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+id, "DELETE", &NotaEstudianteDel, nil)
+								errNotaEstudianteDel := request.SendJson(beego.AppConfig.String("CalificacionesService")+"nota/"+id, "DELETE", &NotaEstudianteDel, nil)
 								if errNotaEstudianteDel == nil && fmt.Sprintf("%v", NotaEstudianteDel["Status"]) == "200" {
 									//logs.Error(errNotaEstudianteDel)
 								} else {
@@ -994,7 +994,7 @@ func (c *NotasController) PutCapturaNotas() {
 								}
 
 								var RegistroCerrado map[string]interface{}
-								errRegistroCerrado := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"registro/"+fmt.Sprintf("%v", idReg), "PUT", &RegistroCerrado, cambiarRegistro.campos)
+								errRegistroCerrado := request.SendJson(beego.AppConfig.String("CalificacionesService")+"registro/"+fmt.Sprintf("%v", idReg), "PUT", &RegistroCerrado, cambiarRegistro.campos)
 								if errRegistroCerrado == nil && fmt.Sprintf("%v", RegistroCerrado["Status"]) == "200" {
 									guardarNotasReporte = append(guardarNotasReporte, RegistroCerrado["Data"])
 								} else {
@@ -1010,7 +1010,7 @@ func (c *NotasController) PutCapturaNotas() {
 								id := fmt.Sprintf("%v", respaldo.(map[string]interface{})["_id"])
 								respaldo.(map[string]interface{})["registro_id"] = respaldo.(map[string]interface{})["registro_id"].(map[string]interface{})["_id"]
 								var NotaEstudianteRespaldo map[string]interface{}
-								errNotaEstudianteRespaldo := request.SendJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+id, "PUT", &NotaEstudianteRespaldo, respaldo)
+								errNotaEstudianteRespaldo := request.SendJson(beego.AppConfig.String("CalificacionesService")+"nota/"+id, "PUT", &NotaEstudianteRespaldo, respaldo)
 								if errNotaEstudianteRespaldo == nil && fmt.Sprintf("%v", NotaEstudianteRespaldo["Status"]) == "200" {
 									//logs.Error(errNotaEstudianteRespaldo)
 								} else {
@@ -1065,10 +1065,10 @@ func (c *NotasController) GetEstadosRegistros() {
 	var notOk bool = false
 
 	if InfoCalificaciones, ok := EstadosRegistroIDs(); ok {
-		errEspaciosAcademicosRegistros := request.GetJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico?query=activo:true,periodo_id:"+fmt.Sprintf("%v", id_periodo)+"&limit=0", &EspaciosAcademicosRegistros)
+		errEspaciosAcademicosRegistros := request.GetJson(beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico?query=activo:true,periodo_id:"+fmt.Sprintf("%v", id_periodo)+"&limit=0", &EspaciosAcademicosRegistros)
 		if errEspaciosAcademicosRegistros == nil && fmt.Sprintf("%v", EspaciosAcademicosRegistros["Status"]) == "200" {
 
-			errProyectos := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Activo:true&fields=Id,Nombre,NivelFormacionId&limit=0", &proyectos)
+			errProyectos := request.GetJson(beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Activo:true&fields=Id,Nombre,NivelFormacionId&limit=0", &proyectos)
 			if errProyectos == nil && fmt.Sprintf("%v", proyectos[0]) != "map[]" {
 
 				for _, asignatura := range EspaciosAcademicosRegistros["Data"].([]interface{}) {
@@ -1077,11 +1077,11 @@ func (c *NotasController) GetEstadosRegistros() {
 					espacioAcademico := asignatura.(map[string]interface{})["_id"]
 
 					var DocenteInfo []map[string]interface{}
-					errDocenteInfo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=Activo:true,TerceroId:"+fmt.Sprintf("%v", docente_id)+"&sortby=Id&order=desc&limit=1", &DocenteInfo)
+					errDocenteInfo := request.GetJson(beego.AppConfig.String("TercerosService")+"datos_identificacion?query=Activo:true,TerceroId:"+fmt.Sprintf("%v", docente_id)+"&sortby=Id&order=desc&limit=1", &DocenteInfo)
 					if errDocenteInfo == nil && fmt.Sprintf("%v", DocenteInfo[0]) != "map[]" {
 
 						var InfoRegistro map[string]interface{}
-						errInfoRegistro := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"registro?query=activo:true,periodo_id:"+fmt.Sprintf("%v", id_periodo)+",espacio_academico_id:"+fmt.Sprintf("%v", espacioAcademico), &InfoRegistro)
+						errInfoRegistro := request.GetJson(beego.AppConfig.String("CalificacionesService")+"registro?query=activo:true,periodo_id:"+fmt.Sprintf("%v", id_periodo)+",espacio_academico_id:"+fmt.Sprintf("%v", espacioAcademico), &InfoRegistro)
 						if errInfoRegistro == nil && fmt.Sprintf("%v", InfoRegistro["Status"]) == "200" {
 
 							for _, registro := range InfoRegistro["Data"].([]interface{}) {
@@ -1197,24 +1197,24 @@ func (c *NotasController) GetDatosEstudianteNotas() {
 
 		if id_proyecto, ok := getProyectoFromEspacioAcademico_temporal(id_estudiante); ok {
 
-			errEstudianteInformacion1 := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=Activo:true,InfoComplementariaId.Id:93,TerceroId.Id:"+fmt.Sprintf("%v", id_estudiante), &EstudianteInformacion1)
+			errEstudianteInformacion1 := request.GetJson(beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=Activo:true,InfoComplementariaId.Id:93,TerceroId.Id:"+fmt.Sprintf("%v", id_estudiante), &EstudianteInformacion1)
 			if errEstudianteInformacion1 == nil && fmt.Sprintf("%v", EstudianteInformacion1[0]) != "map[]" {
-				errEstudianteInformacion2 := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=Activo:true,TerceroId:"+fmt.Sprintf("%v", id_estudiante)+"&sortby=Id&order=desc&limit=1", &EstudianteInformacion2) //,TipoDocumentoId.Id:3
+				errEstudianteInformacion2 := request.GetJson(beego.AppConfig.String("TercerosService")+"datos_identificacion?query=Activo:true,TerceroId:"+fmt.Sprintf("%v", id_estudiante)+"&sortby=Id&order=desc&limit=1", &EstudianteInformacion2) //,TipoDocumentoId.Id:3
 				if errEstudianteInformacion2 == nil && fmt.Sprintf("%v", EstudianteInformacion2[0]) != "map[]" {
-					errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Activo:true,Id:"+fmt.Sprintf("%v", id_proyecto), &proyecto)
+					errProyecto := request.GetJson(beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Activo:true,Id:"+fmt.Sprintf("%v", id_proyecto), &proyecto)
 					if errProyecto == nil && fmt.Sprintf("%v", proyecto[0]) != "map[]" {
-						errCalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Activo:true,Nivel:"+fmt.Sprintf("%v", proyecto[0].(map[string]interface{})["NivelFormacionId"].(map[string]interface{})["Id"]), &calendario)
+						errCalendario := request.GetJson(beego.AppConfig.String("EventoService")+"calendario?query=Activo:true,Nivel:"+fmt.Sprintf("%v", proyecto[0].(map[string]interface{})["NivelFormacionId"].(map[string]interface{})["Id"]), &calendario)
 						if errCalendario == nil && fmt.Sprintf("%v", calendario[0]) != "map[]" {
-							errPeriodo := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"periodo/"+fmt.Sprintf("%v", calendario[0].(map[string]interface{})["PeriodoId"]), &periodo)
+							errPeriodo := request.GetJson(beego.AppConfig.String("ParametroService")+"periodo/"+fmt.Sprintf("%v", calendario[0].(map[string]interface{})["PeriodoId"]), &periodo)
 							if errPeriodo == nil && fmt.Sprintf("%v", periodo["Status"]) == "200" {
-								errEspaciosAcademicos := request.GetJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico-estudiantes?query=activo:true,periodo_id:"+fmt.Sprintf("%v", calendario[0].(map[string]interface{})["Id"])+",estudiante_id:"+fmt.Sprintf("%v", id_estudiante)+"&fields=_id&limit=0", &EspaciosAcademicos)
+								errEspaciosAcademicos := request.GetJson(beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico-estudiantes?query=activo:true,periodo_id:"+fmt.Sprintf("%v", calendario[0].(map[string]interface{})["Id"])+",estudiante_id:"+fmt.Sprintf("%v", id_estudiante)+"&fields=_id&limit=0", &EspaciosAcademicos)
 								if errEspaciosAcademicos == nil && fmt.Sprintf("%v", EspaciosAcademicos["Status"]) == "200" {
 
 									var Asignaturas []interface{}
 
 									for _, asignatura := range EspaciosAcademicos["Data"].([]interface{}) {
 										var InfoAsignatura map[string]interface{}
-										errInfoAsignatura := request.GetJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico-estudiantes/"+fmt.Sprintf("%v", asignatura.(map[string]interface{})["_id"]), &InfoAsignatura)
+										errInfoAsignatura := request.GetJson(beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico-estudiantes/"+fmt.Sprintf("%v", asignatura.(map[string]interface{})["_id"]), &InfoAsignatura)
 										if errInfoAsignatura == nil && fmt.Sprintf("%v", InfoAsignatura["Status"]) == "200" {
 											Asignaturas = append(Asignaturas, InfoAsignatura["Data"])
 										} else {
@@ -1225,14 +1225,14 @@ func (c *NotasController) GetDatosEstudianteNotas() {
 
 									if !notOk {
 
-										errInfoNota := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota?query=activo:true,estudiante_id:"+fmt.Sprintf("%v", id_estudiante)+"&fields=_id&limit=0", &InfoNota)
+										errInfoNota := request.GetJson(beego.AppConfig.String("CalificacionesService")+"nota?query=activo:true,estudiante_id:"+fmt.Sprintf("%v", id_estudiante)+"&fields=_id&limit=0", &InfoNota)
 										if errInfoNota == nil && fmt.Sprintf("%v", InfoNota["Status"]) == "200" {
 
 											var NotasDesagrupadas []interface{}
 
 											for _, nota := range InfoNota["Data"].([]interface{}) {
 												var InfoNotayReg map[string]interface{}
-												errInfoNotayReg := request.GetJson("http://"+beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", nota.(map[string]interface{})["_id"]), &InfoNotayReg)
+												errInfoNotayReg := request.GetJson(beego.AppConfig.String("CalificacionesService")+"nota/"+fmt.Sprintf("%v", nota.(map[string]interface{})["_id"]), &InfoNotayReg)
 												if errInfoNotayReg == nil && fmt.Sprintf("%v", InfoNotayReg["Status"]) == "200" {
 													NotasDesagrupadas = append(NotasDesagrupadas, InfoNotayReg["Data"])
 												} else {
@@ -1352,11 +1352,11 @@ func getProyectoFromEspacioAcademico_temporal(id_estudiante string) (string, boo
 	ok := false
 	proyecto_academico_id := "0"
 	var espAcaEst map[string]interface{}
-	erresAcaEst := request.GetJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico-estudiantes?query=activo:true,estudiante_id:"+fmt.Sprintf("%v", id_estudiante)+"&fields=espacio_academico_id&limit=1", &espAcaEst)
+	erresAcaEst := request.GetJson(beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico-estudiantes?query=activo:true,estudiante_id:"+fmt.Sprintf("%v", id_estudiante)+"&fields=espacio_academico_id&limit=1", &espAcaEst)
 	if erresAcaEst == nil && fmt.Sprintf("%v", espAcaEst["Status"]) == "200" {
 		id := espAcaEst["Data"].([]interface{})[0].(map[string]interface{})["espacio_academico_id"]
 		var espAca map[string]interface{}
-		erresAca := request.GetJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico?query=activo:true,_id:"+fmt.Sprintf("%v", id)+"&fields=proyecto_academico_id&limit=1", &espAca)
+		erresAca := request.GetJson(beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico?query=activo:true,_id:"+fmt.Sprintf("%v", id)+"&fields=proyecto_academico_id&limit=1", &espAca)
 		if erresAca == nil && fmt.Sprintf("%v", espAca["Status"]) == "200" {
 			proyecto_academico_id = fmt.Sprintf("%v", espAca["Data"].([]interface{})[0].(map[string]interface{})["proyecto_academico_id"])
 			ok = true
@@ -1394,7 +1394,7 @@ func EstadosRegistroIDs() (EstadosRegistro, bool) {
 	}
 
 	var EstadosRegistroApi map[string]interface{}
-	errEstadosRegistroApi := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro?query=TipoParametroId:52&fields=Id,Nombre&limit=0", &EstadosRegistroApi)
+	errEstadosRegistroApi := request.GetJson(beego.AppConfig.String("ParametroService")+"parametro?query=TipoParametroId:52&fields=Id,Nombre&limit=0", &EstadosRegistroApi)
 	if errEstadosRegistroApi == nil && fmt.Sprintf("%v", EstadosRegistroApi["Status"]) == "200" && fmt.Sprintf("%v", EstadosRegistroApi["Data"]) != "[map[]]" {
 		for _, EstReg := range EstadosRegistroApi["Data"].([]interface{}) {
 			if fmt.Sprintf("%v", EstReg.(map[string]interface{})["Nombre"]) == EstadosRegistros.Corte1.Nombre {

@@ -80,7 +80,7 @@ func (c *ReportesController) ReporteCargaLectiva() {
 	// * ----------
 	// * Consultas información requerida
 	//
-	resp, err := requestmanager.Get("http://"+beego.AppConfig.String("TercerosService")+
+	resp, err := requestmanager.Get(beego.AppConfig.String("TercerosService")+
 		fmt.Sprintf("datos_identificacion?query=Activo:true,TerceroId__Id:%d&fields=TerceroId,Numero,TipoDocumentoId&sortby=FechaExpedicion,Id&order=desc&limit=1", docente), requestmanager.ParseResonseNoFormat)
 	if err != nil {
 		logs.Error(err)
@@ -96,7 +96,7 @@ func (c *ReportesController) ReporteCargaLectiva() {
 	datoIdenfTercero := data.DatosIdentificacion{}
 	utils.ParseData(resp.([]interface{})[0], &datoIdenfTercero)
 
-	resp, err = requestmanager.Get("http://"+beego.AppConfig.String("ParametroService")+fmt.Sprintf("parametro/%d", vinculacion), requestmanager.ParseResponseFormato1)
+	resp, err = requestmanager.Get(beego.AppConfig.String("ParametroService")+fmt.Sprintf("parametro/%d", vinculacion), requestmanager.ParseResponseFormato1)
 	if err != nil {
 		logs.Error(err)
 		badAns, code := requestmanager.MidResponseFormat("ParametroService (parametro)", "GET", false, map[string]interface{}{
@@ -111,7 +111,7 @@ func (c *ReportesController) ReporteCargaLectiva() {
 	datoVinculacion := data.Parametro{}
 	utils.ParseData(resp, &datoVinculacion)
 
-	resp, err = requestmanager.Get("http://"+beego.AppConfig.String("ParametroService")+fmt.Sprintf("periodo/%d", periodo), requestmanager.ParseResponseFormato1)
+	resp, err = requestmanager.Get(beego.AppConfig.String("ParametroService")+fmt.Sprintf("periodo/%d", periodo), requestmanager.ParseResponseFormato1)
 	if err != nil {
 		logs.Error(err)
 		badAns, code := requestmanager.MidResponseFormat("ParametroService (periodo)", "GET", false, map[string]interface{}{
@@ -126,7 +126,7 @@ func (c *ReportesController) ReporteCargaLectiva() {
 	datoPeriodo := data.Periodo{}
 	utils.ParseData(resp, &datoPeriodo)
 
-	resp, err = requestmanager.Get("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+
+	resp, err = requestmanager.Get(beego.AppConfig.String("PlanTrabajoDocenteService")+
 		fmt.Sprintf("plan_docente?query=activo:true,docente_id:%d,tipo_vinculacion_id:%d,periodo_id:%d&limit=1", docente, vinculacion, periodo), requestmanager.ParseResponseFormato1)
 	if err != nil {
 		logs.Error(err)
@@ -150,7 +150,7 @@ func (c *ReportesController) ReporteCargaLectiva() {
 	datoResumen := resumenJson{}
 	json.Unmarshal([]byte(datoPlanDocente.Resumen), &datoResumen)
 
-	resp, err = requestmanager.Get("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+
+	resp, err = requestmanager.Get(beego.AppConfig.String("PlanTrabajoDocenteService")+
 		fmt.Sprintf("carga_plan?query=activo:true,plan_docente_id:%s,&limit=0", datoPlanDocente.Id), requestmanager.ParseResponseFormato1)
 	if err != nil {
 		logs.Error(err)
@@ -167,7 +167,7 @@ func (c *ReportesController) ReporteCargaLectiva() {
 	utils.ParseData(resp, &datosCargaPlan)
 
 	for i := 0; i < len(datosCargaPlan); i++ {
-		resp, err := requestmanager.Get("http://"+beego.AppConfig.String("HorarioService")+
+		resp, err := requestmanager.Get(beego.AppConfig.String("HorarioService")+
 			fmt.Sprintf("colocacion_espacio_academico/%s", datosCargaPlan[i].Colocacion_espacio_academico_id), requestmanager.ParseResponseFormato1)
 		if err != nil {
 			logs.Error(err)
@@ -303,7 +303,7 @@ func (c *ReportesController) ReporteCargaLectiva() {
 
 		nombreCarga := ""
 		if horarioIs.TipoCarga == CargaLectiva {
-			resp, err := requestmanager.Get("http://"+beego.AppConfig.String("EspaciosAcademicosService")+
+			resp, err := requestmanager.Get(beego.AppConfig.String("EspaciosAcademicosService")+
 				fmt.Sprintf("espacio-academico/%s", carga.Espacio_academico_id), requestmanager.ParseResponseFormato1)
 			if err != nil {
 				logs.Error(err)
@@ -319,7 +319,7 @@ func (c *ReportesController) ReporteCargaLectiva() {
 			nombreCarga = resp.(map[string]interface{})["nombre"].(string) + " - " + resp.(map[string]interface{})["grupo"].(string)
 			template.SetCellStyle(sheet, ini, fin, CargaStyle)
 		} else if horarioIs.TipoCarga == Actividades {
-			resp, err := requestmanager.Get("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+
+			resp, err := requestmanager.Get(beego.AppConfig.String("PlanTrabajoDocenteService")+
 				fmt.Sprintf("actividad/%s", carga.Actividad_id), requestmanager.ParseResponseFormato1)
 			if err != nil {
 				logs.Error(err)
@@ -542,7 +542,7 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 	ListaIdPlanes := []string{}
 
 	plan_aprobado := "646fcf784c0bc253c1c720d4"
-	resp, err := requestmanager.Get("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+
+	resp, err := requestmanager.Get(beego.AppConfig.String("PlanTrabajoDocenteService")+
 		fmt.Sprintf("plan_docente?query=activo:true,estado_plan_id:%s,periodo_id:%d&limit=0", plan_aprobado, vigencia), requestmanager.ParseResponseFormato1)
 	if err != nil {
 		logs.Error(err)
@@ -559,7 +559,7 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 	utils.ParseData(resp, &lista_planes)
 	for _, plan_docente := range lista_planes {
 
-		resp, err = requestmanager.Get("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+
+		resp, err = requestmanager.Get(beego.AppConfig.String("PlanTrabajoDocenteService")+
 			fmt.Sprintf("carga_plan?query=activo:true,plan_docente_id:%s&limit=0", plan_docente.Id), requestmanager.ParseResponseFormato1)
 		if err != nil {
 			logs.Error(err)
@@ -586,7 +586,7 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 		}
 
 		for idEspAcad := range agrupacionEspacios {
-			resp, err = requestmanager.Get("http://"+beego.AppConfig.String("EspaciosAcademicosService")+
+			resp, err = requestmanager.Get(beego.AppConfig.String("EspaciosAcademicosService")+
 				fmt.Sprintf("espacio-academico?query=_id:%s", idEspAcad), requestmanager.ParseResponseFormato1)
 			if err != nil {
 				logs.Error(err)
@@ -606,7 +606,7 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 			projectId := fmt.Sprintf("%d", espacio_academico.Proyecto_academico_id)
 
 			if (proyectoFilter == "0") || (proyectoFilter == projectId) {
-				resp, err = requestmanager.Get("http://"+beego.AppConfig.String("ProyectoAcademicoService")+
+				resp, err = requestmanager.Get(beego.AppConfig.String("ProyectoAcademicoService")+
 					fmt.Sprintf("proyecto_academico_institucion/%s", projectId), requestmanager.ParseResonseNoFormat)
 				if err != nil {
 					logs.Error(err)
@@ -680,7 +680,7 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 
 		}
 
-		resp, err := requestmanager.Get("http://"+beego.AppConfig.String("TercerosService")+
+		resp, err := requestmanager.Get(beego.AppConfig.String("TercerosService")+
 			fmt.Sprintf("datos_identificacion?query=Activo:true,TerceroId__Id:%v&fields=TerceroId,Numero,TipoDocumentoId&sortby=FechaExpedicion,Id&order=desc&limit=1",
 				plan_docente.Docente_id), requestmanager.ParseResonseNoFormat)
 		if err != nil {
@@ -697,7 +697,7 @@ func (c *ReportesController) ReporteVerifCumpPTD() {
 		datos_identificacion := data.DatosIdentificacion{}
 		utils.ParseData(resp.([]interface{})[0], &datos_identificacion)
 
-		resp, err = requestmanager.Get("http://"+beego.AppConfig.String("ParametroService")+
+		resp, err = requestmanager.Get(beego.AppConfig.String("ParametroService")+
 			fmt.Sprintf("parametro/%s", plan_docente.Tipo_vinculacion_id), requestmanager.ParseResponseFormato1)
 		if err != nil {
 			logs.Error(err)

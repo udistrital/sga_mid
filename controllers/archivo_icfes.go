@@ -115,9 +115,9 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 			}
 			fmt.Println("line", aspirante_codigo_icfes, aspirante_nombre, aspirante_puntajes)
 			// traer data de la inscripcion o inscripciones
-			// fmt.Println("url","http://"+beego.AppConfig.String("InscripcionService")+"inscripcion_pregrado?limit=0&query=InscripcionId__Activo:true,InscripcionId__EstadoInscripcionId__Id:1,InscripcionId__PeriodoId:"+periodo_id+",CodigoIcfes:"+aspirante_codigo_icfes)
+			// fmt.Println("url",beego.AppConfig.String("InscripcionService")+"inscripcion_pregrado?limit=0&query=InscripcionId__Activo:true,InscripcionId__EstadoInscripcionId__Id:1,InscripcionId__PeriodoId:"+periodo_id+",CodigoIcfes:"+aspirante_codigo_icfes)
 			var inscripcionesRes []map[string]interface{}
-			errInscripciones := request.GetJson("http://"+beego.AppConfig.String("InscripcionService")+"inscripcion_pregrado?limit=0&query=InscripcionId.Activo:true,InscripcionId.EstadoInscripcionId.Id:1,InscripcionId.PeriodoId:"+periodo_id+",CodigoIcfes:"+aspirante_codigo_icfes, &inscripcionesRes)
+			errInscripciones := request.GetJson(beego.AppConfig.String("InscripcionService")+"inscripcion_pregrado?limit=0&query=InscripcionId.Activo:true,InscripcionId.EstadoInscripcionId.Id:1,InscripcionId.PeriodoId:"+periodo_id+",CodigoIcfes:"+aspirante_codigo_icfes, &inscripcionesRes)
 			if errInscripciones != nil {
 				alertas = append(alertas, errInscripciones)
 				alerta.Body = alertas
@@ -136,8 +136,8 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 						// fmt.Println("ProgramaAcademicoId", proyecto_inscripcion)
 						// cargar criterios de admisión con el proyecto dependiendo de la inscripcion
 						var criteriosRes []map[string]interface{}
-						// fmt.Println("url criterios", "http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"/requisito_programa_academico?limit=0&query=Activo:true,RequisitoId__Activo:true,PeriodoId:"+periodo_id+",ProgramaAcademicoId:"+fmt.Sprintf("%.f", proyecto_inscripcion))
-						errCriterios := request.GetJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"/requisito_programa_academico?limit=0&query=Activo:true,RequisitoId__Activo:true,PeriodoId:"+periodo_id+",ProgramaAcademicoId:"+fmt.Sprintf("%.f", proyecto_inscripcion.(float64)), &criteriosRes)
+						// fmt.Println("url criterios", beego.AppConfig.String("EvaluacionInscripcionService")+"/requisito_programa_academico?limit=0&query=Activo:true,RequisitoId__Activo:true,PeriodoId:"+periodo_id+",ProgramaAcademicoId:"+fmt.Sprintf("%.f", proyecto_inscripcion))
+						errCriterios := request.GetJson(beego.AppConfig.String("EvaluacionInscripcionService")+"/requisito_programa_academico?limit=0&query=Activo:true,RequisitoId__Activo:true,PeriodoId:"+periodo_id+",ProgramaAcademicoId:"+fmt.Sprintf("%.f", proyecto_inscripcion.(float64)), &criteriosRes)
 						if errCriterios != nil {
 							alertas = append(alertas, errCriterios)
 							alerta.Body = alertas
@@ -239,7 +239,7 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 
 	for i, postevaluacion := range evaluacionesInscripcion {
 		var resultadoevaluacion map[string]interface{}
-		errPostevaluacion := request.SendJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"/evaluacion_inscripcion", "POST", &resultadoevaluacion, postevaluacion)
+		errPostevaluacion := request.SendJson(beego.AppConfig.String("EvaluacionInscripcionService")+"/evaluacion_inscripcion", "POST", &resultadoevaluacion, postevaluacion)
 		if resultadoevaluacion["Type"] == "error" || errPostevaluacion != nil || resultadoevaluacion["Status"] == "404" || resultadoevaluacion["Message"] != nil {
 			alertas = append(alertas, resultadoevaluacion)
 			alerta.Type = "error"
@@ -253,7 +253,7 @@ func (c *ArchivoIcfesController) PostArchivoIcfes() {
 	formatdata.JsonPrint(detallesEvaluacion)
 	for _, postdetalle := range detallesEvaluacion {
 		var resultadodetalle map[string]interface{}
-		errPostedetalle := request.SendJson("http://"+beego.AppConfig.String("EvaluacionInscripcionService")+"/detalle_evaluacion", "POST", &resultadodetalle, postdetalle)
+		errPostedetalle := request.SendJson(beego.AppConfig.String("EvaluacionInscripcionService")+"/detalle_evaluacion", "POST", &resultadodetalle, postdetalle)
 		if resultadodetalle["Type"] == "error" || errPostedetalle != nil || resultadodetalle["Status"] == "404" || resultadodetalle["Message"] != nil {
 			alertas = append(alertas, resultadodetalle)
 			alerta.Type = "error"

@@ -58,7 +58,7 @@ func PostPaqueteSolicitud(PaqueteSolicitud map[string]interface{}) (result map[s
 
 	var resultadoPaqueteSolicitud map[string]interface{}
 
-	errSolicitudPost := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_paquete/", "POST", &resultadoPaqueteSolicitud, PaqueteSolicitudPost)
+	errSolicitudPost := request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"/tr_paquete/", "POST", &resultadoPaqueteSolicitud, PaqueteSolicitudPost)
 	if errSolicitudPost == nil && fmt.Sprintf("%v", resultadoPaqueteSolicitud["System"]) != "map[]" {
 		if resultadoPaqueteSolicitud["Status"] != 400 {
 			resultado = PaqueteSolicitud
@@ -92,7 +92,7 @@ func PutPaqueteSolicitud(PaqueteSolicitud map[string]interface{}, idStr string) 
 			solicitud["SolicitudFinalizada"] = false
 		}
 		var paqueteSolicitudes map[string]interface{}
-		errPaquete := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/paquete_solicitud/?limit=0&query=PaqueteId:"+idStr, &paqueteSolicitudes)
+		errPaquete := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"/paquete_solicitud/?limit=0&query=PaqueteId:"+idStr, &paqueteSolicitudes)
 		if errPaquete == nil && fmt.Sprintf("%v", paqueteSolicitudes["System"]) != "map[]" {
 			if paqueteSolicitudes["Status"] != 404 && paqueteSolicitudes["Data"] != nil {
 
@@ -178,7 +178,7 @@ func PutPaqueteSolicitud(PaqueteSolicitud map[string]interface{}, idStr string) 
 
 	var resultadoPaqueteSolicitud map[string]interface{}
 
-	errSolicitudPut := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_paquete/"+idStr, "PUT", &resultadoPaqueteSolicitud, PaqueteSolicitudPut)
+	errSolicitudPut := request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"/tr_paquete/"+idStr, "PUT", &resultadoPaqueteSolicitud, PaqueteSolicitudPut)
 	if errSolicitudPut == nil && fmt.Sprintf("%v", resultadoPaqueteSolicitud["System"]) != "map[]" {
 		if resultadoPaqueteSolicitud["Status"] != 400 {
 
@@ -196,7 +196,7 @@ func PutPaqueteSolicitud(PaqueteSolicitud map[string]interface{}, idStr string) 
 func GetAllSolicitudPaquete(idPaquete string) (result []interface{}, outputError interface{}) {
 	var paqueteSolicitudes map[string]interface{}
 	var resultado []interface{}
-	errPaquete := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/paquete_solicitud/?limit=0&query=PaqueteId:"+idPaquete, &paqueteSolicitudes)
+	errPaquete := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"/paquete_solicitud/?limit=0&query=PaqueteId:"+idPaquete, &paqueteSolicitudes)
 	if errPaquete == nil && fmt.Sprintf("%v", paqueteSolicitudes["System"]) != "map[]" {
 		if paqueteSolicitudes["Status"] != 404 && paqueteSolicitudes["Data"] != nil {
 			resultado = paqueteSolicitudes["Data"].([]interface{})

@@ -114,7 +114,7 @@ func (c *GenerarReciboController) PostGenerarComprobanteInscripcion() {
 		var ReciboXML map[string]interface{}
 		ReciboInscripcion := data["INSCRIPCION"].(map[string]interface{})["idRecibo"].(string)
 		if ReciboInscripcion != "0/<nil>" {
-			errRecibo := request.GetJsonWSO2("http://"+beego.AppConfig.String("ConsultarReciboJbpmService")+"consulta_recibo/"+ReciboInscripcion, &ReciboXML)
+			errRecibo := request.GetJsonWSO2(beego.AppConfig.String("ConsultarReciboJbpmService")+"consulta_recibo/"+ReciboInscripcion, &ReciboXML)
 			if errRecibo == nil {
 				if ReciboXML != nil && fmt.Sprintf("%v", ReciboXML) != "map[reciboCollection:map[]]" && fmt.Sprintf("%v", ReciboXML) != "map[]" {
 					data["PAGO"].(map[string]interface{})["valor"] = ReciboXML["reciboCollection"].(map[string]interface{})["recibo"].([]interface{})[0].(map[string]interface{})["valor_extraordinario"].(string)

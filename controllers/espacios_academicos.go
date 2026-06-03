@@ -63,7 +63,7 @@ func (c *Espacios_academicosController) GetAcademicSpacesByProject() {
 		consulta espacios academicos por proyecto
 	*/
 	var Espacios_academicos_1 map[string]interface{}
-	Espacios_academicos_1Err := request.GetJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+
+	Espacios_academicos_1Err := request.GetJson(beego.AppConfig.String("EspaciosAcademicosService")+
 		fmt.Sprintf("espacio-academico?query=activo:true,proyecto_academico_id:%v,espacio_academico_padre&limit=0", id_proyecto_str), &Espacios_academicos_1)
 	if Espacios_academicos_1Err != nil || Espacios_academicos_1["Success"] == false || Espacios_academicos_1["Status"] != "200" {
 		if Espacios_academicos_1Err == nil {
@@ -81,7 +81,7 @@ func (c *Espacios_academicosController) GetAcademicSpacesByProject() {
 	*/
 	id_clase := 51
 	var ClaseEspacio map[string]interface{}
-	ClaseEspacioErr := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+
+	ClaseEspacioErr := request.GetJson(beego.AppConfig.String("ParametroService")+
 		fmt.Sprintf("parametro?query=TipoParametroId:%v&limit=0&fields=Id,Nombre,CodigoAbreviacion", id_clase), &ClaseEspacio)
 	if ClaseEspacioErr != nil || fmt.Sprintf("%v", ClaseEspacio) == "[map[]]" {
 		if ClaseEspacioErr == nil {
@@ -97,7 +97,7 @@ func (c *Espacios_academicosController) GetAcademicSpacesByProject() {
 	clases := ClaseEspacio["Data"].([]interface{})
 	id_Enfoque := 68
 	var EnfoqueEspacio map[string]interface{}
-	EnfoqueEspacioErr := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+
+	EnfoqueEspacioErr := request.GetJson(beego.AppConfig.String("ParametroService")+
 		fmt.Sprintf("parametro?query=TipoParametroId:%v&limit=0&fields=Id,CodigoAbreviacion", id_Enfoque), &EnfoqueEspacio)
 	if EnfoqueEspacioErr != nil || fmt.Sprintf("%v", EnfoqueEspacio) == "[map[]]" {
 		if EnfoqueEspacioErr == nil {
@@ -186,7 +186,7 @@ func getLocalEspacioAcademico(_id string, espacios []interface{}) (string, error
 
 func getLineaEspacioAcademico(_id string) (string, error) {
 	var nombreEspacio map[string]interface{}
-	nombreEspacioErr := request.GetJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+
+	nombreEspacioErr := request.GetJson(beego.AppConfig.String("EspaciosAcademicosService")+
 		fmt.Sprintf("espacio-academico/%v", _id), &nombreEspacio)
 	if nombreEspacioErr != nil || nombreEspacio["Success"] == false || nombreEspacio["Status"] != "200" {
 		if nombreEspacioErr == nil {
@@ -225,7 +225,7 @@ func (c *Espacios_academicosController) PostAcademicSpacesBySon() {
 		str_grupos := fmt.Sprintf("%v", grupos_espacios)
 		cantidadGrupos, Grupo_in := contarYSepararGrupos(str_grupos)
 
-		if err := helpers.SendJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico", "POST", &EspacioPadrePost, espacio_academico_request); err != nil {
+		if err := helpers.SendJson(beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico", "POST", &EspacioPadrePost, espacio_academico_request); err != nil {
 			panic(map[string]interface{}{"funcion": "FuncionPostHijosEspacio", "err": "Error al generar el espacio padre  ", "status": "400", "log": err})
 		}
 
@@ -243,7 +243,7 @@ func (c *Espacios_academicosController) PostAcademicSpacesBySon() {
 			fmt.Printf("Grupo %d: %s\n", i+1, grupo)
 
 			EspacioAcademicoHijoTemporal["grupo"] = grupo
-			if err := helpers.SendJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico", "POST", &EspacioPadrePostTempo, EspacioAcademicoHijoTemporal); err != nil {
+			if err := helpers.SendJson(beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico", "POST", &EspacioPadrePostTempo, EspacioAcademicoHijoTemporal); err != nil {
 				panic(map[string]interface{}{"funcion": "VersionarPlan", "err": "Error al generar el espacio padre  ", "status": "400", "log": err})
 			}
 		}
@@ -429,7 +429,7 @@ func createAcademicSpaceChild(parent string, groups []string, periodIdReq int) (
 	var newSpace map[string]interface{}
 	var result []map[string]interface{}
 	queryParams := "query=_id:" + fmt.Sprintf("%v", parent)
-	urlAcademicSpaces := "http://" + beego.AppConfig.String("EspaciosAcademicosService") + "espacio-academico"
+	urlAcademicSpaces := beego.AppConfig.String("EspaciosAcademicosService") + "espacio-academico"
 
 	if resSpaces, errSpace := utils.GetAcademicSpacesByQuery(queryParams); errSpace == nil {
 		if space := resSpaces.([]any); space != nil {
@@ -502,7 +502,7 @@ func (c *Espacios_academicosController) PostSyllabusTemplate() {
 		}
 
 		if syllabusVersion, hasVersion := syllabusRequest["version"]; hasVersion {
-			syllabusErr := request.GetJson("http://"+beego.AppConfig.String("SyllabusService")+
+			syllabusErr := request.GetJson(beego.AppConfig.String("SyllabusService")+
 				fmt.Sprintf("syllabus?query=syllabus_code:%v,version:%v&limit=1&offset=0", syllabusCode, syllabusVersion), &syllabusResponse)
 			if syllabusErr != nil || syllabusResponse["Success"] == false {
 				if syllabusErr == nil {
@@ -526,7 +526,7 @@ func (c *Espacios_academicosController) PostSyllabusTemplate() {
 				syllabusData = syllabusList[0].(map[string]interface{})
 			}
 		} else {
-			syllabusErr := request.GetJson("http://"+beego.AppConfig.String("SyllabusService")+
+			syllabusErr := request.GetJson(beego.AppConfig.String("SyllabusService")+
 				fmt.Sprintf("syllabus/%v", syllabusCode), &syllabusResponse)
 			if syllabusErr != nil || syllabusResponse["Success"] == false {
 				if syllabusErr == nil {
