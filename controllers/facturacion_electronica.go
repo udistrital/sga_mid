@@ -34,7 +34,7 @@ func (c *FacturacionElectronicaController) URLMapping() {
 func (c *FacturacionElectronicaController) GetAll() {
 	var resultado map[string]interface{}
 
-	url := "http://" + beego.AppConfig.String("FacturacionElectronicaService")
+	url := beego.AppConfig.String("FacturacionElectronicaService")
 
 	err := request.GetJsonWSO2(url, &resultado)
 
@@ -72,7 +72,7 @@ func (c *FacturacionElectronicaController) GetOne() {
 	anio := c.Ctx.Input.Param(":anio")
 	var resultado map[string]interface{}
 
-	url := "http://" + beego.AppConfig.String("FacturacionElectronicaService") + "/" + id + "/" + anio
+	url := beego.AppConfig.String("FacturacionElectronicaService") + "/" + id + "/" + anio
 
 	err := request.GetJsonWSO2(url, &resultado)
 
@@ -164,7 +164,7 @@ func (c *FacturacionElectronicaController) Put() {
 		return
 	}
 
-	serviceURL := "http://" + beego.AppConfig.String("FacturacionElectronicaService") + "/" + id
+	serviceURL := beego.AppConfig.String("FacturacionElectronicaService") + "/" + id
 
 	req := httplib.Put(serviceURL)
 	req.Header("Content-Type", "application/json")

@@ -14,7 +14,7 @@ import (
 func CheckCoincidenceProduction(SolicitudProduccion map[string]interface{}, idTipoProduccion int, idTercero string) (result map[string]interface{}, outputError interface{}) {
 	var idSolicitudesList []float64
 	var solicitudes []map[string]interface{}
-	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud/inactive/", &solicitudes)
+	errSolicitud := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud/inactive/", &solicitudes)
 	if errSolicitud == nil && fmt.Sprintf("%v", solicitudes[0]["System"]) != "map[]" {
 		if solicitudes[0]["Status"] != 404 && solicitudes[0]["Id"] != nil {
 			var produccionActual map[string]interface{}
@@ -62,7 +62,7 @@ func generateAlertCoincidences(SolicitudDocente map[string]interface{}, idCoinci
 			idList += fmt.Sprintf("%v", id) + ","
 		}
 
-		errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tipo_observacion/?query=Id:4", &tipoObservacionData)
+		errSolicitud := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"/tipo_observacion/?query=Id:4", &tipoObservacionData)
 		if errSolicitud == nil && fmt.Sprintf("%v", tipoObservacionData["System"]) != "map[]" {
 			if tipoObservacionData["Status"] != 404 && tipoObservacionData["Data"] != nil {
 
@@ -91,14 +91,14 @@ func GenerateEvaluationsCloning(SolicitudProduccion map[string]interface{}, idSo
 	var solicitudesEvaluaciones []map[string]interface{}
 	var resultado []map[string]interface{}
 
-	errEvaluaciones := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/solicitud/?limit=0&query=SolicitudPadreId:"+idSolicitudCoincidencia, &solicitudesEvaluaciones)
+	errEvaluaciones := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"/solicitud/?limit=0&query=SolicitudPadreId:"+idSolicitudCoincidencia, &solicitudesEvaluaciones)
 	if errEvaluaciones == nil && fmt.Sprintf("%v", solicitudesEvaluaciones[0]["System"]) != "map[]" {
 		if solicitudesEvaluaciones[0]["Status"] != 404 && solicitudesEvaluaciones[0]["Id"] != nil {
 			for _, evaluacion := range solicitudesEvaluaciones {
 				if evaluacion["EstadoTipoSolicitudId"].(map[string]interface{})["EstadoId"].(map[string]interface{})["Id"].(float64) == 13 {
 
 					var evaluadores []interface{}
-					errEvaluadores := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/solicitante/?query=SolicitudId:"+fmt.Sprintf("%v", evaluacion["Id"]), &evaluadores)
+					errEvaluadores := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"/solicitante/?query=SolicitudId:"+fmt.Sprintf("%v", evaluacion["Id"]), &evaluadores)
 					if errEvaluadores == nil {
 						SolicitudEvaluacion := make(map[string]interface{})
 						SolicitudEvaluacion["Evaluacion"] = map[string]interface{}{

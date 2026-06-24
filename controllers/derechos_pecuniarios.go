@@ -54,7 +54,7 @@ func (c *DerechosPecuniariosController) PostConcepto() {
 	//Se guarda el json que se pasa por parametro
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &ConceptoFactor); err == nil {
 		Concepto := ConceptoFactor["Concepto"]
-		errConcepto := request.SendJson("http://"+beego.AppConfig.String("ParametroService")+"parametro", "POST", &AuxConceptoPost, Concepto)
+		errConcepto := request.SendJson(beego.AppConfig.String("ParametroService")+"parametro", "POST", &AuxConceptoPost, Concepto)
 		ConceptoPost = AuxConceptoPost["Data"].(map[string]interface{})
 		IdConcepto = ConceptoPost["Id"]
 
@@ -87,7 +87,7 @@ func (c *DerechosPecuniariosController) PostConcepto() {
 		var AuxFactor map[string]interface{}
 		var FactorPost map[string]interface{}
 
-		errFactor := request.SendJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo", "POST", &AuxFactor, Factor)
+		errFactor := request.SendJson(beego.AppConfig.String("ParametroService")+"parametro_periodo", "POST", &AuxFactor, Factor)
 		FactorPost = AuxFactor["Data"].(map[string]interface{})
 		if errFactor == nil && fmt.Sprintf("%v", FactorPost["System"]) != "map[]" && FactorPost["Id"] != nil {
 			if FactorPost["Status"] != 400 {
@@ -111,7 +111,7 @@ func (c *DerechosPecuniariosController) PostConcepto() {
 				}
 			} else {
 				var resultado2 map[string]interface{}
-				request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("ParametroService")+"parametro/%.f", ConceptoPost["Id"]), "DELETE", &resultado2, nil)
+				request.SendJson(fmt.Sprintf(beego.AppConfig.String("ParametroService")+"parametro/%.f", ConceptoPost["Id"]), "DELETE", &resultado2, nil)
 				logs.Error(errFactor)
 				c.Data["json"] = map[string]interface{}{"Success": false, "Status": "400", "Message": FactorPost, "Data": nil}
 			}
@@ -144,7 +144,7 @@ func (c *DerechosPecuniariosController) PutConcepto() {
 
 	idStr := c.Ctx.Input.Param(":id")
 
-	if err := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId__Id:"+idStr, &Parametro); err == nil {
+	if err := request.GetJson(beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId__Id:"+idStr, &Parametro); err == nil {
 		DataAux := Parametro["Data"].([]interface{})[0]
 		Data := DataAux.(map[string]interface{})
 
@@ -155,7 +155,7 @@ func (c *DerechosPecuniariosController) PutConcepto() {
 					Factor := ConceptoFactor["Factor"].(map[string]interface{})
 					FactorValor := fmt.Sprintf("%.3f", Factor["Valor"].(map[string]interface{})["NumFactor"].(float64))
 					Data["Valor"] = "{ \"NumFactor\": " + FactorValor + " }"
-					errFactor := request.SendJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo/"+fmt.Sprintf("%.f", Data["Id"].(float64)), "PUT", &AuxFactorPut, Data)
+					errFactor := request.SendJson(beego.AppConfig.String("ParametroService")+"parametro_periodo/"+fmt.Sprintf("%.f", Data["Id"].(float64)), "PUT", &AuxFactorPut, Data)
 					if errFactor != nil {
 						logs.Error(errFactor)
 						c.Data["json"] = map[string]interface{}{"Success": false, "Status": "400", "Message": errFactor.Error(), "Data": nil}
@@ -163,7 +163,7 @@ func (c *DerechosPecuniariosController) PutConcepto() {
 					Concepto := ConceptoFactor["Concepto"].(map[string]interface{})
 					ConceptoPut["Nombre"] = Concepto["Nombre"]
 					ConceptoPut["CodigoAbreviacion"] = Concepto["CodigoAbreviacion"]
-					errPut := request.SendJson("http://"+beego.AppConfig.String("ParametroService")+"parametro/"+idStr, "PUT", &AuxConceptoPut, ConceptoPut)
+					errPut := request.SendJson(beego.AppConfig.String("ParametroService")+"parametro/"+idStr, "PUT", &AuxConceptoPut, ConceptoPut)
 					if errPut != nil {
 						logs.Error(errPut)
 						c.Data["json"] = map[string]interface{}{"Success": false, "Status": "400", "Message": errPut.Error(), "Data": nil}
@@ -208,16 +208,16 @@ func (c *DerechosPecuniariosController) DeleteConcepto() {
 
 	id := c.Ctx.Input.Param(":id")
 
-	if err := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId__Id:"+id, &Parametro); err == nil {
+	if err := request.GetJson(beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId__Id:"+id, &Parametro); err == nil {
 		DataAux := Parametro["Data"].([]interface{})[0]
 		Data := DataAux.(map[string]interface{})
 		Concepto := Data["ParametroId"].(map[string]interface{})
 		Data["Activo"] = false
 		Concepto["Activo"] = false
 
-		errFactor := request.SendJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo/"+fmt.Sprintf("%.f", Data["Id"].(float64)), "PUT", &AuxFactorPut, Data)
+		errFactor := request.SendJson(beego.AppConfig.String("ParametroService")+"parametro_periodo/"+fmt.Sprintf("%.f", Data["Id"].(float64)), "PUT", &AuxFactorPut, Data)
 		if errFactor == nil {
-			errConcepto := request.SendJson("http://"+beego.AppConfig.String("ParametroService")+"parametro/"+id, "PUT", &AuxConceptoPut, Concepto)
+			errConcepto := request.SendJson(beego.AppConfig.String("ParametroService")+"parametro/"+id, "PUT", &AuxConceptoPut, Concepto)
 			if errConcepto == nil {
 
 				response := map[string]interface{}{
@@ -302,7 +302,7 @@ func (c *DerechosPecuniariosController) PostClonarConceptos() {
 					"Activo":            OldConcepto["Activo"],
 					"TipoParametroId":   map[string]interface{}{"Id": TipoParametroId},
 				}
-				errNuevoConcepto := request.SendJson("http://"+beego.AppConfig.String("ParametroService")+"parametro", "POST", &NuevoConceptoPost, NuevoConcepto)
+				errNuevoConcepto := request.SendJson(beego.AppConfig.String("ParametroService")+"parametro", "POST", &NuevoConceptoPost, NuevoConcepto)
 				if errNuevoConcepto == nil {
 					OldFactor := concepto.(map[string]interface{})
 					NuevoFactor := map[string]interface{}{
@@ -311,12 +311,12 @@ func (c *DerechosPecuniariosController) PostClonarConceptos() {
 						"ParametroId": map[string]interface{}{"Id": NuevoConceptoPost["Data"].(map[string]interface{})["Id"]},
 						"PeriodoId":   map[string]interface{}{"Id": vigenciaActual},
 					}
-					errNuevoFactor := request.SendJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo", "POST", &NuevoFactorPost, NuevoFactor)
+					errNuevoFactor := request.SendJson(beego.AppConfig.String("ParametroService")+"parametro_periodo", "POST", &NuevoFactorPost, NuevoFactor)
 					if errNuevoFactor != nil {
 						var resDelete string
 						errorGetAll = true
 						logs.Error(errNuevoFactor)
-						request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("ParametroService")+"parametro/%.f", NuevoConceptoPost["Id"]), "DELETE", &resDelete, nil)
+						request.SendJson(fmt.Sprintf(beego.AppConfig.String("ParametroService")+"parametro/%.f", NuevoConceptoPost["Id"]), "DELETE", &resDelete, nil)
 						c.Data["json"] = map[string]interface{}{"Success": false, "Status": "400", "Message": errNuevoFactor.Error(), "Data": nil}
 					}
 				} else {
@@ -349,7 +349,7 @@ func FiltrarDerechosPecuniarios(vigenciaId string) ([]interface{}, error) {
 	var parametros map[string]interface{}
 	var conceptos []interface{}
 
-	errorConceptos := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?limit=0&query=PeriodoId__Id:"+vigenciaId, &parametros)
+	errorConceptos := request.GetJson(beego.AppConfig.String("ParametroService")+"parametro_periodo?limit=0&query=PeriodoId__Id:"+vigenciaId, &parametros)
 	if errorConceptos == nil {
 		if parametros["Data"] != nil && fmt.Sprintf("%v", parametros["Data"]) != "[map[]]" {
 			conceptos = parametros["Data"].([]interface{})
@@ -390,7 +390,7 @@ func (c *DerechosPecuniariosController) PutCostoConcepto() {
 			for _, conceptoTemp := range ConceptoCostoAux {
 				idFactor := fmt.Sprintf("%.f", conceptoTemp["FactorId"].(float64))
 				// Consulta el factor que esta relacionado con el valor del concepto
-				errFactor := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo/"+idFactor, &FactorAux)
+				errFactor := request.GetJson(beego.AppConfig.String("ParametroService")+"parametro_periodo/"+idFactor, &FactorAux)
 				if errFactor == nil {
 					if FactorAux != nil {
 						Factor = FactorAux["Data"].(map[string]interface{})
@@ -398,7 +398,7 @@ func (c *DerechosPecuniariosController) PutCostoConcepto() {
 						CostoValor := fmt.Sprintf("%.f", conceptoTemp["Costo"].(float64))
 						Valor := "{\n    \"NumFactor\": " + FactorValor + ",\n \"Costo\": " + CostoValor + "\n}"
 						Factor["Valor"] = Valor
-						errPut := request.SendJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo/"+idFactor, "PUT", &FactorPut, Factor)
+						errPut := request.SendJson(beego.AppConfig.String("ParametroService")+"parametro_periodo/"+idFactor, "PUT", &FactorPut, Factor)
 						if errPut == nil {
 							if FactorPut == nil {
 								errorGetAll = true
@@ -475,10 +475,10 @@ func (c *DerechosPecuniariosController) PostGenerarDerechoPecuniarioEstudiante()
 
 			paramId := fmt.Sprintf("%.f", SolicitudDerechoPecuniario["DerechoPecuniarioId"].(float64))
 			terceroId := fmt.Sprintf("%.f", SolicitudDerechoPecuniario["Id"].(float64))
-			errParam := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId.Id:"+paramId, &Derecho)
+			errParam := request.GetJson(beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId.Id:"+paramId, &Derecho)
 			if errParam == nil && fmt.Sprintf("%v", Derecho["Data"].([]interface{})[0]) != "map[]" {
 
-				errCodigo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=InfoComplementariaId.Id:93,TerceroId.Id:"+terceroId, &Codigo)
+				errCodigo := request.GetJson(beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=InfoComplementariaId.Id:93,TerceroId.Id:"+terceroId, &Codigo)
 				if errCodigo == nil && fmt.Sprintf("%v", Codigo) != "map[]" {
 					objTransaccion["codigo"] = Codigo[0].(map[string]interface{})["Dato"]
 
@@ -518,7 +518,7 @@ func (c *DerechosPecuniariosController) PostGenerarDerechoPecuniarioEstudiante()
 
 						SolicitudRecibo := objTransaccion
 
-						reciboSolicitud := httplib.Post("http://" + beego.AppConfig.String("GenerarReciboJbpmService") + "recibos_pago_proxy")
+						reciboSolicitud := httplib.Post(beego.AppConfig.String("GenerarReciboJbpmService") + "recibos_pago_proxy")
 						reciboSolicitud.Header("Accept", "application/json")
 						reciboSolicitud.Header("Content-Type", "application/json")
 						reciboSolicitud.JSONBody(SolicitudRecibo)
@@ -535,7 +535,7 @@ func (c *DerechosPecuniariosController) PostGenerarDerechoPecuniarioEstudiante()
 								"Dato":   `{"Recibo":` + `"` + fmt.Sprintf("%v/%v", NuevoRecibo["creaTransaccionResponse"].(map[string]interface{})["secuencia"], NuevoRecibo["creaTransaccionResponse"].(map[string]interface{})["anio"]) + `", ` + `"CodigoAsociado": "` + SolicitudDerechoPecuniario["CodigoEstudiante"].(string) + `", "SolicitudId":""}`,
 							}
 
-							errComplementarioPost := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero", "POST", &complementario, derechoPecuniarioSolicitado)
+							errComplementarioPost := request.SendJson(beego.AppConfig.String("TercerosService")+"info_complementaria_tercero", "POST", &complementario, derechoPecuniarioSolicitado)
 							if errComplementarioPost != nil {
 								logs.Error(errComplementarioPost)
 								c.Data["json"] = map[string]interface{}{"Success": true, "Status": "204", "Message": errComplementarioPost.Error(), "Data": nil}
@@ -601,13 +601,13 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 	var errorGetAll bool
 	alertas := []interface{}{}
 
-	errPeriodo := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"periodo?query=id:"+id_periodo, &Periodo)
+	errPeriodo := request.GetJson(beego.AppConfig.String("ParametroService")+"periodo?query=id:"+id_periodo, &Periodo)
 	if errPeriodo == nil {
 		if Periodo != nil && fmt.Sprintf("%v", Periodo["Data"]) != "[map[]]" {
 			PeriodoConsulta = fmt.Sprint(Periodo["Data"].([]interface{})[0].(map[string]interface{})["Year"])
 
 			//Se consultan todos los recibos de derechos pecuniarios relacionados a ese tercero
-			errRecibo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=0&query=InfoComplementariaId.Id:307,TerceroId.Id:"+persona_id, &Recibos)
+			errRecibo := request.GetJson(beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?limit=0&query=InfoComplementariaId.Id:307,TerceroId.Id:"+persona_id, &Recibos)
 			if errRecibo == nil {
 				if Recibos != nil && fmt.Sprintf("%v", Recibos[0]) != "map[]" {
 					// Ciclo for que recorre todos los recibos de derechos pecuniarios solicitados por el tercero
@@ -621,7 +621,7 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 						}
 
 						if strings.Split(ReciboDerecho, "/")[1] == PeriodoConsulta {
-							errRecibo := request.GetJsonWSO2("http://"+beego.AppConfig.String("ConsultarReciboJbpmService")+"consulta_recibo/"+ReciboDerecho, &ReciboXML)
+							errRecibo := request.GetJsonWSO2(beego.AppConfig.String("ConsultarReciboJbpmService")+"consulta_recibo/"+ReciboDerecho, &ReciboXML)
 							if errRecibo == nil {
 								if ReciboXML != nil && fmt.Sprintf("%v", ReciboXML) != "map[reciboCollection:map[]]" && fmt.Sprintf("%v", ReciboXML) != "map[]" {
 									//Fecha límite de pago extraordinario
@@ -660,7 +660,7 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 									}
 
 									//Nombre del derecho pecuniario
-									errDerecho := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId.CodigoAbreviacion:"+IdConcepto+",PeriodoId.Id:"+id_periodo+",Activo:true", &Derecho)
+									errDerecho := request.GetJson(beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId.CodigoAbreviacion:"+IdConcepto+",PeriodoId.Id:"+id_periodo+",Activo:true", &Derecho)
 									NombreConcepto := "---"
 									if errDerecho == nil {
 										if Derecho != nil && fmt.Sprintf("%v", Derecho["Data"]) != "map[]" {
@@ -697,7 +697,7 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 										fechaPago = "" // Validar origen del dato
 
 										//Información de la solicitud
-										errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud?query=Id:"+fmt.Sprintf("%v", reciboJson["SolicitudId"]), &Solicitudes)
+										errSolicitud := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud?query=Id:"+fmt.Sprintf("%v", reciboJson["SolicitudId"]), &Solicitudes)
 										if errSolicitud == nil {
 											if Solicitudes != nil && fmt.Sprintf("%v", Solicitudes[0]) != "map[]" && Solicitudes[0]["Resultado"] != nil {
 												Resultado := Solicitudes[0]["Resultado"].(string)
@@ -727,7 +727,7 @@ func (c *DerechosPecuniariosController) GetEstadoRecibo() {
 										}
 									}
 
-									errPrograma := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion/"+fmt.Sprintf("%v", ProgramaAcademicoId), &Programa)
+									errPrograma := request.GetJson(beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion/"+fmt.Sprintf("%v", ProgramaAcademicoId), &Programa)
 									nombrePrograma := "---"
 									if errPrograma == nil {
 										nombrePrograma = fmt.Sprint(Programa["Nombre"])
@@ -806,13 +806,13 @@ func (c *DerechosPecuniariosController) GetConsultarPersona() {
 	var persona []map[string]interface{}
 	var errorGetAll bool
 
-	errPersona := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero?query=Id:"+idStr, &persona)
+	errPersona := request.GetJson(beego.AppConfig.String("TercerosService")+"tercero?query=Id:"+idStr, &persona)
 	if errPersona == nil && fmt.Sprintf("%v", persona[0]) != "map[]" {
 		if persona[0]["Status"] != 404 {
 
 			var identificacion []map[string]interface{}
 
-			errIdentificacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=Activo:true,TerceroId.Id:"+idStr+"&sortby=Id&order=desc&limit=0", &identificacion)
+			errIdentificacion := request.GetJson(beego.AppConfig.String("TercerosService")+"datos_identificacion?query=Activo:true,TerceroId.Id:"+idStr+"&sortby=Id&order=desc&limit=0", &identificacion)
 			if errIdentificacion == nil && fmt.Sprintf("%v", identificacion[0]) != "map[]" {
 				if identificacion[0]["Status"] != 404 {
 					var codigos []map[string]interface{}
@@ -824,11 +824,11 @@ func (c *DerechosPecuniariosController) GetConsultarPersona() {
 					resultado["FechaExpedicion"] = identificacion[0]["FechaExpedicion"]
 					resultado["SoporteDocumento"] = identificacion[0]["DocumentoSoporte"]
 
-					errCodigoEst := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+
+					errCodigoEst := request.GetJson(beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+
 						fmt.Sprintf("%v", persona[0]["Id"])+",InfoComplementariaId.Id:93&limit=0", &codigos)
 					if errCodigoEst == nil && fmt.Sprintf("%v", codigos[0]) != "map[]" {
 						for _, codigo := range codigos {
-							errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Codigo:"+codigo["Dato"].(string)[5:8], &proyecto)
+							errProyecto := request.GetJson(beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Codigo:"+codigo["Dato"].(string)[5:8], &proyecto)
 							if errProyecto == nil && fmt.Sprintf("%v", proyecto[0]) != "map[]" {
 								codigo["Proyecto"] = codigo["Dato"].(string) + " Proyecto: " + codigo["Dato"].(string)[5:8] + " - " + proyecto[0]["Nombre"].(string)
 								codigo["IdProyecto"] = proyecto[0]["Codigo"]
@@ -925,14 +925,14 @@ func (c *DerechosPecuniariosController) PostSolicitudDerechoPecuniario() {
 		var jsonTerceroSolicitante []byte
 		var jsonDerechoPecuniarioId []byte
 
-		errTercero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+fmt.Sprintf("%v", SolicitudData["SolicitanteId"]), &TerceroSolicitante)
+		errTercero := request.GetJson(beego.AppConfig.String("TercerosService")+"tercero/"+fmt.Sprintf("%v", SolicitudData["SolicitanteId"]), &TerceroSolicitante)
 		if errTercero == nil && TerceroSolicitante != nil {
 			if fmt.Sprintf("%v", TerceroSolicitante) != "map[]" && TerceroSolicitante["Status"] != "404" {
 				jsonTerceroSolicitante, _ = json.Marshal(TerceroSolicitante)
 			}
 		}
 
-		errDerecho := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId.CodigoAbreviacion:"+fmt.Sprintf("%v", SolicitudData["Codigo"])+",PeriodoId.Year:"+fmt.Sprintf("%v", SolicitudData["Periodo"])+",Activo:true", &Derecho)
+		errDerecho := request.GetJson(beego.AppConfig.String("ParametroService")+"parametro_periodo?query=ParametroId.CodigoAbreviacion:"+fmt.Sprintf("%v", SolicitudData["Codigo"])+",PeriodoId.Year:"+fmt.Sprintf("%v", SolicitudData["Periodo"])+",Activo:true", &Derecho)
 		if errDerecho == nil && fmt.Sprintf("%v", Derecho["Data"]) != "map[]" {
 			jsonDerechoPecuniarioId, _ = json.Marshal(Derecho["Data"].([]interface{})[0])
 		}
@@ -956,7 +956,7 @@ func (c *DerechosPecuniariosController) PostSolicitudDerechoPecuniario() {
 			"SolicitudPadreId":      nil,
 		}
 
-		errSolicitud := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud", "POST", &SolicitudPost, SolicitudPracticas)
+		errSolicitud := request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud", "POST", &SolicitudPost, SolicitudPracticas)
 		if errSolicitud == nil {
 			if SolicitudPost["Success"] != false && fmt.Sprintf("%v", SolicitudPost) != "map[]" {
 				resultado["Solicitud"] = SolicitudPost["Data"]
@@ -971,7 +971,7 @@ func (c *DerechosPecuniariosController) PostSolicitudDerechoPecuniario() {
 					"Activo": true,
 				}
 
-				errSolicitante := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante", "POST", &SolicitantePost, Solicitante)
+				errSolicitante := request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitante", "POST", &SolicitantePost, Solicitante)
 				if errSolicitante == nil && fmt.Sprintf("%v", SolicitantePost["Status"]) != "400" {
 					if SolicitantePost != nil && fmt.Sprintf("%v", SolicitantePost) != "map[]" {
 						//POST a la tabla solicitud_evolucion estado
@@ -988,11 +988,11 @@ func (c *DerechosPecuniariosController) PostSolicitudDerechoPecuniario() {
 							"FechaLimite": fmt.Sprintf("%v", SolicitudData["FechaCreacion"]),
 						}
 
-						errSolicitudEvolucionEstado := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado", "POST", &SolicitudEvolucionEstadoPost, SolicitudEvolucionEstado)
+						errSolicitudEvolucionEstado := request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado", "POST", &SolicitudEvolucionEstadoPost, SolicitudEvolucionEstado)
 						if errSolicitudEvolucionEstado == nil {
 							if SolicitudEvolucionEstadoPost != nil && fmt.Sprintf("%v", SolicitudEvolucionEstadoPost) != "map[]" {
 								idComplementario := SolicitudData["IdComplementario"]
-								errInfoComplementario := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+fmt.Sprintf("%v", idComplementario), &Infocomplementario)
+								errInfoComplementario := request.GetJson(beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+fmt.Sprintf("%v", idComplementario), &Infocomplementario)
 								if errInfoComplementario == nil && Infocomplementario != nil {
 									if fmt.Sprintf("%v", Infocomplementario) != "map[]" && Infocomplementario["Status"] != "404" {
 
@@ -1000,7 +1000,7 @@ func (c *DerechosPecuniariosController) PostSolicitudDerechoPecuniario() {
 										if err := json.Unmarshal([]byte(Infocomplementario["Dato"].(string)), &InfocomplementarioJson); err == nil {
 											Infocomplementario["Dato"] = `{"Recibo":` + `"` + fmt.Sprintf("%v", InfocomplementarioJson["Recibo"]) + `", ` + `"CodigoAsociado": "` + fmt.Sprintf("%v", InfocomplementarioJson["CodigoAsociado"]) + `", "SolicitudId":"` + fmt.Sprintf("%v", IdSolicitud) + `"}`
 
-											errActuComplementario := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+fmt.Sprintf("%v", idComplementario), "PUT", &InfocomplementarioPut, Infocomplementario)
+											errActuComplementario := request.SendJson(beego.AppConfig.String("TercerosService")+"info_complementaria_tercero/"+fmt.Sprintf("%v", idComplementario), "PUT", &InfocomplementarioPut, Infocomplementario)
 											if errActuComplementario != nil {
 												resultado["Solicitante"] = SolicitantePost["Data"]
 											}
@@ -1014,8 +1014,8 @@ func (c *DerechosPecuniariosController) PostSolicitudDerechoPecuniario() {
 							}
 						} else {
 							var resultado2 map[string]interface{}
-							request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+fmt.Sprintf("%v", IdSolicitud), "DELETE", &resultado2, nil)
-							request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante/"+fmt.Sprintf("%v", SolicitantePost["Id"]), "DELETE", &resultado2, nil)
+							request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+fmt.Sprintf("%v", IdSolicitud), "DELETE", &resultado2, nil)
+							request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitante/"+fmt.Sprintf("%v", SolicitantePost["Id"]), "DELETE", &resultado2, nil)
 							errorGetAll = true
 							c.Data["json"] = map[string]interface{}{"Success": false, "Status": "400", "Message": errSolicitante.Error(), "Data": nil}
 						}
@@ -1026,7 +1026,7 @@ func (c *DerechosPecuniariosController) PostSolicitudDerechoPecuniario() {
 				} else {
 					//Se elimina el registro de solicitud si no se puede hacer el POST a la tabla solicitante
 					var resultado2 map[string]interface{}
-					request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+fmt.Sprintf("%v", IdSolicitud), "DELETE", &resultado2, nil)
+					request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+fmt.Sprintf("%v", IdSolicitud), "DELETE", &resultado2, nil)
 					errorGetAll = true
 					c.Data["json"] = map[string]interface{}{"Success": false, "Status": "400", "Message": errSolicitante.Error(), "Data": nil}
 				}
@@ -1063,7 +1063,7 @@ func (c *DerechosPecuniariosController) GetSolicitudDerechoPecuniario() {
 	resultado := make([]map[string]interface{}, 0)
 	var errorGetAll bool
 
-	errSolicitudes := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud?query=EstadoTipoSolicitudId.Id:41,Activo:true&limit=0", &Solicitudes)
+	errSolicitudes := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud?query=EstadoTipoSolicitudId.Id:41,Activo:true&limit=0", &Solicitudes)
 	if errSolicitudes == nil {
 		if Solicitudes != nil && fmt.Sprintf("%v", Solicitudes[0]) != "map[]" && Solicitudes[0]["Resultado"] != nil {
 			for _, solicitud := range Solicitudes {
@@ -1084,7 +1084,7 @@ func (c *DerechosPecuniariosController) GetSolicitudDerechoPecuniario() {
 						valor = fmt.Sprintf("%v", valorJson["Costo"])
 					}
 
-					errIdentificacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?limit=0&query=TerceroId.Id:"+TerceroSolicitanteId+",Activo:True", &DatosIdentificacion)
+					errIdentificacion := request.GetJson(beego.AppConfig.String("TercerosService")+"datos_identificacion?limit=0&query=TerceroId.Id:"+TerceroSolicitanteId+",Activo:True", &DatosIdentificacion)
 					if errIdentificacion == nil {
 						if DatosIdentificacion != nil && fmt.Sprintf("%v", DatosIdentificacion[0]) != "map[]" {
 							NombreIdentificacion := fmt.Sprintf("%v", DatosIdentificacion[0]["TipoDocumentoId"].(map[string]interface{})["Nombre"])
@@ -1160,7 +1160,7 @@ func (c *DerechosPecuniariosController) PostRespuestaSolicitudDerechoPecuniario(
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &RespuestaSolicitud); err == nil {
 
 		// Consulta de información de la solicitud
-		errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+id_solicitud, &Solicitud)
+		errSolicitud := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+id_solicitud, &Solicitud)
 		if errSolicitud == nil {
 			if Solicitud != nil && fmt.Sprintf("%v", Solicitud["Status"]) != "404" {
 
@@ -1201,14 +1201,14 @@ func (c *DerechosPecuniariosController) PostRespuestaSolicitudDerechoPecuniario(
 				}
 
 				// Actualización del anterior estado
-				errAntEstado := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado?query=activo:true,solicitudId.Id:"+id_solicitud, &anteriorEstado)
+				errAntEstado := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado?query=activo:true,solicitudId.Id:"+id_solicitud, &anteriorEstado)
 				if errAntEstado == nil {
 					if anteriorEstado != nil && fmt.Sprintf("%v", anteriorEstado) != "map[]" {
 
 						anteriorEstado[0]["Activo"] = false
 						estadoAnteriorId := fmt.Sprintf("%v", anteriorEstado[0]["Id"])
 
-						errSolicitudEvolucionEstado := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado/"+estadoAnteriorId, "PUT", &anteriorEstadoPost, anteriorEstado[0])
+						errSolicitudEvolucionEstado := request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado/"+estadoAnteriorId, "PUT", &anteriorEstadoPost, anteriorEstado[0])
 						if errSolicitudEvolucionEstado == nil {
 
 							id, _ := strconv.Atoi(id_solicitud)
@@ -1227,7 +1227,7 @@ func (c *DerechosPecuniariosController) PostRespuestaSolicitudDerechoPecuniario(
 								"FechaLimite": RespuestaSolicitud["FechaRespuesta"],
 							}
 
-							errSolicitudEvolucionEstado := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado", "POST", &SolicitudEvolucionEstadoPost, SolicitudEvolucionEstado)
+							errSolicitudEvolucionEstado := request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado", "POST", &SolicitudEvolucionEstadoPost, SolicitudEvolucionEstado)
 							if errSolicitudEvolucionEstado == nil {
 								if SolicitudEvolucionEstadoPost != nil && fmt.Sprintf("%v", SolicitudEvolucionEstadoPost) != "map[]" {
 
@@ -1236,7 +1236,7 @@ func (c *DerechosPecuniariosController) PostRespuestaSolicitudDerechoPecuniario(
 									// Solicitud["EstadoTipoSolicitudId"].(map[string]interface{})["Activo"] = true
 									Solicitud["SolicitudFinalizada"] = true
 
-									errPutEstado := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+id_solicitud, "PUT", &SolicitudPut, Solicitud)
+									errPutEstado := request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+id_solicitud, "PUT", &SolicitudPut, Solicitud)
 
 									if errPutEstado == nil {
 										if SolicitudPut["Status"] == "400" {

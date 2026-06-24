@@ -55,7 +55,7 @@ func (c *CrearProyectoAcademicoController) PostProyecto() {
 		//var resultadoOikos map[string]interface{}
 		var resultadoProyecto map[string]interface{}
 
-		/* errOikos := request.SendJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia_padre/tr_dependencia_padre", "POST", &resultadoOikos, Proyecto_academico_oikosPost)
+		/* errOikos := request.SendJson(beego.AppConfig.String("OikosService")+"/dependencia_padre/tr_dependencia_padre", "POST", &resultadoOikos, Proyecto_academico_oikosPost)
 		if resultadoOikos["Type"] == "error" || errOikos != nil || resultadoOikos["Status"] == "404" || resultadoOikos["Message"] != nil {
 			alertas = append(alertas, errOikos)
 			alertas = append(alertas, resultadoOikos)
@@ -70,7 +70,7 @@ func (c *CrearProyectoAcademicoController) PostProyecto() {
 			Proyecto_academicoPost["ProyectoAcademicoInstitucion"].(map[string]interface{})["DependenciaId"] = idDependenciaProyecto
 		} */
 
-		errProyecto := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/tr_proyecto_academico", "POST", &resultadoProyecto, Proyecto_academicoPost)
+		errProyecto := request.SendJson(beego.AppConfig.String("ProyectoAcademicoService")+"/tr_proyecto_academico", "POST", &resultadoProyecto, Proyecto_academicoPost)
 		if resultadoProyecto["Type"] == "error" || errProyecto != nil || resultadoProyecto["Status"] == "404" || resultadoProyecto["Message"] != nil {
 			alertas = append(alertas, errProyecto)
 			alerta.Type = "error"
@@ -110,7 +110,7 @@ func (c *CrearProyectoAcademicoController) PostRegistroCalificadoById() {
 		if resultado["Type"] != "error" {
 			idStr := fmt.Sprintf("%v", Registro_nuevo["ProyectoAcademicoInstitucionId"].(map[string]interface{})["Id"])
 			var registros_antiguos_acreditacion []map[string]interface{}
-			erregistro := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion/?query=ProyectoAcademicoInstitucionId:"+idStr+",TipoRegistroId.Id:1", &registros_antiguos_acreditacion)
+			erregistro := request.GetJson(beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion/?query=ProyectoAcademicoInstitucionId:"+idStr+",TipoRegistroId.Id:1", &registros_antiguos_acreditacion)
 
 			if erregistro == nil {
 				if fmt.Sprintf("%v", registros_antiguos_acreditacion) != "[map[]]" {
@@ -121,7 +121,7 @@ func (c *CrearProyectoAcademicoController) PostRegistroCalificadoById() {
 						Id_registro_cambiado := registro["Id"]
 						idRegistro := Id_registro_cambiado.(float64)
 						var resultado map[string]interface{}
-						errregistrocambiado := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion/"+strconv.FormatFloat(idRegistro, 'f', -1, 64), "PUT", &resultado, registro_cambiado)
+						errregistrocambiado := request.SendJson(beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion/"+strconv.FormatFloat(idRegistro, 'f', -1, 64), "PUT", &resultado, registro_cambiado)
 						if resultado["Type"] == "error" || errregistrocambiado != nil || resultado["Status"] == "404" || resultado["Message"] != nil {
 							alertas = append(alertas, resultado)
 							alerta.Type = "error"
@@ -130,7 +130,7 @@ func (c *CrearProyectoAcademicoController) PostRegistroCalificadoById() {
 					}
 				}
 				var resultadoRegistroNuevo map[string]interface{}
-				errRegistro := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion", "POST", &resultadoRegistroNuevo, Registro_nuevo)
+				errRegistro := request.SendJson(beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion", "POST", &resultadoRegistroNuevo, Registro_nuevo)
 				if resultadoRegistroNuevo["Type"] == "error" || errRegistro != nil || resultadoRegistroNuevo["Status"] == "404" || resultadoRegistroNuevo["Message"] != nil {
 					alertas = append(alertas, resultadoRegistroNuevo)
 					alerta.Type = "error"
@@ -191,7 +191,7 @@ func (c *CrearProyectoAcademicoController) PostRegistroAltaCalidadById() {
 	if resultado["Type"] != "error" {
 		var registros_antiguos_alta_calidad []map[string]interface{}
 
-		erregistro := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion/?query=ProyectoAcademicoInstitucionId:"+idStr+",TipoRegistroId.Id:2", &registros_antiguos_alta_calidad)
+		erregistro := request.GetJson(beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion/?query=ProyectoAcademicoInstitucionId:"+idStr+",TipoRegistroId.Id:2", &registros_antiguos_alta_calidad)
 		if erregistro == nil {
 			if registros_antiguos_alta_calidad[0]["Id"] != nil {
 				for _, registro := range registros_antiguos_alta_calidad {
@@ -201,7 +201,7 @@ func (c *CrearProyectoAcademicoController) PostRegistroAltaCalidadById() {
 					Id_registro_cambiado := registro["Id"]
 					idRegistro := Id_registro_cambiado.(float64)
 					var resultado map[string]interface{}
-					errregistrocambiado := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion/"+strconv.FormatFloat(idRegistro, 'f', -1, 64), "PUT", &resultado, registro_cambiado)
+					errregistrocambiado := request.SendJson(beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion/"+strconv.FormatFloat(idRegistro, 'f', -1, 64), "PUT", &resultado, registro_cambiado)
 					if resultado["Type"] == "error" || errregistrocambiado != nil || resultado["Status"] == "404" || resultado["Message"] != nil {
 						alertas = append(alertas, resultado)
 						alerta.Type = "error"
@@ -213,7 +213,7 @@ func (c *CrearProyectoAcademicoController) PostRegistroAltaCalidadById() {
 				}
 				if err := json.Unmarshal(c.Ctx.Input.RequestBody, &Registro_nuevo); err == nil {
 					var resultadoRegistroNuevo map[string]interface{}
-					errRegistro := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion", "POST", &resultadoRegistroNuevo, Registro_nuevo)
+					errRegistro := request.SendJson(beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion", "POST", &resultadoRegistroNuevo, Registro_nuevo)
 					if resultadoRegistroNuevo["Type"] == "error" || errRegistro != nil || resultadoRegistroNuevo["Status"] == "404" || resultadoRegistroNuevo["Message"] != nil {
 						alertas = append(alertas, resultadoRegistroNuevo)
 						alerta.Type = "error"
@@ -235,7 +235,7 @@ func (c *CrearProyectoAcademicoController) PostRegistroAltaCalidadById() {
 			} else {
 				if err := json.Unmarshal(c.Ctx.Input.RequestBody, &Registro_nuevo); err == nil {
 					var resultadoRegistroNuevo map[string]interface{}
-					errRegistro := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion", "POST", &resultadoRegistroNuevo, Registro_nuevo)
+					errRegistro := request.SendJson(beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion", "POST", &resultadoRegistroNuevo, Registro_nuevo)
 					if resultadoRegistroNuevo["Type"] == "error" || errRegistro != nil || resultadoRegistroNuevo["Status"] == "404" || resultadoRegistroNuevo["Message"] != nil {
 						alertas = append(alertas, resultadoRegistroNuevo)
 						alerta.Type = "error"
@@ -293,7 +293,7 @@ func (c *CrearProyectoAcademicoController) PostCoordinadorById() {
 			var CoordinadorAntiguos []map[string]interface{}
 			idStr := fmt.Sprintf("%v", CoordinadorNuevo["ProyectoAcademicoInstitucionId"].(map[string]interface{})["Id"])
 
-			errcordinador := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_rol_tercero_dependencia/?query=ProyectoAcademicoInstitucionId.Id:"+idStr, &CoordinadorAntiguos)
+			errcordinador := request.GetJson(beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_rol_tercero_dependencia/?query=ProyectoAcademicoInstitucionId.Id:"+idStr, &CoordinadorAntiguos)
 			if errcordinador == nil {
 				if CoordinadorAntiguos[0]["Id"] != nil {
 
@@ -305,7 +305,7 @@ func (c *CrearProyectoAcademicoController) PostCoordinadorById() {
 							Id_coordinador_cambiado := cordinadorFecha["Id"]
 							idcoordinador := Id_coordinador_cambiado.(float64)
 							var resultado map[string]interface{}
-							errcoordinadorcambiado := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_rol_tercero_dependencia/"+strconv.FormatFloat(idcoordinador, 'f', -1, 64), "PUT", &resultado, &coordinador_cambiado)
+							errcoordinadorcambiado := request.SendJson(beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_rol_tercero_dependencia/"+strconv.FormatFloat(idcoordinador, 'f', -1, 64), "PUT", &resultado, &coordinador_cambiado)
 							if resultado["Type"] == "error" || errcoordinadorcambiado != nil || resultado["Status"] == "404" || resultado["Message"] != nil {
 								alertas = append(alertas, resultado)
 								alerta.Type = "error"
@@ -319,7 +319,7 @@ func (c *CrearProyectoAcademicoController) PostCoordinadorById() {
 
 					var resultadoCoordinadorNuevo map[string]interface{}
 					CoordinadorNuevo["FechaFinalizacion"] = "0001-01-01T00:00:00-05:00"
-					errRegistro := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_rol_tercero_dependencia", "POST", &resultadoCoordinadorNuevo, CoordinadorNuevo)
+					errRegistro := request.SendJson(beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_rol_tercero_dependencia", "POST", &resultadoCoordinadorNuevo, CoordinadorNuevo)
 					if resultadoCoordinadorNuevo["Type"] == "error" || errRegistro != nil || resultadoCoordinadorNuevo["Status"] == "404" || resultadoCoordinadorNuevo["Message"] != nil {
 						alertas = append(alertas, resultadoCoordinadorNuevo)
 						alerta.Type = "error"
@@ -336,7 +336,7 @@ func (c *CrearProyectoAcademicoController) PostCoordinadorById() {
 						var resultadoCoordinadorNuevo map[string]interface{}
 						CoordinadorNuevo["FechaFinalizacion"] = "0001-01-01T00:00:00-05:00"
 
-						errRegistro := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_rol_tercero_dependencia", "POST", &resultadoCoordinadorNuevo, CoordinadorNuevo)
+						errRegistro := request.SendJson(beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_rol_tercero_dependencia", "POST", &resultadoCoordinadorNuevo, CoordinadorNuevo)
 						if resultadoCoordinadorNuevo["Type"] == "error" || errRegistro != nil || resultadoCoordinadorNuevo["Status"] == "404" || resultadoCoordinadorNuevo["Message"] != nil {
 							alertas = append(alertas, resultadoCoordinadorNuevo)
 							alerta.Type = "error"

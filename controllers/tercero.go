@@ -35,7 +35,7 @@ func (c *TerceroController) GetByIdentificacion() {
 	tid := c.GetString("TipoId")
 	var resultado map[string]interface{}
 	var identificacion []map[string]interface{}
-	errIdentificacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?limit=1&query=TipoDocumentoId__Id:"+tid+",Numero:"+uid, &identificacion)
+	errIdentificacion := request.GetJson(beego.AppConfig.String("TercerosService")+"datos_identificacion?limit=1&query=TipoDocumentoId__Id:"+tid+",Numero:"+uid, &identificacion)
 	if errIdentificacion == nil && fmt.Sprintf("%v", identificacion[0]) != "map[]" && identificacion[0]["Id"] != nil {
 		if identificacion[0]["Status"] != 404 {
 			resultado = identificacion[0]["TerceroId"].(map[string]interface{})
@@ -43,7 +43,7 @@ func (c *TerceroController) GetByIdentificacion() {
 			resultado["NumeroIdentificacion"] = identificacion[0]["Numero"]
 
 			var contactos []map[string]interface{}
-			errContacto := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero?limit=0&query=TerceroId__Id:"+fmt.Sprintf("%v", resultado["Id"]), &contactos)
+			errContacto := request.GetJson(beego.AppConfig.String("TercerosService")+"/info_complementaria_tercero?limit=0&query=TerceroId__Id:"+fmt.Sprintf("%v", resultado["Id"]), &contactos)
 			if errContacto == nil && fmt.Sprintf("%v", contactos[0]) != "map[]" && contactos[0]["Id"] != nil {
 				if contactos[0]["Status"] != 404 {
 					for _, contacto := range contactos {
@@ -86,9 +86,9 @@ func (c *TerceroController) GetByIdentificacion() {
 			// if (resultado["LugarOrigen"] != nil && resultado["LugarOrigen"].(float64) == 0) {
 			if resultado["LugarOrigen"] != nil {
 				var ubicacion []map[string]interface{}
-				// errUbicacion := request.GetJson("http://"+beego.AppConfig.String("EnteService")+"/valor_atributo_ubicacion/?query=UbicacionEnte.Ente.Id:"+fmt.Sprintf("%v", identificacion[0]["Ente"].(map[string]interface{})["Id"]), &ubicacion)
-				errUbicacion := request.GetJson("http://"+beego.AppConfig.String("UbicacionesService")+"/lugar/?limit=1&query=Id:"+fmt.Sprintf("%v", resultado["LugarOrigen"].(float64)), &ubicacion)
-				// errUbicacion := request.GetJson("http://"+beego.AppConfig.String("UbicacionesService")+"/lugar/?limit=1&query=Id:1", &ubicacion)
+				// errUbicacion := request.GetJson(beego.AppConfig.String("EnteService")+"/valor_atributo_ubicacion/?query=UbicacionEnte.Ente.Id:"+fmt.Sprintf("%v", identificacion[0]["Ente"].(map[string]interface{})["Id"]), &ubicacion)
+				errUbicacion := request.GetJson(beego.AppConfig.String("UbicacionesService")+"/lugar/?limit=1&query=Id:"+fmt.Sprintf("%v", resultado["LugarOrigen"].(float64)), &ubicacion)
+				// errUbicacion := request.GetJson(beego.AppConfig.String("UbicacionesService")+"/lugar/?limit=1&query=Id:1", &ubicacion)
 				// fmt.Println("la respuesta ubicacion es:", ubicacion)
 				// if errUbicacion == nil && fmt.Sprintf("%v", ubicacion[0]) != "map[]"  && ubicacion[0]["Id"] != nil {
 				if errUbicacion == nil && fmt.Sprintf("%v", ubicacion[0]) != "map[]" {
@@ -113,7 +113,7 @@ func (c *TerceroController) GetByIdentificacion() {
 			}
 
 			var tipoTercero []map[string]interface{}
-			errTipoTercero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero_tipo_tercero/?limit=1&query=TerceroId__Id:"+fmt.Sprintf("%v", resultado["Id"]), &tipoTercero)
+			errTipoTercero := request.GetJson(beego.AppConfig.String("TercerosService")+"/tercero_tipo_tercero/?limit=1&query=TerceroId__Id:"+fmt.Sprintf("%v", resultado["Id"]), &tipoTercero)
 			fmt.Println("la respuesta tipo tercero es:", tipoTercero)
 			if errTipoTercero == nil && fmt.Sprintf("%v", tipoTercero[0]) != "map[]" {
 				if tipoTercero[0]["Status"] != 404 {

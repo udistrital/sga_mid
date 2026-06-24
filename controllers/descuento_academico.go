@@ -46,7 +46,7 @@ func (c *DescuentoController) PostDescuentoAcademico() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &solicitud); err == nil {
 		IDTipoDescuento := fmt.Sprintf("%v", solicitud["DescuentosDependenciaId"].(map[string]interface{})["Id"])
 		IDDependencia := fmt.Sprintf("%v", solicitud["DescuentosDependenciaId"].(map[string]interface{})["Dependencia"])
-		errDescuentosDependencia := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"descuentos_dependencia?query=TipoDescuentoId__Id:"+IDTipoDescuento+",DependenciaId:"+IDDependencia, &tipoDescuento)
+		errDescuentosDependencia := request.GetJson(beego.AppConfig.String("DescuentoAcademicoService")+"descuentos_dependencia?query=TipoDescuentoId__Id:"+IDTipoDescuento+",DependenciaId:"+IDDependencia, &tipoDescuento)
 		if errDescuentosDependencia == nil && fmt.Sprintf("%v", tipoDescuento[0]["System"]) != "map[]" {
 
 			// DescuentosDependenciaID := map[string]interface{}{
@@ -67,7 +67,7 @@ func (c *DescuentoController) PostDescuentoAcademico() {
 			formatdata.JsonPrint(solicituddescuento)
 			fmt.Println("primer get")
 
-			errSolicitud := request.SendJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"solicitud_descuento", "POST", &solicitudPost, solicituddescuento)
+			errSolicitud := request.SendJson(beego.AppConfig.String("DescuentoAcademicoService")+"solicitud_descuento", "POST", &solicitudPost, solicituddescuento)
 			if errSolicitud == nil && fmt.Sprintf("%v", solicitudPost["System"]) != "map[]" && solicitudPost["Id"] != nil {
 				if solicitudPost["Status"] != 400 {
 					//soporte de descuento
@@ -81,7 +81,7 @@ func (c *DescuentoController) PostDescuentoAcademico() {
 					fmt.Println("primer post solicitud_descuento")
 					formatdata.JsonPrint(soportedescuento)
 
-					errSoporte := request.SendJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"soporte_descuento", "POST", &soporte, soportedescuento)
+					errSoporte := request.SendJson(beego.AppConfig.String("DescuentoAcademicoService")+"soporte_descuento", "POST", &soporte, soportedescuento)
 					if errSoporte == nil && fmt.Sprintf("%v", soporte["System"]) != "map[]" && soporte["Id"] != nil {
 						if soporte["Status"] != 400 {
 							resultado = map[string]interface{}{"Id": solicitudPost["Id"], "PersonaId": solicitudPost["PersonaId"], "Estado": solicitudPost["Estado"], "PeriodoId": solicitudPost["PeriodoId"], "DescuentosDependenciaId": solicitudPost["DescuentosDependenciaId"]}
@@ -93,7 +93,7 @@ func (c *DescuentoController) PostDescuentoAcademico() {
 						} else {
 							//resultado solicitud de descuento
 							var resultado2 map[string]interface{}
-							request.SendJson(fmt.Sprintf("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"solicitud_descuento/%.f", solicitudPost["Id"]), "DELETE", &resultado2, nil)
+							request.SendJson(fmt.Sprintf(beego.AppConfig.String("DescuentoAcademicoService")+"solicitud_descuento/%.f", solicitudPost["Id"]), "DELETE", &resultado2, nil)
 							logs.Error(errSoporte)
 							//c.Data["development"] = map[string]interface{}{"Code": "400", "Body": err.Error(), "Type": "error"}
 							c.Data["system"] = soporte
@@ -153,12 +153,12 @@ func (c *DescuentoController) PutDescuentoAcademico() {
 		var soporte []map[string]interface{}
 		var soportePut map[string]interface{}
 
-		errSoporte := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"soporte_descuento/?query=Activo:true,SolicitudDescuentoId:"+idStr, &soporte)
+		errSoporte := request.GetJson(beego.AppConfig.String("DescuentoAcademicoService")+"soporte_descuento/?query=Activo:true,SolicitudDescuentoId:"+idStr, &soporte)
 		if errSoporte == nil && fmt.Sprintf("%v", soporte[0]["System"]) != "map[]" {
 			if soporte[0]["Status"] != 404 {
 				soporte[0]["DocumentoId"] = solicitud["DocumentoId"]
 
-				errSoportePut := request.SendJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"soporte_descuento/"+
+				errSoportePut := request.SendJson(beego.AppConfig.String("DescuentoAcademicoService")+"soporte_descuento/"+
 					fmt.Sprintf("%v", soporte[0]["Id"]), "PUT", &soportePut, soporte[0])
 				if errSoportePut == nil && fmt.Sprintf("%v", soportePut["System"]) != "map[]" && soportePut["Id"] != nil {
 					if soportePut["Status"] != 400 {
@@ -222,19 +222,19 @@ func (c *DescuentoController) GetDescuentoAcademico() {
 	//resultado solicitud descuento
 	var solicitud []map[string]interface{}
 
-	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"solicitud_descuento/?query=TerceroId:"+idStr+",Id:"+idSolitudDes+"&fields=Id,TerceroId,Estado,PeriodoId,DescuentosDependenciaId", &solicitud)
+	errSolicitud := request.GetJson(beego.AppConfig.String("DescuentoAcademicoService")+"solicitud_descuento/?query=TerceroId:"+idStr+",Id:"+idSolitudDes+"&fields=Id,TerceroId,Estado,PeriodoId,DescuentosDependenciaId", &solicitud)
 	if errSolicitud == nil && fmt.Sprintf("%v", solicitud[0]["System"]) != "map[]" {
 		if solicitud[0]["Status"] != 404 && len(solicitud[0]) > 1 {
 			resultado = solicitud[0]
 
 			//resultado descuento dependencia
 			var descuento map[string]interface{}
-			errDescuento := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"descuentos_dependencia/"+fmt.Sprintf("%v", solicitud[0]["DescuentosDependenciaId"].(map[string]interface{})["Id"]), &descuento)
+			errDescuento := request.GetJson(beego.AppConfig.String("DescuentoAcademicoService")+"descuentos_dependencia/"+fmt.Sprintf("%v", solicitud[0]["DescuentosDependenciaId"].(map[string]interface{})["Id"]), &descuento)
 			if errDescuento == nil && fmt.Sprintf("%v", descuento["System"]) != "map[]" {
 				if descuento["Status"] != 404 {
 					//resultado tipo descuento
 					var tipo map[string]interface{}
-					errTipo := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"tipo_descuento/"+fmt.Sprintf("%v", descuento["TipoDescuentoId"].(map[string]interface{})["Id"]), &tipo)
+					errTipo := request.GetJson(beego.AppConfig.String("DescuentoAcademicoService")+"tipo_descuento/"+fmt.Sprintf("%v", descuento["TipoDescuentoId"].(map[string]interface{})["Id"]), &tipo)
 					if errTipo == nil && fmt.Sprintf("%v", tipo["System"]) != "map[]" {
 						if tipo["Status"] != 404 {
 							descuento["TipoDescuentoId"] = tipo
@@ -242,7 +242,7 @@ func (c *DescuentoController) GetDescuentoAcademico() {
 
 							//resultado soporte descuento
 							var soporte []map[string]interface{}
-							errSoporte := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"soporte_descuento/?query=SolicitudDescuentoId:"+idSolitudDes+"&fields=DocumentoId", &soporte)
+							errSoporte := request.GetJson(beego.AppConfig.String("DescuentoAcademicoService")+"soporte_descuento/?query=SolicitudDescuentoId:"+idSolitudDes+"&fields=DocumentoId", &soporte)
 							if errSoporte == nil && fmt.Sprintf("%v", soporte[0]["System"]) != "map[]" {
 								if soporte[0]["Status"] != 404 {
 									//fmt.Println("el resultado de los documentos es: ", resultado4)
@@ -333,13 +333,13 @@ func (c *DescuentoController) GetDescuentoAcademicoByDependenciaID() {
 	var errorGetAll bool
 	alertas := []interface{}{"Data:"}
 
-	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"descuentos_dependencia?limit=0&query=Activo:true,DependenciaId:"+idStr, &solicitud)
+	errSolicitud := request.GetJson(beego.AppConfig.String("DescuentoAcademicoService")+"descuentos_dependencia?limit=0&query=Activo:true,DependenciaId:"+idStr, &solicitud)
 	if errSolicitud == nil && fmt.Sprintf("%v", solicitud[0]["System"]) != "map[]" {
 		if solicitud[0]["Status"] != 404 && len(solicitud[0]) > 1 {
 
 			for u := 0; u < len(solicitud); u++ {
 				var tipoDescuento map[string]interface{}
-				errDescuento := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"tipo_descuento/"+fmt.Sprintf("%v", solicitud[u]["TipoDescuentoId"].(map[string]interface{})["Id"]), &tipoDescuento)
+				errDescuento := request.GetJson(beego.AppConfig.String("DescuentoAcademicoService")+"tipo_descuento/"+fmt.Sprintf("%v", solicitud[u]["TipoDescuentoId"].(map[string]interface{})["Id"]), &tipoDescuento)
 				if errDescuento == nil && fmt.Sprintf("%v", tipoDescuento["System"]) != "map[]" {
 					resultados = append(resultados, tipoDescuento)
 				} else {
@@ -395,20 +395,20 @@ func (c *DescuentoController) GetDescuentoAcademicoByPersona() {
 	//resultado solicitud descuento
 	var solicitud []map[string]interface{}
 
-	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"solicitud_descuento/?query=PersonaId:"+idStr+"&fields=Id,PersonaId,Estado,PeriodoId,DescuentosDependenciaId", &solicitud)
+	errSolicitud := request.GetJson(beego.AppConfig.String("DescuentoAcademicoService")+"solicitud_descuento/?query=PersonaId:"+idStr+"&fields=Id,PersonaId,Estado,PeriodoId,DescuentosDependenciaId", &solicitud)
 	if errSolicitud == nil && fmt.Sprintf("%v", solicitud[0]["System"]) != "map[]" {
 		if solicitud[0]["Status"] != 404 && len(solicitud[0]) > 1 {
 
 			for u := 0; u < len(solicitud); u++ {
 				//resultado solicitud descuento
 				var descuento map[string]interface{}
-				errDescuento := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"descuentos_dependencia/"+
+				errDescuento := request.GetJson(beego.AppConfig.String("DescuentoAcademicoService")+"descuentos_dependencia/"+
 					fmt.Sprintf("%v", solicitud[u]["DescuentosDependenciaId"].(map[string]interface{})["Id"]), &descuento)
 				if errDescuento == nil && fmt.Sprintf("%v", descuento["System"]) != "map[]" {
 					if descuento["Status"] != 404 {
 						//resultado tipo descuento
 						var tipo map[string]interface{}
-						errTipo := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"tipo_descuento/"+fmt.Sprintf("%v", descuento["TipoDescuentoId"].(map[string]interface{})["Id"]), &tipo)
+						errTipo := request.GetJson(beego.AppConfig.String("DescuentoAcademicoService")+"tipo_descuento/"+fmt.Sprintf("%v", descuento["TipoDescuentoId"].(map[string]interface{})["Id"]), &tipo)
 						if errTipo == nil && fmt.Sprintf("%v", tipo["System"]) != "map[]" {
 							if tipo["Status"] != 404 {
 								descuento["TipoDescuentoId"] = tipo
@@ -416,7 +416,7 @@ func (c *DescuentoController) GetDescuentoAcademicoByPersona() {
 
 								//resultado soporte descuento
 								var soporte []map[string]interface{}
-								errSoporte := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"soporte_descuento/?query=SolicitudDescuentoId:"+fmt.Sprintf("%v", solicitud[u]["Id"])+"&fields=DocumentoId", &soporte)
+								errSoporte := request.GetJson(beego.AppConfig.String("DescuentoAcademicoService")+"soporte_descuento/?query=SolicitudDescuentoId:"+fmt.Sprintf("%v", solicitud[u]["Id"])+"&fields=DocumentoId", &soporte)
 								if errSoporte == nil && fmt.Sprintf("%v", soporte[0]["System"]) != "map[]" {
 									if soporte[0]["Status"] != 404 {
 										//fmt.Println("el resultado de los documentos es: ", resultado4)
@@ -509,14 +509,14 @@ func (c *DescuentoController) GetDescuentoByDependenciaPeriodo() {
 	//resultado descuento
 	var descuento []map[string]interface{}
 
-	errDescuento := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"descuentos_dependencia/?query=DependenciaId:"+
+	errDescuento := request.GetJson(beego.AppConfig.String("DescuentoAcademicoService")+"descuentos_dependencia/?query=DependenciaId:"+
 		idDependencia+",PeriodoId:"+idPeriodo, &descuento)
 	if errDescuento == nil && fmt.Sprintf("%v", descuento[0]["System"]) != "map[]" {
 		if descuento[0]["Status"] != 404 {
 			for u := 0; u < len(descuento); u++ {
 				//resultado tipo descuento
 				var tipo map[string]interface{}
-				errTipo := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"tipo_descuento/"+fmt.Sprintf("%v", descuento[u]["TipoDescuentoId"].(map[string]interface{})["Id"]), &tipo)
+				errTipo := request.GetJson(beego.AppConfig.String("DescuentoAcademicoService")+"tipo_descuento/"+fmt.Sprintf("%v", descuento[u]["TipoDescuentoId"].(map[string]interface{})["Id"]), &tipo)
 				if errTipo == nil && fmt.Sprintf("%v", tipo["System"]) != "map[]" {
 					if tipo["Status"] != 404 {
 						descuento[u]["TipoDescuentoId"] = tipo
@@ -581,19 +581,19 @@ func (c *DescuentoController) GetDescuentoByPersonaPeriodoDependencia() {
 	var errorGetAll bool
 	alertas := []interface{}{"Data:"}
 
-	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"solicitud_descuento?query=Activo:true,TerceroId:"+idPersona+",PeriodoId:"+idPeriodo+",DescuentosDependenciaId.DependenciaId:"+idDependencia+"&fields=Id,TerceroId,Estado,PeriodoId,DescuentosDependenciaId", &solicitud)
+	errSolicitud := request.GetJson(beego.AppConfig.String("DescuentoAcademicoService")+"solicitud_descuento?query=Activo:true,TerceroId:"+idPersona+",PeriodoId:"+idPeriodo+",DescuentosDependenciaId.DependenciaId:"+idDependencia+"&fields=Id,TerceroId,Estado,PeriodoId,DescuentosDependenciaId", &solicitud)
 	if errSolicitud == nil && fmt.Sprintf("%v", solicitud[0]["System"]) != "map[]" {
 		if solicitud[0]["Status"] != 404 && len(solicitud[0]) > 1 {
 			for u := 0; u < len(solicitud); u++ {
 				//resultado solicitud descuento
 				var descuento map[string]interface{}
-				errDescuento := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"descuentos_dependencia/"+
+				errDescuento := request.GetJson(beego.AppConfig.String("DescuentoAcademicoService")+"descuentos_dependencia/"+
 					fmt.Sprintf("%v", solicitud[u]["DescuentosDependenciaId"].(map[string]interface{})["Id"]), &descuento)
 				if errDescuento == nil && fmt.Sprintf("%v", descuento["System"]) != "map[]" {
 					if descuento["Status"] != 404 {
 						//resultado tipo descuento
 						var tipo map[string]interface{}
-						errTipo := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"tipo_descuento/"+fmt.Sprintf("%v", descuento["TipoDescuentoId"].(map[string]interface{})["Id"]), &tipo)
+						errTipo := request.GetJson(beego.AppConfig.String("DescuentoAcademicoService")+"tipo_descuento/"+fmt.Sprintf("%v", descuento["TipoDescuentoId"].(map[string]interface{})["Id"]), &tipo)
 						if errTipo == nil && fmt.Sprintf("%v", tipo["System"]) != "map[]" {
 							if tipo["Status"] != 404 {
 								descuento["TipoDescuentoId"] = tipo
@@ -601,7 +601,7 @@ func (c *DescuentoController) GetDescuentoByPersonaPeriodoDependencia() {
 
 								//resultado soporte descuento
 								var soporte []map[string]interface{}
-								errSoporte := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"soporte_descuento/?query=Activo:true,SolicitudDescuentoId:"+fmt.Sprintf("%v", solicitud[u]["Id"])+"&fields=DocumentoId", &soporte)
+								errSoporte := request.GetJson(beego.AppConfig.String("DescuentoAcademicoService")+"soporte_descuento/?query=Activo:true,SolicitudDescuentoId:"+fmt.Sprintf("%v", solicitud[u]["Id"])+"&fields=DocumentoId", &soporte)
 								if errSoporte == nil && fmt.Sprintf("%v", soporte[0]["System"]) != "map[]" {
 									if soporte[0]["Status"] != 404 {
 										//fmt.Println("el resultado de los documentos es: ", resultado4)
@@ -677,14 +677,14 @@ func (c *DescuentoController) DeleteDescuentoAcademico() {
 	var soporte []map[string]interface{}
 	fmt.Println(idStr)
 
-	errSoporte := request.GetJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"soporte_descuento/?query=SolicitudDescuentoId:"+idStr, &soporte)
+	errSoporte := request.GetJson(beego.AppConfig.String("DescuentoAcademicoService")+"soporte_descuento/?query=SolicitudDescuentoId:"+idStr, &soporte)
 	if errSoporte == nil && fmt.Sprintf("%v", soporte[0]["System"]) != "map[]" {
 		if soporte[0]["Status"] != 404 {
 			//resultados eliminacion
 			var borrado map[string]interface{}
 			var solicitud map[string]interface{}
 
-			errDelete := request.SendJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"soporte_descuento/"+fmt.Sprintf("%v", soporte[0]["Id"]), "DELETE", &borrado, nil)
+			errDelete := request.SendJson(beego.AppConfig.String("DescuentoAcademicoService")+"soporte_descuento/"+fmt.Sprintf("%v", soporte[0]["Id"]), "DELETE", &borrado, nil)
 			if errDelete == nil && fmt.Sprintf("%v", borrado["System"]) != "map[]" {
 				if borrado["Status"] != 404 {
 					fmt.Println(borrado)
@@ -702,7 +702,7 @@ func (c *DescuentoController) DeleteDescuentoAcademico() {
 				c.Abort("404")
 			}
 
-			errSolicitud := request.SendJson("http://"+beego.AppConfig.String("DescuentoAcademicoService")+"solicitud_descuento/"+idStr, "DELETE", &solicitud, nil)
+			errSolicitud := request.SendJson(beego.AppConfig.String("DescuentoAcademicoService")+"solicitud_descuento/"+idStr, "DELETE", &solicitud, nil)
 			fmt.Println(solicitud)
 			if errSolicitud == nil && fmt.Sprintf("%v", solicitud["System"]) != "map[]" {
 				if solicitud["Status"] != 404 {

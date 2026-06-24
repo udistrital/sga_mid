@@ -50,17 +50,17 @@ func (c *CalendarioController) PostCalendario() {
 		idNivel := fmt.Sprintf("%.f", dataPost["NivelClone"].(float64))
 		c.Data["json"] = idCalendario
 
-		errCalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario/"+idCalendario, &calendario)
+		errCalendario := request.GetJson(beego.AppConfig.String("EventoService")+"calendario/"+idCalendario, &calendario)
 		if errCalendario == nil {
 			if calendario != nil {
 
 				// if dataPost["NivelClone"].(float64) == calendario["Nivel"].(float64) {
-				// 	errCalendarioParam = request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Activo:true,PeriodoId:"+idPeriodo+",Nivel:"+idNivel+"&sortby=Id&order=desc&offset=1&limit=0", &calendarioParam)
+				// 	errCalendarioParam = request.GetJson(beego.AppConfig.String("EventoService")+"calendario?query=Activo:true,PeriodoId:"+idPeriodo+",Nivel:"+idNivel+"&sortby=Id&order=desc&offset=1&limit=0", &calendarioParam)
 				// } else {
-				// 	errCalendarioParam = request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Activo:true,PeriodoId:"+idPeriodo+",Nivel:"+idNivel+"&sortby=Id&order=desc", &calendarioParam)
+				// 	errCalendarioParam = request.GetJson(beego.AppConfig.String("EventoService")+"calendario?query=Activo:true,PeriodoId:"+idPeriodo+",Nivel:"+idNivel+"&sortby=Id&order=desc", &calendarioParam)
 				// }
 
-				errCalendarioParam = request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Activo:true,PeriodoId:"+idPeriodo+",Nivel:"+idNivel+"&sortby=Id&order=desc", &calendarioParam)
+				errCalendarioParam = request.GetJson(beego.AppConfig.String("EventoService")+"calendario?query=Activo:true,PeriodoId:"+idPeriodo+",Nivel:"+idNivel+"&sortby=Id&order=desc", &calendarioParam)
 
 				if errCalendarioParam == nil {
 					if calendarioParam != nil && calendarioParam[0]["Id"] != nil {
@@ -68,7 +68,7 @@ func (c *CalendarioController) PostCalendario() {
 						idCalendarioParam := fmt.Sprintf("%.f", calendarioParam[0]["Id"].(float64))
 
 						// persistir tipo_evento si el calendario que se esta clonando los tiene
-						errTipoEvento := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"tipo_evento?query=CalendarioID__Id:"+idCalendarioParam, &tipoEvento)
+						errTipoEvento := request.GetJson(beego.AppConfig.String("EventoService")+"tipo_evento?query=CalendarioID__Id:"+idCalendarioParam, &tipoEvento)
 						if errTipoEvento == nil {
 							if tipoEvento != nil && tipoEvento[0]["Id"] != nil {
 								for _, tEvento := range tipoEvento {
@@ -77,13 +77,13 @@ func (c *CalendarioController) PostCalendario() {
 									tEvento["Id"] = 0
 									tEvento["CalendarioID"] = calendario
 
-									errTipoEventoPost := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"/tipo_evento", "POST", &resultadoPost, tEvento)
+									errTipoEventoPost := request.SendJson(beego.AppConfig.String("EventoService")+"/tipo_evento", "POST", &resultadoPost, tEvento)
 									if errTipoEventoPost == nil && fmt.Sprintf("%v", resultadoPost["System"]) != "map[]" && resultadoPost["Id"] != nil {
 										if resultadoPost["Status"] != 400 {
 											tEvento["Id"] = resultadoPost["Id"]
 
 											// presistir calendario_evento si el tipo_evento que se esta clonando esta asociado en el campo tipo_evento_id del calendario_evento
-											errCalendarioEvento := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento?query=TipoEventoId__Id:"+idOld, &calendarioEvento)
+											errCalendarioEvento := request.GetJson(beego.AppConfig.String("EventoService")+"calendario_evento?query=TipoEventoId__Id:"+idOld, &calendarioEvento)
 											if errCalendarioEvento == nil {
 												if calendarioEvento != nil && calendarioEvento[0]["Id"] != nil {
 													idCalendarioEventoOld := fmt.Sprintf("%.f", calendarioEvento[0]["Id"].(float64))
@@ -94,17 +94,17 @@ func (c *CalendarioController) PostCalendario() {
 														cEvento["FechaInicio"] = "2020-01-01T00:00:00-05:00"
 														cEvento["FechaFin"] = "2020-01-01T00:00:00-05:00"
 
-														errCalendarioEventoPost := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento", "POST", &resultadoPost, cEvento)
+														errCalendarioEventoPost := request.SendJson(beego.AppConfig.String("EventoService")+"/calendario_evento", "POST", &resultadoPost, cEvento)
 														if errCalendarioEventoPost == nil && fmt.Sprintf("%v", resultadoPost["System"]) != "map[]" && resultadoPost["Id"] != nil {
 															if resultadoPost["Status"] != 400 {
 
 																//validar si existe relcion de responsables, tabla rompimiento calendario_evento_tipo_publico y tipo_publico
-																errCalendarioEventoTipoPublico := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento_tipo_publico?query=CalendarioEventoId__Id:"+idCalendarioEventoOld, &calendarioEventoTipoPublico)
+																errCalendarioEventoTipoPublico := request.GetJson(beego.AppConfig.String("EventoService")+"calendario_evento_tipo_publico?query=CalendarioEventoId__Id:"+idCalendarioEventoOld, &calendarioEventoTipoPublico)
 																if errCalendarioEventoTipoPublico == nil && fmt.Sprintf("%v", resultadoPost["System"]) != "map[]" && resultadoPost["Id"] != nil {
 																	if resultadoPost["Status"] == nil {
 																		for _, cEventoTipoPublico := range calendarioEventoTipoPublico {
 																			tipoPublicoOld := fmt.Sprintf("%.f", cEventoTipoPublico["TipoPublicoId"].(map[string]interface{})["Id"].(float64))
-																			errTipoPublico := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"tipo_publico/"+tipoPublicoOld, &tipoPublico)
+																			errTipoPublico := request.GetJson(beego.AppConfig.String("EventoService")+"tipo_publico/"+tipoPublicoOld, &tipoPublico)
 																			if errTipoPublico == nil && fmt.Sprintf("%v", resultadoPost["System"]) != "map[]" && resultadoPost["Id"] != nil {
 																				if resultadoPost["Status"] == nil {
 
@@ -112,7 +112,7 @@ func (c *CalendarioController) PostCalendario() {
 																					cEventoTipoPublico["CalendarioEventoId"] = resultadoPost
 																					cEventoTipoPublico["TipoPublicoId"] = tipoPublico
 
-																					errCalendarioEventoPost := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento_tipo_publico", "POST", &resultadoPostResponsable, cEventoTipoPublico)
+																					errCalendarioEventoPost := request.SendJson(beego.AppConfig.String("EventoService")+"/calendario_evento_tipo_publico", "POST", &resultadoPostResponsable, cEventoTipoPublico)
 																					if errCalendarioEventoPost == nil && fmt.Sprintf("%v", resultadoPostResponsable["System"]) != "map[]" && resultadoPostResponsable["Id"] != nil {
 																						if resultadoPost["Status"] != 400 {
 																							// fmt.Println("calendario_evento nuevo: ", resultadoPostResponsable["Id"])
@@ -256,13 +256,13 @@ func (c *CalendarioController) PostCalendarioPadre() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &dataPost); err == nil {
 		idCalendario := fmt.Sprintf("%.f", dataPost["Id"].(float64))
 		idCalendarioPadre := fmt.Sprintf("%.f", dataPost["IdPadre"].(map[string]interface{})["Id"])
-		errCalendario := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario/"+idCalendario, &calendario)
+		errCalendario := request.GetJson(beego.AppConfig.String("EventoService")+"calendario/"+idCalendario, &calendario)
 		if errCalendario == nil {
 			if calendario != nil {
 				if dataPost["Nivel"].(float64) == calendario["Nivel"].(float64) {
-					errCalendarioParam = request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Id:"+idCalendarioPadre, &calendarioParam)
+					errCalendarioParam = request.GetJson(beego.AppConfig.String("EventoService")+"calendario?query=Id:"+idCalendarioPadre, &calendarioParam)
 				} else {
-					errCalendarioParam = request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario?query=Id:"+idCalendarioPadre, &calendarioParam)
+					errCalendarioParam = request.GetJson(beego.AppConfig.String("EventoService")+"calendario?query=Id:"+idCalendarioPadre, &calendarioParam)
 				}
 
 				if errCalendarioParam == nil {
@@ -270,7 +270,7 @@ func (c *CalendarioController) PostCalendarioPadre() {
 						idCalendarioParam := fmt.Sprintf("%.f", calendarioParam[0]["Id"].(float64))
 
 						// persistir tipo_evento si el calendario que se esta clonando los tiene
-						errTipoEvento := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"tipo_evento?query=CalendarioID__Id:"+idCalendarioParam, &tipoEvento)
+						errTipoEvento := request.GetJson(beego.AppConfig.String("EventoService")+"tipo_evento?query=CalendarioID__Id:"+idCalendarioParam, &tipoEvento)
 						if errTipoEvento == nil {
 							if tipoEvento != nil && tipoEvento[0]["Id"] != nil {
 								for _, tEvento := range tipoEvento {
@@ -278,13 +278,13 @@ func (c *CalendarioController) PostCalendarioPadre() {
 									tEvento["Id"] = 0
 									tEvento["CalendarioID"] = calendario
 
-									errTipoEventoPost := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"/tipo_evento", "POST", &resultadoPost, tEvento)
+									errTipoEventoPost := request.SendJson(beego.AppConfig.String("EventoService")+"/tipo_evento", "POST", &resultadoPost, tEvento)
 									if errTipoEventoPost == nil && fmt.Sprintf("%v", resultadoPost["System"]) != "map[]" && resultadoPost["Id"] != nil {
 										if resultadoPost["Status"] != 400 {
 											tEvento["Id"] = resultadoPost["Id"]
 
 											// presistir calendario_evento si el tipo_evento que se esta clonando esta asociado en el campo tipo_evento_id del calendario_evento
-											errCalendarioEvento := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento?query=TipoEventoId__Id:"+idOld, &calendarioEvento)
+											errCalendarioEvento := request.GetJson(beego.AppConfig.String("EventoService")+"calendario_evento?query=TipoEventoId__Id:"+idOld, &calendarioEvento)
 											if errCalendarioEvento == nil {
 												if calendarioEvento != nil && calendarioEvento[0]["Id"] != nil {
 													for _, cEvento := range calendarioEvento {
@@ -293,7 +293,7 @@ func (c *CalendarioController) PostCalendarioPadre() {
 														cEvento["FechaInicio"] = "2000-01-01T00:00:00-05:00"
 														cEvento["FechaFin"] = "2000-01-01T00:00:00-05:00"
 
-														errCalendarioEventoPost := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento", "POST", &resultadoPost, cEvento)
+														errCalendarioEventoPost := request.SendJson(beego.AppConfig.String("EventoService")+"/calendario_evento", "POST", &resultadoPost, cEvento)
 														if errCalendarioEventoPost == nil && fmt.Sprintf("%v", resultadoPost["System"]) != "map[]" && resultadoPost["Id"] != nil {
 															if resultadoPost["Status"] != 400 {
 																fmt.Println("calendario_evento nuevo: ", resultadoPost["Id"])
@@ -441,7 +441,7 @@ func (c *CalendarioController) PostCalendarioExtension() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &CalendarioExtension); err == nil {
 		IdPadre := fmt.Sprintf("%.f", CalendarioExtension["CalendarioPadre"])
 
-		errCalendarioPadre := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario/"+IdPadre, &CalendarioPadre)
+		errCalendarioPadre := request.GetJson(beego.AppConfig.String("EventoService")+"calendario/"+IdPadre, &CalendarioPadre)
 		if errCalendarioPadre == nil {
 			if _, ok := CalendarioPadre["Id"]; ok {
 				CalendarioPadre["AplicaExtension"] = true
@@ -450,11 +450,11 @@ func (c *CalendarioController) PostCalendarioExtension() {
 				CalendarioPadre["CalendarioPadreId"] = map[string]interface{}{"Id": CalendarioExtension["CalendarioPadre"]}
 				delete(CalendarioPadre, "Id")
 
-				errCalendarioExtCrear := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"calendario", "POST", &CalendarioExtCrear, CalendarioPadre)
+				errCalendarioExtCrear := request.SendJson(beego.AppConfig.String("EventoService")+"calendario", "POST", &CalendarioExtCrear, CalendarioPadre)
 				if errCalendarioExtCrear == nil {
 
 					// persistir tipo_evento si el calendario que se esta clonando los tiene
-					errTipoEvento := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"tipo_evento?query=CalendarioID__Id:"+IdPadre+",Activo:true&limit=0", &tipoEvento)
+					errTipoEvento := request.GetJson(beego.AppConfig.String("EventoService")+"tipo_evento?query=CalendarioID__Id:"+IdPadre+",Activo:true&limit=0", &tipoEvento)
 					if errTipoEvento == nil {
 						if tipoEvento != nil && tipoEvento[0]["Id"] != nil {
 							for _, tEvento := range tipoEvento {
@@ -463,13 +463,13 @@ func (c *CalendarioController) PostCalendarioExtension() {
 								tEvento["Id"] = 0
 								tEvento["CalendarioID"] = CalendarioExtCrear
 
-								errTipoEventoPost := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"/tipo_evento", "POST", &resultadoPost, tEvento)
+								errTipoEventoPost := request.SendJson(beego.AppConfig.String("EventoService")+"/tipo_evento", "POST", &resultadoPost, tEvento)
 								if errTipoEventoPost == nil && fmt.Sprintf("%v", resultadoPost["System"]) != "map[]" && resultadoPost["Id"] != nil {
 									if resultadoPost["Status"] != 400 {
 										tEvento["Id"] = resultadoPost["Id"]
 
 										// presistir calendario_evento si el tipo_evento que se esta clonando esta asociado en el campo tipo_evento_id del calendario_evento
-										errCalendarioEvento := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento?query=TipoEventoId__Id:"+idOld+",Activo:true&limit=0", &calendarioEvento)
+										errCalendarioEvento := request.GetJson(beego.AppConfig.String("EventoService")+"calendario_evento?query=TipoEventoId__Id:"+idOld+",Activo:true&limit=0", &calendarioEvento)
 										if errCalendarioEvento == nil {
 											if calendarioEvento != nil && calendarioEvento[0]["Id"] != nil {
 												idCalendarioEventoOld := fmt.Sprintf("%v", calendarioEvento[0]["Id"])
@@ -478,17 +478,17 @@ func (c *CalendarioController) PostCalendarioExtension() {
 													cEvento["Id"] = 0
 													cEvento["TipoEventoId"] = tEvento
 
-													errCalendarioEventoPost := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento", "POST", &resultadoPost, cEvento)
+													errCalendarioEventoPost := request.SendJson(beego.AppConfig.String("EventoService")+"/calendario_evento", "POST", &resultadoPost, cEvento)
 													if errCalendarioEventoPost == nil && fmt.Sprintf("%v", resultadoPost["System"]) != "map[]" && resultadoPost["Id"] != nil {
 														if resultadoPost["Status"] != 400 {
 
 															//validar si existe relcion de responsables, tabla rompimiento calendario_evento_tipo_publico y tipo_publico
-															errCalendarioEventoTipoPublico := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"calendario_evento_tipo_publico?query=CalendarioEventoId__Id:"+idCalendarioEventoOld+",Activo:true&limit=0", &calendarioEventoTipoPublico)
+															errCalendarioEventoTipoPublico := request.GetJson(beego.AppConfig.String("EventoService")+"calendario_evento_tipo_publico?query=CalendarioEventoId__Id:"+idCalendarioEventoOld+",Activo:true&limit=0", &calendarioEventoTipoPublico)
 															if errCalendarioEventoTipoPublico == nil && fmt.Sprintf("%v", resultadoPost["System"]) != "map[]" && resultadoPost["Id"] != nil {
 																if resultadoPost["Status"] == nil {
 																	for _, cEventoTipoPublico := range calendarioEventoTipoPublico {
 																		tipoPublicoOld := fmt.Sprintf("%.f", cEventoTipoPublico["TipoPublicoId"].(map[string]interface{})["Id"].(float64))
-																		errTipoPublico := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"tipo_publico/"+tipoPublicoOld, &tipoPublico)
+																		errTipoPublico := request.GetJson(beego.AppConfig.String("EventoService")+"tipo_publico/"+tipoPublicoOld, &tipoPublico)
 																		if errTipoPublico == nil && fmt.Sprintf("%v", resultadoPost["System"]) != "map[]" && resultadoPost["Id"] != nil {
 																			if resultadoPost["Status"] == nil {
 
@@ -496,7 +496,7 @@ func (c *CalendarioController) PostCalendarioExtension() {
 																				cEventoTipoPublico["CalendarioEventoId"] = resultadoPost
 																				cEventoTipoPublico["TipoPublicoId"] = tipoPublico
 
-																				errCalendarioEventoPost := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento_tipo_publico", "POST", &resultadoPostResponsable, cEventoTipoPublico)
+																				errCalendarioEventoPost := request.SendJson(beego.AppConfig.String("EventoService")+"/calendario_evento_tipo_publico", "POST", &resultadoPostResponsable, cEventoTipoPublico)
 																				if errCalendarioEventoPost == nil && fmt.Sprintf("%v", resultadoPostResponsable["System"]) != "map[]" && resultadoPostResponsable["Id"] != nil {
 																					if resultadoPost["Status"] != 400 {
 																						// fmt.Println("calendario_evento nuevo: ", resultadoPostResponsable["Id"])

@@ -67,7 +67,7 @@ func GuardarDatosTerceroPago(terceroPago models.TerceroPagoRequest, tipoUsuario 
 	}
 
 	// 5. Crear un array de TerceroPago, uno por cada dato adicional, y enviarlos a ACTERCERO_PAGO
-	serviceActerceroUrl := "http://" + beego.AppConfig.String("FacturacionElectronicaService")
+	serviceActerceroUrl := beego.AppConfig.String("FacturacionElectronicaService")
 	var respuestas []interface{}
 	var errores []string
 
@@ -202,7 +202,7 @@ func obtenerDatosDuenoRecibo(terceroPago models.TerceroPagoRequest, tipoUsuario 
 	// Consulta a servicio de recibos para obtener los datos del dueno del recibo
 
 	var duenoResponse models.DuenoReciboResponse
-	urlDueno := "http://" + beego.AppConfig.String("ConsultarReciboJbpmService") + "datos_recibo/" + tipoDocumento + "/" + strconv.Itoa(tipoUsuario) + "/" + strconv.Itoa(terceroPago.PostTerceroPago.TERPA_ANO_PAGO) + "/" + strconv.Itoa(terceroPago.PostTerceroPago.TERPA_SECUENCIA)
+	urlDueno := beego.AppConfig.String("ConsultarReciboJbpmService") + "datos_recibo/" + tipoDocumento + "/" + strconv.Itoa(tipoUsuario) + "/" + strconv.Itoa(terceroPago.PostTerceroPago.TERPA_ANO_PAGO) + "/" + strconv.Itoa(terceroPago.PostTerceroPago.TERPA_SECUENCIA)
 
 	if err := request.GetJsonWSO2(urlDueno, &duenoResponse); err != nil {
 		logs.Error("No se pudo obtener los datos del dueno del recibo %s / %s: %v", strconv.Itoa(terceroPago.PostTerceroPago.TERPA_SECUENCIA), strconv.Itoa(terceroPago.PostTerceroPago.TERPA_ANO_PAGO), err)
@@ -220,7 +220,7 @@ func obtenerDatosDuenoRecibo(terceroPago models.TerceroPagoRequest, tipoUsuario 
 func obtenerDatosConceptosRecibo(terceroPago models.TerceroPagoRequest, tipoUsuario int) ([]models.ConceptoRecibo, error) {
 	// Consulta a servicio de recibos para obtener los conceptos de un recibo
 	var conceptosResponse models.ConceptosReciboResponse
-	urlConceptos := "http://" + beego.AppConfig.String("ConsultarReciboJbpmService") + "datos_conceptos_recibo/" + strconv.Itoa(terceroPago.PostTerceroPago.TERPA_ANO_PAGO) + "/" + strconv.Itoa(terceroPago.PostTerceroPago.TERPA_SECUENCIA) + "/" + strconv.Itoa(tipoUsuario)
+	urlConceptos := beego.AppConfig.String("ConsultarReciboJbpmService") + "datos_conceptos_recibo/" + strconv.Itoa(terceroPago.PostTerceroPago.TERPA_ANO_PAGO) + "/" + strconv.Itoa(terceroPago.PostTerceroPago.TERPA_SECUENCIA) + "/" + strconv.Itoa(tipoUsuario)
 
 	if err := request.GetJsonWSO2(urlConceptos, &conceptosResponse); err != nil {
 		logs.Error("No se pudo obtener los conceptos del recibo %s / %s: %v", strconv.Itoa(terceroPago.PostTerceroPago.TERPA_SECUENCIA), strconv.Itoa(terceroPago.PostTerceroPago.TERPA_ANO_PAGO), err)

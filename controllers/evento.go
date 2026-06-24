@@ -73,7 +73,7 @@ func (c *EventoController) PostEvento() {
 		EventoPost["TiposPublico"] = tiposPublico
 
 		var resultadoEvento map[string]interface{}
-		errProduccion := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"tr_evento", "POST", &resultadoEvento, EventoPost)
+		errProduccion := request.SendJson(beego.AppConfig.String("EventoService")+"tr_evento", "POST", &resultadoEvento, EventoPost)
 		if resultadoEvento["Type"] == "error" || errProduccion != nil || resultadoEvento["Status"] == "404" || resultadoEvento["Message"] != nil {
 			alertas = append(alertas, resultadoEvento)
 			alerta.Type = "error"
@@ -154,7 +154,7 @@ func (c *EventoController) PutEvento() {
 		EventoPut["TiposPublico"] = tiposPublico
 
 		var resultadoEvento map[string]interface{}
-		errProduccion := request.SendJson("http://"+beego.AppConfig.String("EventoService")+"/tr_evento/"+idStr, "PUT", &resultadoEvento, EventoPut)
+		errProduccion := request.SendJson(beego.AppConfig.String("EventoService")+"/tr_evento/"+idStr, "PUT", &resultadoEvento, EventoPut)
 		if resultadoEvento["Type"] == "error" || errProduccion != nil || resultadoEvento["Status"] == "404" || resultadoEvento["Message"] != nil {
 			alertas = append(alertas, resultadoEvento)
 			alerta.Type = "error"
@@ -187,7 +187,7 @@ func (c *EventoController) GetEvento() {
 	persona := c.Ctx.Input.Param(":persona")
 	fmt.Println("Get Evento")
 	personaId, _ := strconv.ParseFloat(persona, 64)
-	errEventos := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"/tr_evento/"+persona, &eventos)
+	errEventos := request.GetJson(beego.AppConfig.String("EventoService")+"/tr_evento/"+persona, &eventos)
 	if errEventos != nil || eventos[0]["CalendarioEvento"] == nil {
 		alertas = append(alertas, errEventos)
 		alerta.Body = alertas
@@ -208,7 +208,7 @@ func (c *EventoController) GetEvento() {
 					}
 					// //cargar nombre del autor
 					var encargadoEvento map[string]interface{}
-					errEncargado := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%.f", encargado["EncargadoId"].(float64)), &encargadoEvento)
+					errEncargado := request.GetJson(beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%.f", encargado["EncargadoId"].(float64)), &encargadoEvento)
 					if encargadoEvento["Type"] == "error" || errEncargado != nil {
 						alertas = append(alertas, errEncargado)
 						alerta.Body = alertas
@@ -222,7 +222,7 @@ func (c *EventoController) GetEvento() {
 				calendarioEvento := evento["CalendarioEvento"].(map[string]interface{})
 				tipoEvento := calendarioEvento["TipoEventoId"].(map[string]interface{})
 				var dependencia []map[string]interface{}
-				errDependencia := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"dependencia_tipo_dependencia/?query=DependenciaId__Id:"+fmt.Sprintf("%.f", tipoEvento["DependenciaId"].(float64)), &dependencia)
+				errDependencia := request.GetJson(beego.AppConfig.String("OikosService")+"dependencia_tipo_dependencia/?query=DependenciaId__Id:"+fmt.Sprintf("%.f", tipoEvento["DependenciaId"].(float64)), &dependencia)
 				if dependencia == nil || errDependencia != nil {
 					alertas = append(alertas, errDependencia)
 					alerta.Body = alertas
@@ -236,7 +236,7 @@ func (c *EventoController) GetEvento() {
 
 				// cargar periodo
 				var periodo map[string]interface{}
-				errPeriodo := request.GetJson("http://"+beego.AppConfig.String("CoreService")+"periodo/"+fmt.Sprintf("%.f", calendarioEvento["PeriodoId"].(float64)), &periodo)
+				errPeriodo := request.GetJson(beego.AppConfig.String("CoreService")+"periodo/"+fmt.Sprintf("%.f", calendarioEvento["PeriodoId"].(float64)), &periodo)
 				if periodo == nil || errPeriodo != nil {
 					alertas = append(alertas, errPeriodo)
 					alerta.Body = alertas
@@ -271,7 +271,7 @@ func (c *EventoController) DeleteEvento() {
 	var alerta models.Alert
 	alertas := []interface{}{"Response:"}
 	id := c.Ctx.Input.Param(":id")
-	errEvento := request.SendJson(fmt.Sprintf("%s", "http://"+beego.AppConfig.String("EventoService")+"/tr_evento/"+id), "DELETE", &eventoDeleted, nil)
+	errEvento := request.SendJson(fmt.Sprintf("%s", beego.AppConfig.String("EventoService")+"/tr_evento/"+id), "DELETE", &eventoDeleted, nil)
 	if errEvento != nil || eventoDeleted["Message"] != nil {
 		alertas = append(alertas, errEvento)
 		alerta.Body = alertas

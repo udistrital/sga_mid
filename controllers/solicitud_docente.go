@@ -333,7 +333,7 @@ func (c *SolicitudDocenteController) DeleteSolicitudDocente() {
 	//resultados eliminacion
 	var borrado map[string]interface{}
 
-	errDelete := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud/"+idStr, "DELETE", &borrado, nil)
+	errDelete := request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"/tr_solicitud/"+idStr, "DELETE", &borrado, nil)
 	fmt.Println(borrado)
 	if errDelete == nil && fmt.Sprintf("%v", borrado["System"]) != "map[]" {
 		if borrado["Status"] != 404 {

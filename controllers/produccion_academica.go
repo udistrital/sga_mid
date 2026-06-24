@@ -83,7 +83,7 @@ func (c *ProduccionAcademicaController) PostProduccionAcademica() {
 		}
 		produccionAcademicaPost["Metadatos"] = metadatos
 		var resultadoProduccionAcademica map[string]interface{}
-		errProduccion := request.SendJson("https://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica", "POST", &resultadoProduccionAcademica, produccionAcademicaPost)
+		errProduccion := request.SendJson(beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica", "POST", &resultadoProduccionAcademica, produccionAcademicaPost)
 		if errProduccion == nil && fmt.Sprintf("%v", resultadoProduccionAcademica["System"]) != "map[]" && resultadoProduccionAcademica["ProduccionAcademica"] != nil {
 			if resultadoProduccionAcademica["Status"] != 400 {
 				resultado = resultadoProduccionAcademica
@@ -131,7 +131,7 @@ func (c *ProduccionAcademicaController) PutEstadoAutorProduccionAcademica() {
 			(AutorProduccionAcademica["EstadoAutorProduccionId"].(map[string]interface{}))["Id"] = 4
 		}
 		var resultadoAutor map[string]interface{}
-		errAutor := request.SendJson("https://"+beego.AppConfig.String("ProduccionAcademicaService")+"/autor_produccion_academica/"+idStr, "PUT", &resultadoAutor, AutorProduccionAcademica)
+		errAutor := request.SendJson(beego.AppConfig.String("ProduccionAcademicaService")+"/autor_produccion_academica/"+idStr, "PUT", &resultadoAutor, AutorProduccionAcademica)
 		if errAutor == nil && fmt.Sprintf("%v", resultadoAutor["System"]) != "map[]" && resultadoAutor["Id"] != nil {
 			if resultadoAutor["Status"] != 400 {
 				resultado = AutorProduccionAcademica
@@ -199,7 +199,7 @@ func (c *ProduccionAcademicaController) PutProduccionAcademica() {
 
 		var resultadoProduccionAcademica map[string]interface{}
 
-		errProduccion := request.SendJson("https://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idStr, "PUT", &resultadoProduccionAcademica, produccionAcademicaPut)
+		errProduccion := request.SendJson(beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idStr, "PUT", &resultadoProduccionAcademica, produccionAcademicaPut)
 		if errProduccion == nil && fmt.Sprintf("%v", resultadoProduccionAcademica["System"]) != "map[]" {
 			if resultadoProduccionAcademica["Status"] != 400 {
 				resultado = produccionAcademica
@@ -259,7 +259,7 @@ func (c *ProduccionAcademicaController) GetAllProduccionAcademica() {
 	//resultado experiencia
 	var producciones []map[string]interface{}
 
-	errProduccion := request.GetJson("https://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/?limit=0", &producciones)
+	errProduccion := request.GetJson(beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/?limit=0", &producciones)
 	if errProduccion == nil && fmt.Sprintf("%v", producciones[0]["System"]) != "map[]" {
 		if producciones[0]["Status"] != 404 && producciones[0]["Id"] != nil {
 			for _, produccion := range producciones {
@@ -270,7 +270,7 @@ func (c *ProduccionAcademicaController) GetAllProduccionAcademica() {
 					//cargar nombre del autor
 					var autorProduccion map[string]interface{}
 
-					errAutor := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%v", autor["Persona"]), &autorProduccion)
+					errAutor := request.GetJson(beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%v", autor["Persona"]), &autorProduccion)
 					if errAutor == nil && fmt.Sprintf("%v", autorProduccion["System"]) != "map[]" {
 						if autorProduccion["Status"] != 404 {
 							autor["Nombre"] = autorProduccion["NombreCompleto"].(string)
@@ -325,7 +325,7 @@ func (c *ProduccionAcademicaController) GetIdProduccionAcademica() {
 	var errorGetAll bool
 	alertas := []interface{}{}
 
-	errProduccion := request.GetJson("https://"+beego.AppConfig.String("ProduccionAcademicaService")+"tr_produccion_academica/"+idTercero, &producciones)
+	errProduccion := request.GetJson(beego.AppConfig.String("ProduccionAcademicaService")+"tr_produccion_academica/"+idTercero, &producciones)
 	fmt.Println("//////////// ProduccionAcademicaService() Err: ", errProduccion, "Resp: ", producciones)
 	if fmt.Sprintf("%v", producciones) != "" || fmt.Sprintf("%v", producciones) != "[map[]]" {
 		if errProduccion == nil && fmt.Sprintf("%v", producciones[0]["System"]) != "map[]" {
@@ -340,7 +340,7 @@ func (c *ProduccionAcademicaController) GetIdProduccionAcademica() {
 						//cargar nombre del autor
 						var autorProduccion map[string]interface{}
 
-						errAutor := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%v", autor["Persona"]), &autorProduccion)
+						errAutor := request.GetJson(beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%v", autor["Persona"]), &autorProduccion)
 						fmt.Println("//////////// TercerosService() Err: ", errAutor, "Resp: ", autorProduccion)
 						if errAutor == nil && fmt.Sprintf("%v", autorProduccion["System"]) != "map[]" {
 							if autorProduccion["Status"] != 404 {
@@ -414,7 +414,7 @@ func (c *ProduccionAcademicaController) GetProduccionAcademica() {
 	//resultado experiencia
 	var producciones []map[string]interface{}
 
-	errProduccion := request.GetJson("https://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idTercero, &producciones)
+	errProduccion := request.GetJson(beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idTercero, &producciones)
 	if errProduccion == nil && fmt.Sprintf("%v", producciones[0]["System"]) != "map[]" {
 		if producciones[0]["Status"] != 404 && producciones[0]["Id"] != nil {
 			for _, produccion := range producciones {
@@ -427,7 +427,7 @@ func (c *ProduccionAcademicaController) GetProduccionAcademica() {
 					//cargar nombre del autor
 					var autorProduccion map[string]interface{}
 
-					errAutor := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%v", autor["Persona"]), &autorProduccion)
+					errAutor := request.GetJson(beego.AppConfig.String("TercerosService")+"/tercero/"+fmt.Sprintf("%v", autor["Persona"]), &autorProduccion)
 					if errAutor == nil && fmt.Sprintf("%v", autorProduccion["System"]) != "map[]" {
 						if autorProduccion["Status"] != 404 {
 							autor["Nombre"] = autorProduccion["NombreCompleto"].(string)
@@ -479,7 +479,7 @@ func (c *ProduccionAcademicaController) DeleteProduccionAcademica() {
 	//resultados eliminacion
 	var borrado map[string]interface{}
 
-	errDelete := request.SendJson("https://"+beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idStr, "DELETE", &borrado, nil)
+	errDelete := request.SendJson(beego.AppConfig.String("ProduccionAcademicaService")+"/tr_produccion_academica/"+idStr, "DELETE", &borrado, nil)
 	//borradoOk := models.SetInactivo("http://" + beego.AppConfig.String("ProduccionAcademicaService") + "/tr_produccion_academica/" + idStr)
 
 	if errDelete == nil {
