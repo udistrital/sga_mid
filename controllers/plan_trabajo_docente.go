@@ -58,7 +58,7 @@ func (c *PtdController) GetNombreDocenteVinculacion() {
 	resDocumento := []interface{}{}
 	response := []interface{}{}
 
-	if errVinculacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"vinculacion?limit=0&query=TipoVinculacionId__in:"+vinculacion+",Activo:true,TerceroPrincipalId.NombreCompleto__icontains:"+nombre+"&fields=TerceroPrincipalId", &resVinculacion); errVinculacion == nil {
+	if errVinculacion := request.GetJson(beego.AppConfig.String("TercerosService")+"vinculacion?limit=0&query=TipoVinculacionId__in:"+vinculacion+",Activo:true,TerceroPrincipalId.NombreCompleto__icontains:"+nombre+"&fields=TerceroPrincipalId", &resVinculacion); errVinculacion == nil {
 		if fmt.Sprintf("%v", resVinculacion) != "[map[]]" {
 			var tercerosIds string
 			for _, vinculacion := range resVinculacion {
@@ -66,7 +66,7 @@ func (c *PtdController) GetNombreDocenteVinculacion() {
 			}
 			tercerosIds = tercerosIds[:len(tercerosIds)-1]
 
-			if errDocumento := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=Activo:true,TerceroId__in:"+tercerosIds+"&fields=Numero,TerceroId", &resDocumento); errDocumento == nil {
+			if errDocumento := request.GetJson(beego.AppConfig.String("TercerosService")+"datos_identificacion?query=Activo:true,TerceroId__in:"+tercerosIds+"&fields=Numero,TerceroId", &resDocumento); errDocumento == nil {
 				for _, vinculacion := range resVinculacion {
 					for indexDocumento, documento := range resDocumento {
 
@@ -116,10 +116,10 @@ func (c *PtdController) GetDocumentoDocenteVinculacion() {
 	resDocumento := []interface{}{}
 	response := []interface{}{}
 
-	if errDocumento := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=Activo:true,Numero:"+documento+"&fields=TerceroId", &resDocumento); errDocumento == nil {
+	if errDocumento := request.GetJson(beego.AppConfig.String("TercerosService")+"datos_identificacion?query=Activo:true,Numero:"+documento+"&fields=TerceroId", &resDocumento); errDocumento == nil {
 		if fmt.Sprintf("%v", resDocumento) != "[map[]]" {
 			for _, documentoGet := range resDocumento {
-				if errVinculacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"vinculacion?query=Activo:true,TipoVinculacionId:"+vinculacion+",TerceroPrincipalId.Id:"+fmt.Sprintf("%v", documentoGet.(map[string]interface{})["TerceroId"].(map[string]interface{})["Id"])+"&fields=TerceroPrincipalId", &resVinculacion); errVinculacion == nil {
+				if errVinculacion := request.GetJson(beego.AppConfig.String("TercerosService")+"vinculacion?query=Activo:true,TipoVinculacionId:"+vinculacion+",TerceroPrincipalId.Id:"+fmt.Sprintf("%v", documentoGet.(map[string]interface{})["TerceroId"].(map[string]interface{})["Id"])+"&fields=TerceroPrincipalId", &resVinculacion); errVinculacion == nil {
 					if fmt.Sprintf("%v", resVinculacion) != "[map[]]" {
 						response = append(response, map[string]interface{}{
 							"Nombre":    cases.Title(language.Spanish).String(resVinculacion[0].(map[string]interface{})["TerceroPrincipalId"].(map[string]interface{})["NombreCompleto"].(string)),
@@ -241,19 +241,19 @@ func (c *PtdController) PutAprobacionPreasignacion() {
 		}
 
 		for _, preasignacion := range aprobacion["preasignaciones"].([]interface{}) {
-			if errAprobacion := request.SendJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion/"+fmt.Sprintf("%v", preasignacion.(map[string]interface{})["Id"]), "PUT", &PreasignacionPut, preasignacionPut); errAprobacion == nil {
+			if errAprobacion := request.SendJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion/"+fmt.Sprintf("%v", preasignacion.(map[string]interface{})["Id"]), "PUT", &PreasignacionPut, preasignacionPut); errAprobacion == nil {
 				// Actualización de espacio academico hijo con docente cuando es aprobado por el docente
 				if aprobacion["docente"] == true {
 					// Trae el espacio academico hijo para posterior actualización con el docente asigando
 					var EspacioAcademicoHijo map[string]interface{}
-					if errEspacios := request.GetJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico/"+fmt.Sprintf("%v", PreasignacionPut["Data"].(map[string]interface{})["espacio_academico_id"]), &EspacioAcademicoHijo); errEspacios == nil {
+					if errEspacios := request.GetJson(beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico/"+fmt.Sprintf("%v", PreasignacionPut["Data"].(map[string]interface{})["espacio_academico_id"]), &EspacioAcademicoHijo); errEspacios == nil {
 						if fmt.Sprintf("%v", EspacioAcademicoHijo["Data"]) != "[]" {
 							EspacioAcademicoHijoPut := EspacioAcademicoHijo["Data"].(map[string]interface{})
 
 							if esp_mod, ok := EspacioAcademicoHijoPut["espacio_modular"]; ok {
 								if esp_mod.(bool) {
 
-									resp, err := requestmanager.Get("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+
+									resp, err := requestmanager.Get(beego.AppConfig.String("PlanTrabajoDocenteService")+
 										fmt.Sprintf("pre_asignacion?query=activo:true,espacio_academico_id:%s,periodo_id:%s,aprobacion_docente:true,aprobacion_proyecto:true", PreasignacionPut["Data"].(map[string]interface{})["espacio_academico_id"], PreasignacionPut["Data"].(map[string]interface{})["periodo_id"]), requestmanager.ParseResponseFormato1)
 									if err == nil {
 										preasign_list := []data.PreAsignacion{}
@@ -279,7 +279,7 @@ func (c *PtdController) PutAprobacionPreasignacion() {
 								EspacioAcademicoHijoPut["estado_aprobacion_id"] = EspacioAcademicoHijo["Data"].(map[string]interface{})["estado_aprobacion_id"].(map[string]interface{})["_id"].(string)
 							}
 							// Put al espacio academico hijo con el docente asignado cuando se aprueba la preasignacion
-							if errPutEspacio := request.SendJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico/"+fmt.Sprintf("%v", PreasignacionPut["Data"].(map[string]interface{})["espacio_academico_id"]), "PUT", &EspacioPut, EspacioAcademicoHijoPut); errPutEspacio == nil {
+							if errPutEspacio := request.SendJson(beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico/"+fmt.Sprintf("%v", PreasignacionPut["Data"].(map[string]interface{})["espacio_academico_id"]), "PUT", &EspacioPut, EspacioAcademicoHijoPut); errPutEspacio == nil {
 							} else {
 								resultado = append(resultado, map[string]interface{}{"Id": preasignacion.(map[string]interface{})["Id"], "actualizado": false})
 							}
@@ -299,13 +299,13 @@ func (c *PtdController) PutAprobacionPreasignacion() {
 
 				if aprobacion["docente"].(bool) && PreasignacionPut["Data"].(map[string]interface{})["plan_docente_id"] == nil {
 					var planDocenteGet map[string]interface{}
-					if errGetPlan := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"plan_docente?query=docente_id:"+fmt.Sprintf("%v", PreasignacionPut["Data"].(map[string]interface{})["docente_id"])+",periodo_id:"+fmt.Sprintf("%v", PreasignacionPut["Data"].(map[string]interface{})["periodo_id"])+",tipo_vinculacion_id:"+fmt.Sprintf("%v", PreasignacionPut["Data"].(map[string]interface{})["tipo_vinculacion_id"]), &planDocenteGet); errGetPlan == nil {
+					if errGetPlan := request.GetJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"plan_docente?query=docente_id:"+fmt.Sprintf("%v", PreasignacionPut["Data"].(map[string]interface{})["docente_id"])+",periodo_id:"+fmt.Sprintf("%v", PreasignacionPut["Data"].(map[string]interface{})["periodo_id"])+",tipo_vinculacion_id:"+fmt.Sprintf("%v", PreasignacionPut["Data"].(map[string]interface{})["tipo_vinculacion_id"]), &planDocenteGet); errGetPlan == nil {
 						if resultado != nil {
 							if fmt.Sprintf("%v", planDocenteGet["Data"]) != "[]" {
 								idPlanDocente := planDocenteGet["Data"].([]interface{})[0].(map[string]interface{})["_id"].(string)
 								preasignacionPut = map[string]interface{}{"plan_docente_id": idPlanDocente}
 
-								if errAprobacion := request.SendJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion/"+fmt.Sprintf("%v", preasignacion.(map[string]interface{})["Id"]), "PUT", &PreasignacionPut, preasignacionPut); errAprobacion == nil {
+								if errAprobacion := request.SendJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion/"+fmt.Sprintf("%v", preasignacion.(map[string]interface{})["Id"]), "PUT", &PreasignacionPut, preasignacionPut); errAprobacion == nil {
 									resultado = append(resultado, map[string]interface{}{"Id": PreasignacionPut["Data"].(map[string]interface{})["_id"], "actualizado": true, "plan_trabajo": true})
 								}
 							} else {
@@ -318,11 +318,11 @@ func (c *PtdController) PutAprobacionPreasignacion() {
 								}
 
 								var planDocentePost map[string]interface{}
-								if errPlan := request.SendJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"plan_docente", "POST", &planDocentePost, planDocente); errPlan == nil {
+								if errPlan := request.SendJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"plan_docente", "POST", &planDocentePost, planDocente); errPlan == nil {
 									idPlanDocente := planDocentePost["Data"].(map[string]interface{})["_id"].(string)
 									preasignacionPut = map[string]interface{}{"plan_docente_id": idPlanDocente}
 
-									if errAprobacion := request.SendJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion/"+fmt.Sprintf("%v", preasignacion.(map[string]interface{})["Id"]), "PUT", &PreasignacionPut, preasignacionPut); errAprobacion == nil {
+									if errAprobacion := request.SendJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion/"+fmt.Sprintf("%v", preasignacion.(map[string]interface{})["Id"]), "PUT", &PreasignacionPut, preasignacionPut); errAprobacion == nil {
 										resultado = append(resultado, map[string]interface{}{"Id": PreasignacionPut["Data"].(map[string]interface{})["_id"], "actualizado": true, "plan_trabajo": true})
 									}
 								}
@@ -345,7 +345,7 @@ func (c *PtdController) PutAprobacionPreasignacion() {
 		}
 
 		for _, preasignacion := range aprobacion["no-preasignaciones"].([]interface{}) {
-			if errAprobacion := request.SendJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion/"+fmt.Sprintf("%v", preasignacion.(map[string]interface{})["Id"]), "PUT", &PreasignacionPut, preasignacionPut); errAprobacion == nil {
+			if errAprobacion := request.SendJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion/"+fmt.Sprintf("%v", preasignacion.(map[string]interface{})["Id"]), "PUT", &PreasignacionPut, preasignacionPut); errAprobacion == nil {
 				resultado = append(resultado, map[string]interface{}{"Id": PreasignacionPut["Data"].(map[string]interface{})["_id"], "actualizado": true})
 			} else {
 				resultado = append(resultado, map[string]interface{}{"Id": preasignacion.(map[string]interface{})["Id"], "actualizado": false})
@@ -384,7 +384,7 @@ func (c *PtdController) GetPreasignacionesDocente() {
 
 	var resPreasignaciones map[string]interface{}
 
-	if errPreasignacion := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion?query=aprobacion_proyecto:true,activo:true,periodo_id:"+vigencia+",docente_id:"+docente, &resPreasignaciones); errPreasignacion == nil {
+	if errPreasignacion := request.GetJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion?query=aprobacion_proyecto:true,activo:true,periodo_id:"+vigencia+",docente_id:"+docente, &resPreasignaciones); errPreasignacion == nil {
 		if fmt.Sprintf("%v", resPreasignaciones["Data"]) != "[]" {
 			response := consultarDetallePreasignacion(resPreasignaciones["Data"].([]interface{}))
 
@@ -419,7 +419,7 @@ func (c *PtdController) GetPreasignaciones() {
 
 	var resPreasignaciones map[string]interface{}
 
-	if errPreasignacion := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion?query=activo:true,periodo_id:"+vigencia, &resPreasignaciones); errPreasignacion == nil {
+	if errPreasignacion := request.GetJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion?query=activo:true,periodo_id:"+vigencia, &resPreasignaciones); errPreasignacion == nil {
 		if fmt.Sprintf("%v", resPreasignaciones["Data"]) != "[]" {
 			response := consultarDetallePreasignacion(resPreasignaciones["Data"].([]interface{}))
 
@@ -454,7 +454,7 @@ func (c *PtdController) GetAsignaciones() {
 
 	var resPreasignaciones map[string]interface{}
 
-	if errPreasignacion := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion?query=activo:true,aprobacion_docente:true,aprobacion_proyecto:true,periodo_id:"+vigencia+"&fields=docente_id,tipo_vinculacion_id,plan_docente_id,periodo_id", &resPreasignaciones); errPreasignacion == nil {
+	if errPreasignacion := request.GetJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion?query=activo:true,aprobacion_docente:true,aprobacion_proyecto:true,periodo_id:"+vigencia+"&fields=docente_id,tipo_vinculacion_id,plan_docente_id,periodo_id", &resPreasignaciones); errPreasignacion == nil {
 		if fmt.Sprintf("%v", resPreasignaciones["Data"]) != "[]" {
 			response := consultarDetalleAsignacion(resPreasignaciones["Data"].([]interface{}), false)
 
@@ -487,7 +487,7 @@ func (c *PtdController) GetAsignacionesDocente() {
 
 	var resPreasignaciones map[string]interface{}
 
-	if errPreasignacion := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion?query=activo:true,aprobacion_docente:true,aprobacion_proyecto:true,docente_id:"+docente+",periodo_id:"+vigencia+"&fields=docente_id,tipo_vinculacion_id,plan_docente_id,periodo_id", &resPreasignaciones); errPreasignacion == nil {
+	if errPreasignacion := request.GetJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion?query=activo:true,aprobacion_docente:true,aprobacion_proyecto:true,docente_id:"+docente+",periodo_id:"+vigencia+"&fields=docente_id,tipo_vinculacion_id,plan_docente_id,periodo_id", &resPreasignaciones); errPreasignacion == nil {
 		if fmt.Sprintf("%v", resPreasignaciones["Data"]) != "[]" {
 			response := consultarDetalleAsignacion(resPreasignaciones["Data"].([]interface{}), true)
 
@@ -522,7 +522,7 @@ func (c *PtdController) GetPlanTrabajoDocente() {
 
 	var resPlan map[string]interface{}
 
-	if errPlan := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"plan_docente?query=activo:true,docente_id:"+docente+",periodo_id:"+vigencia+"&fields=tipo_vinculacion_id,soporte_documental,respuesta,resumen,docente_id,periodo_id,estado_plan_id", &resPlan); errPlan == nil {
+	if errPlan := request.GetJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"plan_docente?query=activo:true,docente_id:"+docente+",periodo_id:"+vigencia+"&fields=tipo_vinculacion_id,soporte_documental,respuesta,resumen,docente_id,periodo_id,estado_plan_id", &resPlan); errPlan == nil {
 		if fmt.Sprintf("%v", resPlan["Data"]) != "[]" {
 			response := consultarDetallePlan(resPlan["Data"].([]interface{}), vinculacion)
 
@@ -594,11 +594,11 @@ func (c *PtdController) PutPlanTrabajoDocente() {
 			}
 
 			if carga.(map[string]interface{})["id"] == nil {
-				if errPostPlacement := request.SendJson("http://"+beego.AppConfig.String("HorarioService")+"colocacion_espacio_academico/",
+				if errPostPlacement := request.SendJson(beego.AppConfig.String("HorarioService")+"colocacion_espacio_academico/",
 					"POST", &resColocacion, bodyColocacion); errPostPlacement == nil {
 					if resColocacion["Success"].(bool) {
 						bodyCarga["colocacion_espacio_academico_id"] = resColocacion["Data"].(map[string]interface{})["Id"]
-						if errPostCarga := request.SendJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan/",
+						if errPostCarga := request.SendJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan/",
 							"POST", &resCarga, bodyCarga); errPostCarga == nil {
 							if resCarga["Success"].(bool) {
 								resultadoCargas = append(resultadoCargas, map[string]interface{}{"id": resCarga["Data"].(map[string]interface{})["_id"], "creado": true})
@@ -612,14 +612,14 @@ func (c *PtdController) PutPlanTrabajoDocente() {
 				}
 			} else {
 				var planTrabajoData map[string]interface{}
-				if errPlanTrabajo := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan/"+carga.(map[string]interface{})["id"].(string), &planTrabajoData); errPlanTrabajo == nil {
+				if errPlanTrabajo := request.GetJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan/"+carga.(map[string]interface{})["id"].(string), &planTrabajoData); errPlanTrabajo == nil {
 					if planTrabajoData["Success"].(bool) {
 						if colId, colExists := planTrabajoData["Data"].(map[string]interface{})["colocacion_espacio_academico_id"]; colExists {
-							if errPutColocacion := request.SendJson("http://"+beego.AppConfig.String("HorarioService")+"colocacion_espacio_academico/"+colId.(string),
+							if errPutColocacion := request.SendJson(beego.AppConfig.String("HorarioService")+"colocacion_espacio_academico/"+colId.(string),
 								"PUT", &resColocacion, bodyColocacion); errPutColocacion == nil {
 								if resColocacion["Success"].(bool) {
 									bodyCarga["colocacion_espacio_academico_id"] = resColocacion["Data"].(map[string]interface{})["Id"]
-									if errPutCarga := request.SendJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan/"+carga.(map[string]interface{})["id"].(string),
+									if errPutCarga := request.SendJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan/"+carga.(map[string]interface{})["id"].(string),
 										"PUT", &resCarga, bodyCarga); errPutCarga == nil {
 										if resCarga["Success"].(bool) {
 											resultadoCargas = append(resultadoCargas, map[string]interface{}{"id": resCarga["Data"].(map[string]interface{})["_id"], "actualizado": true})
@@ -632,11 +632,11 @@ func (c *PtdController) PutPlanTrabajoDocente() {
 								}
 							}
 						} else {
-							if errPutColocacion := request.SendJson("http://"+beego.AppConfig.String("HorarioService")+"colocacion_espacio_academico/",
+							if errPutColocacion := request.SendJson(beego.AppConfig.String("HorarioService")+"colocacion_espacio_academico/",
 								"POST", &resColocacion, bodyColocacion); errPutColocacion == nil {
 								if resColocacion["Success"].(bool) {
 									bodyCarga["colocacion_espacio_academico_id"] = resColocacion["Data"].(map[string]interface{})["Id"]
-									if errPutCarga := request.SendJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan/"+carga.(map[string]interface{})["id"].(string),
+									if errPutCarga := request.SendJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan/"+carga.(map[string]interface{})["id"].(string),
 										"PUT", &resCarga, bodyCarga); errPutCarga == nil {
 										if resCarga["Success"].(bool) {
 											resultadoCargas = append(resultadoCargas, map[string]interface{}{"id": resCarga["Data"].(map[string]interface{})["_id"], "actualizado": true})
@@ -657,7 +657,7 @@ func (c *PtdController) PutPlanTrabajoDocente() {
 
 		if plan["plan_docente"].(map[string]interface{})["estado_plan"].(string) == "Sin definir" {
 			var resEstado map[string]interface{}
-			if errEstado := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"estado_plan?query=codigo_abreviacion:DEF", &resEstado); errEstado == nil {
+			if errEstado := request.GetJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"estado_plan?query=codigo_abreviacion:DEF", &resEstado); errEstado == nil {
 				plan["plan_docente"].(map[string]interface{})["estado_plan_id"] = resEstado["Data"].([]interface{})[0].(map[string]interface{})["_id"]
 			}
 		} else {
@@ -665,7 +665,7 @@ func (c *PtdController) PutPlanTrabajoDocente() {
 				plan["plan_docente"].(map[string]interface{})["estado_plan_id"] = plan["plan_docente"].(map[string]interface{})["estado_plan"].(string)
 			}
 		}
-		if errPutPlan := request.SendJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"plan_docente/"+plan["plan_docente"].(map[string]interface{})["id"].(string), "PUT", &resPlan, plan["plan_docente"]); errPutPlan == nil {
+		if errPutPlan := request.SendJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"plan_docente/"+plan["plan_docente"].(map[string]interface{})["id"].(string), "PUT", &resPlan, plan["plan_docente"]); errPutPlan == nil {
 			if resPlan["Success"].(bool) {
 				resultado["plan_actualizado"] = true
 			} else {
@@ -674,7 +674,7 @@ func (c *PtdController) PutPlanTrabajoDocente() {
 		}
 
 		for _, descartado := range plan["descartar"].([]interface{}) {
-			_, err := requestmanager.Delete("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan/"+descartado.(map[string]interface{})["id"].(string), requestmanager.ParseResponseFormato1)
+			_, err := requestmanager.Delete(beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan/"+descartado.(map[string]interface{})["id"].(string), requestmanager.ParseResponseFormato1)
 			if err == nil {
 				resultadoCargas = append(resultadoCargas, map[string]interface{}{"id": descartado.(map[string]interface{})["id"].(string), "desactivado": true})
 			} else {
@@ -716,18 +716,18 @@ func (c *PtdController) GetDisponibilidadEspacio() {
 	var alerta models.Alert
 	var errorGetAll bool
 
-	if errGetPlan := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"plan_docente?query=activo:true,periodo_id:"+vigencia+"&fields=_id", &planTrabajoDocente); errGetPlan == nil {
+	if errGetPlan := request.GetJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"plan_docente?query=activo:true,periodo_id:"+vigencia+"&fields=_id", &planTrabajoDocente); errGetPlan == nil {
 		if fmt.Sprintf("%v", planTrabajoDocente["Data"]) != "[]" {
 			planes := planTrabajoDocente["Data"].([]interface{})
 
 			for _, plan := range planes {
-				if errGetCargas := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan?query=activo:true,salon_id:"+salon+",plan_docente_id:"+plan.(map[string]interface{})["_id"].(string)+"&fields=horario,plan_docente_id,colocacion_espacio_academico_id", &cargaPlan); errGetCargas == nil {
+				if errGetCargas := request.GetJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan?query=activo:true,salon_id:"+salon+",plan_docente_id:"+plan.(map[string]interface{})["_id"].(string)+"&fields=horario,plan_docente_id,colocacion_espacio_academico_id", &cargaPlan); errGetCargas == nil {
 					if fmt.Sprintf("%v", cargaPlan["Data"]) != "[]" {
 						for _, carga := range cargaPlan["Data"].([]interface{}) {
 							if carga.(map[string]interface{})["plan_docente_id"] != planId {
 								if colId, colExists := carga.(map[string]interface{})["colocacion_espacio_academico_id"]; colExists {
 									var horarioJSON map[string]interface{}
-									if errGetColocacion := request.GetJson("http://"+beego.AppConfig.String("HorarioService")+"colocacion_espacio_academico/"+colId.(string), &colocacion); errGetColocacion == nil {
+									if errGetColocacion := request.GetJson(beego.AppConfig.String("HorarioService")+"colocacion_espacio_academico/"+colId.(string), &colocacion); errGetColocacion == nil {
 										if colocacion["Success"].(bool) {
 											json.Unmarshal([]byte(colocacion["Data"].(map[string]interface{})["ColocacionEspacioAcademico"].(string)), &horarioJSON)
 											cargas = append(cargas, map[string]interface{}{
@@ -831,7 +831,7 @@ func (c *PtdController) CopiarPlanTrabajoDocente() {
 	// * ----------
 	// * Consultas sobre el plan trabajo docente y su carga del periodo anterior
 	//
-	response, err := requestmanager.Get("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+
+	response, err := requestmanager.Get(beego.AppConfig.String("PlanTrabajoDocenteService")+
 		fmt.Sprintf("plan_docente?query=activo:true,docente_id:%d,periodo_id:%d,tipo_vinculacion_id:%d&fields=_id&limit=1", docente, vigenciaAnterior, vinculacion), requestmanager.ParseResponseFormato1)
 	if err != nil {
 		logs.Error(err)
@@ -847,7 +847,7 @@ func (c *PtdController) CopiarPlanTrabajoDocente() {
 	plan_docenteAnterior := []data.PlanDocente{}
 	utils.ParseData(response, &plan_docenteAnterior)
 
-	response, err = requestmanager.Get("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+
+	response, err = requestmanager.Get(beego.AppConfig.String("PlanTrabajoDocenteService")+
 		fmt.Sprintf("carga_plan?query=activo:true,plan_docente_id:%s&limit=0", plan_docenteAnterior[0].Id), requestmanager.ParseResponseFormato1)
 
 	if err != nil {
@@ -907,7 +907,7 @@ func (c *PtdController) CopiarPlanTrabajoDocente() {
 			for _, carga := range carga_planAnterior {
 				if carga.Horario == "" && carga.Colocacion_espacio_academico_id != "" {
 					var colocacion map[string]interface{}
-					if errGetColocacion := request.GetJson("http://"+beego.AppConfig.String("HorarioService")+
+					if errGetColocacion := request.GetJson(beego.AppConfig.String("HorarioService")+
 						"colocacion_espacio_academico/"+carga.Colocacion_espacio_academico_id, &colocacion); errGetColocacion == nil {
 						if colocacion["Success"].(bool) {
 							var resumenColocacionJSON map[string]interface{}
@@ -1000,7 +1000,7 @@ func (c *PtdController) CopiarPlanTrabajoDocente() {
 		for _, carga := range carga_planAnterior {
 			if carga.Horario == "" && carga.Colocacion_espacio_academico_id != "" {
 				var colocacion map[string]interface{}
-				if errGetColocacion := request.GetJson("http://"+beego.AppConfig.String("HorarioService")+
+				if errGetColocacion := request.GetJson(beego.AppConfig.String("HorarioService")+
 					"colocacion_espacio_academico/"+carga.Colocacion_espacio_academico_id, &colocacion); errGetColocacion == nil {
 					if colocacion["Success"].(bool) {
 						var resumenColocacionJSON map[string]interface{}
@@ -1107,19 +1107,19 @@ func (c *PtdController) GetPlanesPreaprobados() {
 
 	rawPlanes := []interface{}{}
 	estado := "64c2ca7fd1e67f67f057f3c8" // preaprobado
-	resp, err := requestmanager.Get("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+
+	resp, err := requestmanager.Get(beego.AppConfig.String("PlanTrabajoDocenteService")+
 		fmt.Sprintf("plan_docente?query=activo:true,estado_plan_id:%s,periodo_id:%d&limit=0", estado, vigencia), requestmanager.ParseResponseFormato1)
 	if err == nil {
 		rawPlanes = append(rawPlanes, resp.([]interface{})...)
 	}
 	estado = "646fcf784c0bc253c1c720d4" // aprobado
-	resp, err = requestmanager.Get("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+
+	resp, err = requestmanager.Get(beego.AppConfig.String("PlanTrabajoDocenteService")+
 		fmt.Sprintf("plan_docente?query=activo:true,estado_plan_id:%s,periodo_id:%d&limit=0", estado, vigencia), requestmanager.ParseResponseFormato1)
 	if err == nil {
 		rawPlanes = append(rawPlanes, resp.([]interface{})...)
 	}
 	estado = "646fcf8a4c0bc253c1c720d6" // no aprobado
-	resp, err = requestmanager.Get("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+
+	resp, err = requestmanager.Get(beego.AppConfig.String("PlanTrabajoDocenteService")+
 		fmt.Sprintf("plan_docente?query=activo:true,estado_plan_id:%s,periodo_id:%d&limit=0", estado, vigencia), requestmanager.ParseResponseFormato1)
 	if err == nil {
 		rawPlanes = append(rawPlanes, resp.([]interface{})...)
@@ -1131,7 +1131,7 @@ func (c *PtdController) GetPlanesPreaprobados() {
 	planes_proyecto := []data.PlanDocente{}
 
 	for _, plan := range lista_planes {
-		_, err := requestmanager.Get("http://"+beego.AppConfig.String("EspaciosAcademicosService")+
+		_, err := requestmanager.Get(beego.AppConfig.String("EspaciosAcademicosService")+
 			fmt.Sprintf("espacio-academico?query=activo:true,periodo_id:%d,proyecto_academico_id:%d,docente_id:%s&fields=_id&limit=0", vigencia, proyecto, plan.Docente_id), requestmanager.ParseResponseFormato1)
 		if err == nil {
 			planes_proyecto = append(planes_proyecto, plan)
@@ -1149,7 +1149,7 @@ func (c *PtdController) GetPlanesPreaprobados() {
 	prepareAns := []map[string]interface{}{}
 
 	for _, planProyecto := range planes_proyecto {
-		resp, err := requestmanager.Get("http://"+beego.AppConfig.String("TercerosService")+
+		resp, err := requestmanager.Get(beego.AppConfig.String("TercerosService")+
 			fmt.Sprintf("datos_identificacion?query=Activo:true,TerceroId__Id:%v&fields=TerceroId,Numero,TipoDocumentoId&sortby=FechaExpedicion,Id&order=desc&limit=1",
 				planProyecto.Docente_id), requestmanager.ParseResonseNoFormat)
 		if err != nil {
@@ -1166,7 +1166,7 @@ func (c *PtdController) GetPlanesPreaprobados() {
 		datos_identificacion := data.DatosIdentificacion{}
 		utils.ParseData(resp.([]interface{})[0], &datos_identificacion)
 
-		resp, err = requestmanager.Get("http://"+beego.AppConfig.String("ParametroService")+
+		resp, err = requestmanager.Get(beego.AppConfig.String("ParametroService")+
 			fmt.Sprintf("parametro/%s", planProyecto.Tipo_vinculacion_id), requestmanager.ParseResponseFormato1)
 		if err != nil {
 			logs.Error(err)
@@ -1231,7 +1231,7 @@ func (c *PtdController) GetEspaciosFisicosDependencia() {
 	inBog, _ := time.LoadLocation("America/Bogota")
 	horaes := time.Now().In(inBog).Format(time.RFC3339)
 
-	resp, err := requestmanager.Get("http://"+beego.AppConfig.String("ProyectoAcademicoService")+
+	resp, err := requestmanager.Get(beego.AppConfig.String("ProyectoAcademicoService")+
 		fmt.Sprintf("proyecto_academico_institucion/%d", dependencia), requestmanager.ParseResonseNoFormat)
 	if err != nil {
 		logs.Error(err)
@@ -1261,11 +1261,11 @@ func (c *PtdController) GetEspaciosFisicosDependencia() {
 	Edificios := map[string][]map[string]interface{}{}
 	Sedes := []map[string]interface{}{}
 
-	resp, err = requestmanager.Get("http://"+beego.AppConfig.String("OikosService")+
+	resp, err = requestmanager.Get(beego.AppConfig.String("OikosService")+
 		fmt.Sprintf("asignacion_espacio_fisico_dependencia?query=Activo:true,DependenciaId:%d,FechaInicio__lte:%v,FechaFin__gte:%v&fields=EspacioFisicoId&limit=0",
 			dependencia, horaes, horaes), requestmanager.ParseResonseNoFormat)
 	if err != nil {
-		resp, err = requestmanager.Get("http://"+beego.AppConfig.String("OikosService")+"espacio_fisico?query=Nombre:POR%20ASIGNAR,TipoEspacioFisicoId__Id:2", requestmanager.ParseResonseNoFormat)
+		resp, err = requestmanager.Get(beego.AppConfig.String("OikosService")+"espacio_fisico?query=Nombre:POR%20ASIGNAR,TipoEspacioFisicoId__Id:2", requestmanager.ParseResonseNoFormat)
 		if err != nil {
 			logs.Error(err)
 			badAns, code := requestmanager.MidResponseFormat("OikosService (espacio_fisico)", "GET", false, map[string]interface{}{
@@ -1299,13 +1299,13 @@ func (c *PtdController) GetEspaciosFisicosDependencia() {
 	}
 
 	for _, EspacioFisico := range resp.([]interface{}) {
-		resp, err := requestmanager.Get("http://"+beego.AppConfig.String("OikosService")+
+		resp, err := requestmanager.Get(beego.AppConfig.String("OikosService")+
 			fmt.Sprintf("espacio_fisico_padre?query=HijoId:%v", EspacioFisico.(map[string]interface{})["EspacioFisicoId"].(map[string]interface{})["Id"]), requestmanager.ParseResonseNoFormat)
 		if err == nil {
 			tipoEspacio := resp.([]interface{})[0].(map[string]interface{})["PadreId"].(map[string]interface{})["TipoEspacioFisicoId"].(map[string]interface{})["Id"].(float64)
 			PadreSalon := fmt.Sprintf("%v", resp.([]interface{})[0].(map[string]interface{})["PadreId"].(map[string]interface{})["Id"])
 			for tipoEspacio != 39 {
-				resp, err := requestmanager.Get("http://"+beego.AppConfig.String("OikosService")+
+				resp, err := requestmanager.Get(beego.AppConfig.String("OikosService")+
 					fmt.Sprintf("espacio_fisico_padre?query=HijoId:%v", PadreSalon), requestmanager.ParseResonseNoFormat)
 				if err == nil {
 					PadreSalon = fmt.Sprintf("%v", resp.([]interface{})[0].(map[string]interface{})["PadreId"].(map[string]interface{})["Id"])
@@ -1327,7 +1327,7 @@ func (c *PtdController) GetEspaciosFisicosDependencia() {
 	}
 
 	for PadreSalon := range Salones {
-		resp, err := requestmanager.Get("http://"+beego.AppConfig.String("OikosService")+
+		resp, err := requestmanager.Get(beego.AppConfig.String("OikosService")+
 			fmt.Sprintf("espacio_fisico_padre?query=HijoId:%v", PadreSalon), requestmanager.ParseResonseNoFormat)
 		if err == nil {
 			PadreEdificio := fmt.Sprintf("%v", resp.([]interface{})[0].(map[string]interface{})["PadreId"].(map[string]interface{})["Id"])
@@ -1344,7 +1344,7 @@ func (c *PtdController) GetEspaciosFisicosDependencia() {
 	}
 
 	for PadreEficio := range Edificios {
-		resp, err := requestmanager.Get("http://"+beego.AppConfig.String("OikosService")+
+		resp, err := requestmanager.Get(beego.AppConfig.String("OikosService")+
 			fmt.Sprintf("espacio_fisico_padre?query=HijoId:%v", PadreEficio), requestmanager.ParseResonseNoFormat)
 		if err == nil {
 			Sedes = append(Sedes, map[string]interface{}{
@@ -1369,7 +1369,7 @@ func (c *PtdController) GetEspaciosFisicosDependencia() {
 
 func consultarEspaciosAcademicosInfoPadre(docente, periodo, vinculacion int64) ([]data.EspacioAcademico, error) {
 	espacios := []data.EspacioAcademico{}
-	response, err := requestmanager.Get("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+
+	response, err := requestmanager.Get(beego.AppConfig.String("PlanTrabajoDocenteService")+
 		fmt.Sprintf("pre_asignacion?query=activo:true,aprobacion_docente:true,aprobacion_proyecto:true,docente_id:%d,periodo_id:%d,tipo_vinculacion_id:%d&fields=espacio_academico_id", docente, periodo, vinculacion),
 		requestmanager.ParseResponseFormato1)
 	if err != nil {
@@ -1378,7 +1378,7 @@ func consultarEspaciosAcademicosInfoPadre(docente, periodo, vinculacion int64) (
 	preasignaciones := []data.PreAsignacion{}
 	utils.ParseData(response, &preasignaciones)
 	for _, preasignacion := range preasignaciones {
-		response, err := requestmanager.Get("http://"+beego.AppConfig.String("EspaciosAcademicosService")+
+		response, err := requestmanager.Get(beego.AppConfig.String("EspaciosAcademicosService")+
 			fmt.Sprintf("espacio-academico?query=activo:true,_id:%s&fields=_id,nombre,espacio_academico_padre&limit=1", preasignacion.Espacio_academico_id), requestmanager.ParseResponseFormato1)
 		if err != nil {
 			return nil, fmt.Errorf("EspaciosAcademicosService (espacio-academico): %s", err.Error())
@@ -1391,17 +1391,17 @@ func consultarEspaciosAcademicosInfoPadre(docente, periodo, vinculacion int64) (
 }
 
 func consultarInfoEspacioFisico(sede_id, edificio_id, salon_id string) (interface{}, error) {
-	sede, err := requestmanager.Get("http://"+beego.AppConfig.String("OikosService")+fmt.Sprintf("espacio_fisico?query=Id:%s&fields=Id,Nombre,CodigoAbreviacion&limit=1", sede_id),
+	sede, err := requestmanager.Get(beego.AppConfig.String("OikosService")+fmt.Sprintf("espacio_fisico?query=Id:%s&fields=Id,Nombre,CodigoAbreviacion&limit=1", sede_id),
 		requestmanager.ParseResonseNoFormat)
 	if err != nil {
 		return nil, err
 	}
-	edificio, err := requestmanager.Get("http://"+beego.AppConfig.String("OikosService")+fmt.Sprintf("espacio_fisico?query=Id:%s&fields=Id,Nombre,CodigoAbreviacion&limit=1", edificio_id),
+	edificio, err := requestmanager.Get(beego.AppConfig.String("OikosService")+fmt.Sprintf("espacio_fisico?query=Id:%s&fields=Id,Nombre,CodigoAbreviacion&limit=1", edificio_id),
 		requestmanager.ParseResonseNoFormat)
 	if err != nil {
 		return nil, err
 	}
-	salon, err := requestmanager.Get("http://"+beego.AppConfig.String("OikosService")+fmt.Sprintf("espacio_fisico?query=Id:%s&fields=Id,Nombre,CodigoAbreviacion&limit=1", salon_id),
+	salon, err := requestmanager.Get(beego.AppConfig.String("OikosService")+fmt.Sprintf("espacio_fisico?query=Id:%s&fields=Id,Nombre,CodigoAbreviacion&limit=1", salon_id),
 		requestmanager.ParseResonseNoFormat)
 	if err != nil {
 		return nil, err
@@ -1424,13 +1424,13 @@ func consultarDetallePreasignacion(preasignaciones []interface{}) []map[string]i
 	var resProyecto []map[string]interface{}
 
 	for _, preasignacion := range preasignaciones {
-		if errDocente := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+preasignacion.(map[string]interface{})["docente_id"].(string), &resDocente); errDocente == nil {
+		if errDocente := request.GetJson(beego.AppConfig.String("TercerosService")+"tercero/"+preasignacion.(map[string]interface{})["docente_id"].(string), &resDocente); errDocente == nil {
 			memDocente[preasignacion.(map[string]interface{})["docente_id"].(string)] = resDocente
 		}
 
 		if memEspacios[preasignacion.(map[string]interface{})["espacio_academico_id"].(string)] == nil {
-			if errEspacioAcademico := request.GetJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico/"+fmt.Sprintf("%v", preasignacion.(map[string]interface{})["espacio_academico_id"]), &resEspacioAcademico); errEspacioAcademico == nil {
-				if errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Id:"+fmt.Sprintf("%v", resEspacioAcademico["Data"].(map[string]interface{})["proyecto_academico_id"]), &resProyecto); errProyecto == nil {
+			if errEspacioAcademico := request.GetJson(beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico/"+fmt.Sprintf("%v", preasignacion.(map[string]interface{})["espacio_academico_id"]), &resEspacioAcademico); errEspacioAcademico == nil {
+				if errProyecto := request.GetJson(beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion?query=Id:"+fmt.Sprintf("%v", resEspacioAcademico["Data"].(map[string]interface{})["proyecto_academico_id"]), &resProyecto); errProyecto == nil {
 					memEspacios[preasignacion.(map[string]interface{})["espacio_academico_id"].(string)] = map[string]interface{}{
 						"espacio_academico":       resEspacioAcademico["Data"].(map[string]interface{})["nombre"].(string),
 						"grupo":                   resEspacioAcademico["Data"].(map[string]interface{})["grupo"],
@@ -1445,7 +1445,7 @@ func consultarDetallePreasignacion(preasignaciones []interface{}) []map[string]i
 		}
 
 		if memPeriodo[preasignacion.(map[string]interface{})["periodo_id"].(string)] == nil {
-			if errPeriodo := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"periodo/"+fmt.Sprintf("%v", preasignacion.(map[string]interface{})["periodo_id"]), &resPeriodo); errPeriodo == nil {
+			if errPeriodo := request.GetJson(beego.AppConfig.String("ParametroService")+"periodo/"+fmt.Sprintf("%v", preasignacion.(map[string]interface{})["periodo_id"]), &resPeriodo); errPeriodo == nil {
 				memPeriodo[preasignacion.(map[string]interface{})["periodo_id"].(string)] = resPeriodo["Data"].(map[string]interface{})["Nombre"].(string)
 			}
 		}
@@ -1489,14 +1489,14 @@ func consultarDetalleAsignacion(asignaciones []interface{}, forTeacher bool) []m
 	var resEstado map[string]interface{}
 
 	for _, asignacion := range asignaciones {
-		if errDocente := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+asignacion.(map[string]interface{})["docente_id"].(string), &resDocente); errDocente == nil {
+		if errDocente := request.GetJson(beego.AppConfig.String("TercerosService")+"tercero/"+asignacion.(map[string]interface{})["docente_id"].(string), &resDocente); errDocente == nil {
 			memDocente[asignacion.(map[string]interface{})["docente_id"].(string)] = resDocente
-			if errDocumento := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=TerceroId.Id:"+asignacion.(map[string]interface{})["docente_id"].(string)+"&fields=Numero", &resDocumento); errDocumento == nil {
+			if errDocumento := request.GetJson(beego.AppConfig.String("TercerosService")+"datos_identificacion?query=TerceroId.Id:"+asignacion.(map[string]interface{})["docente_id"].(string)+"&fields=Numero", &resDocumento); errDocumento == nil {
 				memDocumento[asignacion.(map[string]interface{})["docente_id"].(string)] = resDocumento[0]["Numero"]
 			}
 		}
 
-		if errVinculacion := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro/"+asignacion.(map[string]interface{})["tipo_vinculacion_id"].(string), &resVinculacion); errVinculacion == nil {
+		if errVinculacion := request.GetJson(beego.AppConfig.String("ParametroService")+"parametro/"+asignacion.(map[string]interface{})["tipo_vinculacion_id"].(string), &resVinculacion); errVinculacion == nil {
 			vinculacion := resVinculacion["Data"].(map[string]interface{})["Nombre"].(string)
 			vinculacion = strings.Replace(vinculacion, "DOCENTE DE ", "", 1)
 			vinculacion = strings.ToLower(vinculacion)
@@ -1504,7 +1504,7 @@ func consultarDetalleAsignacion(asignaciones []interface{}, forTeacher bool) []m
 		}
 
 		if memPeriodo[asignacion.(map[string]interface{})["periodo_id"].(string)] == nil {
-			if errPeriodo := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"periodo/"+fmt.Sprintf("%v", asignacion.(map[string]interface{})["periodo_id"]), &resPeriodo); errPeriodo == nil {
+			if errPeriodo := request.GetJson(beego.AppConfig.String("ParametroService")+"periodo/"+fmt.Sprintf("%v", asignacion.(map[string]interface{})["periodo_id"]), &resPeriodo); errPeriodo == nil {
 				memPeriodo[asignacion.(map[string]interface{})["periodo_id"].(string)] = resPeriodo["Data"].(map[string]interface{})["Nombre"].(string)
 			}
 		}
@@ -1515,13 +1515,13 @@ func consultarDetalleAsignacion(asignaciones []interface{}, forTeacher bool) []m
 
 			estadoPlan := "Sin definir"
 			plan_id := ""
-			if errPlan := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"plan_docente/"+fmt.Sprintf("%v", asignacion.(map[string]interface{})["plan_docente_id"]), &resPlan); errPlan == nil {
+			if errPlan := request.GetJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"plan_docente/"+fmt.Sprintf("%v", asignacion.(map[string]interface{})["plan_docente_id"]), &resPlan); errPlan == nil {
 				idEstado := resPlan["Data"].(map[string]interface{})["estado_plan_id"].(string)
 				plan_id = resPlan["Data"].(map[string]interface{})["_id"].(string)
 				if idEstado == "Sin definir" {
 					memEstados[asignacion.(map[string]interface{})["plan_docente_id"].(string)] = resPlan["Data"].(map[string]interface{})["estado_plan_id"].(string)
 				} else {
-					if errEstado := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"estado_plan/"+idEstado, &resEstado); errEstado == nil {
+					if errEstado := request.GetJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"estado_plan/"+idEstado, &resEstado); errEstado == nil {
 						memEstados[asignacion.(map[string]interface{})["plan_docente_id"].(string)] = resEstado["Data"].(map[string]interface{})["nombre"].(string)
 						estadoPlan = resEstado["Data"].(map[string]interface{})["codigo_abreviacion"].(string)
 					}
@@ -1605,9 +1605,9 @@ func consultarDetallePlan(planes []interface{}, idVinculacion string) map[string
 	var resEstado map[string]interface{}
 	var indexSeleccionado int
 
-	if errDocente := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+planes[0].(map[string]interface{})["docente_id"].(string), &resDocente); errDocente == nil {
+	if errDocente := request.GetJson(beego.AppConfig.String("TercerosService")+"tercero/"+planes[0].(map[string]interface{})["docente_id"].(string), &resDocente); errDocente == nil {
 		memDocente[planes[0].(map[string]interface{})["docente_id"].(string)] = resDocente
-		if errDocumento := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=TerceroId.Id:"+planes[0].(map[string]interface{})["docente_id"].(string)+"&fields=Numero", &resDocumento); errDocumento == nil {
+		if errDocumento := request.GetJson(beego.AppConfig.String("TercerosService")+"datos_identificacion?query=TerceroId.Id:"+planes[0].(map[string]interface{})["docente_id"].(string)+"&fields=Numero", &resDocumento); errDocumento == nil {
 			memDocente = map[string]interface{}{
 				"id":             planes[0].(map[string]interface{})["docente_id"].(string),
 				"nombre":         cases.Title(language.Spanish).String(resDocente["NombreCompleto"].(string)),
@@ -1618,14 +1618,14 @@ func consultarDetallePlan(planes []interface{}, idVinculacion string) map[string
 		}
 	}
 
-	if errPeriodo := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"periodo/"+fmt.Sprintf("%v", planes[0].(map[string]interface{})["periodo_id"]), &resPeriodo); errPeriodo == nil {
+	if errPeriodo := request.GetJson(beego.AppConfig.String("ParametroService")+"periodo/"+fmt.Sprintf("%v", planes[0].(map[string]interface{})["periodo_id"]), &resPeriodo); errPeriodo == nil {
 		response["periodo_academico"] = resPeriodo["Data"].(map[string]interface{})["Nombre"].(string)
 	}
 
 	for index, plan := range planes {
 		var espacioPlan []interface{}
 		cargaPlan := []interface{}{}
-		if errVinculacion := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro/"+plan.(map[string]interface{})["tipo_vinculacion_id"].(string), &resVinculacion); errVinculacion == nil {
+		if errVinculacion := request.GetJson(beego.AppConfig.String("ParametroService")+"parametro/"+plan.(map[string]interface{})["tipo_vinculacion_id"].(string), &resVinculacion); errVinculacion == nil {
 			vinculacion := resVinculacion["Data"].(map[string]interface{})["Nombre"].(string)
 			vinculacion = strings.Replace(vinculacion, "DOCENTE DE ", "", 1)
 			vinculacion = strings.ToLower(vinculacion)
@@ -1637,7 +1637,7 @@ func consultarDetallePlan(planes []interface{}, idVinculacion string) map[string
 			indexSeleccionado = index
 		}
 
-		if errCarga := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan?query=activo:true,plan_docente_id:"+plan.(map[string]interface{})["_id"].(string), &resCarga); errCarga == nil {
+		if errCarga := request.GetJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"carga_plan?query=activo:true,plan_docente_id:"+plan.(map[string]interface{})["_id"].(string), &resCarga); errCarga == nil {
 			if fmt.Sprintf("%v", resCarga["Data"]) != "[]" {
 				for _, carga := range resCarga["Data"].([]interface{}) {
 					var horarioJSON map[string]interface{}
@@ -1651,7 +1651,7 @@ func consultarDetallePlan(planes []interface{}, idVinculacion string) map[string
 					var salonId string
 
 					if colId, colExists := carga.(map[string]interface{})["colocacion_espacio_academico_id"]; colExists {
-						if errColocacion := request.GetJson("http://"+beego.AppConfig.String("HorarioService")+"colocacion_espacio_academico/"+colId.(string), &resColocacion); errColocacion == nil {
+						if errColocacion := request.GetJson(beego.AppConfig.String("HorarioService")+"colocacion_espacio_academico/"+colId.(string), &resColocacion); errColocacion == nil {
 							json.Unmarshal([]byte(resColocacion["Data"].(map[string]interface{})["ColocacionEspacioAcademico"].(string)), &horarioJSON)
 							json.Unmarshal([]byte(resColocacion["Data"].(map[string]interface{})["ResumenColocacionEspacioFisico"].(string)), &resumenColocacion)
 							sedeId = fmt.Sprintf("%v", resumenColocacion["espacio_fisico"].(map[string]interface{})["sede_id"])
@@ -1663,7 +1663,7 @@ func consultarDetallePlan(planes []interface{}, idVinculacion string) map[string
 								"horario": horarioJSON,
 							}
 							if sedeId != "-" {
-								if errSede := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"espacio_fisico?query=Id:"+sedeId+"&fields=Id,Nombre,CodigoAbreviacion", &sede); errSede == nil {
+								if errSede := request.GetJson(beego.AppConfig.String("OikosService")+"espacio_fisico?query=Id:"+sedeId+"&fields=Id,Nombre,CodigoAbreviacion", &sede); errSede == nil {
 									cargaDetalle["sede"] = sede[0]
 								}
 							} else {
@@ -1671,7 +1671,7 @@ func consultarDetallePlan(planes []interface{}, idVinculacion string) map[string
 							}
 
 							if edificioId != "-" {
-								if errEdificio := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"espacio_fisico/"+edificioId, &edificio); errEdificio == nil {
+								if errEdificio := request.GetJson(beego.AppConfig.String("OikosService")+"espacio_fisico/"+edificioId, &edificio); errEdificio == nil {
 									cargaDetalle["edificio"] = edificio
 								}
 							} else {
@@ -1679,7 +1679,7 @@ func consultarDetallePlan(planes []interface{}, idVinculacion string) map[string
 							}
 
 							if salonId != "-" {
-								if errSalon := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"espacio_fisico/"+salonId, &salon); errSalon == nil {
+								if errSalon := request.GetJson(beego.AppConfig.String("OikosService")+"espacio_fisico/"+salonId, &salon); errSalon == nil {
 									cargaDetalle["salon"] = salon
 								}
 							} else {
@@ -1700,11 +1700,11 @@ func consultarDetallePlan(planes []interface{}, idVinculacion string) map[string
 		}
 
 		var resPreasignacion map[string]interface{}
-		if errPreasignacion := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion?query=activo:true,aprobacion_docente:true,aprobacion_proyecto:true,plan_docente_id:"+plan.(map[string]interface{})["_id"].(string), &resPreasignacion); errPreasignacion == nil {
+		if errPreasignacion := request.GetJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"pre_asignacion?query=activo:true,aprobacion_docente:true,aprobacion_proyecto:true,plan_docente_id:"+plan.(map[string]interface{})["_id"].(string), &resPreasignacion); errPreasignacion == nil {
 			for _, preasignacion := range resPreasignacion["Data"].([]interface{}) {
 				var resEspacioAcademico map[string]interface{}
 				if memEspaciosDetalle[preasignacion.(map[string]interface{})["espacio_academico_id"].(string)] == nil {
-					if errEspacioAcademico := request.GetJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico/"+preasignacion.(map[string]interface{})["espacio_academico_id"].(string), &resEspacioAcademico); errEspacioAcademico == nil {
+					if errEspacioAcademico := request.GetJson(beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico/"+preasignacion.(map[string]interface{})["espacio_academico_id"].(string), &resEspacioAcademico); errEspacioAcademico == nil {
 						modular := false
 						if val, ok := resEspacioAcademico["Data"].(map[string]interface{})["espacio_modular"]; ok {
 							modular = val.(bool)
@@ -1729,7 +1729,7 @@ func consultarDetallePlan(planes []interface{}, idVinculacion string) map[string
 		}
 
 		if plan.(map[string]interface{})["estado_plan_id"] != "Sin definir" {
-			if errEstado := request.GetJson("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+"estado_plan/"+plan.(map[string]interface{})["estado_plan_id"].(string), &resEstado); errEstado == nil {
+			if errEstado := request.GetJson(beego.AppConfig.String("PlanTrabajoDocenteService")+"estado_plan/"+plan.(map[string]interface{})["estado_plan_id"].(string), &resEstado); errEstado == nil {
 				memEstados[plan.(map[string]interface{})["estado_plan_id"].(string)] = resEstado["Data"].(map[string]interface{})["nombre"].(string)
 				memEstadoPlan = append(memEstadoPlan, memEstados[plan.(map[string]interface{})["estado_plan_id"].(string)].(string))
 			}
@@ -1751,7 +1751,7 @@ func consultarDetallePlan(planes []interface{}, idVinculacion string) map[string
 	relatedPlans := []string{}
 	for _, espacioAcad := range memEspacios[0].([]interface{}) {
 		if espacioAcad.(map[string]interface{})["espacio_modular"].(bool) {
-			resp, err := requestmanager.Get("http://"+beego.AppConfig.String("PlanTrabajoDocenteService")+
+			resp, err := requestmanager.Get(beego.AppConfig.String("PlanTrabajoDocenteService")+
 				fmt.Sprintf("pre_asignacion?query=activo:true,aprobacion_proyecto:true,aprobacion_docente:true,periodo_id:%v,espacio_academico_id:%v", planes[0].(map[string]interface{})["periodo_id"], espacioAcad.(map[string]interface{})["id"]), requestmanager.ParseResponseFormato1)
 			if err == nil {
 				for _, preasign := range resp.([]interface{}) {

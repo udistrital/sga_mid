@@ -111,7 +111,7 @@ func (c *PracticasAcademicasController) Post() {
 			"SolicitudPadreId":      nil,
 		}
 
-		errSolicitud := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud", "POST", &SolicitudPost, SolicitudPracticas)
+		errSolicitud := request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud", "POST", &SolicitudPost, SolicitudPracticas)
 		if errSolicitud == nil {
 			if SolicitudPost["Success"] != false && fmt.Sprintf("%v", SolicitudPost) != "map[]" {
 				resultado["Solicitud"] = SolicitudPost["Data"]
@@ -126,7 +126,7 @@ func (c *PracticasAcademicasController) Post() {
 					"Activo": true,
 				}
 
-				errSolicitante := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante", "POST", &SolicitantePost, Solicitante)
+				errSolicitante := request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitante", "POST", &SolicitantePost, Solicitante)
 				if errSolicitante == nil && fmt.Sprintf("%v", SolicitantePost["Status"]) != "400" {
 					if SolicitantePost != nil && fmt.Sprintf("%v", SolicitantePost) != "map[]" {
 						//POST a la tabla solicitud_evolucion estado
@@ -143,7 +143,7 @@ func (c *PracticasAcademicasController) Post() {
 							"FechaLimite": fmt.Sprintf("%v", solicitud["FechaRadicacion"]),
 						}
 
-						errSolicitudEvolucionEstado := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado", "POST", &SolicitudEvolucionEstadoPost, SolicitudEvolucionEstado)
+						errSolicitudEvolucionEstado := request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado", "POST", &SolicitudEvolucionEstadoPost, SolicitudEvolucionEstado)
 						if errSolicitudEvolucionEstado == nil {
 							if SolicitudEvolucionEstadoPost != nil && fmt.Sprintf("%v", SolicitudEvolucionEstadoPost) != "map[]" {
 								resultado["Solicitante"] = SolicitantePost["Data"]
@@ -157,8 +157,8 @@ func (c *PracticasAcademicasController) Post() {
 							}
 						} else {
 							var resultado2 map[string]interface{}
-							request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+fmt.Sprintf("%v", IdSolicitud), "DELETE", &resultado2, nil)
-							request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante/"+fmt.Sprintf("%v", SolicitantePost["Id"]), "DELETE", &resultado2, nil)
+							request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+fmt.Sprintf("%v", IdSolicitud), "DELETE", &resultado2, nil)
+							request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitante/"+fmt.Sprintf("%v", SolicitantePost["Id"]), "DELETE", &resultado2, nil)
 							errorGetAll = true
 							alertas = append(alertas, errSolicitante.Error())
 							alerta.Code = "400"
@@ -177,7 +177,7 @@ func (c *PracticasAcademicasController) Post() {
 				} else {
 					//Se elimina el registro de solicitud si no se puede hacer el POST a la tabla solicitante
 					var resultado2 map[string]interface{}
-					request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+fmt.Sprintf("%v", IdSolicitud), "DELETE", &resultado2, nil)
+					request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+fmt.Sprintf("%v", IdSolicitud), "DELETE", &resultado2, nil)
 					errorGetAll = true
 					alertas = append(alertas, errSolicitante.Error())
 					alerta.Code = "400"
@@ -239,7 +239,7 @@ func (c *PracticasAcademicasController) GetOne() {
 	resultado := make(map[string]interface{})
 	var errorGetAll bool
 
-	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=SolicitudId.Id:"+id_practica, &Solicitudes)
+	errSolicitud := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=SolicitudId.Id:"+id_practica, &Solicitudes)
 	if errSolicitud == nil {
 		if Solicitudes != nil && fmt.Sprintf("%v", Solicitudes[0]) != "map[]" {
 			Referencia := Solicitudes[0]["SolicitudId"].(map[string]interface{})["Referencia"].(string)
@@ -253,19 +253,19 @@ func (c *PracticasAcademicasController) GetOne() {
 
 			idEstado := fmt.Sprintf("%v", Solicitudes[0]["SolicitudId"].(map[string]interface{})["EstadoTipoSolicitudId"].(map[string]interface{})["Id"].(float64))
 
-			errTipoSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"estado_tipo_solicitud?query=Activo:true,Id:"+idEstado, &tipoSolicitud)
+			errTipoSolicitud := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"estado_tipo_solicitud?query=Activo:true,Id:"+idEstado, &tipoSolicitud)
 			if errTipoSolicitud == nil {
 				if tipoSolicitud != nil && fmt.Sprintf("%v", tipoSolicitud["Data"].([]interface{})[0]) != "map[]" {
 					resultado["EstadoTipoSolicitudId"] = tipoSolicitud["Data"].([]interface{})[0]
 				}
 			}
 
-			errEstados := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado?query=SolicitudId.Id:"+id_practica, &Estados)
+			errEstados := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado?query=SolicitudId.Id:"+id_practica, &Estados)
 			if errEstados == nil {
 				if Estados != nil && fmt.Sprintf("%v", Estados[0]) != "map[]" {
 					for _, v := range Estados {
 
-						errComentario := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"observacion?query=titulo:"+fmt.Sprintf("%v", v["Id"]), &Comentario)
+						errComentario := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"observacion?query=titulo:"+fmt.Sprintf("%v", v["Id"]), &Comentario)
 						if errComentario == nil {
 							if Comentario != nil && fmt.Sprintf("%v", Comentario[0]) != "map[]" {
 								v["Comentario"] = Comentario[0]["Valor"]
@@ -327,12 +327,12 @@ func (c *PracticasAcademicasController) GetAll() {
 		fields = "&fields=" + fields
 	}
 
-	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante?limit=0"+query+"&fields=SolicitudId", &Solicitudes)
+	errSolicitud := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitante?limit=0"+query+"&fields=SolicitudId", &Solicitudes)
 
 	if errSolicitud == nil {
 		if Solicitudes != nil && fmt.Sprintf("%v", Solicitudes[0]) != "map[]" {
 			for _, solicitud := range Solicitudes {
-				errTipoEstado := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"estado_tipo_solicitud?query=Id:"+fmt.Sprintf("%v", solicitud["SolicitudId"].(map[string]interface{})["EstadoTipoSolicitudId"].(map[string]interface{})["Id"]), &TipoEstado)
+				errTipoEstado := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"estado_tipo_solicitud?query=Id:"+fmt.Sprintf("%v", solicitud["SolicitudId"].(map[string]interface{})["EstadoTipoSolicitudId"].(map[string]interface{})["Id"]), &TipoEstado)
 
 				if errTipoEstado == nil {
 					resultado = append(resultado, map[string]interface{}{
@@ -392,7 +392,7 @@ func (c *PracticasAcademicasController) Put() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &RespuestaSolicitud); err == nil {
 
 		// Consulta de información de la solicitud
-		errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+id_practica, &Solicitud)
+		errSolicitud := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+id_practica, &Solicitud)
 		if errSolicitud == nil {
 			if Solicitud != nil && fmt.Sprintf("%v", Solicitud["Status"]) != "404" {
 
@@ -462,23 +462,23 @@ func (c *PracticasAcademicasController) Put() {
 					}
 
 					// Actualización del anterior estado
-					errAntEstado := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado?query=activo:true,solicitudId.Id:"+id_practica, &anteriorEstado)
+					errAntEstado := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado?query=activo:true,solicitudId.Id:"+id_practica, &anteriorEstado)
 					if errAntEstado == nil {
 						if anteriorEstado != nil && fmt.Sprintf("%v", anteriorEstado) != "map[]" {
 
 							anteriorEstado[0]["Activo"] = false
 							estasAnteriorId := fmt.Sprintf("%v", anteriorEstado[0]["Id"])
 
-							errSolicitudEvolucionEstado := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado/"+estasAnteriorId, "PUT", &anteriorEstadoPost, anteriorEstado[0])
+							errSolicitudEvolucionEstado := request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado/"+estasAnteriorId, "PUT", &anteriorEstadoPost, anteriorEstado[0])
 							if errSolicitudEvolucionEstado == nil {
 
 								// Búsqueda de estado relacionado con las prácticas académicas
 								idEstado := fmt.Sprintf("%v", RespuestaSolicitud["Estado"].(map[string]interface{})["Id"])
-								errTipoSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"tipo_solicitud?query=CodigoAbreviacion:SoPA", &tipoSolicitud)
+								errTipoSolicitud := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"tipo_solicitud?query=CodigoAbreviacion:SoPA", &tipoSolicitud)
 								if errTipoSolicitud == nil && fmt.Sprintf("%v", tipoSolicitud["Data"].([]interface{})[0]) != "map[]" {
 									var id = fmt.Sprintf("%v", tipoSolicitud["Data"].([]interface{})[0].(map[string]interface{})["Id"])
 
-									errEstado := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"estado_tipo_solicitud?query=EstadoId.Id:"+
+									errEstado := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"estado_tipo_solicitud?query=EstadoId.Id:"+
 										idEstado+",TipoSolicitud.Id:"+id, &NuevoEstado)
 
 									if errEstado == nil {
@@ -501,7 +501,7 @@ func (c *PracticasAcademicasController) Put() {
 											"FechaLimite": RespuestaSolicitud["FechaRespuesta"],
 										}
 
-										errSolicitudEvolucionEstado := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado", "POST", &SolicitudEvolucionEstadoPost, SolicitudEvolucionEstado)
+										errSolicitudEvolucionEstado := request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado", "POST", &SolicitudEvolucionEstadoPost, SolicitudEvolucionEstado)
 										if errSolicitudEvolucionEstado == nil {
 											if SolicitudEvolucionEstadoPost != nil && fmt.Sprintf("%v", SolicitudEvolucionEstadoPost) != "map[]" {
 
@@ -532,10 +532,10 @@ func (c *PracticasAcademicasController) Put() {
 													"Activo": true,
 												}
 
-												errObservacion := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"observacion", "POST", &observacionPost, Observacion)
+												errObservacion := request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"observacion", "POST", &observacionPost, Observacion)
 												if errObservacion == nil {
 
-													errPutEstado := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+id_practica, "PUT", &SolicitudPut, Solicitud)
+													errPutEstado := request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+id_practica, "PUT", &SolicitudPut, Solicitud)
 
 													if errPutEstado == nil {
 														if SolicitudPut["Status"] != "400" {
@@ -664,7 +664,7 @@ func (c *PracticasAcademicasController) ConsultarInfoSolicitante() {
 	alertas := []interface{}{}
 	var errorGetAll bool
 
-	errPersona := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero?query=Id:"+idTercero, &persona)
+	errPersona := request.GetJson(beego.AppConfig.String("TercerosService")+"tercero?query=Id:"+idTercero, &persona)
 	if errPersona == nil && fmt.Sprintf("%v", persona[0]) != "map[]" {
 		var tipoVinculacion []map[string]interface{}
 		var correoElectronico []map[string]interface{}
@@ -675,7 +675,7 @@ func (c *PracticasAcademicasController) ConsultarInfoSolicitante() {
 		var jsondata map[string]interface{}
 
 		// Correo institucional --> 94
-		errCorreoIns := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+fmt.Sprintf("%v", idTercero)+",InfoComplementariaId__Id:94,Activo:true", &correoInstitucional)
+		errCorreoIns := request.GetJson(beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+fmt.Sprintf("%v", idTercero)+",InfoComplementariaId__Id:94,Activo:true", &correoInstitucional)
 		if errCorreoIns == nil && fmt.Sprintf("%v", correoInstitucional[0]) != "map[]" {
 			if correoInstitucional[0]["Status"] != 404 {
 				correoaux := correoInstitucional[0]["Dato"]
@@ -701,7 +701,7 @@ func (c *PracticasAcademicasController) ConsultarInfoSolicitante() {
 		}
 
 		// Correo --> 53
-		errCorreo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+fmt.Sprintf("%v", idTercero)+",InfoComplementariaId__Id:53,Activo:true", &correoElectronico)
+		errCorreo := request.GetJson(beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+fmt.Sprintf("%v", idTercero)+",InfoComplementariaId__Id:53,Activo:true", &correoElectronico)
 		if errCorreo == nil && fmt.Sprintf("%v", correoElectronico[0]) != "map[]" {
 			if correoElectronico[0]["Status"] != 404 {
 				correoaux := correoElectronico[0]["Dato"]
@@ -727,7 +727,7 @@ func (c *PracticasAcademicasController) ConsultarInfoSolicitante() {
 		}
 
 		// Correo personal --> 253
-		errCorreoPersonal := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+fmt.Sprintf("%v", idTercero)+",InfoComplementariaId__Id:253,Activo:true", &correoPersonal)
+		errCorreoPersonal := request.GetJson(beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+fmt.Sprintf("%v", idTercero)+",InfoComplementariaId__Id:253,Activo:true", &correoPersonal)
 		if errCorreoPersonal == nil && fmt.Sprintf("%v", correoPersonal[0]) != "map[]" {
 			if correoPersonal[0]["Status"] != 404 {
 				correoaux := correoPersonal[0]["Dato"]
@@ -754,7 +754,7 @@ func (c *PracticasAcademicasController) ConsultarInfoSolicitante() {
 		}
 
 		// Teléfono --> 51
-		errTelefono := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+fmt.Sprintf("%v", idTercero)+",InfoComplementariaId__Id:51,Activo:true", &telefono)
+		errTelefono := request.GetJson(beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+fmt.Sprintf("%v", idTercero)+",InfoComplementariaId__Id:51,Activo:true", &telefono)
 		if errTelefono == nil && fmt.Sprintf("%v", telefono[0]) != "map[]" {
 			if telefono[0]["Status"] != 404 {
 				telefonoaux := telefono[0]["Dato"]
@@ -782,7 +782,7 @@ func (c *PracticasAcademicasController) ConsultarInfoSolicitante() {
 		}
 
 		// Celular --> 52
-		errCelular := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+fmt.Sprintf("%v", idTercero)+",InfoComplementariaId__Id:52,Activo:true", &celular)
+		errCelular := request.GetJson(beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+fmt.Sprintf("%v", idTercero)+",InfoComplementariaId__Id:52,Activo:true", &celular)
 		if errCelular == nil && fmt.Sprintf("%v", celular[0]) != "map[]" {
 			if celular[0]["Status"] != 404 {
 				celularaux := celular[0]["Dato"]
@@ -817,7 +817,7 @@ func (c *PracticasAcademicasController) ConsultarInfoSolicitante() {
 		// TIEMPO COMPLETO OCASIONAL 	296
 		// MEDIO TIEMPO OCASIONAL 	298
 		// HORA CÁTEDRA POR HONORARIOS 	299
-		errVinculacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"vinculacion?query=TerceroPrincipalId:"+fmt.Sprintf("%v", idTercero)+",Activo:true&limit=0", &tipoVinculacion)
+		errVinculacion := request.GetJson(beego.AppConfig.String("TercerosService")+"vinculacion?query=TerceroPrincipalId:"+fmt.Sprintf("%v", idTercero)+",Activo:true&limit=0", &tipoVinculacion)
 		if errVinculacion == nil && fmt.Sprintf("%v", tipoVinculacion[0]) != "map[]" {
 			if tipoVinculacion[0]["Status"] != 404 {
 				for _, tv := range tipoVinculacion {
@@ -831,7 +831,7 @@ func (c *PracticasAcademicasController) ConsultarInfoSolicitante() {
 						fmt.Sprintf("%v", tv["TipoVinculacionId"]) == "299" {
 
 						var vinculacion map[string]interface{}
-						errVinculacion := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro?query=Id:"+fmt.Sprintf("%v", tv["TipoVinculacionId"])+",Activo:true&limit=0", &vinculacion)
+						errVinculacion := request.GetJson(beego.AppConfig.String("ParametroService")+"parametro?query=Id:"+fmt.Sprintf("%v", tv["TipoVinculacionId"])+",Activo:true&limit=0", &vinculacion)
 						if errVinculacion == nil && fmt.Sprintf("%v", vinculacion["Data"]) != "[map[]]" {
 							if vinculacion["Status"] != 404 {
 								resultado["TipoVinculacionId"] = vinculacion["Data"].([]interface{})[0]
@@ -893,7 +893,7 @@ func (c *PracticasAcademicasController) ConsultarInfoColaborador() {
 	alertas := []interface{}{}
 	var errorGetAll bool
 
-	errPersona := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=Numero:"+idStr, &persona)
+	errPersona := request.GetJson(beego.AppConfig.String("TercerosService")+"datos_identificacion?query=Numero:"+idStr, &persona)
 	if errPersona == nil && fmt.Sprintf("%v", persona[0]) != "map[]" {
 		if persona[0]["Status"] != 404 {
 			var tipoVinculacion []map[string]interface{}
@@ -914,7 +914,7 @@ func (c *PracticasAcademicasController) ConsultarInfoColaborador() {
 			// TIEMPO COMPLETO OCASIONAL 	296
 			// MEDIO TIEMPO OCASIONAL 	298
 			// HORA CÁTEDRA POR HONORARIOS 	299
-			errVinculacion := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"vinculacion?query=TerceroPrincipalId:"+fmt.Sprintf("%v", idTercero)+",Activo:true&limit=0", &tipoVinculacion)
+			errVinculacion := request.GetJson(beego.AppConfig.String("TercerosService")+"vinculacion?query=TerceroPrincipalId:"+fmt.Sprintf("%v", idTercero)+",Activo:true&limit=0", &tipoVinculacion)
 			if errVinculacion == nil && fmt.Sprintf("%v", tipoVinculacion[0]) != "map[]" {
 				if tipoVinculacion[0]["Status"] != 404 {
 
@@ -928,7 +928,7 @@ func (c *PracticasAcademicasController) ConsultarInfoColaborador() {
 							fmt.Sprintf("%v", tv["TipoVinculacionId"]) == "298" ||
 							fmt.Sprintf("%v", tv["TipoVinculacionId"]) == "299" {
 							var vinculacion map[string]interface{}
-							errVinculacion := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro?query=Id:"+fmt.Sprintf("%v", tv["TipoVinculacionId"])+",Activo:true&limit=0", &vinculacion)
+							errVinculacion := request.GetJson(beego.AppConfig.String("ParametroService")+"parametro?query=Id:"+fmt.Sprintf("%v", tv["TipoVinculacionId"])+",Activo:true&limit=0", &vinculacion)
 							if errVinculacion == nil && fmt.Sprintf("%v", vinculacion["Data"]) != "[map[]]" {
 								if vinculacion["Status"] != 404 {
 									resultado["TipoVinculacionId"] = vinculacion["Data"].([]interface{})[0]
@@ -936,7 +936,7 @@ func (c *PracticasAcademicasController) ConsultarInfoColaborador() {
 							}
 
 							// Correo institucional --> 94
-							errCorreoIns := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+fmt.Sprintf("%v", idTercero)+",InfoComplementariaId__Id:94,Activo:true", &correoInstitucional)
+							errCorreoIns := request.GetJson(beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+fmt.Sprintf("%v", idTercero)+",InfoComplementariaId__Id:94,Activo:true", &correoInstitucional)
 							if errCorreoIns == nil && fmt.Sprintf("%v", correoInstitucional[0]) != "map[]" {
 								if correoInstitucional[0]["Status"] != 404 {
 									correoaux := correoInstitucional[0]["Dato"]
@@ -964,7 +964,7 @@ func (c *PracticasAcademicasController) ConsultarInfoColaborador() {
 							}
 
 							// Correo --> 53
-							errCorreo := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+fmt.Sprintf("%v", idTercero)+",InfoComplementariaId__Id:53,Activo:true", &correoElectronico)
+							errCorreo := request.GetJson(beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+fmt.Sprintf("%v", idTercero)+",InfoComplementariaId__Id:53,Activo:true", &correoElectronico)
 							if errCorreo == nil && fmt.Sprintf("%v", correoElectronico[0]) != "map[]" {
 								if correoElectronico[0]["Status"] != 404 {
 									correoaux := correoElectronico[0]["Dato"]
@@ -992,7 +992,7 @@ func (c *PracticasAcademicasController) ConsultarInfoColaborador() {
 							}
 
 							// Correo personal --> 253
-							errCorreoPersonal := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+fmt.Sprintf("%v", idTercero)+",InfoComplementariaId__Id:253,Activo:true", &correoPersonal)
+							errCorreoPersonal := request.GetJson(beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+fmt.Sprintf("%v", idTercero)+",InfoComplementariaId__Id:253,Activo:true", &correoPersonal)
 							if errCorreoPersonal == nil && fmt.Sprintf("%v", correoPersonal[0]) != "map[]" {
 								if correoPersonal[0]["Status"] != 404 {
 									correoaux := correoPersonal[0]["Dato"]
@@ -1020,7 +1020,7 @@ func (c *PracticasAcademicasController) ConsultarInfoColaborador() {
 							}
 
 							// Teléfono --> 51
-							errTelefono := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+fmt.Sprintf("%v", idTercero)+",InfoComplementariaId__Id:51,Activo:true", &telefono)
+							errTelefono := request.GetJson(beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+fmt.Sprintf("%v", idTercero)+",InfoComplementariaId__Id:51,Activo:true", &telefono)
 							if errTelefono == nil && fmt.Sprintf("%v", telefono[0]) != "map[]" {
 								if telefono[0]["Status"] != 404 {
 									telefonoaux := telefono[0]["Dato"]
@@ -1050,7 +1050,7 @@ func (c *PracticasAcademicasController) ConsultarInfoColaborador() {
 							}
 
 							// Celular --> 52
-							errCelular := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+fmt.Sprintf("%v", idTercero)+",InfoComplementariaId__Id:52,Activo:true", &celular)
+							errCelular := request.GetJson(beego.AppConfig.String("TercerosService")+"info_complementaria_tercero?query=TerceroId.Id:"+fmt.Sprintf("%v", idTercero)+",InfoComplementariaId__Id:52,Activo:true", &celular)
 							if errCelular == nil && fmt.Sprintf("%v", celular[0]) != "map[]" {
 								if celular[0]["Status"] != 404 {
 									celularaux := celular[0]["Dato"]
@@ -1154,7 +1154,7 @@ func (c *PracticasAcademicasController) ConsultarParametros() {
 	var tipoEstados map[string]interface{}
 	var tipoSolicitud map[string]interface{}
 
-	errPeriodo := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"periodo?query=CodigoAbreviacion:PA,Activo:true&limit=1&sortby=Id&order=desc", &periodos)
+	errPeriodo := request.GetJson(beego.AppConfig.String("ParametroService")+"periodo?query=CodigoAbreviacion:PA,Activo:true&limit=1&sortby=Id&order=desc", &periodos)
 	if errPeriodo == nil && fmt.Sprintf("%v", periodos["Data"]) != "[map[]]" {
 		if periodos["Status"] != "404" {
 			resultado["periodos"] = periodos["Data"]
@@ -1166,7 +1166,7 @@ func (c *PracticasAcademicasController) ConsultarParametros() {
 		c.Abort("404")
 	}
 
-	errProyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion/?query=Activo:true,Oferta:true&limit=0", &getProyecto)
+	errProyecto := request.GetJson(beego.AppConfig.String("ProyectoAcademicoService")+"proyecto_academico_institucion/?query=Activo:true,Oferta:true&limit=0", &getProyecto)
 	if errProyecto == nil {
 		for _, proyectoAux := range getProyecto {
 			proyecto := map[string]interface{}{
@@ -1185,7 +1185,7 @@ func (c *PracticasAcademicasController) ConsultarParametros() {
 		c.Abort("404")
 	}
 
-	errVehiculo := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+"parametro/?query=tipo_parametro_id:38&sortby=numero_orden&order=asc&limit=0", &vehiculos)
+	errVehiculo := request.GetJson(beego.AppConfig.String("ParametroService")+"parametro/?query=tipo_parametro_id:38&sortby=numero_orden&order=asc&limit=0", &vehiculos)
 	if errVehiculo == nil && fmt.Sprintf("%v", vehiculos["Data"]) != "[map[]]" {
 		if vehiculos["Status"] != "404" {
 			resultado["vehiculos"] = vehiculos["Data"]
@@ -1197,11 +1197,11 @@ func (c *PracticasAcademicasController) ConsultarParametros() {
 		c.Abort("404")
 	}
 
-	errTipoSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"tipo_solicitud?query=CodigoAbreviacion:SoPA", &tipoSolicitud)
+	errTipoSolicitud := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"tipo_solicitud?query=CodigoAbreviacion:SoPA", &tipoSolicitud)
 	if errTipoSolicitud == nil && fmt.Sprintf("%v", tipoSolicitud["Data"].([]interface{})[0]) != "map[]" {
 		var id = fmt.Sprintf("%v", tipoSolicitud["Data"].([]interface{})[0].(map[string]interface{})["Id"])
 
-		errTipoEstados := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"estado_tipo_solicitud?query=TipoSolicitud.Id:"+id, &tipoEstados)
+		errTipoEstados := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"estado_tipo_solicitud?query=TipoSolicitud.Id:"+id, &tipoEstados)
 		if errTipoEstados == nil && fmt.Sprintf("%v", tipoEstados["Data"]) != "[map[]]" {
 			if tipoEstados["Status"] != "404" {
 				for _, estado := range tipoEstados["Data"].([]interface{}) {
@@ -1233,7 +1233,7 @@ func (c *PracticasAcademicasController) ConsultarEspaciosAcademicos() {
 	var espaciosAcademicos map[string]interface{}
 	idStr := c.Ctx.Input.Param(":id")
 
-	errEspaciosAcademicos := request.GetJson("http://"+beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico?query=activo:true,docente_id:"+fmt.Sprintf("%v", idStr), &espaciosAcademicos)
+	errEspaciosAcademicos := request.GetJson(beego.AppConfig.String("EspaciosAcademicosService")+"espacio-academico?query=activo:true,docente_id:"+fmt.Sprintf("%v", idStr), &espaciosAcademicos)
 	if errEspaciosAcademicos == nil && fmt.Sprintf("%v", espaciosAcademicos["Data"]) != "[map[]]" {
 		if espaciosAcademicos["Status"] != "404" {
 
@@ -1277,7 +1277,7 @@ func (c *PracticasAcademicasController) EnviarInvitaciones() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &solicitud); err == nil {
 		id_practica := solicitud["Id"]
 
-		errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=SolicitudId.Id:"+id_practica.(string), &Solicitudes)
+		errSolicitud := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=SolicitudId.Id:"+id_practica.(string), &Solicitudes)
 		if errSolicitud == nil {
 			if Solicitudes != nil && fmt.Sprintf("%v", Solicitudes[0]) != "map[]" {
 				Referencia := Solicitudes[0]["SolicitudId"].(map[string]interface{})["Referencia"].(string)
@@ -1315,9 +1315,9 @@ func (c *PracticasAcademicasController) EnviarInvitaciones() {
 							},
 						}
 
-						fmt.Println("http://" + beego.AppConfig.String("GOOGLE_MID") + "notificacion")
+						fmt.Println(beego.AppConfig.String("GOOGLE_MID") + "notificacion")
 
-						errEnvioCorreos := request.SendJson("http://"+beego.AppConfig.String("GOOGLE_MID")+"notificacion", "POST", &CorreoPost, correo)
+						errEnvioCorreos := request.SendJson(beego.AppConfig.String("GOOGLE_MID")+"notificacion", "POST", &CorreoPost, correo)
 						if errEnvioCorreos == nil {
 							if CorreoPost == nil || fmt.Sprintf("%v", CorreoPost) == "400" {
 								errorGetAll = true

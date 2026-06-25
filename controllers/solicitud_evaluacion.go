@@ -53,7 +53,7 @@ func (c *SolicitudEvaluacionController) GetDatosSolicitudById() {
 	var errorGetAll bool
 	alertas := []interface{}{}
 
-	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+id_solicitud, &Solicitud)
+	errSolicitud := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+id_solicitud, &Solicitud)
 	if errSolicitud == nil {
 		if Solicitud != nil && fmt.Sprintf("%v", Solicitud) != "map[]" {
 			Referencia := Solicitud["Referencia"].(string)
@@ -71,7 +71,7 @@ func (c *SolicitudEvaluacionController) GetDatosSolicitudById() {
 					resultado["FechaExpedicionNuevo"] = ReferenciaJson["DatosNuevos"].(map[string]interface{})["FechaExpedicionNuevo"]
 					resultado["Documento"] = ReferenciaJson["DocumentoId"]
 
-					errTipoDocumento := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tipo_documento/"+TipoDocumento, &TipoDocumentoGet)
+					errTipoDocumento := request.GetJson(beego.AppConfig.String("TercerosService")+"tipo_documento/"+TipoDocumento, &TipoDocumentoGet)
 					if errTipoDocumento == nil {
 						if TipoDocumentoGet != nil && fmt.Sprintf("%v", TipoDocumentoGet) != "map[]" {
 							resultado["TipoDocumentoActual"] = map[string]interface{}{
@@ -96,7 +96,7 @@ func (c *SolicitudEvaluacionController) GetDatosSolicitudById() {
 					}
 
 					TipoDocumentoAux := fmt.Sprintf("%v", ReferenciaJson["DatosNuevos"].(map[string]interface{})["TipoDocumentoNuevo"].(map[string]interface{})["Id"])
-					errTipoDocumentoActual := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tipo_documento/"+TipoDocumentoAux, &TipoDocumentoActualGet)
+					errTipoDocumentoActual := request.GetJson(beego.AppConfig.String("TercerosService")+"tipo_documento/"+TipoDocumentoAux, &TipoDocumentoActualGet)
 					if errTipoDocumentoActual == nil {
 						if TipoDocumentoActualGet != nil && fmt.Sprintf("%v", TipoDocumentoActualGet) != "map[]" {
 							resultado["TipoDocumentoNuevo"] = map[string]interface{}{
@@ -186,7 +186,7 @@ func (c *SolicitudEvaluacionController) PostSolicitudEvolucionEstado() {
 		SolicitudId := fmt.Sprintf("%v", Solicitud["SolicitudId"])
 		Estado := Solicitud["Estado"]
 		Observacion := Solicitud["Observacion"]
-		errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado?query=SolicitudId.Id:"+SolicitudId+"&sortby:Id&order:desc&limit=0", &SolicitudEvolucionEstado)
+		errSolicitud := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado?query=SolicitudId.Id:"+SolicitudId+"&sortby:Id&order:desc&limit=0", &SolicitudEvolucionEstado)
 		if errSolicitud == nil {
 			if SolicitudEvolucionEstado != nil && fmt.Sprintf("%v", SolicitudEvolucionEstado[0]) != "map[]" {
 				TerceroId := SolicitudEvolucionEstado[0]["TerceroId"]
@@ -234,16 +234,16 @@ func (c *SolicitudEvaluacionController) PostSolicitudEvolucionEstado() {
 				}
 
 				//Se registra el nuevo estado de la solicitud en el historico
-				errSolicitudEvolucionEstado := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado", "POST", &SolicitudEvolucionEstadoPost, SolicitudEvolucionEstadoNuevo)
+				errSolicitudEvolucionEstado := request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado", "POST", &SolicitudEvolucionEstadoPost, SolicitudEvolucionEstadoNuevo)
 				if errSolicitudEvolucionEstado == nil {
 					if SolicitudEvolucionEstadoPost != nil && fmt.Sprintf("%v", SolicitudEvolucionEstadoPost) != "map[]" {
 						// GET a la tabla solicitud
-						errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+SolicitudId, &SolicitudAux)
+						errSolicitud := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+SolicitudId, &SolicitudAux)
 						if errSolicitud == nil {
 							if SolicitudAux != nil && fmt.Sprintf("%v", SolicitudAux) != "map[]" {
 								//Se reemplaza el estado de la solicitud anterior por la actual
 								SolicitudAux["EstadoTipoSolicitudId"].(map[string]interface{})["Id"] = EstadoTipoSolicitudId
-								errSolicitudAux := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+SolicitudId, "PUT", &SolicitudAuxPost, SolicitudAux)
+								errSolicitudAux := request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+SolicitudId, "PUT", &SolicitudAuxPost, SolicitudAux)
 								if errSolicitudAux == nil {
 									if SolicitudAuxPost != nil && fmt.Sprintf("%v", SolicitudAuxPost) != "map[]" {
 										//POST a observación (si hay alguna)
@@ -260,7 +260,7 @@ func (c *SolicitudEvaluacionController) PostSolicitudEvolucionEstado() {
 												"Activo":    true,
 											}
 
-											errObservacion := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"observacion", "POST", &ObservacionPost, ObservacionAux)
+											errObservacion := request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"observacion", "POST", &ObservacionPost, ObservacionAux)
 											if errObservacion == nil {
 												if ObservacionPost != nil && fmt.Sprintf("%v", ObservacionPost) != "map[]" {
 												} else {
@@ -283,7 +283,7 @@ func (c *SolicitudEvaluacionController) PostSolicitudEvolucionEstado() {
 
 										// En caso de que la solicitud sea aprobada se traen los datos a cambiar y se hace POST a la respectiva tabla
 										if EstadoTipoSolicitudId == 17 || EstadoTipoSolicitudId == 18 {
-											errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+SolicitudId, &SolicitudAprob)
+											errSolicitud := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+SolicitudId, &SolicitudAprob)
 											if errSolicitud == nil {
 												if SolicitudAprob != nil && fmt.Sprintf("%v", SolicitudAprob) != "map[]" {
 													Referencia := SolicitudAprob["Referencia"].(string)
@@ -291,12 +291,12 @@ func (c *SolicitudEvaluacionController) PostSolicitudEvolucionEstado() {
 													if err := json.Unmarshal([]byte(Referencia), &ReferenciaJson); err == nil {
 														if EstadoTipoSolicitudId == 17 {
 															//POST a terceros, a la tabla datos_identificacion por cambio de identificación
-															errTercero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion?query=Activo:true,TerceroId__Id:"+fmt.Sprintf("%v", TerceroId)+"&sortby=Id&order=desc&limit=0", &DatosIdentificacion)
+															errTercero := request.GetJson(beego.AppConfig.String("TercerosService")+"datos_identificacion?query=Activo:true,TerceroId__Id:"+fmt.Sprintf("%v", TerceroId)+"&sortby=Id&order=desc&limit=0", &DatosIdentificacion)
 															if errTercero == nil {
 																if DatosIdentificacion != nil && fmt.Sprintf("%v", DatosIdentificacion[0]) != "map[]" {
 																	//Se cambia el estado de true a false en los datos_identificación antiguos
 																	DatosIdentificacion[0]["Activo"] = false
-																	errDatosID := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion/"+fmt.Sprintf("%v", DatosIdentificacion[0]["Id"]), "PUT", &DatosIdentificacionPut, DatosIdentificacion[0])
+																	errDatosID := request.SendJson(beego.AppConfig.String("TercerosService")+"datos_identificacion/"+fmt.Sprintf("%v", DatosIdentificacion[0]["Id"]), "PUT", &DatosIdentificacionPut, DatosIdentificacion[0])
 																	if errDatosID == nil {
 																		if DatosIdentificacionPut != nil && fmt.Sprintf("%v", DatosIdentificacionPut) != "map[]" {
 																			//POST de los nuevos datos del terceros
@@ -311,7 +311,7 @@ func (c *SolicitudEvaluacionController) PostSolicitudEvolucionEstado() {
 																				"FechaExpedicion": time_bogota.TiempoCorreccionFormato(ReferenciaJson["DatosNuevos"].(map[string]interface{})["FechaExpedicionNuevo"].(string)),
 																				"Activo":          true,
 																			}
-																			errDatosIDNuevo := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"datos_identificacion", "POST", &DatosIdentificacionPost, DatosIdentificacionNuevo)
+																			errDatosIDNuevo := request.SendJson(beego.AppConfig.String("TercerosService")+"datos_identificacion", "POST", &DatosIdentificacionPost, DatosIdentificacionNuevo)
 																			if errDatosIDNuevo == nil {
 																				if DatosIdentificacionPost != nil && fmt.Sprintf("%v", DatosIdentificacionPost) != "map[]" {
 																					formatdata.JsonPrint(DatosIdentificacionPost)
@@ -365,7 +365,7 @@ func (c *SolicitudEvaluacionController) PostSolicitudEvolucionEstado() {
 															}
 														} else if EstadoTipoSolicitudId == 18 {
 															//PUT a terceros, a la tabla tercero por cambio de nombre(s)
-															errTercero := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+fmt.Sprintf("%v", TerceroId), &Tercero)
+															errTercero := request.GetJson(beego.AppConfig.String("TercerosService")+"tercero/"+fmt.Sprintf("%v", TerceroId), &Tercero)
 															if errTercero == nil {
 																if Tercero != nil && fmt.Sprintf("%v", Tercero) != "map[]" {
 																	Tercero["NombreCompleto"] = (fmt.Sprintf("%v", ReferenciaJson["DatosNuevos"].(map[string]interface{})["NombreNuevo"]) + " " + fmt.Sprintf("%v", ReferenciaJson["DatosNuevos"].(map[string]interface{})["ApellidoNuevo"]))
@@ -387,7 +387,7 @@ func (c *SolicitudEvaluacionController) PostSolicitudEvolucionEstado() {
 																		Tercero["PrimerApellido"] = Apellidos[0]
 																		Tercero["SegundoApellido"] = ""
 																	}
-																	errTerceroPut := request.SendJson("http://"+beego.AppConfig.String("TercerosService")+"tercero/"+fmt.Sprintf("%v", TerceroId), "PUT", &TerceroPut, Tercero)
+																	errTerceroPut := request.SendJson(beego.AppConfig.String("TercerosService")+"tercero/"+fmt.Sprintf("%v", TerceroId), "PUT", &TerceroPut, Tercero)
 																	if errTerceroPut == nil {
 																		if TerceroPut != nil && fmt.Sprintf("%v", TerceroPut) != "map[]" {
 																			formatdata.JsonPrint(TerceroPut)
@@ -550,24 +550,24 @@ func (c *SolicitudEvaluacionController) GetAllSolicitudActualizacionDatos() {
 	var errorGetAll bool
 	alertas := []interface{}{}
 
-	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=SolicitudId.EstadoTipoSolicitudId.Id:"+fmt.Sprintf("%v", id_estado_tipo_sol)+"&sortby:Id&order:asc&limit=0", &Solicitudes)
+	errSolicitud := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=SolicitudId.EstadoTipoSolicitudId.Id:"+fmt.Sprintf("%v", id_estado_tipo_sol)+"&sortby:Id&order:asc&limit=0", &Solicitudes)
 	if errSolicitud == nil {
 		if Solicitudes != nil && fmt.Sprintf("%v", Solicitudes[0]) != "map[]" {
 			respuesta = make([]map[string]interface{}, len(Solicitudes))
 			for i := 0; i < len(Solicitudes); i++ {
 				IdTipoSolicitud := fmt.Sprintf("%v", Solicitudes[i]["SolicitudId"].(map[string]interface{})["EstadoTipoSolicitudId"].(map[string]interface{})["TipoSolicitud"].(map[string]interface{})["Id"])
 				//Nombre tipo solicitud
-				errTipoSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"tipo_solicitud/"+IdTipoSolicitud, &TipoSolicitud)
+				errTipoSolicitud := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"tipo_solicitud/"+IdTipoSolicitud, &TipoSolicitud)
 				if errTipoSolicitud == nil {
 					if TipoSolicitud != nil && fmt.Sprintf("%v", TipoSolicitud) != "map[]" {
 						IdEstado := fmt.Sprintf("%v", Solicitudes[i]["SolicitudId"].(map[string]interface{})["EstadoTipoSolicitudId"].(map[string]interface{})["EstadoId"].(map[string]interface{})["Id"])
 						//Nombre estado de la solicitud
-						errEstado := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"estado/"+IdEstado, &Estado)
+						errEstado := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"estado/"+IdEstado, &Estado)
 						if errEstado == nil {
 							if Estado != nil && fmt.Sprintf("%v", Estado) != "map[]" {
 								// Observacion (Si la hay) sobre la solicitud
 								IdSolicitud := fmt.Sprintf("%v", Solicitudes[i]["SolicitudId"].(map[string]interface{})["Id"])
-								errObservacion := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"observacion?query=SolicitudId:"+IdSolicitud, &Observacion)
+								errObservacion := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"observacion?query=SolicitudId:"+IdSolicitud, &Observacion)
 								if errObservacion == nil {
 									if Observacion != nil && fmt.Sprintf("%v", Observacion[0]) != "map[]" {
 										respuesta[i] = map[string]interface{}{
@@ -678,7 +678,7 @@ func (c *SolicitudEvaluacionController) GetDatosSolicitud() {
 	var errorGetAll bool
 	alertas := []interface{}{}
 
-	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=TerceroId:"+id_persona+",SolicitudId.EstadoTipoSolicitudId.Id:"+id_estado_tipo_solicitud+"&limit=0", &Solicitudes)
+	errSolicitud := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=TerceroId:"+id_persona+",SolicitudId.EstadoTipoSolicitudId.Id:"+id_estado_tipo_solicitud+"&limit=0", &Solicitudes)
 	if errSolicitud == nil {
 		if Solicitudes != nil && fmt.Sprintf("%v", Solicitudes[0]) != "map[]" {
 			Referencia := Solicitudes[0]["SolicitudId"].(map[string]interface{})["Referencia"].(string)
@@ -689,7 +689,7 @@ func (c *SolicitudEvaluacionController) GetDatosSolicitud() {
 					resultado["FechaExpedicionNuevo"] = ReferenciaJson["DatosNuevos"].(map[string]interface{})["FechaExpedicionNuevo"]
 					resultado["NumeroNuevo"] = ReferenciaJson["DatosNuevos"].(map[string]interface{})["NumeroNuevo"]
 					TipoDocumento := fmt.Sprintf("%v", ReferenciaJson["DatosNuevos"].(map[string]interface{})["TipoDocumentoNuevo"].(map[string]interface{})["Id"])
-					errTipoDocumento := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+"tipo_documento/"+TipoDocumento, &TipoDocumentoGet)
+					errTipoDocumento := request.GetJson(beego.AppConfig.String("TercerosService")+"tipo_documento/"+TipoDocumento, &TipoDocumentoGet)
 					if errTipoDocumento == nil {
 						if TipoDocumentoGet != nil && fmt.Sprintf("%v", TipoDocumentoGet) != "map[]" {
 							resultado["TipoDocumentoNuevo"] = map[string]interface{}{
@@ -765,25 +765,25 @@ func (c *SolicitudEvaluacionController) GetSolicitudActualizacionDatos() {
 	var errorGetAll bool
 	alertas := []interface{}{}
 
-	errSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=TerceroId:"+id_persona+"&sortby=Id&order=asc&limit=0", &Solicitudes)
+	errSolicitud := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitante?query=TerceroId:"+id_persona+"&sortby=Id&order=asc&limit=0", &Solicitudes)
 	if errSolicitud == nil {
 		if Solicitudes != nil && fmt.Sprintf("%v", Solicitudes[0]) != "map[]" {
 			respuesta = make([]map[string]interface{}, len(Solicitudes))
 			for i := 0; i < len(Solicitudes); i++ {
 				IdTipoSolicitud := fmt.Sprintf("%v", Solicitudes[i]["SolicitudId"].(map[string]interface{})["EstadoTipoSolicitudId"].(map[string]interface{})["TipoSolicitud"].(map[string]interface{})["Id"])
 				//Nombre tipo solicitud
-				errTipoSolicitud := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"tipo_solicitud/"+IdTipoSolicitud, &TipoSolicitud)
+				errTipoSolicitud := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"tipo_solicitud/"+IdTipoSolicitud, &TipoSolicitud)
 				if errTipoSolicitud == nil {
 					if TipoSolicitud != nil && fmt.Sprintf("%v", TipoSolicitud) != "map[]" {
 						IdEstado := fmt.Sprintf("%v", Solicitudes[i]["SolicitudId"].(map[string]interface{})["EstadoTipoSolicitudId"].(map[string]interface{})["EstadoId"].(map[string]interface{})["Id"])
 						//Nombre estado de la solicitud
-						errEstado := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"estado/"+IdEstado, &Estado)
+						errEstado := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"estado/"+IdEstado, &Estado)
 						if errEstado == nil {
 							if Estado != nil && fmt.Sprintf("%v", Estado) != "map[]" {
 								// Observacion (Si la hay) sobre la solicitud
 								IdSolicitud := fmt.Sprintf("%v", Solicitudes[i]["SolicitudId"].(map[string]interface{})["Id"])
 								var Observacion []map[string]interface{}
-								errObservacion := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"observacion?query=SolicitudId:"+IdSolicitud+",TerceroId:"+id_persona, &Observacion)
+								errObservacion := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"observacion?query=SolicitudId:"+IdSolicitud+",TerceroId:"+id_persona, &Observacion)
 								if errObservacion == nil {
 									if Observacion != nil && fmt.Sprintf("%v", Observacion[0]) != "map[]" {
 										respuesta[i] = map[string]interface{}{
@@ -921,7 +921,7 @@ func (c *SolicitudEvaluacionController) PostSolicitudActualizacionDatos() {
 
 		if Solicitud["SolicitudPadreId"] != nil {
 			IdSolicutudPadre = Solicitud["SolicitudPadreId"].(string)
-			errSolicitudPadre := request.GetJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+IdSolicutudPadre, &SolicitudPadre)
+			errSolicitudPadre := request.GetJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+IdSolicutudPadre, &SolicitudPadre)
 			if errSolicitudPadre == nil {
 				//POST tabla solicitud
 				SolicitudActualizacion = map[string]interface{}{
@@ -954,7 +954,7 @@ func (c *SolicitudEvaluacionController) PostSolicitudActualizacionDatos() {
 			}
 		}
 
-		errSolicitud := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud", "POST", &SolicitudPost, SolicitudActualizacion)
+		errSolicitud := request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud", "POST", &SolicitudPost, SolicitudActualizacion)
 		if errSolicitud == nil {
 			if SolicitudPost != nil && fmt.Sprintf("%v", SolicitudPost) != "map[]" {
 				resultado["Solicitud"] = SolicitudPost["Data"]
@@ -969,7 +969,7 @@ func (c *SolicitudEvaluacionController) PostSolicitudActualizacionDatos() {
 					"Activo": true,
 				}
 
-				errSolicitante := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante", "POST", &SolicitantePost, Solicitante)
+				errSolicitante := request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitante", "POST", &SolicitantePost, Solicitante)
 				if errSolicitante == nil && fmt.Sprintf("%v", SolicitantePost["Status"]) != "400" {
 					if SolicitantePost != nil && fmt.Sprintf("%v", SolicitantePost) != "map[]" {
 						//POST a la tabla solicitud_evolucion estado
@@ -986,7 +986,7 @@ func (c *SolicitudEvaluacionController) PostSolicitudActualizacionDatos() {
 							"FechaLimite": fmt.Sprintf("%v", SolicitudJson.(map[string]interface{})["FechaSolicitud"]),
 						}
 
-						errSolicitudEvolucionEstado := request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado", "POST", &SolicitudEvolucionEstadoPost, SolicitudEvolucionEstado)
+						errSolicitudEvolucionEstado := request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud_evolucion_estado", "POST", &SolicitudEvolucionEstadoPost, SolicitudEvolucionEstado)
 						if errSolicitudEvolucionEstado == nil {
 							if SolicitudEvolucionEstadoPost != nil && fmt.Sprintf("%v", SolicitudEvolucionEstadoPost) != "map[]" {
 								resultado["Solicitante"] = SolicitantePost["Data"]
@@ -1000,8 +1000,8 @@ func (c *SolicitudEvaluacionController) PostSolicitudActualizacionDatos() {
 							}
 						} else {
 							var resultado2 map[string]interface{}
-							request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+fmt.Sprintf("%v", IdSolicitud), "DELETE", &resultado2, nil)
-							request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitante/"+fmt.Sprintf("%v", SolicitantePost["Id"]), "DELETE", &resultado2, nil)
+							request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+fmt.Sprintf("%v", IdSolicitud), "DELETE", &resultado2, nil)
+							request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitante/"+fmt.Sprintf("%v", SolicitantePost["Id"]), "DELETE", &resultado2, nil)
 							errorGetAll = true
 							alertas = append(alertas, errSolicitante.Error())
 							alerta.Code = "400"
@@ -1020,7 +1020,7 @@ func (c *SolicitudEvaluacionController) PostSolicitudActualizacionDatos() {
 				} else {
 					//Se elimina el registro de solicitud si no se puede hacer el POST a la tabla solicitante
 					var resultado2 map[string]interface{}
-					request.SendJson("http://"+beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+fmt.Sprintf("%v", IdSolicitud), "DELETE", &resultado2, nil)
+					request.SendJson(beego.AppConfig.String("SolicitudDocenteService")+"solicitud/"+fmt.Sprintf("%v", IdSolicitud), "DELETE", &resultado2, nil)
 					errorGetAll = true
 					alertas = append(alertas, errSolicitante.Error())
 					alerta.Code = "400"

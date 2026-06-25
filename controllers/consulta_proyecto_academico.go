@@ -44,8 +44,8 @@ func (c *ConsultaProyectoAcademicoController) GetAll() {
 	if resultado["Type"] != "error" {
 		var proyectos []map[string]interface{}
 
-		errproyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/tr_proyecto_academico/", &proyectos)
-		// errdependencia := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia_tipo_dependencia/?query=TipoDependenciaId:2", &dependencias)
+		errproyecto := request.GetJson(beego.AppConfig.String("ProyectoAcademicoService")+"/tr_proyecto_academico/", &proyectos)
+		// errdependencia := request.GetJson(beego.AppConfig.String("OikosService")+"/dependencia_tipo_dependencia/?query=TipoDependenciaId:2", &dependencias)
 
 		// if errproyecto == nil && errdependencia == nil {
 		if errproyecto == nil {
@@ -55,7 +55,7 @@ func (c *ConsultaProyectoAcademicoController) GetAll() {
 				proyecto["FechaVenimientoAcreditacion"] = nil
 				proyecto["FechaVenimientoCalidad"] = nil
 
-				// errdependencia := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia_tipo_dependencia/?query=TipoDependenciaId:2", &dependencia)
+				// errdependencia := request.GetJson(beego.AppConfig.String("OikosService")+"/dependencia_tipo_dependencia/?query=TipoDependenciaId:2", &dependencia)
 				/*
 						for _, dependencia := range dependencias {
 						dependenciaTemp := dependencia["DependenciaId"].(map[string]interface{})
@@ -68,7 +68,7 @@ func (c *ConsultaProyectoAcademicoController) GetAll() {
 
 				// Información de la facultad
 				var dependencia map[string]interface{}
-				errdependencia := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia/"+fmt.Sprintf("%.f", proyectobase["FacultadId"].(float64)), &dependencia)
+				errdependencia := request.GetJson(beego.AppConfig.String("OikosService")+"/dependencia/"+fmt.Sprintf("%.f", proyectobase["FacultadId"].(float64)), &dependencia)
 				// if errdependencia["Type"] == "error" || errdependencia != nil || dependencia["Status"] == "404" || dependencia["Message"] != nil {
 				if errdependencia == nil {
 					// idOikos := dependencia["Id"].(float64)
@@ -142,9 +142,9 @@ func (c *ConsultaProyectoAcademicoController) GetOnePorId() {
 		// var dependencias []map[string]interface{}
 		var unidades []map[string]interface{}
 
-		errproyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/tr_proyecto_academico/"+idStr, &proyectos)
-		// errdependencia := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia_tipo_dependencia/?query=TipoDependenciaId:2", &dependencias)
-		errunidad := request.GetJson("http://"+beego.AppConfig.String("CoreService")+"/unidad_tiempo/", &unidades)
+		errproyecto := request.GetJson(beego.AppConfig.String("ProyectoAcademicoService")+"/tr_proyecto_academico/"+idStr, &proyectos)
+		// errdependencia := request.GetJson(beego.AppConfig.String("OikosService")+"/dependencia_tipo_dependencia/?query=TipoDependenciaId:2", &dependencias)
+		errunidad := request.GetJson(beego.AppConfig.String("CoreService")+"/unidad_tiempo/", &unidades)
 
 		if proyectos[0]["ProyectoAcademico"] != nil {
 
@@ -177,7 +177,7 @@ func (c *ConsultaProyectoAcademicoController) GetOnePorId() {
 
 					// Información de la facultad
 					var dependenciaFacultad map[string]interface{}
-					errdependenciaFacultad := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia/"+fmt.Sprintf("%.f", proyectobase["FacultadId"].(float64)), &dependenciaFacultad)
+					errdependenciaFacultad := request.GetJson(beego.AppConfig.String("OikosService")+"/dependencia/"+fmt.Sprintf("%.f", proyectobase["FacultadId"].(float64)), &dependenciaFacultad)
 					// if errdependencia["Type"] == "error" || errdependencia != nil || dependencia["Status"] == "404" || dependencia["Message"] != nil {
 					if errdependenciaFacultad == nil {
 						proyecto["NombreFacultad"] = dependenciaFacultad["Nombre"]
@@ -186,7 +186,7 @@ func (c *ConsultaProyectoAcademicoController) GetOnePorId() {
 
 					// Información de la dependencia del proyecto
 					var dependencia map[string]interface{}
-					errdependencia := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia/"+fmt.Sprintf("%.f", proyectobase["DependenciaId"].(float64)), &dependencia)
+					errdependencia := request.GetJson(beego.AppConfig.String("OikosService")+"/dependencia/"+fmt.Sprintf("%.f", proyectobase["DependenciaId"].(float64)), &dependencia)
 					// if errdependencia["Type"] == "error" || errdependencia != nil || dependencia["Status"] == "404" || dependencia["Message"] != nil {
 					if errdependencia == nil {
 						proyecto["TelefonoDependencia"] = dependencia["TelefonoDependencia"]
@@ -277,7 +277,7 @@ func (c *ConsultaProyectoAcademicoController) PutInhabilitarProyecto() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &ProyectoAcademico); err == nil {
 
 		var resultadoProyecto map[string]interface{}
-		errProyecto := request.SendJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_institucion/"+idStr, "PUT", &resultadoProyecto, ProyectoAcademico)
+		errProyecto := request.SendJson(beego.AppConfig.String("ProyectoAcademicoService")+"/proyecto_academico_institucion/"+idStr, "PUT", &resultadoProyecto, ProyectoAcademico)
 		if resultadoProyecto["Type"] == "error" || errProyecto != nil || resultadoProyecto["Status"] == "404" || resultadoProyecto["Message"] != nil {
 			alertas = append(alertas, resultadoProyecto)
 			alerta.Type = "error"
@@ -312,7 +312,7 @@ func (c *ConsultaProyectoAcademicoController) GetOneRegistroPorId() {
 	if resultado["Type"] != "error" {
 		var registros []map[string]interface{}
 
-		errproyecto := request.GetJson("http://"+beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion/?query=ProyectoAcademicoInstitucionId.Id:"+idStr, &registros)
+		errproyecto := request.GetJson(beego.AppConfig.String("ProyectoAcademicoService")+"/registro_calificado_acreditacion/?query=ProyectoAcademicoInstitucionId.Id:"+idStr, &registros)
 
 		if errproyecto == nil {
 			if registros[0]["Id"] != nil {

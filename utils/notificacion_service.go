@@ -15,7 +15,7 @@ import (
 
 func SendTemplatedEmail(inputemailtemplated map[string]interface{}) {
 	var resultadoPost map[string]interface{}
-	if errSendTemplatedEmail := request.SendJsonEscapeUnicode("http://"+beego.AppConfig.String("notificacionService")+"email/enviar_templated_email", "POST", &resultadoPost, inputemailtemplated); errSendTemplatedEmail == nil {
+	if errSendTemplatedEmail := request.SendJsonEscapeUnicode(beego.AppConfig.String("notificacionService")+"email/enviar_templated_email", "POST", &resultadoPost, inputemailtemplated); errSendTemplatedEmail == nil {
 		fmt.Println("resultado", resultadoPost)
 
 	} else {

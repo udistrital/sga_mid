@@ -115,7 +115,7 @@ func run_bee() {
 	time.Sleep(20 * time.Second)
 
 	fmt.Println("Obteniendo respuesta de http://" + beego.AppConfig.String("appurl") + ":" + beego.AppConfig.String("httpport"))
-	errApi := request.GetJson("http://"+beego.AppConfig.String("appurl")+":"+beego.AppConfig.String("httpport"), &resultado)
+	errApi := request.GetJson(beego.AppConfig.String("appurl")+":"+beego.AppConfig.String("httpport"), &resultado)
 	if errApi == nil && resultado != nil {
 		fmt.Println("El API se Encuentra en Estado OK")
 	} else if IntentosAPI <= 3 {
@@ -217,10 +217,10 @@ func iSendRequestToWhereBodyIsMultipartformdataWithThisParamsAndTheFileLocatedAt
 	var url string
 
 	if method == "GET" || method == "POST" {
-		url = "http://" + beego.AppConfig.String("appurl") + ":" + beego.AppConfig.String("httpport") + endpoint
+		url = beego.AppConfig.String("appurl") + ":" + beego.AppConfig.String("httpport") + endpoint
 	} else {
 		if method == "PUT" || method == "DELETE" {
-			url = "http://" + beego.AppConfig.String("appurl") + ":" + beego.AppConfig.String("httpport") + endpoint
+			url = beego.AppConfig.String("appurl") + ":" + beego.AppConfig.String("httpport") + endpoint
 		}
 	}
 
@@ -281,14 +281,14 @@ func iSendRequestToWhereBodyIsJson(method, endpoint, bodyreq string) error {
 	var url string
 
 	if method == "GET" || method == "POST" {
-		url = "http://" + beego.AppConfig.String("appurl") + ":" + beego.AppConfig.String("httpport") + endpoint
+		url = beego.AppConfig.String("appurl") + ":" + beego.AppConfig.String("httpport") + endpoint
 
 	} else {
 		if method == "PUT" || method == "DELETE" {
 			// str := strconv.FormatFloat(Id, 'f', 5, 64)
-			// url = "http://" + beego.AppConfig.String("appurl") + ":" + beego.AppConfig.String("httpport") + endpoint + "/" + str
+			// url = beego.AppConfig.String("appurl") + ":" + beego.AppConfig.String("httpport") + endpoint + "/" + str
 			// Se envia Id en el endpoint
-			url = "http://" + beego.AppConfig.String("appurl") + ":" + beego.AppConfig.String("httpport") + endpoint
+			url = beego.AppConfig.String("appurl") + ":" + beego.AppConfig.String("httpport") + endpoint
 		}
 	}
 

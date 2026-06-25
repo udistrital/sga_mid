@@ -3,13 +3,14 @@ package controllers
 import (
 	"encoding/base64"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	mcrypt "github.com/mfpierre/go-mcrypt"
 	"github.com/udistrital/sga_mid/utils"
 	"github.com/udistrital/utils_oas/request"
-	"strconv"
-	"strings"
 )
 
 type EspaciosAcademicosLegacyController struct {
@@ -123,7 +124,7 @@ func (c *EspaciosAcademicosLegacyController) GetSyllabusLegacy() {
 	}
 
 	// Query
-	syllabusErr := request.GetJson("http://"+beego.AppConfig.String("SyllabusService")+
+	syllabusErr := request.GetJson(beego.AppConfig.String("SyllabusService")+
 		fmt.Sprintf("syllabus?query=espacio_academico_id:%v,proyecto_curricular_id:%v,plan_estudios_id:%v,syllabus_actual:true",
 			espacioAcademicoId, proyectoCurricularId, planEstudioId),
 		&syllabusResponse)

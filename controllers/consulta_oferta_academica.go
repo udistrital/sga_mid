@@ -34,7 +34,7 @@ func (c *ConsultaOfertaAcademicaController) GetOneEventoPorPeriodo() {
 	alertas := []interface{}{"error"}
 	idStr := c.Ctx.Input.Param(":id")
 
-	errResultado := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento/"+idStr, &resultado)
+	errResultado := request.GetJson(beego.AppConfig.String("EventoService")+"/calendario_evento/"+idStr, &resultado)
 
 	if errResultado == nil && resultado != nil {
 
@@ -42,7 +42,7 @@ func (c *ConsultaOfertaAcademicaController) GetOneEventoPorPeriodo() {
 
 			var evento []map[string]interface{}
 
-			errEvento := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento/?query=PeriodoId:"+idStr, &evento)
+			errEvento := request.GetJson(beego.AppConfig.String("EventoService")+"/calendario_evento/?query=PeriodoId:"+idStr, &evento)
 			if errEvento == nil {
 
 				for u := 0; u < len(evento); u++ {
@@ -54,7 +54,7 @@ func (c *ConsultaOfertaAcademicaController) GetOneEventoPorPeriodo() {
 					str := fmt.Sprintf("%v", Result)
 
 					var dependencia []map[string]interface{}
-					errdependencia := request.GetJson("http://"+beego.AppConfig.String("OikosService")+"/dependencia_tipo_dependencia/?query=TipoDependenciaId:1,DependenciaId:"+str, &dependencia)
+					errdependencia := request.GetJson(beego.AppConfig.String("OikosService")+"/dependencia_tipo_dependencia/?query=TipoDependenciaId:1,DependenciaId:"+str, &dependencia)
 					if errdependencia == nil {
 
 						dependinciaId := dependencia[0]["DependenciaId"]
@@ -120,7 +120,7 @@ func (c *ConsultaOfertaAcademicaController) GetAll() {
 
 		var evento []map[string]interface{}
 
-		errEvento := request.GetJson("http://"+beego.AppConfig.String("EventoService")+"/calendario_evento/", &evento)
+		errEvento := request.GetJson(beego.AppConfig.String("EventoService")+"/calendario_evento/", &evento)
 		if errEvento == nil {
 			fmt.Println("entro a Tercer if")
 			//resultado["EventoPorId"] = evento

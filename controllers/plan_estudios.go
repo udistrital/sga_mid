@@ -3,6 +3,11 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"sort"
+	"strconv"
+	"strings"
+
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/sga_mid/helpers"
@@ -10,10 +15,6 @@ import (
 	"github.com/udistrital/sga_mid/process/plan_estudio_visualizacion_documento"
 	"github.com/udistrital/sga_mid/utils"
 	requestmanager "github.com/udistrital/sga_mid/utils/requestManager"
-	"reflect"
-	"sort"
-	"strconv"
-	"strings"
 )
 
 // Plan_estudiosController operations for Plan_estudios
@@ -93,7 +94,7 @@ func (c *Plan_estudiosController) PostBaseStudyPlan() {
 
 func getApprovalStatus(id int) (any, error) {
 	var resStudyPlan interface{}
-	urlStudyPlan := "http://" + beego.AppConfig.String("PlanEstudioService") +
+	urlStudyPlan := beego.AppConfig.String("PlanEstudioService") +
 		"estado_aprobacion?" + "query=id:" + fmt.Sprintf("%v", id)
 	if errPlan := request.GetJson(urlStudyPlan, &resStudyPlan); errPlan == nil {
 		if resStudyPlan.(map[string]interface{})["Data"] != nil {
@@ -109,7 +110,7 @@ func getApprovalStatus(id int) (any, error) {
 
 func createStudyPlan(studyPlanBody map[string]interface{}) (map[string]interface{}, error) {
 	var newStudyPlan map[string]interface{}
-	urlStudyPlan := "http://" + beego.AppConfig.String("PlanEstudioService") +
+	urlStudyPlan := beego.AppConfig.String("PlanEstudioService") +
 		"plan_estudio"
 	if errNewPlan := helpers.SendJson(urlStudyPlan, "POST", &newStudyPlan, studyPlanBody); errNewPlan == nil {
 		return newStudyPlan["Data"].(map[string]interface{}), nil
@@ -164,7 +165,7 @@ func (c *Plan_estudiosController) GetStudyPlanVisualization() {
 	}
 
 	var resStudyPlan map[string]interface{}
-	urlStudyPlan := "http://" + beego.AppConfig.String("PlanEstudioService") +
+	urlStudyPlan := beego.AppConfig.String("PlanEstudioService") +
 		fmt.Sprintf("plan_estudio/%v", idPlan)
 	errPlan := request.GetJson(urlStudyPlan, &resStudyPlan)
 
@@ -383,7 +384,7 @@ func semesterDistribution2SpacesVisualization(spaceSemesterDistribution map[stri
 
 func getSpaceVisualizationData(academicSpaceId string, classificationsData []interface{}, academies map[string]map[string]interface{}) (map[string]interface{}, error) {
 	var academicSpace map[string]interface{}
-	url := "http://" + beego.AppConfig.String("EspaciosAcademicosService") +
+	url := beego.AppConfig.String("EspaciosAcademicosService") +
 		fmt.Sprintf("espacio-academico/%v", academicSpaceId)
 
 	academicSpaceError := request.GetJson(url, &academicSpace)
@@ -415,7 +416,7 @@ func getSpaceVisualizationData(academicSpaceId string, classificationsData []int
 	if reflect.TypeOf(academicSpaceData["espacios_requeridos"]).Kind() == reflect.Array || reflect.TypeOf(academicSpaceData["espacios_requeridos"]).Kind() == reflect.Slice {
 		for _, prerequisiteId := range academicSpaceData["espacios_requeridos"].([]interface{}) {
 			var prerequisiteResponse map[string]interface{}
-			url := "http://" + beego.AppConfig.String("EspaciosAcademicosService") +
+			url := beego.AppConfig.String("EspaciosAcademicosService") +
 				fmt.Sprintf("espacio-academico/%v", prerequisiteId)
 			prerequisiteError := request.GetJson(url, &prerequisiteResponse)
 
@@ -435,7 +436,7 @@ func getSpaceVisualizationData(academicSpaceId string, classificationsData []int
 	groupingSpaceId, groupingSpaceOk := academicSpaceData["agrupacion_espacios_id"]
 	if groupingSpaceOk {
 		// Get academic
-		url = "http://" + beego.AppConfig.String("EspaciosAcademicosService") +
+		url = beego.AppConfig.String("EspaciosAcademicosService") +
 			fmt.Sprintf("agrupacion-espacios/%v", groupingSpaceId)
 
 		groupingSpaceError := request.GetJson(url, &groupingSpace)
@@ -517,7 +518,7 @@ func getClassificationData() ([]interface{}, error) {
 	classId := 51
 	var spaceClassResult map[string]interface{}
 
-	spaceClassErr := request.GetJson("http://"+beego.AppConfig.String("ParametroService")+
+	spaceClassErr := request.GetJson(beego.AppConfig.String("ParametroService")+
 		fmt.Sprintf("parametro?query=TipoParametroId:%v&limit=0&fields=Id,Nombre,CodigoAbreviacion", classId), &spaceClassResult)
 	if spaceClassErr != nil || fmt.Sprintf("%v", spaceClassResult) == "[map[]]" {
 		if spaceClassErr == nil {
@@ -566,7 +567,7 @@ func getParentStudyPlanVisualization(studyPlanData map[string]interface{}, class
 								planV := orderPlan[kPlan]
 								if idChildPlan, childPlanError := planV.(map[string]interface{})["Id"]; childPlanError {
 									var resChildStudyPlan map[string]interface{}
-									urlChildStudyPlan := "http://" + beego.AppConfig.String("PlanEstudioService") +
+									urlChildStudyPlan := beego.AppConfig.String("PlanEstudioService") +
 										fmt.Sprintf("plan_estudio/%v", idChildPlan)
 
 									errChildPlan := request.GetJson(urlChildStudyPlan, &resChildStudyPlan)
@@ -629,7 +630,7 @@ func getParentStudyPlanVisualization(studyPlanData map[string]interface{}, class
 
 func getPlanProjectByParent(parentId float64) (map[string]any, error) {
 	var resStudyPlanProject map[string]interface{}
-	urlStudyPlan := "http://" + beego.AppConfig.String("PlanEstudioService") +
+	urlStudyPlan := beego.AppConfig.String("PlanEstudioService") +
 		fmt.Sprintf("plan_estudio_proyecto_academico?query=activo:true,PlanEstudioId:%v", parentId)
 	errPlan := request.GetJson(urlStudyPlan, &resStudyPlanProject)
 
@@ -770,7 +771,7 @@ func (c *Plan_estudiosController) GetPlanPorDependenciaVinculacionTercero() {
 		CargoId__in:312|320 -> parametrosId: 312: JEFE OFICINA, 320: Asistente Dependencia
 	*/
 	var estadoVinculacion []map[string]interface{}
-	estadoVinculacionErr := request.GetJson("http://"+beego.AppConfig.String("TercerosService")+
+	estadoVinculacionErr := request.GetJson(beego.AppConfig.String("TercerosService")+
 		fmt.Sprintf("vinculacion?query=Activo:true,DependenciaId__gt:0,CargoId__in:312|320,tercero_principal_id:%v", terceroIdStr), &estadoVinculacion)
 	if estadoVinculacionErr != nil || fmt.Sprintf("%v", estadoVinculacion) == "[map[]]" {
 		if estadoVinculacionErr == nil {
@@ -805,7 +806,7 @@ func (c *Plan_estudiosController) GetPlanPorDependenciaVinculacionTercero() {
 	// 2. Consultar planes, revisando cuales despendencias si direron resultado
 	for _, dependencia := range dependencias {
 		var resStudyPlan map[string]interface{}
-		urlStudyPlan := "http://" + beego.AppConfig.String("PlanEstudioService") +
+		urlStudyPlan := beego.AppConfig.String("PlanEstudioService") +
 			fmt.Sprintf("plan_estudio?query=Activo:true,ProyectoAcademicoId:%v", dependencia)
 		errPlan := request.GetJson(urlStudyPlan, &resStudyPlan)
 
@@ -816,7 +817,7 @@ func (c *Plan_estudiosController) GetPlanPorDependenciaVinculacionTercero() {
 				// si están se valida que la dependencia sea del tipo proyecto curricular
 				// TipoDependenciaId: 1 -> PROYECTO CURRICULAR
 				var resProject []map[string]interface{}
-				urlStudyPlan := "http://" + beego.AppConfig.String("OikosService") +
+				urlStudyPlan := beego.AppConfig.String("OikosService") +
 					fmt.Sprintf("dependencia_tipo_dependencia?query=DependenciaId:%v&fields=TipoDependenciaId", dependencia)
 				errProject := request.GetJson(urlStudyPlan, &resProject)
 				if errProject == nil && resProject != nil && fmt.Sprintf("%v", resProject) != "[map[]]" {
